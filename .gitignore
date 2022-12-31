@@ -1,3 +1,5 @@
+*.db
+*.csv
 *.parquet
 env.sh
 **/.ipynb_checkpoints
