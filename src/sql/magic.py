@@ -191,6 +191,12 @@ class SqlMagic(Magics, Configurable):
         action="store_true",
         help="Do not execute query (use it with --save)",
     )
+    @argument(
+        "-A",
+        "--alias",
+        type=str,
+        help="Assign an alias to the connection",
+    )
     def execute(self, line="", cell="", local_ns={}):
         """
         Runs SQL statement against a database, specified by
@@ -273,6 +279,7 @@ class SqlMagic(Magics, Configurable):
                 displaycon=self.displaycon,
                 connect_args=args.connection_arguments,
                 creator=args.creator,
+                alias=args.alias,
             )
         except Exception as e:
             print(e)
