@@ -50,34 +50,39 @@ class Connection:
             cls.connections.keys()
         )
 
-    def __init__(self, engine):
+    def __init__(self, engine, alias=None):
         self.dialect = engine.url.get_dialect()
         self.metadata = sqlalchemy.MetaData(bind=engine)
         self.name = self.assign_name(engine)
         self.session = engine.connect()
-        self.connections[repr(self.metadata.bind.url)] = self
+        self.connections[alias or repr(self.metadata.bind.url)] = self
         self.connect_args = None
         Connection.current = self
 
     @classmethod
-    def from_connect_str(cls, connect_str=None, connect_args=None, creator=None):
+    def from_connect_str(
+        cls, connect_str=None, connect_args=None, creator=None, alias=None
+    ):
         """Creates a new connection from a connection string"""
         connect_args = connect_args or {}
 
         try:
             if creator:
                 engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args, creator=creator
+                    connect_str,
+                    connect_args=connect_args,
+                    creator=creator,
                 )
             else:
                 engine = sqlalchemy.create_engine(
-                    connect_str, connect_args=connect_args
+                    connect_str,
+                    connect_args=connect_args,
                 )
         except Exception:
             print(cls.tell_format())
             raise
 
-        connection = cls(engine)
+        connection = cls(engine, alias=alias)
         connection.connect_args = connect_args
 
         return connection

@@ -266,6 +266,8 @@ class SqlMagic(Magics, Configurable):
             args.creator = user_ns[args.creator]
 
         try:
+            # this creates a new connection or use an existing one
+            # depending on the connect_arg value
             conn = sql.connection.Connection.set(
                 connect_arg,
                 displaycon=self.displaycon,
