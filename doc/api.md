@@ -40,6 +40,9 @@ kernelspec:
 ``-f`` / ``--file <path>``
     Run SQL from file at this path
 
+``-A`` / ``--alias <alias>``
+    Assign an alias when establishing a connection
+
 ```{code-cell} ipython3
 :tags: [remove-input]
 
@@ -64,13 +67,13 @@ for f in files:
 %sql sqlite:///db_one.db
 ```
 
-## List connections
-
-Connect to another database to demonstrate `--list`'s usage:
+Assign an alias to the connection:
 
 ```{code-cell} ipython3
-%sql sqlite:///db_two.db
+%sql sqlite:///db_two.db --alias db-two
 ```
+
+## List connections
 
 ```{code-cell} ipython3
 %sql --list
@@ -82,7 +85,17 @@ Connect to another database to demonstrate `--list`'s usage:
 %sql --close sqlite:///db_one.db
 ```
 
+Or pass an alias:
+
+```{code-cell} ipython3
+%sql --close db-two
+```
+
 ## Create table
+
+```{code-cell} ipython3
+%sql sqlite://
+```
 
 ```{code-cell} ipython3
 import pandas as pd
