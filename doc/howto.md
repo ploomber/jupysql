@@ -152,6 +152,10 @@ SELECT * FROM numbers
 
 ## Switch connections
 
+```{versionadded} 0.5.2
+`-A/--alias`
+```
+
 ```{code-cell} ipython3
 from sqlalchemy import create_engine
 import pandas as pd

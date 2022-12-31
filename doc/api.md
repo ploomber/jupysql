@@ -28,9 +28,6 @@ kernelspec:
 ``-p`` / ``--persist``
     Create a table name in the database from the named DataFrame
 
-``-n`` / ``--no-index``
-    Do not persist data frame's index
-
 ``--append``
     Like ``--persist``, but appends to the table if it already exists 
 
@@ -39,6 +36,24 @@ kernelspec:
 
 ``-f`` / ``--file <path>``
     Run SQL from file at this path
+
+```{versionadded} 0.4.2
+```
+
+``-n`` / ``--no-index``
+    Do not persist data frame's index (used with `-p/--persist`)
+
+```{versionadded} 0.4.3
+```
+
+``-S`` / ``--save <name>``
+    Save this query for later use
+
+``-w`` / ``--with <name>``
+    Use a previously saved query (used after `-S/--save`)
+
+```{versionadded} 0.5.2
+```
 
 ``-A`` / ``--alias <alias>``
     Assign an alias when establishing a connection
@@ -67,7 +82,7 @@ for f in files:
 %sql sqlite:///db_one.db
 ```
 
-Assign an alias to the connection:
+Assign an alias to the connection (**added 0.5.2**):
 
 ```{code-cell} ipython3
 %sql sqlite:///db_two.db --alias db-two
@@ -85,7 +100,7 @@ Assign an alias to the connection:
 %sql --close sqlite:///db_one.db
 ```
 
-Or pass an alias:
+Or pass an alias (**added in 0.5.2**):
 
 ```{code-cell} ipython3
 %sql --close db-two
