@@ -214,14 +214,35 @@ FROM 'yellow_tripdata_2021-*.parquet'
 WHERE trip_distance < 18.93
 ```
 
-Now we create a new histogram:
+### Histogram
 
 ```{code-cell} ipython3
 %sqlplot histogram --table no_outliers --column trip_distance --bins 50 --with no_outliers
 ```
 
-## Boxplot
+### Boxplot
 
 ```{code-cell} ipython3
 %sqlplot boxplot --table no_outliers --column trip_distance --with no_outliers
+```
+
+## Querying existing dataframes
+
+```{code-cell} ipython3
+import pandas as pd
+from sqlalchemy import create_engine
+
+engine = create_engine("duckdb:///:memory:")
+engine.execute("register", ("df", pd.DataFrame({"x": range(100)})))
+```
+
+```{code-cell} ipython3
+%sql engine
+```
+
+```{code-cell} ipython3
+%%sql
+SELECT *
+FROM df
+WHERE x > 95
 ```
