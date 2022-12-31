@@ -14,7 +14,6 @@ except ImportError:
 
 from sql import plot
 from sql.command import SQLPlotCommand
-from sql.connection import Connection
 
 
 @magics_class
@@ -25,7 +24,7 @@ class SqlPlotMagic(Magics, Configurable):
     @magic_arguments()
     @argument("line", default="", nargs="*", type=str, help="Plot name")
     @argument("-t", "--table", type=str, help="Table to use")
-    @argument("-c", "--column", type=str, help="Column to use")
+    @argument("-c", "--column", type=str, nargs="+", help="Column(s) to use")
     @argument(
         "-b",
         "--bins",
@@ -33,16 +32,48 @@ class SqlPlotMagic(Magics, Configurable):
         default=50,
         help="Histogram bins",
     )
-    def execute(self, line="", cell="", local_ns={}):
+    @argument(
+        "-o",
+        "--orient",
+        type=str,
+        default="v",
+        help="Boxplot orientation (v/h)",
+    )
+    @argument(
+        "-w",
+        "--with",
+        type=str,
+        help="Use a saved query",
+        action="append",
+        dest="with_",
+    )
+    def execute(self, line="", cell="", local_ns=None):
         """
         Plot magic
         """
 
         cmd = SQLPlotCommand(self, line)
 
-        if cmd.args.line[0] == "box":
-            plot.boxplot(table=cmd.args.table, column=cmd.args.column, conn=None)
+        if len(cmd.args.column) == 1:
+            column = cmd.args.column[0]
         else:
-            plot.histogram(
-                table=cmd.args.table, column=cmd.args.column, bins=cmd.args.bins
+            column = cmd.args.column
+
+        if cmd.args.line[0] in {"box", "boxplot"}:
+            return plot.boxplot(
+                table=cmd.args.table,
+                column=column,
+                with_=cmd.args.with_,
+                orient=cmd.args.orient,
+                conn=None,
             )
+        elif cmd.args.line[0] in {"hist", "histogram"}:
+            return plot.histogram(
+                table=cmd.args.table,
+                column=column,
+                bins=cmd.args.bins,
+                with_=cmd.args.with_,
+                conn=None,
+            )
+        else:
+            raise ValueError(f"Unknown plot {cmd.args.line[0]!r}")
