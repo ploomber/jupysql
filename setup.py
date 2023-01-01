@@ -37,6 +37,8 @@ DEV = [
     "duckdb",
     "duckdb-engine",
     "matplotlib",
+    # sql.plot module tests
+    "matplotlib",
 ]
 
 setup(
