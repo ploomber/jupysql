@@ -2,13 +2,18 @@
 Plot using the SQL backend
 """
 from ploomber_core.dependencies import requires
-import numpy as np
 from jinja2 import Template
 
 try:
     import matplotlib.pyplot as plt
 except ModuleNotFoundError:
     plt = None
+
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
+
 
 from sql.store import store
 import sql.connection
