@@ -73,7 +73,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execute")
+    displaycon = Bool(True, config=True, help="Show connection string after execution")
     autolimit = Int(
         0,
         config=True,
