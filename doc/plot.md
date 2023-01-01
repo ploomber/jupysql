@@ -17,6 +17,7 @@ kernelspec:
 `%sqlplot` was introduceed in 0.5.2; however, the underlying [Python API](api/python.html#sql-plot) was introduced in 0.4.4
 ```
 
+
 The most common way for plotting datasets in Python is to load them using pandas and then use matplotlib or seaborn for plotting. This approach requires loading all your data into memory which is highly inefficient, since you can easily run out of memory as you perform data transformations.
 
 The plotting module in JupySQL runs computations in the SQL engine (database, warehouse, or embedded engine). This delegates memory management to the engine and ensures that intermediate computations do not keep eating up memory, allowing you to efficiently plot massive datasets. There are two primary use cases:
@@ -45,7 +46,8 @@ if not Path("yellow_tripdata_2021-01.parquet").is_file():
 ### Setup
 
 ```{note}
-This example requires duckdb-engine: `pip install duckdb-engine`
+`%sqlplot` requires `matplotlib`: `pip install matplotlib` and this example requires
+duckdb-engine: `pip install duckdb-engine`
 ```
 
 +++

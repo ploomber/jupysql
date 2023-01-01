@@ -1,9 +1,14 @@
 """
 Plot using the SQL backend
 """
-import matplotlib.pyplot as plt
+from ploomber_core.dependencies import requires
 import numpy as np
 from jinja2 import Template
+
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    plt = None
 
 from sql.store import store
 import sql.connection
@@ -182,6 +187,7 @@ def _boxplot_stats(con, table, column, whis=1.5, autorange=False, with_=None):
 
 
 # https://github.com/matplotlib/matplotlib/blob/ddc260ce5a53958839c244c0ef0565160aeec174/lib/matplotlib/axes/_axes.py#L3915
+@requires(["matplotlib"])
 def boxplot(table, column, *, orient="v", with_=None, conn=None):
     """Plot boxplot
 
@@ -272,6 +278,7 @@ FROM "{{table}}"
 
 
 # TODO: add unit tests
+@requires(["matplotlib"])
 def histogram(table, column, bins, with_=None, conn=None):
     """Plot histogram
 

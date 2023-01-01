@@ -7,6 +7,11 @@ there is a public Python API you can also use.
 ``sql.plot``
 ------------
 
+.. note::
+
+    ``sql.plot`` requires ``matplotlib``: ``pip install matplotlib``
+
+
 The ``sql.plot`` module implements functions that compute the summary statistics
 in the database, a much more scalable approach that loading all your data into
 memory with pandas.

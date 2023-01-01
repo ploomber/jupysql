@@ -16,8 +16,10 @@ kernelspec:
 ```{versionadded} 0.5.2
 ```
 
+
 ```{note}
-This example requires `duckdb-engine`: `pip install duckdb-engine`
+`%sqlplot` requires `matplotlib`: `pip install matplotlib` and this example requires
+duckdb-engine: `pip install duckdb-engine`
 ```
 
 ```{code-cell} ipython3
