@@ -35,7 +35,6 @@ DEV = [
     # tests
     "duckdb",
     "duckdb-engine",
-    "matplotlib",
     # sql.plot module tests
     "matplotlib",
 ]
