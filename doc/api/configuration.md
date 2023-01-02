@@ -136,6 +136,23 @@ df
 type(df)
 ```
 
+## `feedback`
+
+Print number of rows affected by DML.
+
+```{code-cell} ipython3
+%config SqlMagic.feedback = False
+```
+
+```{code-cell} ipython3
+%%sql
+CREATE TABLE languages2 (name, rating, change);
+INSERT INTO languages VALUES ('Python', 14.44, 2.48);
+INSERT INTO languages VALUES ('C', 13.13, 1.50);
+INSERT INTO languages VALUES ('Java', 11.59, 0.40);
+INSERT INTO languages VALUES ('C++', 10.00, 1.98);
+```
+
 ## PostgreSQL features
 
 `psql`-style "backslash" [meta-commands](https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-META-COMMANDS) commands (``\d``, ``\dt``, etc.)
