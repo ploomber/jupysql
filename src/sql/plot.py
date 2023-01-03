@@ -18,10 +18,7 @@ except ModuleNotFoundError:
 from sql.store import store
 import sql.connection
 
-# TODO: support for a select statement to define table and column
 
-
-# TODO: test with NAs
 def _summary_stats(con, table, column, with_=None):
     """Compute percentiles and mean for boxplot"""
     template = Template(
@@ -282,7 +279,6 @@ FROM "{{table}}"
     return min_, max_
 
 
-# TODO: add unit tests
 @requires(["matplotlib"])
 def histogram(table, column, bins, with_=None, conn=None):
     """Plot histogram

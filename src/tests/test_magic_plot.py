@@ -55,21 +55,28 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "%sqlplot histogram --table data.csv --column x",
         "%sqlplot hist --table data.csv --column x",
         "%sqlplot histogram --table data.csv --column x --bins 10",
+        pytest.param(
+            "%sqlplot histogram --table nas.csv --column x",
+            marks=pytest.mark.xfail(reason="Not implemented yet"),
+        ),
         "%sqlplot boxplot --table data.csv --column x",
         "%sqlplot box --table data.csv --column x",
         "%sqlplot boxplot --table data.csv --column x --orient h",
         "%sqlplot boxplot --table subset --column x --with subset",
         "%sqlplot boxplot -t subset -c x -w subset -o h",
+        "%sqlplot boxplot --table nas.csv --column x",
     ],
     ids=[
         "histogram",
         "hist",
         "histogram-bins",
+        "histogram-nas",
         "boxplot",
         "box",
         "boxplot-horizontal",
         "boxplot-with",
         "boxplot-shortcuts",
+        "boxplot-nas",
     ],
 )
 def test_sqlplot(tmp_empty, ip, cell):
@@ -80,6 +87,15 @@ def test_sqlplot(tmp_empty, ip, cell):
         """\
 x, y
 0, 0
+1, 1
+2, 2
+"""
+    )
+
+    Path("nas.csv").write_text(
+        """\
+x, y
+, 0
 1, 1
 2, 2
 """
