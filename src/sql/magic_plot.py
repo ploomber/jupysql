@@ -23,8 +23,10 @@ class SqlPlotMagic(Magics, Configurable):
     @line_magic("sqlplot")
     @magic_arguments()
     @argument("line", default="", nargs="*", type=str, help="Plot name")
-    @argument("-t", "--table", type=str, help="Table to use")
-    @argument("-c", "--column", type=str, nargs="+", help="Column(s) to use")
+    @argument("-t", "--table", type=str, help="Table to use", required=True)
+    @argument(
+        "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
+    )
     @argument(
         "-b",
         "--bins",
@@ -59,6 +61,11 @@ class SqlPlotMagic(Magics, Configurable):
         else:
             column = cmd.args.column
 
+        if not cmd.args.line:
+            raise ValueError(
+                "Missing the first argument, must be: 'histogram' or 'boxplot'"
+            )
+
         if cmd.args.line[0] in {"box", "boxplot"}:
             return plot.boxplot(
                 table=cmd.args.table,
@@ -76,4 +83,6 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         else:
-            raise ValueError(f"Unknown plot {cmd.args.line[0]!r}")
+            raise ValueError(
+                f"Unknown plot {cmd.args.line[0]!r}. Must be: 'histogram' or 'boxplot'"
+            )
