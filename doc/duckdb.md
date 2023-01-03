@@ -159,7 +159,7 @@ SELECT * FROM track LIMIT 5
 
 ## Plotting large datasets
 
-```{versionadded 0.5.2
+```{versionadded} 0.5.2
 ```
 
 This section demonstrates how we can efficiently plot large datasets with DuckDB and JupySQL without blowing up our machine's memory. `%sqlplot` performs all aggregations in DuckDB.
