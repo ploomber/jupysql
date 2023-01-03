@@ -81,6 +81,7 @@ For longer queries, you can break them down into multiple lines using the `%%sql
 SELECT *
 FROM penguins.csv
 WHERE bill_length_mm > 40
+LIMIT 3
 ```
 
 ## Saving queries
