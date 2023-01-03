@@ -1,8 +1,8 @@
-name: jupysql-doc
+# binder environment
+name: jupysql-binder
 
 channels:
   - conda-forge
-
 
 dependencies:
   - python=3.10
