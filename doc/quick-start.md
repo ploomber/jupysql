@@ -60,6 +60,11 @@ Start a DuckDB in-memory database:
 %sql duckdb://
 ```
 
+```{tip}
+You can create as many connections as you want. Pass an `--alias {alias}` to easily
+[switch them or close](howto.html#switch-connections) them.
+```
+
 ## Querying
 
 For short queries, you can write them in a single line via the `%sql` line magic:
