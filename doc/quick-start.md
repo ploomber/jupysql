@@ -62,8 +62,20 @@ Start a DuckDB in-memory database:
 
 ## Querying
 
+For short queries, you can write them in a single line via the `%sql` line magic:
+
 ```{code-cell} ipython3
 %sql SELECT * FROM penguins.csv LIMIT 3
+```
+
+For longer queries, you can break them down into multiple lines using the `%%sql` cell magic:
+
+
+```{code-cell} ipython3
+%%sql
+SELECT *
+FROM penguins.csv
+WHERE bill_length_mm > 40
 ```
 
 ## Saving queries
