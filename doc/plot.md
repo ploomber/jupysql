@@ -96,7 +96,7 @@ To create a boxplot, call `%sqlplot boxplot`, and pass the name of the table, an
 %sqlplot boxplot --table yellow_tripdata_2021-01.parquet --column trip_distance
 ```
 
-There are many outliers in the data, let's find the 90th percentile to use it as cutoff value for better visualization:
+There are many outliers in the data, let's find the 90th percentile to use it as cutoff value, this will allow us to create a cleaner visulization:
 
 ```{code-cell} ipython3
 %%sql
