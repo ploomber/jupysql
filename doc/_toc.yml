@@ -12,11 +12,12 @@ parts:
     - file: plot-large
     - file: csv
     - file: compose
-    - caption: Integrations
-      chapters:
-        - file: integrations/duckdb
-        - file: integrations/pandas
-        - file: integrations/mindsdb
+
+  - caption: Integrations
+    chapters:
+      - file: integrations/duckdb
+      - file: integrations/pandas
+      - file: integrations/mindsdb
 
   - caption: API Reference
     chapters:
