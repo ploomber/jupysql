@@ -1,4 +1,4 @@
-# Mindsdb tutorial
+# Mindsdb integration
 In this guide we'll show an integration with MindsDB.
 
 We will use Jupysql to run queries on top of MindsDB.
