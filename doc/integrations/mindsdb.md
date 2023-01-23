@@ -18,74 +18,6 @@ Let's look at an example of how this integration can be used. Suppose we have a 
 %pip install PyMySQL jupysql sklearn-evaluation --upgrade
 ```
 
-    Requirement already satisfied: PyMySQL in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (1.0.2)
-    Requirement already satisfied: jupysql in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (0.5.2)
-    Requirement already satisfied: sklearn-evaluation in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (0.9.0)
-    Requirement already satisfied: sqlparse in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (0.4.3)
-    Requirement already satisfied: prettytable<1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (0.7.2)
-    Requirement already satisfied: ploomber-core>=0.1.* in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (0.2.0)
-    Requirement already satisfied: ipython-genutils>=0.1.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (0.2.0)
-    Requirement already satisfied: ipython>=1.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (8.8.0)
-    Requirement already satisfied: jinja2 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (3.1.2)
-    Requirement already satisfied: sqlalchemy<2.0,>=0.6.7 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jupysql) (1.4.46)
-    Requirement already satisfied: black in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (22.12.0)
-    Requirement already satisfied: parso in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (0.8.3)
-    Requirement already satisfied: mistune in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (2.0.4)
-    Requirement already satisfied: decorator in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (5.1.1)
-    Requirement already satisfied: scikit-learn in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (1.2.0)
-    Requirement already satisfied: pandas in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (1.5.2)
-    Requirement already satisfied: tabulate in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (0.9.0)
-    Requirement already satisfied: matplotlib in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (3.6.3)
-    Requirement already satisfied: nbformat in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from sklearn-evaluation) (5.7.3)
-    Requirement already satisfied: traitlets>=5 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (5.8.1)
-    Requirement already satisfied: backcall in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.2.0)
-    Requirement already satisfied: matplotlib-inline in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.1.6)
-    Requirement already satisfied: appnope in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.1.3)
-    Requirement already satisfied: prompt-toolkit<3.1.0,>=3.0.11 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (3.0.36)
-    Requirement already satisfied: pickleshare in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.7.5)
-    Requirement already satisfied: pygments>=2.4.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (2.14.0)
-    Requirement already satisfied: jedi>=0.16 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.18.2)
-    Requirement already satisfied: stack-data in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (0.6.2)
-    Requirement already satisfied: pexpect>4.3 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ipython>=1.0->jupysql) (4.8.0)
-    Requirement already satisfied: click in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ploomber-core>=0.1.*->jupysql) (8.1.3)
-    Requirement already satisfied: pyyaml in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ploomber-core>=0.1.*->jupysql) (6.0)
-    Requirement already satisfied: posthog in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from ploomber-core>=0.1.*->jupysql) (2.2.0)
-    Requirement already satisfied: platformdirs>=2 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from black->sklearn-evaluation) (2.6.2)
-    Requirement already satisfied: mypy-extensions>=0.4.3 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from black->sklearn-evaluation) (0.4.3)
-    Requirement already satisfied: pathspec>=0.9.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from black->sklearn-evaluation) (0.10.3)
-    Requirement already satisfied: tomli>=1.1.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from black->sklearn-evaluation) (2.0.1)
-    Requirement already satisfied: MarkupSafe>=2.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jinja2->jupysql) (2.1.1)
-    Requirement already satisfied: numpy>=1.19 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (1.24.1)
-    Requirement already satisfied: python-dateutil>=2.7 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (2.8.2)
-    Requirement already satisfied: contourpy>=1.0.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (1.0.7)
-    Requirement already satisfied: kiwisolver>=1.0.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (1.4.4)
-    Requirement already satisfied: cycler>=0.10 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (0.11.0)
-    Requirement already satisfied: pillow>=6.2.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (9.4.0)
-    Requirement already satisfied: packaging>=20.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (23.0)
-    Requirement already satisfied: fonttools>=4.22.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (4.38.0)
-    Requirement already satisfied: pyparsing>=2.2.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from matplotlib->sklearn-evaluation) (3.0.9)
-    Requirement already satisfied: fastjsonschema in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from nbformat->sklearn-evaluation) (2.16.2)
-    Requirement already satisfied: jsonschema>=2.6 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from nbformat->sklearn-evaluation) (4.17.3)
-    Requirement already satisfied: jupyter-core in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from nbformat->sklearn-evaluation) (5.1.3)
-    Requirement already satisfied: pytz>=2020.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from pandas->sklearn-evaluation) (2022.7)
-    Requirement already satisfied: scipy>=1.3.2 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from scikit-learn->sklearn-evaluation) (1.10.0)
-    Requirement already satisfied: joblib>=1.1.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from scikit-learn->sklearn-evaluation) (1.2.0)
-    Requirement already satisfied: threadpoolctl>=2.0.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from scikit-learn->sklearn-evaluation) (3.1.0)
-    Requirement already satisfied: attrs>=17.4.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jsonschema>=2.6->nbformat->sklearn-evaluation) (22.2.0)
-    Requirement already satisfied: pyrsistent!=0.17.0,!=0.17.1,!=0.17.2,>=0.14.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from jsonschema>=2.6->nbformat->sklearn-evaluation) (0.19.3)
-    Requirement already satisfied: ptyprocess>=0.5 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from pexpect>4.3->ipython>=1.0->jupysql) (0.7.0)
-    Requirement already satisfied: wcwidth in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from prompt-toolkit<3.1.0,>=3.0.11->ipython>=1.0->jupysql) (0.2.5)
-    Requirement already satisfied: six>=1.5 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from python-dateutil>=2.7->matplotlib->sklearn-evaluation) (1.16.0)
-    Requirement already satisfied: requests<3.0,>=2.7 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from posthog->ploomber-core>=0.1.*->jupysql) (2.28.2)
-    Requirement already satisfied: backoff<2.0.0,>=1.10.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from posthog->ploomber-core>=0.1.*->jupysql) (1.11.1)
-    Requirement already satisfied: monotonic>=1.5 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from posthog->ploomber-core>=0.1.*->jupysql) (1.6)
-    Requirement already satisfied: asttokens>=2.1.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from stack-data->ipython>=1.0->jupysql) (2.2.1)
-    Requirement already satisfied: pure-eval in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from stack-data->ipython>=1.0->jupysql) (0.2.2)
-    Requirement already satisfied: executing>=1.2.0 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from stack-data->ipython>=1.0->jupysql) (1.2.0)
-    Requirement already satisfied: certifi>=2017.4.17 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from requests<3.0,>=2.7->posthog->ploomber-core>=0.1.*->jupysql) (2022.12.7)
-    Requirement already satisfied: idna<4,>=2.5 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from requests<3.0,>=2.7->posthog->ploomber-core>=0.1.*->jupysql) (3.4)
-    Requirement already satisfied: urllib3<1.27,>=1.21.1 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from requests<3.0,>=2.7->posthog->ploomber-core>=0.1.*->jupysql) (1.26.14)
-    Requirement already satisfied: charset-normalizer<4,>=2 in /Users/idomi/opt/miniconda3/envs/py310/lib/python3.10/site-packages (from requests<3.0,>=2.7->posthog->ploomber-core>=0.1.*->jupysql) (3.0.1)
     Note: you may need to restart the kernel to use updated packages.
 
 
@@ -303,12 +235,8 @@ PREDICT Churn;
 ```
 
     *  mysql+pymysql://ido%40ploomber.io:***@cloud.mindsdb.com:3306
-    (pymysql.err.ProgrammingError) (1149, " model 'customer_churn_predictor' already exists in project mindsdb!")
-    [SQL: CREATE MODEL mindsdb.customer_churn_predictor
-    FROM files
-      (SELECT * FROM churn)
-    PREDICT Churn;]
-    (Background on this error at: https://sqlalche.me/e/14/f405)
+    0 rows affected.
+    []
 
 
 ## Training the model
@@ -490,19 +418,7 @@ plot.ConfusionMatrix.from_raw_data(y_test, y_pred, normalize=False)
 ```
 
 
-
-
-    <sklearn_evaluation.plot.classification.ConfusionMatrix at 0x1083dd480>
-
-
-
-
-    
-![png](mindsDB_files/mindsDB_19_1.png)
-    
-
-
-Additionally we can generate a classification report for our model and compare it with other different models or previous iterations.
+Additionally, we can generate a classification report for our model and compare it with other different models or previous iterations.
 
 
 ```python
@@ -512,10 +428,6 @@ report = plot.ClassificationReport.from_raw_data(
     y_test, y_pred, target_names=target_names
 )
 ```
-
-
-    
-![png](mindsDB_files/mindsDB_21_0.png)
     
 
 
