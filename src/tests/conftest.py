@@ -8,6 +8,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
+from sql.connection import Connection
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -42,6 +43,9 @@ def runsql(ip_session, statements):
 
 @pytest.fixture
 def ip_empty():
+    Connection.current = None
+    Connection.connections = dict()
+
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
