@@ -2,6 +2,7 @@ import os
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
+from IPython.core.error import UsageError
 
 
 class ConnectionError(Exception):
@@ -39,15 +40,47 @@ class Connection:
     connections = {}
 
     @classmethod
-    def tell_format(cls):
+    def _suggest_fix(cls, env_var):
         """
         Returns an error message that we can display to the user
         to tell them how to pass the connection string
         """
-        return """Connection info needed in SQLAlchemy format, example:
-               postgresql://username:password@hostname/dbname
-               or an existing connection: %s""" % str(
-            cls.connections.keys()
+        connection_string = (
+            "Pass a valid connection string:\n    "
+            "Example: %sql postgresql://username:password@hostname/dbname"
+        )
+        options = ["\n\nTo fix it:", connection_string]
+
+        keys = list(cls.connections.keys())
+
+        if keys:
+            keys_ = ",".join(repr(k) for k in keys)
+            options.append(
+                f"Pass an connection key (one of: {keys_})"
+                f"\n    Example: %sql {keys[0]}"
+            )
+
+        if env_var:
+            options.append("Set the environment variable $DATABASE_URL")
+
+        # options.insert(-1, "OR")
+
+        options.append(
+            "If you need help, send us a message: https://ploomber.io/community"
+            "\nDocumentation: https://jupysql.ploomber.io/connecting"
+        )
+
+        return "\n\n".join(options)
+
+    @classmethod
+    def _error_no_connection(cls):
+        return UsageError("No active connection." + cls._suggest_fix(env_var=True))
+
+    @classmethod
+    def _error_invalid_connection_info(cls, e):
+        return UsageError(
+            "An error happened while creating the connection: "
+            f"{e}. {cls._suggest_fix(env_var=False)}"
         )
 
     def __init__(self, engine, alias=None):
@@ -79,9 +112,8 @@ class Connection:
                     connect_str,
                     connect_args=connect_args,
                 )
-        except Exception:
-            print(cls.tell_format())
-            raise
+        except Exception as e:
+            raise cls._error_invalid_connection_info(e) from e
 
         connection = cls(engine, alias=alias)
         connection.connect_args = connect_args
@@ -120,6 +152,7 @@ class Connection:
 
             if cls.connections:
                 if displaycon:
+                    print("connections:")
                     print(cls.connection_list())
             else:
                 if os.getenv("DATABASE_URL"):
@@ -130,10 +163,8 @@ class Connection:
                         alias=alias,
                     )
                 else:
-                    raise ConnectionError(
-                        "Environment variable $DATABASE_URL "
-                        "not set, and no connect string given."
-                    )
+                    raise cls._error_no_connection()
+
         return cls.current
 
     @classmethod

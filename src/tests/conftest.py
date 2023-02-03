@@ -39,19 +39,23 @@ def runsql(ip_session, statements):
         result = ip_session.run_line_magic("sql", "sqlite:// %s" % statement)
     return result  # returns only last result
 
-
 @pytest.fixture
-def ip():
-    """Provides an IPython session in which tables have been created"""
+def ip_empty():
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+    yield ip_session
+
+
+@pytest.fixture
+def ip(ip_empty):
+    """Provides an IPython session in which tables have been created"""
 
     # runsql creates an inmemory sqlitedatabase
     runsql(
-        ip_session,
+        ip_empty,
         [
             "CREATE TABLE test (n INT, name TEXT)",
             "INSERT INTO test VALUES (1, 'foo')",
@@ -62,9 +66,9 @@ def ip():
             "CREATE TABLE empty_table (column INT, another INT)",
         ],
     )
-    yield ip_session
-    runsql(ip_session, "DROP TABLE test")
-    runsql(ip_session, "DROP TABLE author")
+    yield ip_empty
+    runsql(ip_empty, "DROP TABLE test")
+    runsql(ip_empty, "DROP TABLE author")
 
 
 @pytest.fixture
