@@ -39,6 +39,7 @@ def runsql(ip_session, statements):
         result = ip_session.run_line_magic("sql", "sqlite:// %s" % statement)
     return result  # returns only last result
 
+
 @pytest.fixture
 def ip_empty():
     ip_session = InteractiveShell()
