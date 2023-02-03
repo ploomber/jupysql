@@ -42,9 +42,14 @@ def runsql(ip_session, statements):
 
 
 @pytest.fixture
-def ip_empty():
+def clean_conns():
     Connection.current = None
     Connection.connections = dict()
+    yield
+
+
+@pytest.fixture
+def ip_empty():
 
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)

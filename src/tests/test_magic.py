@@ -460,7 +460,7 @@ def test_autolimit(ip):
     assert len(result) == 1
 
 
-def test_error_on_invalid_connection_string(ip_empty):
+def test_error_on_invalid_connection_string(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql some invalid connection string")
 
     assert "No active connection" in str(result.error_in_exec)
@@ -470,7 +470,7 @@ def test_error_on_invalid_connection_string(ip_empty):
     assert "ploomber.io/community" in str(result.error_in_exec)
 
 
-def test_error_on_invalid_connection_string_format(ip_empty):
+def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql something://")
 
     assert "An error happened while creating" in str(result.error_in_exec)
@@ -479,7 +479,7 @@ def test_error_on_invalid_connection_string_format(ip_empty):
     assert "ploomber.io/community" in str(result.error_in_exec)
 
 
-def test_error_on_invalid_connection_string_with_existing_conns(ip_empty):
+def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
     result = ip_empty.run_cell("%sql something://")
 
