@@ -56,7 +56,7 @@ class Connection:
         if keys:
             keys_ = ",".join(repr(k) for k in keys)
             options.append(
-                f"Pass an connection key (one of: {keys_})"
+                f"Pass a connection key (one of: {keys_})"
                 f"\n    Example: %sql {keys[0]}"
             )
 

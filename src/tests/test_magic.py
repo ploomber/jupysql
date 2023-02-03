@@ -461,6 +461,11 @@ def test_autolimit(ip):
 
 
 def test_error_on_invalid_connection_string(ip_empty):
+    from sql.connection import Connection
+
+    Connection.current = None
+    Connection.connections = dict()
+
     result = ip_empty.run_cell("%sql some invalid connection string")
 
     assert "No active connection" in str(result.error_in_exec)
@@ -471,6 +476,11 @@ def test_error_on_invalid_connection_string(ip_empty):
 
 
 def test_error_on_invalid_connection_string_format(ip_empty):
+    from sql.connection import Connection
+
+    Connection.current = None
+    Connection.connections = dict()
+
     result = ip_empty.run_cell("%sql something://")
 
     assert "An error happened while creating" in str(result.error_in_exec)
@@ -480,11 +490,16 @@ def test_error_on_invalid_connection_string_format(ip_empty):
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty):
+    from sql.connection import Connection
+
+    Connection.current = None
+    Connection.connections = dict()
+
     ip_empty.run_cell("%sql sqlite://")
     result = ip_empty.run_cell("%sql something://")
 
     assert "An error happened while creating" in str(result.error_in_exec)
     assert "valid connection string" in str(result.error_in_exec)
-    assert "or an existing connection key" in str(result.error_in_exec)
+    assert "Pass a connection key" in str(result.error_in_exec)
     assert "jupysql.ploomber.io" in str(result.error_in_exec)
     assert "ploomber.io/community" in str(result.error_in_exec)
