@@ -63,7 +63,8 @@ class Connection:
         if env_var:
             options.append("Set the environment variable $DATABASE_URL")
 
-        # options.insert(-1, "OR")
+        if len(options) >= 2:
+            options.insert(-1, "OR")
 
         options.append(
             "If you need help, send us a message: https://ploomber.io/community"
@@ -152,7 +153,7 @@ class Connection:
 
             if cls.connections:
                 if displaycon:
-                    print("connections:")
+                    # display list of connections
                     print(cls.connection_list())
             else:
                 if os.getenv("DATABASE_URL"):
