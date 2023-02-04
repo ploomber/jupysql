@@ -63,12 +63,12 @@ class Connection:
         if env_var:
             options.append("Set the environment variable $DATABASE_URL")
 
-        if len(options) >= 2:
+        if len(options) >= 3:
             options.insert(-1, "OR")
 
         options.append(
             "If you need help, send us a message: https://ploomber.io/community"
-            "\nDocumentation: https://jupysql.ploomber.io/connecting"
+            "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
         )
 
         return "\n\n".join(options)
