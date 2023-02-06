@@ -5,10 +5,6 @@ from sqlalchemy.engine import Engine
 from IPython.core.error import UsageError
 
 
-class ConnectionError(Exception):
-    pass
-
-
 def rough_dict_get(dct, sought, default=None):
     """
     Like dct.get(sought), but any key containing sought will do.
