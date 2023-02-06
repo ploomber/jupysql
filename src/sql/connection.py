@@ -123,7 +123,7 @@ class Connection:
         Set the current database connection. This method is called from the magic to
         determine which connection to use (either use an existing one or open a new one)
         """
-        connect_args = connect_args or connect_args
+        connect_args = connect_args or {}
 
         if descriptor:
             if isinstance(descriptor, Connection):
