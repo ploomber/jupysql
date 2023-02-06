@@ -120,7 +120,8 @@ class Connection:
     @classmethod
     def set(cls, descriptor, displaycon, connect_args=None, creator=None, alias=None):
         """
-        Sets the current database connection
+        Set the current database connection. This method is called from the magic to
+        determine which connection to use (either use an existing one or open a new one)
         """
         connect_args = connect_args or connect_args
 
@@ -171,6 +172,7 @@ class Connection:
 
     @classmethod
     def connection_list(cls):
+        """Returns the list of connections, appending '*' to the current one"""
         result = []
         for key in sorted(cls.connections):
             conn = cls.connections[key]
