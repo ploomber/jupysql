@@ -488,3 +488,15 @@ def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_
     assert "Pass a connection key" in str(result.error_in_exec)
     assert "jupysql.ploomber.io" in str(result.error_in_exec)
     assert "ploomber.io/community" in str(result.error_in_exec)
+
+
+def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
+    ip_empty.run_cell("%sql sqlite://")
+    result = ip_empty.run_cell("%sql sqlit://")
+
+    assert "An error happened while creating" in str(result.error_in_exec)
+    assert "valid connection string" in str(result.error_in_exec)
+    assert "Pass a connection key" in str(result.error_in_exec)
+    assert "jupysql.ploomber.io" in str(result.error_in_exec)
+    assert "ploomber.io/community" in str(result.error_in_exec)
+    assert "Perhaps you meant" in str(result.error_in_exec)
