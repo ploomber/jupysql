@@ -42,20 +42,22 @@ class Connection:
         Returns an error message that we can display to the user
         to tell them how to pass the connection string
         """
+        DEFAULT_PREFIX = "\n\n"
+
         if connect_str:
             matches = get_close_matches(connect_str, list(cls.connections), n=1)
 
             if matches:
                 prefix = (
-                    (
-                        "\n\nPerhaps you meant to use the existing "
-                        f"connection: %sql {matches[0]!r}?\n\n"
-                    )
-                    if matches
-                    else "\n\n"
+                    "\n\nPerhaps you meant to use the existing "
+                    f"connection: %sql {matches[0]!r}?\n\n"
                 )
+
             else:
-                prefix = "\n\n"
+                prefix = DEFAULT_PREFIX
+        else:
+            matches = None
+            prefix = DEFAULT_PREFIX
 
         connection_string = (
             "Pass a valid connection string:\n    "
