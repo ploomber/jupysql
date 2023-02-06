@@ -12,7 +12,7 @@ kernelspec:
 ---
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
+:tags: [remove-cell]
 
 # clean up all .db files (this cell will not be displayed in the docs)
 from pathlib import Path
@@ -246,7 +246,7 @@ Close by passing the alias:
 
 ## Connect to existing `engine`
 
-Pass the name of the enfgine:
+Pass the name of the engine:
 
 ```{code-cell} ipython3
 some_engine = create_engine("sqlite:///some.db")
@@ -258,7 +258,7 @@ some_engine = create_engine("sqlite:///some.db")
 
 +++ {"tags": []}
 
-## Use `%sql`/`%%sql` in databricks
+## Use `%sql`/`%%sql` in Databricks
 
 Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, JupySQL exposes a `%jupysql`/`%%jupysql` alias so you can use both:
 
