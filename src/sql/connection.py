@@ -1,4 +1,5 @@
 import os
+from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -36,16 +37,33 @@ class Connection:
     connections = {}
 
     @classmethod
-    def _suggest_fix(cls, env_var):
+    def _suggest_fix(cls, env_var, connect_str=None):
         """
         Returns an error message that we can display to the user
         to tell them how to pass the connection string
         """
+        if connect_str:
+            matches = get_close_matches(connect_str, list(cls.connections), n=1)
+
+            if matches:
+                prefix = (
+                    (
+                        "\n\nPerhaps you meant to use the existing "
+                        f"connection: %sql {matches[0]!r}?\n\n"
+                    )
+                    if matches
+                    else "\n\n"
+                )
+            else:
+                prefix = "\n\n"
+
         connection_string = (
             "Pass a valid connection string:\n    "
             "Example: %sql postgresql://username:password@hostname/dbname"
         )
-        options = ["\n\nTo fix it:", connection_string]
+
+        suffix = "To fix it:" if not matches else "Otherwise, try the following:"
+        options = [f"{prefix}{suffix}", connection_string]
 
         keys = list(cls.connections.keys())
 
@@ -53,7 +71,7 @@ class Connection:
             keys_ = ",".join(repr(k) for k in keys)
             options.append(
                 f"Pass a connection key (one of: {keys_})"
-                f"\n    Example: %sql {keys[0]}"
+                f"\n    Example: %sql {keys[0]!r}"
             )
 
         if env_var:
@@ -63,7 +81,7 @@ class Connection:
             options.insert(-1, "OR")
 
         options.append(
-            "If you need help, send us a message: https://ploomber.io/community"
+            "For technical support: https://ploomber.io/community"
             "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
         )
 
@@ -75,10 +93,10 @@ class Connection:
         return UsageError("No active connection." + cls._suggest_fix(env_var=True))
 
     @classmethod
-    def _error_invalid_connection_info(cls, e):
+    def _error_invalid_connection_info(cls, e, connect_str):
         return UsageError(
             "An error happened while creating the connection: "
-            f"{e}. {cls._suggest_fix(env_var=False)}"
+            f"{e}. {cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
 
     def __init__(self, engine, alias=None):
@@ -111,7 +129,7 @@ class Connection:
                     connect_args=connect_args,
                 )
         except Exception as e:
-            raise cls._error_invalid_connection_info(e) from e
+            raise cls._error_invalid_connection_info(e, connect_str) from e
 
         connection = cls(engine, alias=alias)
         connection.connect_args = connect_args
@@ -147,6 +165,7 @@ class Connection:
                     creator=creator,
                     alias=alias,
                 )
+
         else:
 
             if cls.connections:
