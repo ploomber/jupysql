@@ -71,6 +71,7 @@ class Connection:
 
     @classmethod
     def _error_no_connection(cls):
+        """Error when there isn't any connection"""
         return UsageError("No active connection." + cls._suggest_fix(env_var=True))
 
     @classmethod
@@ -152,16 +153,15 @@ class Connection:
                 if displaycon:
                     # display list of connections
                     print(cls.connection_list())
+            elif os.getenv("DATABASE_URL"):
+                cls.current = Connection.from_connect_str(
+                    connect_str=os.getenv("DATABASE_URL"),
+                    connect_args=connect_args,
+                    creator=creator,
+                    alias=alias,
+                )
             else:
-                if os.getenv("DATABASE_URL"):
-                    cls.current = Connection.from_connect_str(
-                        connect_str=os.getenv("DATABASE_URL"),
-                        connect_args=connect_args,
-                        creator=creator,
-                        alias=alias,
-                    )
-                else:
-                    raise cls._error_no_connection()
+                raise cls._error_no_connection()
 
         return cls.current
 
