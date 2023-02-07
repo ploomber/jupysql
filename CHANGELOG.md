@@ -1,7 +1,10 @@
 # CHANGELOG
 
-## 0.5.4dev
+## 0.5.5dev
 
+## 0.5.4 (2023-02-06)
+
+* [Feature] Adds `%jupysql`/`%%jupysql` as alias for `%sql`/`%%sql`
 * [Fix] Adds community link to `ValueError` and `TypeError`
 
 ## 0.5.3 (2023-01-31)
