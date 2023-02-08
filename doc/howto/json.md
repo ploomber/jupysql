@@ -24,10 +24,14 @@ First, let's install the required dependencies:
 # this cell won't be visible in the docs
 from pathlib import Path
 
-p = Path("people.jsonl")
+paths = ["people.jsonl", "people.csv"]
 
-if p.exists():
-    p.unlink()
+for path in paths:
+    path = Path(p)
+
+    if path.exists():
+        print(f"Deleting {path}")
+        path.unlink()
 ```
 
 ```{code-cell} ipython3
@@ -153,4 +157,31 @@ FROM read_json_objects('people.jsonl')
 ```{code-cell} ipython3
 %%sql --with clean_data
 SELECT * FROM clean_data
+```
+
+## Export to CSV
+
+```{note}
+Using `--with` isn't supported when exporting to CSV.
+```
+
+To export to CSV:
+
+```{code-cell} ipython3
+%%sql
+COPY (
+    SELECT
+    json ->> '$.name' AS name,
+    json ->> '$.friends[0]' AS first_friend,
+    json ->> '$.likes.pizza' AS likes_pizza,
+    json ->> '$.likes.tacos' AS likes_tacos,
+    FROM read_json_objects('people.jsonl')
+)
+
+TO 'people.csv' (HEADER, DELIMITER ',');
+```
+
+```{code-cell} ipython3
+%%sql
+SELECT * FROM 'people.csv'
 ```
