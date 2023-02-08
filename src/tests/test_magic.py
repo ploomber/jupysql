@@ -7,6 +7,7 @@ from textwrap import dedent
 
 import pytest
 from sqlalchemy import create_engine
+from IPython.core.error import UsageError
 
 from sql.connection import Connection
 from conftest import runsql
@@ -460,43 +461,99 @@ def test_autolimit(ip):
     assert len(result) == 1
 
 
+invalid_connection_string = """\
+No active connection.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Set the environment variable $DATABASE_URL
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
+"""
+
+
 def test_error_on_invalid_connection_string(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql some invalid connection string")
 
-    assert "No active connection" in str(result.error_in_exec)
-    assert "valid connection string" in str(result.error_in_exec)
-    assert "Set the environment variable" in str(result.error_in_exec)
-    assert "jupysql.ploomber.io" in str(result.error_in_exec)
-    assert "ploomber.io/community" in str(result.error_in_exec)
+    assert invalid_connection_string == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_format = """\
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
+""" # noqa
 
 
 def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql something://")
 
-    assert "An error happened while creating" in str(result.error_in_exec)
-    assert "valid connection string" in str(result.error_in_exec)
-    assert "jupysql.ploomber.io" in str(result.error_in_exec)
-    assert "ploomber.io/community" in str(result.error_in_exec)
+    assert invalid_connection_string_format == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_existing_conns = """\
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+
+To fix it:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Pass a connection key (one of: 'sqlite://')
+    Example: %sql 'sqlite://'
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
+""" # noqa
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
     result = ip_empty.run_cell("%sql something://")
 
-    assert "An error happened while creating" in str(result.error_in_exec)
-    assert "valid connection string" in str(result.error_in_exec)
-    assert "Pass a connection key" in str(result.error_in_exec)
-    assert "jupysql.ploomber.io" in str(result.error_in_exec)
-    assert "ploomber.io/community" in str(result.error_in_exec)
+    assert invalid_connection_string_existing_conns == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)
+
+
+invalid_connection_string_with_possible_typo = """\
+An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:sqlit.
+
+Perhaps you meant to use the existing connection: %sql 'sqlite://'?
+
+Otherwise, try the following:
+
+Pass a valid connection string:
+    Example: %sql postgresql://username:password@hostname/dbname
+
+OR
+
+Pass a connection key (one of: 'sqlite://')
+    Example: %sql 'sqlite://'
+
+For technical support: https://ploomber.io/community
+Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
+""" # noqa
 
 
 def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
     result = ip_empty.run_cell("%sql sqlit://")
 
-    assert "An error happened while creating" in str(result.error_in_exec)
-    assert "valid connection string" in str(result.error_in_exec)
-    assert "Pass a connection key" in str(result.error_in_exec)
-    assert "jupysql.ploomber.io" in str(result.error_in_exec)
-    assert "ploomber.io/community" in str(result.error_in_exec)
-    assert "Perhaps you meant" in str(result.error_in_exec)
+    assert invalid_connection_string_with_possible_typo == str(result.error_in_exec)
+    assert isinstance(result.error_in_exec, UsageError)

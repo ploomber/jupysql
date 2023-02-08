@@ -98,7 +98,7 @@ class Connection:
     def _error_invalid_connection_info(cls, e, connect_str):
         return UsageError(
             "An error happened while creating the connection: "
-            f"{e}. {cls._suggest_fix(env_var=False, connect_str=connect_str)}"
+            f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
 
     def __init__(self, engine, alias=None):
