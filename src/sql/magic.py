@@ -1,6 +1,6 @@
 import json
 import re
-
+from ploomber_core.exceptions import modify_exceptions
 from IPython.core.magic import (
     Magics,
     cell_magic,
@@ -126,6 +126,8 @@ class SqlMagic(Magics, Configurable):
     @needs_local_scope
     @line_magic("sql")
     @cell_magic("sql")
+    @line_magic("jupysql")
+    @cell_magic("jupysql")
     @magic_arguments()
     @argument("line", default="", nargs="*", type=str, help="sql")
     @argument(
@@ -340,6 +342,7 @@ class SqlMagic(Magics, Configurable):
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 
+    @modify_exceptions
     def _persist_dataframe(self, raw, conn, user_ns, append=False, index=True):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:

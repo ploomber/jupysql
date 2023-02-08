@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 from IPython.core.error import UsageError
 
 from sql.connection import Connection
+from sql.magic import SqlMagic
 from conftest import runsql
 
 
@@ -136,7 +137,11 @@ def test_persist_non_frame_raises(ip):
     ip.run_cell("not_a_dataframe = 22")
     runsql(ip, "")
     result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
-    assert result.error_in_exec
+    assert isinstance(result.error_in_exec, TypeError)
+    assert (
+        "is not a Pandas DataFrame or Series".lower()
+        in str(result.error_in_exec).lower()
+    )
 
 
 def test_persist_bare(ip):
@@ -305,7 +310,6 @@ def test_dicts(ip):
 
 
 def test_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
         "William",
@@ -320,7 +324,6 @@ def test_bracket_var_substitution(ip):
 
 # the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
-
     ip.user_global_ns["col"] = "first_name"
     assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
         "William",
@@ -495,7 +498,7 @@ Pass a valid connection string:
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
-""" # noqa
+"""  # noqa
 
 
 def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
@@ -520,7 +523,7 @@ Pass a connection key (one of: 'sqlite://')
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
-""" # noqa
+"""  # noqa
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
@@ -548,7 +551,7 @@ Pass a connection key (one of: 'sqlite://')
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html\
-""" # noqa
+"""  # noqa
 
 
 def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
@@ -557,3 +560,10 @@ def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_c
 
     assert invalid_connection_string_with_possible_typo == str(result.error_in_exec)
     assert isinstance(result.error_in_exec, UsageError)
+
+
+def test_jupysql_alias():
+    assert SqlMagic.magics == {
+        "line": {"jupysql": "execute", "sql": "execute"},
+        "cell": {"jupysql": "execute", "sql": "execute"},
+    }
