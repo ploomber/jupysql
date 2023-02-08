@@ -11,12 +11,24 @@ kernelspec:
   name: python3
 ---
 
-# Querying JSON files
+# Run SQL on JSON files
 
 In this tutorial, we'll show you how to query JSON with JupySQL and DuckDB.
 
 
 First, let's install the required dependencies:
+
+```{code-cell} ipython3
+:tags: [remove-cell]
+
+# this cell won't be visible in the docs
+from pathlib import Path
+
+p = Path("people.jsonl")
+
+if p.exists():
+    p.unlink()
+```
 
 ```{code-cell} ipython3
 :tags: [hide-output]
@@ -33,10 +45,10 @@ from pathlib import Path
 import json
 
 data = [
-    {"name": "John", "age": 25,  "friends": ["Jake", "Kelly"], "likes": {"pizza": True}},
-    {"name": "Jake", "age": 20,  "friends": ["John"], "likes": {"pizza": False}},
-    {"name": "Kelly", "age": 21,  "friends": ["John", "Sam"], "likes": {"pizza": True}},
-    {"name": "Sam", "age": 22,  "friends": ["Kelly"], "likes": {"pizza": False}},
+    {"name": "John", "age": 25,  "friends": ["Jake", "Kelly"], "likes": {"pizza": True, "tacos": True}},
+    {"name": "Jake", "age": 20,  "friends": ["John"], "likes": {"pizza": False, "tacos": True}},
+    {"name": "Kelly", "age": 21,  "friends": ["John", "Sam"], "likes": {"pizza": True, "tacos": True}},
+    {"name": "Sam", "age": 22,  "friends": ["Kelly"], "likes": {"pizza": False, "tacos": True}},
 ]
 
 lines = ""
@@ -44,7 +56,7 @@ lines = ""
 for d in data:
     lines += json.dumps(d) + "\n"
 
-Path("people.jsonl").write_text(lines)
+_ = Path("people.jsonl").write_text(lines)
 ```
 
 ```{code-cell} ipython3
@@ -82,8 +94,13 @@ SELECT
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
+    json ->> '$.likes.tacos' AS likes_tacos,
 FROM read_json_objects('people.jsonl')
 ```
+
+Looks like everybody likes tacos!
+
++++
 
 ## Extract schema
 
@@ -109,11 +126,13 @@ Pretty print the inferred schema:
 
 ```{code-cell} ipython3
 from rich import print_json
-```
 
-```{code-cell} ipython3
 row = schema.DataFrame().iloc[0]
+
+print("Schema:")
 print_json(row.schema_all)
+
+print("\n\nSchema (likes):")
 print_json(row.schema_likes)
 ```
 
@@ -127,6 +146,7 @@ SELECT
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
+    json ->> '$.likes.tacos' AS likes_tacos,
 FROM read_json_objects('people.jsonl')
 ```
 
