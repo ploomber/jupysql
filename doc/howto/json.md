@@ -13,9 +13,18 @@ kernelspec:
 
 # Querying JSON files
 
-In this tutorial, we'll show you how to query JSON with JupySQL and DuckDB.
+In this tutorial, we'll show you how to query JSON with JupySQL and [DuckDB](https://duckdb.org/docs/extensions/json.html).
 
-note: add info on other formats: .jsonl, .jsonl.gz
+
+First, let's install the required dependencies:
+
+```{code-cell} ipython3
+%pip install jupysql duckdb duckdb-engine rich --quiet
+```
+
+Now, let's generate some data. Note that DuckDB expects your data to contain *one JSON object per line*; this format is called [JSON Lines](https://jsonlines.org/), and it often comes with the `.json`, `.jsonl.gz`, or `.jsonl.bz2` extension.
+
+Our sample data contains four rows:
 
 ```{code-cell} ipython3
 from pathlib import Path
@@ -33,11 +42,11 @@ lines = ""
 for d in data:
     lines += json.dumps(d) + "\n"
 
-Path("people.json").write_text(lines)
+Path("people.jsonl").write_text(lines)
 ```
 
 ```{code-cell} ipython3
-cat people.json
+print(lines)
 ```
 
 ## Query
@@ -54,7 +63,7 @@ Read the JSON data:
 ```{code-cell} ipython3
 %%sql
 SELECT *
-FROM read_json_objects('people.json')
+FROM read_json_objects('people.jsonl')
 ```
 
 ## Extract fields
@@ -67,7 +76,7 @@ SELECT
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
-FROM read_json_objects('people.json')
+FROM read_json_objects('people.jsonl')
 ```
 
 ## Extract schema
@@ -79,7 +88,7 @@ Infer the JSON schema:
 SELECT
     json_structure(json),
     json_structure(json ->> '$.likes'),
-FROM read_json_objects('people.json')
+FROM read_json_objects('people.jsonl')
 ```
 
 ```{code-cell} ipython3
@@ -87,7 +96,7 @@ FROM read_json_objects('people.json')
 SELECT
     json_structure(json) AS schema_all,
     json_structure(json ->> '$.likes') AS schema_likes,
-FROM read_json_objects('people.json')
+FROM read_json_objects('people.jsonl')
 ```
 
 Pretty print the inferred schema:
@@ -112,14 +121,10 @@ SELECT
     json ->> '$.name' AS name,
     json ->> '$.friends[0]' AS first_friend,
     json ->> '$.likes.pizza' AS likes_pizza,
-FROM read_json_objects('people.json')
+FROM read_json_objects('people.jsonl')
 ```
 
 ```{code-cell} ipython3
 %%sql --with clean_data
 SELECT * FROM clean_data
-```
-
-```{code-cell} ipython3
-
 ```
