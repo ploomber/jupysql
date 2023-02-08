@@ -13,12 +13,14 @@ kernelspec:
 
 # Querying JSON files
 
-In this tutorial, we'll show you how to query JSON with JupySQL and [DuckDB](https://duckdb.org/docs/extensions/json.html).
+In this tutorial, we'll show you how to query JSON with JupySQL and DuckDB.
 
 
 First, let's install the required dependencies:
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %pip install jupysql duckdb duckdb-engine rich --quiet
 ```
 
@@ -50,6 +52,10 @@ print(lines)
 ```
 
 ## Query
+
+```{note}
+Documentation for DuckDB's JSON capabilities is available [here](https://duckdb.org/docs/extensions/json.html).
+```
 
 Load the extension and start a DuckDB in-memory database:
 
