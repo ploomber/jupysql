@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.5.5dev
+## 0.5.6dev
+
+## 0.5.5 (2023-02-08)
+
+* [Fix] Clearer error message on connection failure ([#120](https://github.com/ploomber/jupysql/issues/120))
+* [Doc] Adds tutorial on querying JSON data
 
 ## 0.5.4 (2023-02-06)
 
