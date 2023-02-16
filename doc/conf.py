@@ -1,7 +1,7 @@
 from pkgmt.github import get_repo_and_branch_for_readthedocs
 
 repository_url, repository_branch = get_repo_and_branch_for_readthedocs(
-    repository_url="https://github.com/ploomber/sklearn-evaluation",
+    repository_url="https://github.com/ploomber/jupysql",
     default_branch="master",
 )
 
@@ -53,8 +53,8 @@ html_theme_options = {
         "colab_url": "",
     },
     "path_to_docs": "doc",
-    "repository_url": "https://github.com/ploomber/jupysql",
-    "repository_branch": "master",
+    "repository_url": repository_url,
+    "repository_branch": repository_branch,
     "google_analytics_id": "G-JBZ8NNQSLN",
     "extra_navbar": 'Join us on <a href="https://ploomber.io/community/">Slack!</a>',
     "extra_footer": "",
