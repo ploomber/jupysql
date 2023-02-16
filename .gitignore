@@ -9,7 +9,7 @@ doc/_build
 doc/**/*.csv
 doc/**/*.db
 doc/**/*.sql
-doc/**/*.sql
+doc/**/*.py
 examples/*.csv
 examples/*.db
 examples/*.sql
