@@ -248,6 +248,15 @@ def test_autopandas(ip):
     assert dframe.ndim == 2
     assert dframe.name[0] == "foo"
 
+def test_autopolars(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+
+    import polars as pl
+    assert type(dframe) == pl.DataFrame
+    assert not dframe.is_empty()
+    assert len(dframe.shape) == 2
+    assert dframe['name'][0] == "foo"
 
 def test_csv(ip):
     ip.run_line_magic("config", "SqlMagic.autopandas = False")  # uh-oh

@@ -98,6 +98,11 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
+    autopolars = Bool(
+        False,
+        config=True,
+        help="Return Polars DataFrames instead of regular result sets",
+    )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
@@ -308,7 +313,7 @@ class SqlMagic(Magics, Configurable):
                 # Instead of returning values, set variables directly in the
                 # users namespace. Variable names given by column names
 
-                if self.autopandas:
+                if self.autopandas or self.autopolars:
                     keys = result.keys()
                 else:
                     keys = result.keys
