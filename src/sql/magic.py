@@ -21,7 +21,7 @@ from sql.magic_cmd import SqlCmdMagic
 
 try:
     from traitlets.config.configurable import Configurable
-    from traitlets import Bool, Int, Unicode
+    from traitlets import Bool, Int, Unicode, observe
 except ImportError:
     from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Bool, Int, Unicode
@@ -127,6 +127,16 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    @observe("autopandas", "autopolars")
+    def _mutex_autopandas_autopolars(self, change):
+        # When enabling autopandas or autopolars, automatically disable the
+        # other one in case it was enabled and print a warning
+        if change["new"]:
+            other = "autopolars" if change["name"] == "autopandas" else "autopandas"
+            if getattr(self, other):
+                setattr(self, other, False)
+                print(f"Disabled '{other}' since '{change['name']}' was enabled.")
 
     @needs_local_scope
     @line_magic("sql")
