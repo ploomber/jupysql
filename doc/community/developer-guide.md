@@ -34,6 +34,8 @@ def test_something(ip):
     result = ip.run_cell("""%%sql
     SELECT * FROM test
     """)
+    
+    assert result.success
 ```
 
 To see some sample tests, [click here.](https://github.com/ploomber/jupysql/blob/master/src/tests/test_magic.py)
