@@ -34,7 +34,7 @@ def test_something(ip):
     result = ip.run_cell("""%%sql
     SELECT * FROM test
     """)
-    
+
     assert result.success
 ```
 
