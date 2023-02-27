@@ -17,4 +17,9 @@ dependencies:
     # plot example
     - memory-profiler
     - pyarrow
+    - pkgmt>=0.1.7
+    # convert to polars example
+    - polars
+    # for developer guide
+    - pytest
     - -e ..

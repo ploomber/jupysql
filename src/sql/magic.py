@@ -19,12 +19,9 @@ from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 
-try:
-    from traitlets.config.configurable import Configurable
-    from traitlets import Bool, Int, Unicode
-except ImportError:
-    from IPython.config.configurable import Configurable
-    from IPython.utils.traitlets import Bool, Int, Unicode
+from traitlets.config.configurable import Configurable
+from traitlets import Bool, Int, Unicode, observe
+
 try:
     from pandas.core.frame import DataFrame, Series
 except ImportError:
@@ -98,6 +95,11 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
+    autopolars = Bool(
+        False,
+        config=True,
+        help="Return Polars DataFrames instead of regular result sets",
+    )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
@@ -122,6 +124,16 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    @observe("autopandas", "autopolars")
+    def _mutex_autopandas_autopolars(self, change):
+        # When enabling autopandas or autopolars, automatically disable the
+        # other one in case it was enabled and print a warning
+        if change["new"]:
+            other = "autopolars" if change["name"] == "autopandas" else "autopandas"
+            if getattr(self, other):
+                setattr(self, other, False)
+                print(f"Disabled '{other}' since '{change['name']}' was enabled.")
 
     @needs_local_scope
     @line_magic("sql")
@@ -191,8 +203,7 @@ class SqlMagic(Magics, Configurable):
         type=str,
         help="Assign an alias to the connection",
     )
-    @telemetry.log_call("execute")
-    def execute(self, line="", cell="", local_ns={}):
+    def execute(self, line="", cell="", local_ns=None):
         """
         Runs SQL statement against a database, specified by
         SQLAlchemy connect string.
@@ -218,6 +229,16 @@ class SqlMagic(Magics, Configurable):
           sqlite://
           mysql+pymysql://me:mypw@localhost/mydb
 
+        """
+        return self._execute(line=line, cell=cell, local_ns=local_ns)
+
+    @telemetry.log_call("execute", payload=True)
+    def _execute(self, payload, line, cell, local_ns):
+        """
+        This function implements the cell logic; we create this private
+        method so we can control how the function is called. Otherwise,
+        decorating ``SqlMagic.execute`` will break when adding the ``@log_call``
+        decorator with ``payload=True``
         """
         # line is the text after the magic, cell is the cell's body
 
@@ -275,7 +296,7 @@ class SqlMagic(Magics, Configurable):
             creator=args.creator,
             alias=args.alias,
         )
-
+        payload["connection_info"] = conn._get_curr_connection_info()
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index
@@ -308,7 +329,7 @@ class SqlMagic(Magics, Configurable):
                 # Instead of returning values, set variables directly in the
                 # users namespace. Variable names given by column names
 
-                if self.autopandas:
+                if self.autopandas or self.autopolars:
                     keys = result.keys()
                 else:
                     keys = result.keys

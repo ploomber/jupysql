@@ -5,13 +5,9 @@ build:
   tools:
     python: "mambaforge-4.10"
 
-  jobs:
-    pre_build:
-      - "jupyter-book config sphinx doc/"
-
 conda:
   environment: doc/environment.yml
 
 sphinx:
   builder: html
-  fail_on_warning: false
+  fail_on_warning: true

@@ -11,6 +11,7 @@ from IPython.core.error import UsageError
 
 from sql.connection import Connection
 from sql.magic import SqlMagic
+from sql.run import ResultSet
 from conftest import runsql
 
 
@@ -247,6 +248,42 @@ def test_autopandas(ip):
     assert not dframe.empty
     assert dframe.ndim == 2
     assert dframe.name[0] == "foo"
+
+
+def test_autopolars(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+
+    import polars as pl
+    assert type(dframe) == pl.DataFrame
+    assert not dframe.is_empty()
+    assert len(dframe.shape) == 2
+    assert dframe['name'][0] == "foo"
+
+
+def test_mutex_autopolars_autopandas(ip):
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == ResultSet
+
+    import polars as pl
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pl.DataFrame
+
+    import pandas as pd
+    ip.run_line_magic("config", "SqlMagic.autopandas = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pd.DataFrame
+
+    # Test that re-enabling autopolars works
+    ip.run_line_magic("config", "SqlMagic.autopolars = True")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == pl.DataFrame
+
+    # Disabling autopolars at this point should result in the default behavior
+    ip.run_line_magic("config", "SqlMagic.autopolars = False")
+    dframe = runsql(ip, "SELECT * FROM test;")
+    assert type(dframe) == ResultSet
 
 
 def test_csv(ip):
@@ -489,12 +526,10 @@ def test_error_on_invalid_connection_string(ip_empty, clean_conns):
 
 
 invalid_connection_string_format = """\
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+Can't load plugin: sqlalchemy.dialects:something
 
-To fix it:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
+To fix it, make sure you are using correct driver name:
+Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
@@ -509,17 +544,10 @@ def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
 
 
 invalid_connection_string_existing_conns = """
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:something.
+Can't load plugin: sqlalchemy.dialects:something
 
-To fix it:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
-
-OR
-
-Pass a connection key (one of: 'sqlite://')
-    Example: %sql 'sqlite://'
+To fix it, make sure you are using correct driver name:
+Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
@@ -535,19 +563,9 @@ def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_
 
 
 invalid_connection_string_with_possible_typo = """
-An error happened while creating the connection: Can't load plugin: sqlalchemy.dialects:sqlit.
+Can't load plugin: sqlalchemy.dialects:sqlit
 
-Perhaps you meant to use the existing connection: %sql 'sqlite://'?
-
-Otherwise, try the following:
-
-Pass a valid connection string:
-    Example: %sql postgresql://username:password@hostname/dbname
-
-OR
-
-Pass a connection key (one of: 'sqlite://')
-    Example: %sql 'sqlite://'
+Perhaps you meant to use driver the dialect: "sqlite"
 
 For technical support: https://ploomber.io/community
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
