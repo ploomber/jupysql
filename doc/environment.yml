@@ -10,7 +10,7 @@ dependencies:
   - pandas
   - pip
   - pip:
-    - jupyter-book
+    - jupyter-book<0.14
     # duckdb example
     - duckdb==0.7.0
     - duckdb-engine
@@ -18,4 +18,8 @@ dependencies:
     - memory-profiler
     - pyarrow
     - pkgmt>=0.1.7
+    # convert to polars example
+    - polars
+    # for developer guide
+    - pytest
     - -e ..
