@@ -24,7 +24,7 @@ First, let's install the required dependencies:
 # this cell won't be visible in the docs
 from pathlib import Path
 
-paths = ["people.jsonl", "people.csv"]
+paths = ["people.json", "people.csv"]
 
 for path in paths:
     path = Path(path)
@@ -75,16 +75,14 @@ data = [
     },
 ]
 
-lines = ""
+json_string = json.dumps(data)
 
-for d in data:
-    lines += json.dumps(d) + "\n"
+_ = Path("people.json").write_text(json_string)
 
-_ = Path("people.jsonl").write_text(lines)
 ```
 
 ```{code-cell} ipython3
-print(lines)
+print(json_string)
 ```
 
 ## Query
@@ -105,21 +103,21 @@ Read the JSON data:
 ```{code-cell} ipython3
 %%sql
 SELECT *
-FROM read_json_objects('people.jsonl')
+FROM read_json_objects('people.json')
 ```
 
 ## Extract fields
 
-Extract fields from each JSON record:
+Extract fields from a JSON record:
 
 ```{code-cell} ipython3
 %%sql
 SELECT
-    json ->> '$.name' AS name,
-    json ->> '$.friends[0]' AS first_friend,
-    json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
-FROM read_json_objects('people.jsonl')
+    json ->> '$[1].name' AS name,
+    json ->> '$[1].friends[0]' AS first_friend,
+    json ->> '$[1].likes.pizza' AS likes_pizza,
+    json ->> '$[1].likes.tacos' AS likes_tacos,
+FROM read_json_objects('people.json')
 ```
 
 Looks like everybody likes tacos!
@@ -134,16 +132,16 @@ Infer the JSON schema:
 %%sql
 SELECT
     json_structure(json),
-    json_structure(json ->> '$.likes'),
-FROM read_json_objects('people.jsonl')
+    json_structure(json ->> '$[0].likes'),
+FROM read_json_objects('people.json')
 ```
 
 ```{code-cell} ipython3
 %%sql schema <<
 SELECT
     json_structure(json) AS schema_all,
-    json_structure(json ->> '$.likes') AS schema_likes,
-FROM read_json_objects('people.jsonl')
+    json_structure(json ->> '$[0].likes') AS schema_likes,
+FROM read_json_objects('people.json')
 ```
 
 Pretty print the inferred schema:
@@ -167,11 +165,11 @@ You can use JupySQL's `--save` feature to store a SQL snippet so you can keep yo
 ```{code-cell} ipython3
 %%sql --save clean_data
 SELECT
-    json ->> '$.name' AS name,
-    json ->> '$.friends[0]' AS first_friend,
-    json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
-FROM read_json_objects('people.jsonl')
+    json ->> '$[0].name' AS name,
+    json ->> '$[0].friends[0]' AS first_friend,
+    json ->> '$[0].likes.pizza' AS likes_pizza,
+    json ->> '$[0].likes.tacos' AS likes_tacos,
+FROM read_json_objects('people.json')
 ```
 
 ```{code-cell} ipython3
@@ -191,11 +189,11 @@ To export to CSV:
 %%sql
 COPY (
     SELECT
-    json ->> '$.name' AS name,
-    json ->> '$.friends[0]' AS first_friend,
-    json ->> '$.likes.pizza' AS likes_pizza,
-    json ->> '$.likes.tacos' AS likes_tacos,
-    FROM read_json_objects('people.jsonl')
+    json ->> '$[0].name' AS name,
+    json ->> '$[0].friends[0]' AS first_friend,
+    json ->> '$[0].likes.pizza' AS likes_pizza,
+    json ->> '$[0].likes.tacos' AS likes_tacos,
+    FROM read_json_objects('people.json')
 )
 
 TO 'people.csv' (HEADER, DELIMITER ',');
