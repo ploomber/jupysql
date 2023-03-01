@@ -40,9 +40,9 @@ for path in paths:
 %pip install jupysql duckdb duckdb-engine rich --quiet
 ```
 
-Now, let's generate some data. Note that DuckDB expects your data to contain *one JSON object per line*; this format is called [JSON Lines](https://jsonlines.org/), and it often comes with the `.json`, `.jsonl.gz`, or `.jsonl.bz2` extension.
+Now, let's generate some data.
 
-Our sample data contains four rows:
+Our sample data contains four rows. We'll write it in typical JSON format as well as [JSON Lines](https://jsonlines.org/):
 
 ```{code-cell} ipython3
 from pathlib import Path
@@ -75,14 +75,21 @@ data = [
     },
 ]
 
-json_string = json.dumps(data)
+lines = ""
 
-_ = Path("people.json").write_text(json_string)
+for d in data:
+    lines += json.dumps(d) + "\n"
 
+_ = Path("people.jsonl").write_text(lines)
+_ = Path("people.json").write_text(json.dumps(data))
 ```
 
 ```{code-cell} ipython3
-print(json_string)
+print(lines)
+```
+
+```{code-cell} ipython3
+print(data)
 ```
 
 ## Query
@@ -103,7 +110,7 @@ Read the JSON data:
 ```{code-cell} ipython3
 %%sql
 SELECT *
-FROM read_json_objects('people.json')
+FROM read_json_auto('people.json')
 ```
 
 ## Extract fields
@@ -112,12 +119,16 @@ Extract fields from a JSON record:
 
 ```{code-cell} ipython3
 %%sql
-SELECT
-    json ->> '$[1].name' AS name,
-    json ->> '$[1].friends[0]' AS first_friend,
-    json ->> '$[1].likes.pizza' AS likes_pizza,
-    json ->> '$[1].likes.tacos' AS likes_tacos,
-FROM read_json_objects('people.json')
+SELECT *, likes.pizza, likes.tacos
+FROM read_json_auto('people.json')
+```
+
+JSON lines format is also supported: https://jsonlines.org/
+
+```{code-cell} ipython3
+%%sql
+SELECT *, likes.pizza
+FROM read_json_auto('people.jsonl')
 ```
 
 Looks like everybody likes tacos!
@@ -131,17 +142,17 @@ Infer the JSON schema:
 ```{code-cell} ipython3
 %%sql
 SELECT
-    json_structure(json),
-    json_structure(json ->> '$[0].likes'),
-FROM read_json_objects('people.json')
+    json_structure(*),
+    json_structure(likes),
+FROM read_json_auto('people.json')
 ```
 
 ```{code-cell} ipython3
 %%sql schema <<
 SELECT
-    json_structure(json) AS schema_all,
-    json_structure(json ->> '$[0].likes') AS schema_likes,
-FROM read_json_objects('people.json')
+    json_structure(*) AS schema_all,
+    json_structure(likes) AS schema_likes,
+FROM read_json_auto('people.json')
 ```
 
 Pretty print the inferred schema:
