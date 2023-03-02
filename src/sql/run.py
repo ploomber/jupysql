@@ -181,7 +181,7 @@ class ResultSet(list, ColumnGuesserMixin):
         import polars as pl
 
         frame = pl.DataFrame(
-            (tuple(row) for row in self), schema=(self.keys if self.keys else {})
+            (tuple(row) for row in self), schema=self.keys)
         )
         return frame
 
