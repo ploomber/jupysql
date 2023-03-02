@@ -252,7 +252,8 @@ WHERE x > 95
 
 ## Passing parameters to connection
 ```{code-cell} ipython3
-pip install httpfs
+INSTALL httpfs
+LOAD httpfs
 from sqlalchemy import create_engine
 some_engine = create_engine(
     'duckdb:///:memory:',
