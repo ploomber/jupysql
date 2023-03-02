@@ -32,7 +32,7 @@ def setup(c, version=None, doc=False):
 
 @task(aliases=["d"])
 def doc(c):
-    c.run("jupyter-book build doc")
+    c.run("cd doc; python3 -m sphinx -T -E -W --keep-going -b html -d _build/doctrees -D language=en . _build/html")
 
 
 @task(aliases=["v"])
