@@ -27,7 +27,8 @@ class ColumnGuesserMixin(object):
     plot: [x, y, y...], y
     pie: ... y
     """
-
+    def __init__(self):
+        self.keys = None
     def _build_columns(self):
         self.columns = [Column() for col in self.keys]
         for row in self:
