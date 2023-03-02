@@ -103,6 +103,7 @@ class ResultSet(list, ColumnGuesserMixin):
 
     def __init__(self, sqlaproxy, config):
         self.config = config
+        self.keys = {}
         if sqlaproxy.returns_rows:
             self.keys = sqlaproxy.keys()
             if config.autolimit:
