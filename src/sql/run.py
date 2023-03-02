@@ -101,7 +101,7 @@ class ResultSet(list, ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, sql, config):
+    def __init__(self, sqlaproxy, config):
         self.config = config
         if sqlaproxy.returns_rows:
             self.keys = sqlaproxy.keys()
@@ -402,7 +402,7 @@ def run(conn, sql, config, user_namespace):
             _commit(conn=conn, config=config)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
-        resultset = ResultSet(result, statement, config)
+        resultset = ResultSet(result, config)
         if config.autopandas:
             return resultset.DataFrame()
         elif config.autopolars:
