@@ -4,80 +4,76 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 ---
 
-+++
-
 # SQL syntax highlighting
 
 +++
 
-You can enable SQL syntax highlighting via [Jupyterlab-lsp](https://github.com/jupyter-lsp/jupyterlab-lsp).
+![syntax](../static/syntax-highlighting-working.png)
 
-+++
+You can enable SQL syntax highlighting via [Jupyterlab-lsp](https://github.com/jupyter-lsp/jupyterlab-lsp).
 
 ## Installation
 
+Optionally, create a new environment with JupyterLab installed:
+
 ```sh
-conda create --name jupysqlenv python=3.10 jupyterlab --yes -c conda-forge
+conda create --name jupysqlenv python=3.10 jupyterlab --yes --channel conda-forge
 conda activate jupysqlenv
 ```
 
-```{code-cell} ipython3
+JupyterLab-lsp requires Node, if you don't have it, you can install it with conda:
+
+```sh
 conda install --channel conda-forge nodejs --yes
 ```
 
-```{code-cell} ipython3
++++
+
+Now, install the rewuired dependencies using `pip`:
+
+```sh
 pip install jupyter-lsp jupyterlab-lsp python-language-server --quiet
 ```
 
-+++
-
-#### 2. Install [Jupyterlab-lsp](https://github.com/krassowski/jupyterlab-lsp):
-
-+++
-
-#### 3. Install Jupyterlab-lsp-server:
-
-+++
-
-
-+++
-
-#### 4. Install [JupySQL](https://github.com/ploomber/jupysql) to run sql queries
-
-+++
+To run SQL queries on Jupyter, install [JupySQL](https://github.com/ploomber/jupysql):
 
 ```bash
 pip install jupysql --quiet
 ```
 
-```{code-cell} ipython3
-jlpm add sql-language-server
++++
+
+Finally, add the SQL language server:
+
+```sh
+jlpm add --dev sql-language-server
 ```
+
+Now, start Jupyter Lab, you'll see this in the bottom bar:
+
+![init](../static/syntax-highlighting-lsp-initializing.png)
+
+After a few seconds, LSP should be fully initialized and you'll get SQL syntax highlighting!
+
+![running](../static/syntax-highlighting-lsp-running.png)
 
 +++
 
-## Setup
-Load the extension:
+## Querying
+
+Here's some sample code to test it (requires: `pip install duckdb-engine`)
 
 ```{code-cell} ipython3
-:tags: []
-
 %load_ext sql
-```
-
-```{code-cell} ipython3
 %sql duckdb://
 ```
-
-## Querying
-Then we can do sql sytex hightlighting in JupyterLab, here are some querying examples:
 
 ```{code-cell} ipython3
 %%sql
@@ -89,8 +85,4 @@ INSTALL httpfs
 SELECT *
 FROM "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
 LIMIT 3
-```
-
-```{code-cell} ipython3
-
 ```
