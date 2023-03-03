@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.6.1dev
+## 0.6.2dev
+
+## 0.6.1 (2023-03-02)
+
+* [Feature] Support new variable substitution using `{{variable}}` format ([#137](https://github.com/ploomber/jupysql/pull/137))
+* [Fix] Adds support for newer versions of prettytable
 
 ## 0.6.0 (2023-02-27)
 

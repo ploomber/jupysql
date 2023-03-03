@@ -13,6 +13,7 @@ parts:
     - file: compose
     - file: user-guide/tables-columns
     - file: plot-legacy
+    - file: user-guide/template
 
   - caption: Integrations
     chapters:
@@ -34,6 +35,7 @@ parts:
     - file: howto/postgres-install
     - file: howto/postgres-connect
     - file: howto/json
+    - file: howto/syntax-highlighting
 
   - caption: Community
     chapters:
