@@ -70,6 +70,8 @@ After a few seconds, LSP should be fully initialized and you'll get SQL syntax h
 
 Here's some sample code to test it (requires: `pip install duckdb-engine`)
 
+*Note that syntax highlighting won't work on this page, but it'll work on Jupyter.*
+
 ```{code-cell} ipython3
 %load_ext sql
 %sql duckdb://
