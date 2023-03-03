@@ -51,7 +51,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Topic :: Database",
         "Topic :: Database :: Front-Ends",
         "Programming Language :: Python :: 3",
