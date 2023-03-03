@@ -65,7 +65,7 @@ result.PolarsDataFrame()
 ```{code-cell} ipython3
 %config SqlMagic.autopolars = True
 df = %sql SELECT * FROM writer
-type(res)
+type(df)
 ```
 
 ```{code-cell} ipython3
