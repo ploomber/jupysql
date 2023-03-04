@@ -14,8 +14,8 @@ author = "Ploomber"
 comments_config = {"hypothesis": False, "utterances": False}
 copyright = "2023"
 exclude_patterns = ["**.ipynb_checkpoints", ".DS_Store", "Thumbs.db", "_build"]
-execution_allow_errors = False
-execution_excludepatterns = [
+nb_execution_allow_errors = False
+nb_execution_excludepatterns = [
     "howto/*-connect.ipynb",
     "integrations/mssql.ipynb",
     "integrations/mysql.ipynb",
@@ -23,9 +23,9 @@ execution_excludepatterns = [
     "integrations/clickhouse.ipynb",
     "integrations/mindsdb.ipynb",
 ]
-execution_in_temp = False
-execution_show_tb = True
-execution_timeout = 90
+nb_execution_in_temp = False
+nb_execution_show_tb = True
+nb_execution_timeout = 90
 extensions = [
     "sphinx_togglebutton",
     "sphinx_copybutton",
@@ -73,8 +73,8 @@ html_theme_options = {
     "use_issues_button": True,
 }
 html_title = "JupySQL"
-jupyter_cache = ""
-jupyter_execute_notebooks = "force"
+nb_execution_cache_path = ""
+nb_execution_mode = "force"
 latex_engine = "pdflatex"
 myst_enable_extensions = [
     "colon_fence",
