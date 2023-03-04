@@ -69,7 +69,7 @@ Start a DuckDB in-memory database:
 
 ```{tip}
 You can create as many connections as you want. Pass an `--alias {alias}` to easily
-[switch them or close](howto.html#switch-connections) them.
+[switch them or close](howto.md#switch-connections) them.
 ```
 
 ## Querying

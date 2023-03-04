@@ -20,7 +20,7 @@ myst:
 
 ```{versionadded} 0.5.2
 `%sqlplot` was introduced in 0.5.2; however, the underlying
-[Python API](api/python.rst#sql-plot) was introduced in 0.4.4
+[Python API](api/python) was introduced in 0.4.4
 ```
 
 

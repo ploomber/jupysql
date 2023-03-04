@@ -62,19 +62,18 @@ html_theme_options = {
     "path_to_docs": "doc",
     "repository_url": repository_url,
     "repository_branch": repository_branch,
-    "google_analytics_id": "G-JBZ8NNQSLN",
-    "extra_navbar": 'Join us on <a href="https://ploomber.io/community/">Slack!</a>',
-    "extra_footer": "",
+    "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
-    "announcement": "To launch any tutorial in JupyterLab, \
-        click on the 🚀 button below!",
+    "announcement": ("To launch a tutorial, click on the 🚀 button "
+                     "below! Join us on "
+                     "<a href='https://ploomber.io/community/'>Slack!</a>"),
     "use_repository_button": True,
     "use_edit_page_button": False,
     "use_issues_button": True,
 }
 html_title = "JupySQL"
 nb_execution_cache_path = ""
-nb_execution_mode = "auto"
+nb_execution_mode = "cache"
 latex_engine = "pdflatex"
 myst_enable_extensions = [
     "colon_fence",
