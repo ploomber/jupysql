@@ -23,7 +23,7 @@ nb_execution_excludepatterns = [
     "integrations/clickhouse.ipynb",
     "integrations/mindsdb.ipynb",
 ]
-nb_execution_in_temp = False
+nb_execution_in_temp = True
 nb_execution_show_tb = True
 nb_execution_timeout = 90
 extensions = [
@@ -74,7 +74,7 @@ html_theme_options = {
 }
 html_title = "JupySQL"
 nb_execution_cache_path = ""
-nb_execution_mode = "force"
+nb_execution_mode = "auto"
 latex_engine = "pdflatex"
 myst_enable_extensions = [
     "colon_fence",
@@ -84,6 +84,9 @@ myst_enable_extensions = [
     "tasklist",
 ]
 myst_url_schemes = ["mailto", "http", "https"]
+# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html#auto-generated-header-anchors
+myst_heading_anchors = 2
+
 nb_output_stderr = "show"
 numfig = True
 plot_html_show_formats = False
