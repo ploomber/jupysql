@@ -9,6 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+myst:
+  html_meta:
+    description lang=en: Recipes for JupySQL
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 ```{code-cell} ipython3
@@ -299,4 +304,14 @@ Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, Jupy
 SELECT *
 FROM "penguins.csv"
 LIMIT 3
+```
+
+
+## Ignore deprecation warnings
+
+We display warnings to let you know when the API will change so you have enough time to update your code, if you want to supress this warnings, add this at the top of your notebook:
+
+```{code-cell} ipython3
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 ```

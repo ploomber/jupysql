@@ -9,6 +9,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+myst:
+  html_meta:
+    description lang=en: Use DuckDB from Jupyter using JupySQL
+    keywords: jupyter, sql, jupysql, duckdb, plotting
+    property=og:locale: en_US
 ---
 
 # DuckDB integration
@@ -249,3 +254,21 @@ SELECT *
 FROM df
 WHERE x > 95
 ```
+
+## Passing parameters to connection
+
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+
+some_engine = create_engine(
+    'duckdb:///:memory:',
+    connect_args={
+        'preload_extensions': ['excel'],
+    }
+)
+```
+
+```{code-cell} ipython3
+%sql some_engine
+```
+

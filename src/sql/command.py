@@ -1,4 +1,6 @@
+import warnings
 from IPython.core.magic_arguments import parse_argstring
+from jinja2 import Template
 
 from sqlalchemy.engine import Engine
 
@@ -19,12 +21,7 @@ class SQLCommand:
     """
 
     def __init__(self, magic, user_ns, line, cell) -> None:
-        # Parse variables (words wrapped in {}) for %%sql magic
-        # (for %sql this is done automatically)
-        cell = magic.shell.var_expand(cell)
-
         self.args = parse.magic_args(magic.execute, line)
-
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is splited in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
@@ -45,7 +42,6 @@ class SQLCommand:
             add_alias = True
         else:
             add_alias = False
-
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:
@@ -54,7 +50,9 @@ class SQLCommand:
 
         self.parsed = parse.parse(self.command_text, magic)
 
-        self.parsed["sql_original"] = self.parsed["sql"]
+        self.parsed["sql_original"] = self.parsed["sql"] = self._var_expand(
+            self.parsed["sql"], user_ns, magic
+        )
 
         if add_conn:
             self.parsed["connection"] = user_ns[self.args.line[0]]
@@ -89,3 +87,24 @@ class SQLCommand:
     def result_var(self):
         """Returns the result_var"""
         return self.parsed["result_var"]
+
+    def _var_expand(self, sql, user_ns, magic):
+        sql = Template(sql).render(user_ns)
+        parsed_sql = magic.shell.var_expand(sql, depth=2)
+
+        has_SQLAlchemy_var_expand = ":" in sql and any(
+            (":" + ns_var_key in sql for ns_var_key in user_ns.keys())
+        )
+        # has_SQLAlchemy_var_expand: detect if using Sqlalchemy fashion - :a
+
+        msg = (
+            "Variable substitution with $var and {var} has been "
+            "deprecated and will be removed in a future version. "
+            "Use {{var}} instead. To remove this, see: "
+            "https://jupysql.ploomber.io/en/latest/howto.html#ignore-deprecation-warnings"  # noqa
+        )
+
+        if parsed_sql != sql or has_SQLAlchemy_var_expand:
+            warnings.warn(msg, FutureWarning)
+
+        return parsed_sql

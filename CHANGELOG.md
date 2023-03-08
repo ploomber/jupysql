@@ -1,6 +1,19 @@
 # CHANGELOG
 
-## 0.6.1dev
+## 0.6.4dev
+
+## 0.6.3 (2023-03-06)
+
+* [Fix] Displaying variable substitution warning only when the variable to expand exists in the user's namespace
+
+## 0.6.2 (2023-03-05)
+
+* [Fix] Deprecation warning incorrectly displayed [#213](https://github.com/ploomber/jupysql/issues/213)
+
+## 0.6.1 (2023-03-02)
+
+* [Feature] Support new variable substitution using `{{variable}}` format ([#137](https://github.com/ploomber/jupysql/pull/137))
+* [Fix] Adds support for newer versions of prettytable
 
 ## 0.6.0 (2023-02-27)
 

@@ -11,6 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+myst:
+  html_meta:
+    description lang=en: Run SQL in a Jupyter notebook with JupySQL
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 # Introduction
@@ -124,6 +129,10 @@ or a single dictionary with a tuple of scalar values per key (``result.dict()``)
 
 ## Variable substitution 
 
+```{versionchanged} 0.5.7
+This is a legacy API that's kept for backwards compatibility.
+```
+
 Bind variables (bind parameters) can be used in the "named" (:x) style.
 The variable names used should be defined in the local namespace.
 
@@ -165,6 +174,8 @@ can be used in multi-line ``%%sql``:
 %%sql lang << SELECT *
 FROM languages
 ```
+
++++
 
 ## Considerations
 

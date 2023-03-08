@@ -11,6 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+myst:
+  html_meta:
+    description lang=en: Configure the %sql/%%sql magics in Jupyter
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 # `%sql` Configuration

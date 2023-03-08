@@ -13,11 +13,17 @@ parts:
     - file: compose
     - file: user-guide/tables-columns
     - file: plot-legacy
+    - file: user-guide/template
 
   - caption: Integrations
     chapters:
       - file: integrations/duckdb
       - file: integrations/pandas
+      - file: integrations/polars
+      - file: integrations/mysql
+      - file: integrations/mssql
+      - file: integrations/mariadb
+      - file: integrations/clickhouse
       - file: integrations/mindsdb
 
   - caption: API Reference
@@ -34,6 +40,7 @@ parts:
     - file: howto/postgres-install
     - file: howto/postgres-connect
     - file: howto/json
+    - file: howto/syntax-highlighting
 
   - caption: Community
     chapters:

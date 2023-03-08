@@ -16,7 +16,7 @@ with open("src/sql/__init__.py", "rb") as f:
     )
 
 install_requires = [
-    "prettytable<1",
+    "prettytable",
     "ipython>=1.0",
     "sqlalchemy>=0.6.7,<2.0",
     "sqlparse",
@@ -51,19 +51,18 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Topic :: Database",
         "Topic :: Database :: Front-Ends",
         "Programming Language :: Python :: 3",
     ],
-    keywords="database ipython postgresql mysql",
+    keywords="database ipython postgresql mysql duckdb",
     author="Ploomber",
     author_email="contact@ploomber.io",
     url="https://github.com/ploomber/jupysql",
     project_urls={
         "Source": "https://github.com/ploomber/jupysql",
     },
-    license="MIT",
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
