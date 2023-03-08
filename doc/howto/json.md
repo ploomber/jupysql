@@ -124,7 +124,11 @@ Extract fields from a JSON record:
 
 ```{code-cell} ipython3
 %%sql
-SELECT *, likes.pizza, likes.tacos
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
 FROM read_json_auto('people.json')
 ```
 
@@ -132,7 +136,11 @@ JSON lines format is also supported: https://jsonlines.org/
 
 ```{code-cell} ipython3
 %%sql
-SELECT *, likes.pizza
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
 FROM read_json_auto('people.jsonl')
 ```
 
@@ -147,17 +155,17 @@ Infer the JSON schema:
 ```{code-cell} ipython3
 %%sql
 SELECT
-    json_structure(*),
-    json_structure(likes),
-FROM read_json_auto('people.json')
+    json_structure(json),
+    json_structure(json ->> '$.likes'),
+FROM read_json_objects('people.jsonl')
 ```
 
 ```{code-cell} ipython3
 %%sql schema <<
 SELECT
-    json_structure(*) AS schema_all,
-    json_structure(likes) AS schema_likes,
-FROM read_json_auto('people.json')
+    json_structure(json) AS schema_all,
+    json_structure(json ->> '$.likes') AS schema_likes,
+FROM read_json_objects('people.jsonl')
 ```
 
 Pretty print the inferred schema:
@@ -180,12 +188,12 @@ You can use JupySQL's `--save` feature to store a SQL snippet so you can keep yo
 
 ```{code-cell} ipython3
 %%sql --save clean_data
-SELECT
-    json ->> '$[0].name' AS name,
-    json ->> '$[0].friends[0]' AS first_friend,
-    json ->> '$[0].likes.pizza' AS likes_pizza,
-    json ->> '$[0].likes.tacos' AS likes_tacos,
-FROM read_json_objects('people.json')
+SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+FROM read_json_auto('people.json')
 ```
 
 ```{code-cell} ipython3
@@ -204,12 +212,12 @@ To export to CSV:
 ```{code-cell} ipython3
 %%sql
 COPY (
-    SELECT
-    json ->> '$[0].name' AS name,
-    json ->> '$[0].friends[0]' AS first_friend,
-    json ->> '$[0].likes.pizza' AS likes_pizza,
-    json ->> '$[0].likes.tacos' AS likes_tacos,
-    FROM read_json_objects('people.json')
+    SELECT 
+    name, 
+    friends[1] AS first_friend, 
+    likes.pizza AS likes_pizza, 
+    likes.tacos AS likes_tacos
+    FROM read_json_auto('people.json')
 )
 
 TO 'people.csv' (HEADER, DELIMITER ',');
