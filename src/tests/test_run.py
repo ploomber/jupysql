@@ -13,8 +13,7 @@ def conn():
     return connection
 
 
-@pytest.mark.parametrize("mock_pgspecial", [None])
-def test_handle_postgres_special(mock_pgspecial):
+def test_handle_postgres_special():
     with pytest.raises(ImportError):
         handle_postgres_special("conn", "statement")
 
