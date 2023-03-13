@@ -1,7 +1,6 @@
 import pytest
-import sqlparse
 
-from sql.run import run
+from sql.run import run, handle_postgres_special
 
 
 @pytest.fixture
@@ -17,21 +16,25 @@ def conn():
 @pytest.mark.parametrize("mock_pgspecial", [None])
 def test_handle_postgres_special(mock_pgspecial):
     with pytest.raises(ImportError):
-        assert mock_pgspecial is None
+        handle_postgres_special("conn", "statement")
 
 
 @pytest.mark.parametrize(
-    "conn, sql, config, user_namespace", ["conn", "BEGIN", "config", "user_namespace"]
+    "sql, config, user_namespace",
+    [
+        ("BEGIN", "config", "user_namespace"),
+    ],
 )
 def test_sql_begin_exception(conn, sql, config, user_namespace):
     with pytest.raises(Exception):
-        for _ in sqlparse.split(sql):
-            first_word = sql.strip().split()[0].lower()
-        assert first_word == "begin"
+        run(conn, sql, config, user_namespace)
 
 
 @pytest.mark.parametrize(
-    "sql, config, user_namespace", ["", "config", "user_namespace"]
+    "sql, config, user_namespace",
+    [
+        ("", "config", "user_namespace"),
+    ],
 )
 def test_sql_empty(conn, sql, config, user_namespace):
     assert run(conn, sql, config, user_namespace) == "Connected: %s" % conn.name
