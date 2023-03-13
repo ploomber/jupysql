@@ -381,39 +381,50 @@ def _commit(conn, config):
             pass  # not all engines can commit
 
 
-def run(conn, sql, config, user_namespace):
-    if sql.strip():
-        for statement in sqlparse.split(sql):
-            first_word = sql.strip().split()[0].lower()
-            if first_word == "begin":
-                raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and (
-                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
-            ):
-                if not PGSpecial:
-                    raise ImportError("pgspecial not installed")
-                pgspecial = PGSpecial()
-                _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement
-                )[0]
-                result = FakeResultProxy(cur, headers)
-            else:
-                txt = sqlalchemy.sql.text(statement)
-                result = conn.session.execute(txt, user_namespace)
-            _commit(conn=conn, config=config)
-            if result and config.feedback:
-                print(interpret_rowcount(result.rowcount))
+def is_postgres(dialect):
+    """Checks if dialect is postgres or redshift"""
+    return "postgres" in str(dialect) or "redshift" in str(dialect)
 
-        resultset = ResultSet(result, config)
-        if config.autopandas:
-            return resultset.DataFrame()
-        elif config.autopolars:
-            return resultset.PolarsDataFrame()
-        else:
-            return resultset
-        # returning only last result, intentionally
-    else:
+
+def handle_postgres_special(conn, statement):
+    """Execute a PostgreSQL special statement using PGSpecial module."""
+    if not PGSpecial:
+        raise ImportError("pgspecial not installed")
+
+    pgspecial = PGSpecial()
+    _, cur, headers, _ = pgspecial.execute(
+        conn.session.connection.cursor(), statement
+    )[0]
+    return FakeResultProxy(cur, headers)
+
+
+def run(conn, sql, config, user_namespace):
+    if not sql.strip():
         return "Connected: %s" % conn.name
+
+    for statement in sqlparse.split(sql):
+        first_word = sql.strip().split()[0].lower()
+        if first_word == "begin":
+            raise Exception("ipython_sql does not support transactions")
+
+        if first_word.startswith("\\") and is_postgres(conn.dialect):
+            result = handle_postgres_special(conn, statement)
+        else:
+            txt = sqlalchemy.sql.text(statement)
+            result = conn.session.execute(txt, user_namespace)
+
+        _commit(conn=conn, config=config)
+        if result and config.feedback:
+            print(interpret_rowcount(result.rowcount))
+
+    resultset = ResultSet(result, config)
+    if config.autopandas:
+        return resultset.DataFrame()
+    elif config.autopolars:
+        return resultset.PolarsDataFrame()
+    else:
+        return resultset
+    # returning only last result, intentionally
 
 
 class PrettyTable(prettytable.PrettyTable):
