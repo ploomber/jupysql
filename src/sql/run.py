@@ -396,9 +396,9 @@ def handle_postgres_special(conn, statement):
         raise ImportError("pgspecial not installed")
 
     pgspecial = PGSpecial()
-    _, cur, headers, _ = pgspecial.execute(
-        conn.session.connection.cursor(), statement
-    )[0]
+    _, cur, headers, _ = pgspecial.execute(conn.session.connection.cursor(), statement)[
+        0
+    ]
     return FakeResultProxy(cur, headers)
 
 
