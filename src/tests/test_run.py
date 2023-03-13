@@ -39,5 +39,3 @@ def test_sql_begin_exception(conn, sql, config, user_namespace):
 )
 def test_sql_empty(conn, sql, config, user_namespace):
     assert run(conn, sql, config, user_namespace) == "Connected: %s" % conn.name
-
-
