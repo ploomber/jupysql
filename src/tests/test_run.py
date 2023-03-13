@@ -91,7 +91,7 @@ def test_select_df_type_is_none(monkeypatch, mock_config, mock_result_set):
 
 
 def test_sql_begin_exception(clean_conns, mock_config):
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="does not support transactions"):
         run(clean_conns, "BEGIN", mock_config, "user_namespace")
 
 
