@@ -86,8 +86,8 @@ SELECT
     name AS name,
     owner.login AS user,
     description AS description,
-    html_url as URL,
-    stargazers_count as stars
+    html_url AS URL,
+    stargazers_count AS stars
 FROM read_json_auto('jupyterdata.json')
 LIMIT 5
 ```
@@ -100,8 +100,8 @@ SELECT
     name AS name,
     owner.login AS user,
     description AS description,
-    html_url as URL,
-    stargazers_count as stars
+    html_url AS URL,
+    stargazers_count AS stars
 FROM read_json_auto('jupyterdata.json')
 WHERE stargazers_count < 15000 AND stargazers_count > 10000 
 ```
@@ -115,8 +115,8 @@ COPY (
     name AS name,
     owner.login AS user,
     description AS description,
-    html_url as URL,
-    stargazers_count as stars
+    html_url AS URL,
+    stargazers_count AS stars
     FROM read_json_auto('jupyterdata.json')
     WHERE stargazers_count < 15000 AND stargazers_count > 10000 
 )
