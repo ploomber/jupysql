@@ -402,7 +402,8 @@ def handle_postgres_special(conn, statement):
     return FakeResultProxy(cur, headers)
 
 
-def is_autocommit(conn, config):
+def set_autocommit(conn, config):
+    """Sets the autocommit setting for a database connection."""
     if config.autocommit:
         try:
             conn.session.execution_options(isolation_level="AUTOCOMMIT")
@@ -429,6 +430,7 @@ def select_df_type(result_set, config):
         return result_set.PolarsDataFrame()
     else:
         return result_set
+    # returning only last result, intentionally
 
 
 def run(conn, sql, config, user_namespace):
@@ -446,7 +448,7 @@ def run(conn, sql, config, user_namespace):
             result = handle_postgres_special(conn, statement)
         else:
             txt = sqlalchemy.sql.text(statement)
-            manual_commit = is_autocommit(conn, config)
+            manual_commit = set_autocommit(conn, config)
             result = conn.session.execute(txt, user_namespace)
 
         _commit(conn=conn, config=config, manual_commit=manual_commit)
@@ -456,7 +458,6 @@ def run(conn, sql, config, user_namespace):
     resultset = ResultSet(result, config)
 
     return select_df_type(resultset, config)
-    # returning only last result, intentionally
 
 
 class PrettyTable(prettytable.PrettyTable):
