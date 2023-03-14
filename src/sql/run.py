@@ -385,53 +385,68 @@ def _commit(conn, config, manual_commit):
             print("The database does not support the COMMIT command")
 
 
-def run(conn, sql, config, user_namespace):
-    if sql.strip():
-        for statement in sqlparse.split(sql):
-            first_word = sql.strip().split()[0].lower()
-            manual_commit = False
-            if first_word == "begin":
-                raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and (
-                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
-            ):
-                if not PGSpecial:
-                    raise ImportError("pgspecial not installed")
-                pgspecial = PGSpecial()
-                _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement
-                )[0]
-                result = FakeResultProxy(cur, headers)
-            else:
-                txt = sqlalchemy.sql.text(statement)
-                if config.autocommit:
-                    try:
-                        conn.session.execution_options(isolation_level="AUTOCOMMIT")
-                    except Exception as e:
-                        print(
-                            "The database driver doesn't support "
-                            "such AUTOCOMMIT execution option\n"
-                            "Perhaps you can try running a manual COMMIT command\n\n"
-                            "Message from the database driver: \n\tException:",
-                            e,
-                            "\n",
-                        )
-                        manual_commit = True
-                result = conn.session.execute(txt, user_namespace)
-            _commit(conn=conn, config=config, manual_commit=manual_commit)
-            if result and config.feedback:
-                print(interpret_rowcount(result.rowcount))
+def is_postgres(dialect):
+    """Checks if dialect is postgres or redshift"""
+    return "postgres" in str(dialect) or "redshift" in str(dialect)
 
-        resultset = ResultSet(result, config)
-        if config.autopandas:
-            return resultset.DataFrame()
-        elif config.autopolars:
-            return resultset.PolarsDataFrame()
-        else:
-            return resultset
-        # returning only last result, intentionally
-    else:
+
+def handle_postgres_special(conn, statement):
+    """Execute a PostgreSQL special statement using PGSpecial module."""
+    if not PGSpecial:
+        raise ImportError("pgspecial not installed")
+
+    pgspecial = PGSpecial()
+    _, cur, headers, _ = pgspecial.execute(
+        conn.session.connection.cursor(), statement
+    )[0]
+    return FakeResultProxy(cur, headers)
+
+
+def is_autocommit(conn, config):
+    if config.autocommit:
+        try:
+            conn.session.execution_options(isolation_level="AUTOCOMMIT")
+        except Exception as e:
+            print(
+                "The database driver doesn't support "
+                "such AUTOCOMMIT execution option\n"
+                "Perhaps you can try running a manual COMMIT command\n\n"
+                "Message from the database driver: \n\tException:",
+                e,
+                "\n",
+            )
+            return True
+
+
+def run(conn, sql, config, user_namespace):
+    if not sql.strip():
         return "Connected: %s" % conn.name
+
+    for statement in sqlparse.split(sql):
+        first_word = sql.strip().split()[0].lower()
+        manual_commit = False
+        if first_word == "begin":
+            raise Exception("ipython_sql does not support transactions")
+
+        if first_word.startswith("\\") and is_postgres(conn.dialect):
+            result = handle_postgres_special(conn, statement)
+        else:
+            txt = sqlalchemy.sql.text(statement)
+            manual_commit = is_autocommit(conn, config)
+            result = conn.session.execute(txt, user_namespace)
+
+        _commit(conn=conn, config=config, manual_commit=manual_commit)
+        if result and config.feedback:
+            print(interpret_rowcount(result.rowcount))
+
+    resultset = ResultSet(result, config)
+    if config.autopandas:
+        return resultset.DataFrame()
+    elif config.autopolars:
+        return resultset.PolarsDataFrame()
+    else:
+        return resultset
+    # returning only last result, intentionally
 
 
 class PrettyTable(prettytable.PrettyTable):
