@@ -23,8 +23,9 @@ JupySQL and DuckDB have many use cases. Here, let's query the Github REST API to
 ```{code-cell} ipython3
 :tags: [remove-cell]
 from pathlib import Path
+from apikey import api_key
 
-token = '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'
+token = api_key
 
 paths = ["jupyterdata.json"]
 
@@ -50,19 +51,20 @@ import requests
 import json
 from pathlib import Path
 
-url = 'https://api.github.com/search/repositories?q=jupyter&sort=stars&order=desc'
-headers = {
-    'Accept': 'application/vnd.github+json',
-    'Authorization': f'Bearer {token}',
-    'X-Github-Api-Version': '2022-11-28'
+res = requests.get(
+    'https://api.github.com/search/repositories',
+    params={'q': 'jupyter', 'sort': 'stars', 'order': 'desc'},
+    headers={
+        'Authorization': f'Bearer {token}',
+        'X-Github-Api-Version': '2022-11-28'
     }
-res = requests.get(url, headers=headers)
+)
 ```
 
 We then parse the information pulled from the API into a JSON format that we can run analysis on with JupySQL. We also need to save it locally as a `.json` file. Let's make it easier by only dumping the 'items' array.
 
 ```{code-cell} ipython3
-parsed = json.loads(res.text)
+parsed = res.json()
 
 _ = Path("jupyterdata.json").write_text(json.dumps(parsed['items'], indent=4))
 ```
@@ -92,7 +94,7 @@ SELECT
     name AS name,
     owner.login AS user,
     description AS description,
-    html_url as URL
+    html_url as URL,
     stargazers_count as stars
 FROM read_json_auto('jupyterdata.json')
 LIMIT 5
