@@ -385,7 +385,7 @@ def _commit(conn, config, manual_commit):
             print("The database does not support the COMMIT command")
 
 
-def is_postgres(dialect):
+def is_postgres_or_redshift(dialect):
     """Checks if dialect is postgres or redshift"""
     return "postgres" in str(dialect) or "redshift" in str(dialect)
 
@@ -418,17 +418,31 @@ def is_autocommit(conn, config):
             return True
 
 
+def select_df_type(result_set, config):
+    """
+    Converts the input result_set to either a Pandas DataFrame
+    or Polars DataFrame based on the config settings.
+    """
+    if config.autopandas:
+        return result_set.DataFrame()
+    elif config.autopolars:
+        return result_set.PolarsDataFrame()
+    else:
+        return result_set
+
+
 def run(conn, sql, config, user_namespace):
     if not sql.strip():
+        # returning only when sql is empty string
         return "Connected: %s" % conn.name
 
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
         manual_commit = False
         if first_word == "begin":
-            raise Exception("ipython_sql does not support transactions")
+            raise ValueError("ipython_sql does not support transactions")
 
-        if first_word.startswith("\\") and is_postgres(conn.dialect):
+        if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
         else:
             txt = sqlalchemy.sql.text(statement)
@@ -440,12 +454,8 @@ def run(conn, sql, config, user_namespace):
             print(interpret_rowcount(result.rowcount))
 
     resultset = ResultSet(result, config)
-    if config.autopandas:
-        return resultset.DataFrame()
-    elif config.autopolars:
-        return resultset.PolarsDataFrame()
-    else:
-        return resultset
+
+    return select_df_type(resultset, config)
     # returning only last result, intentionally
 
 
