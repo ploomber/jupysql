@@ -47,7 +47,7 @@ for path in paths:
 
 Now, let's generate some data.
 
-Our sample data contains four rows. We'll write it in typical JSON format as well as [JSON Lines](https://jsonlines.org/):
+We'll write it in typical JSON format as well as [JSON Lines](https://jsonlines.org/). JSON Lines, or newline-delimited JSON, is a structured file format in which each individual line is a valid JSON object, separated by a newline character (`/n`). Our sample data contains four rows:
 
 ```{code-cell} ipython3
 from pathlib import Path
@@ -132,7 +132,7 @@ SELECT
 FROM read_json_auto('people.json')
 ```
 
-JSON lines format is also supported: https://jsonlines.org/
+[JSON lines](https://jsonlines.org/) format is also supported:
 
 ```{code-cell} ipython3
 %%sql
@@ -142,6 +142,18 @@ SELECT
     likes.pizza AS likes_pizza, 
     likes.tacos AS likes_tacos
 FROM read_json_auto('people.jsonl')
+```
+
+We can also use `read_json_objects` and format our queries differently:
+
+```{code-cell} ipython3
+%%sql
+SELECT
+    json ->> '$.name' AS name,
+    json ->> '$.friends[0]' AS first_friend,
+    json ->> '$.likes.pizza' AS likes_pizza,
+    json ->> '$.likes.tacos' AS likes_tacos
+FROM read_json_objects('people.jsonl')
 ```
 
 Looks like everybody likes tacos!
@@ -187,7 +199,7 @@ print_json(row.schema_likes)
 You can use JupySQL's `--save` feature to store a SQL snippet so you can keep your queries succint:
 
 ```{code-cell} ipython3
-%%sql --save clean_data
+%%sql --save clean_data_json
 SELECT 
     name, 
     friends[1] AS first_friend, 
@@ -197,8 +209,25 @@ FROM read_json_auto('people.json')
 ```
 
 ```{code-cell} ipython3
-%%sql --with clean_data
-SELECT * FROM clean_data
+%%sql --with clean_data_json
+SELECT * FROM clean_data_json
+```
+
+Or using our `.jsonl` file:
+
+```{code-cell} ipython3
+%%sql --save clean_data_jsonl
+SELECT 
+    json ->> '$.name' AS name,
+    json ->> '$.friends[0]' AS first_friend,
+    json ->> '$.likes.pizza' AS likes_pizza,
+    json ->> '$.likes.tacos' AS likes_tacos
+FROM read_json_objects('people.jsonl')
+```
+
+```{code-cell} ipython3
+%%sql --with clean_data_jsonl
+SELECT * FROM clean_data_jsonl
 ```
 
 ## Export to CSV
