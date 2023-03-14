@@ -1,14 +1,18 @@
 # CHANGELOG
 
-## 0.6.4dev
+## 0.6.5dev
 
-* [Doc] Summary section on jupysql vs ipython-sql
-* [Fix] Adds support for SQL Alchemy 2.0
 * [Doc] User guide on querying Github API with DuckDB and JupySQL
+
+## 0.6.4 (2023-03-12)
+
+* [Fix] Adds support for SQL Alchemy 2.0
+* [Doc] Summary section on jupysql vs ipython-sql
 
 ## 0.6.3 (2023-03-06)
 
 * [Fix] Displaying variable substitution warning only when the variable to expand exists in the user's namespace
+
 ## 0.6.2 (2023-03-05)
 
 * [Fix] Deprecation warning incorrectly displayed [#213](https://github.com/ploomber/jupysql/issues/213)
