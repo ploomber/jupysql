@@ -130,7 +130,7 @@ One may be unfamiliar with the commands prefixed with '%' used in this instructi
 
 ## Definition of Jupyter Magic
 
-Magics are specific to and provided by the IPython kernel. Some common usage of magic functions are: running external code files, timing code execution,
+Magics are specific to and provided by the IPython kernel. Some common usage of magic functions are: running external code files, timing code execution, and loading IPython Extensions. 
 
 ```{code-cell} ipython3
 # Suppose execute.py is a python code file
