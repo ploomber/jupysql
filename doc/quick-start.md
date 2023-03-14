@@ -123,3 +123,5 @@ df = result.DataFrame()
 ```{code-cell} ipython3
 df.head()
 ```
+
+# About Jupyter Magic
