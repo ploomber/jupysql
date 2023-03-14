@@ -124,4 +124,15 @@ df = result.DataFrame()
 df.head()
 ```
 
-# About Jupyter Magic
+# Jupyter Magic
+
+One may be unfamiliar with the commands prefixed with '%' used in this instruction. Here is a detailed description of this command and its usage. 
+
+## Definition of Jupyter Magic
+
+## Line Magic VS Cell Magic
+
+**Line magics**, which are denoted by a single % prefix and operate on a single line of input, and **cell magics**, which are denoted by a double %% prefix and operate on multiple lines of input. 
+
+## %sql VS %%sql
+
