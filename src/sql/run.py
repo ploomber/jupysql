@@ -367,18 +367,22 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def _commit(conn, config):
+def _commit(conn, config, manual_commit):
     """Issues a commit, if appropriate for current config and dialect"""
 
-    _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    _should_commit = (
+        config.autocommit
+        and all(
+            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+        )
+        and manual_commit
     )
 
     if _should_commit:
         try:
             conn.session.execute("commit")
         except sqlalchemy.exc.OperationalError:
-            pass  # not all engines can commit
+            print("The database does not support the COMMIT command")
 
 
 def is_postgres_or_redshift(dialect):
@@ -398,6 +402,23 @@ def handle_postgres_special(conn, statement):
     return FakeResultProxy(cur, headers)
 
 
+def set_autocommit(conn, config):
+    """Sets the autocommit setting for a database connection."""
+    if config.autocommit:
+        try:
+            conn.session.execution_options(isolation_level="AUTOCOMMIT")
+        except Exception as e:
+            print(
+                "The database driver doesn't support "
+                "such AUTOCOMMIT execution option\n"
+                "Perhaps you can try running a manual COMMIT command\n\n"
+                "Message from the database driver: \n\tException:",
+                e,
+                "\n",
+            )
+            return True
+
+
 def select_df_type(result_set, config):
     """
     Converts the input result_set to either a Pandas DataFrame
@@ -409,6 +430,7 @@ def select_df_type(result_set, config):
         return result_set.PolarsDataFrame()
     else:
         return result_set
+    # returning only last result, intentionally
 
 
 def run(conn, sql, config, user_namespace):
@@ -418,6 +440,7 @@ def run(conn, sql, config, user_namespace):
 
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
+        manual_commit = False
         if first_word == "begin":
             raise ValueError("ipython_sql does not support transactions")
 
@@ -425,15 +448,16 @@ def run(conn, sql, config, user_namespace):
             result = handle_postgres_special(conn, statement)
         else:
             txt = sqlalchemy.sql.text(statement)
+            manual_commit = set_autocommit(conn, config)
             result = conn.session.execute(txt, user_namespace)
-        _commit(conn=conn, config=config)
+
+        _commit(conn=conn, config=config, manual_commit=manual_commit)
         if result and config.feedback:
             print(interpret_rowcount(result.rowcount))
 
     resultset = ResultSet(result, config)
 
     return select_df_type(resultset, config)
-    # returning only last result, intentionally
 
 
 class PrettyTable(prettytable.PrettyTable):

@@ -2,6 +2,8 @@
 
 ## 0.6.5dev
 
+* [Fix] Addresses enable AUTOCOMMIT config issue in PostgreSQL (#90)
+
 ## 0.6.4 (2023-03-12)
 
 * [Fix] Adds support for SQL Alchemy 2.0
