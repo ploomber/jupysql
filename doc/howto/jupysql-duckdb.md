@@ -23,9 +23,6 @@ JupySQL and DuckDB have many use cases. Here, let's query the Github REST API to
 ```{code-cell} ipython3
 :tags: [remove-cell]
 from pathlib import Path
-from apikey import api_key
-
-token = api_key
 
 paths = ["jupyterdata.json"]
 
@@ -44,7 +41,7 @@ for path in paths:
 
 ## Pulling from Github API
 
-First, let's pull information on repositories relating to 'Jupyter' from the Github API. It requires a token, but accessing it is very simple if you have a Github account. More information on authentication can be found [here](https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api?apiVersion=2022-11-28#authenticating). Your token should replace the `token` variable. Our query will pull any repository relating to Jupyter, sorted by most to least stars.
+First, let's pull information on repositories relating to 'Jupyter' from the Github API. Some operations may require a token, but accessing them is very simple if you have a Github account. More information on authentication can be found [here](https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api?apiVersion=2022-11-28#authenticating). Our query will pull any repository relating to Jupyter, sorted by most to least stars.
 
 ```{code-cell} ipython3
 import requests
@@ -52,12 +49,7 @@ import json
 from pathlib import Path
 
 res = requests.get(
-    'https://api.github.com/search/repositories',
-    params={'q': 'jupyter', 'sort': 'stars', 'order': 'desc'},
-    headers={
-        'Authorization': f'Bearer {token}',
-        'X-Github-Api-Version': '2022-11-28'
-    }
+    'https://api.github.com/search/repositories?q=jupyter&sort=stars&order=desc',
 )
 ```
 
