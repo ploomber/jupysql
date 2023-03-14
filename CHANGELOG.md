@@ -4,6 +4,7 @@
 
 * [Doc] Summary section on jupysql vs ipython-sql
 * [Fix] Adds support for SQL Alchemy 2.0
+* [Doc] User guide on querying Github API with DuckDB and JupySQL
 
 ## 0.6.3 (2023-03-06)
 
