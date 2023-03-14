@@ -130,9 +130,22 @@ One may be unfamiliar with the commands prefixed with '%' used in this instructi
 
 ## Definition of Jupyter Magic
 
+Magics are specific to and provided by the IPython kernel. Whether Magics are available on a kernel is a decision that is made by the kernel developer on a per-kernel basis. 
+
 ## Line Magic VS Cell Magic
 
 **Line magics**, which are denoted by a single % prefix and operate on a single line of input, and **cell magics**, which are denoted by a double %% prefix and operate on multiple lines of input. 
 
-## %sql VS %%sql
+For example, for the code above, %sql is a line magic, and %% is a code magic. 
 
+```{code-cell} ipython3
+#line magic
+%sql SELECT * FROM penguins.csv LIMIT 3
+
+#block magic
+%%sql --save not-nulls --no-execute
+SELECT *
+FROM penguins.csv
+WHERE bill_length_mm IS NOT NULL
+AND bill_depth_mm IS NOT NULL
+```
