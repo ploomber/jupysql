@@ -1,16 +1,69 @@
+from unittest import mock
+from unittest.mock import Mock
+
+import pandas
+import polars
 import pytest
 
-from sql.run import run, handle_postgres_special
+from sql.run import (
+    run,
+    handle_postgres_special,
+    is_postgres_or_redshift,
+    select_df_type,
+)
 
 
 @pytest.fixture
-def conn():
-    class Connection:
-        pass
+def mock_config_is_pandas():
+    class Config:
+        autopandas = True
+        autopolars = False
 
-    connection = Connection()
-    connection.name = "conn"
-    return connection
+    return Config
+
+
+@pytest.fixture
+def mock_config_is_polars():
+    class Config:
+        autopandas = False
+        autopolars = True
+
+    return Config
+
+
+@pytest.fixture
+def mock_config():
+    class Config:
+        autopandas = False
+        autopolars = False
+        feedback = True
+
+    return Config
+
+
+@pytest.fixture
+def mock_result_set():
+    class ResultSet:
+        @classmethod
+        def DataFrame(cls):
+            return pandas.DataFrame()
+
+        @classmethod
+        def PolarsDataFrame(cls):
+            return polars.DataFrame()
+
+    return ResultSet
+
+
+@pytest.mark.parametrize(
+    "dialect",
+    [
+        "postgres",
+        "redshift",
+    ],
+)
+def test_is_postgres_or_redshift(dialect):
+    assert is_postgres_or_redshift(dialect) is True
 
 
 def test_handle_postgres_special():
@@ -18,22 +71,65 @@ def test_handle_postgres_special():
         handle_postgres_special("conn", "statement")
 
 
-@pytest.mark.parametrize(
-    "sql, config, user_namespace",
-    [
-        ("BEGIN", "config", "user_namespace"),
-    ],
-)
-def test_sql_begin_exception(conn, sql, config, user_namespace):
+@mock.patch("sql.run.select_df_type")
+def test_select_df_type_is_pandas(
+    mock_select_df_type, mock_config_is_pandas, mock_result_set
+):
+    mock_select_df_type.return_value = pandas.DataFrame()
+    result = select_df_type(mock_result_set, mock_config_is_pandas)
+    assert isinstance(result, pandas.DataFrame)
+
+
+@mock.patch("sql.run.select_df_type")
+def test_select_df_type_is_polars(
+    mock_select_df_type, mock_config_is_polars, mock_result_set
+):
+    mock_select_df_type.return_value = polars.DataFrame()
+    result = select_df_type(mock_result_set, mock_config_is_polars)
+    assert isinstance(result, polars.DataFrame)
+
+
+@mock.patch("sql.run.select_df_type")
+def test_select_df_type_is_none(mock_select_df_type, mock_config, mock_result_set):
+    mock_select_df_type.return_value = mock_result_set
+    result = select_df_type(mock_result_set, mock_config)
+    assert isinstance(result, type(mock_result_set))
+
+
+def test_sql_begin_exception(clean_conns):
     with pytest.raises(Exception):
-        run(conn, sql, config, user_namespace)
+        run(clean_conns, "BEGIN", "config", "user_namespace")
 
 
-@pytest.mark.parametrize(
-    "sql, config, user_namespace",
-    [
-        ("", "config", "user_namespace"),
-    ],
-)
-def test_sql_empty(conn, sql, config, user_namespace):
-    assert run(conn, sql, config, user_namespace) == "Connected: %s" % conn.name
+def test_sql_empty(mock_conns):
+    assert (
+        run(mock_conns, "", "config", "user_namespace")
+        == "Connected: %s" % mock_conns.name
+    )
+
+
+@mock.patch("sql.run.select_df_type")
+@mock.patch("sql.run.ResultSet")
+@mock.patch("sql.run.interpret_rowcount")
+@mock.patch("sql.run._commit")
+@mock.patch("sql.run.handle_postgres_special")
+def test_handle_postgres_special_is_called(
+    mock_handle_postgres_special,
+    mock__commit,
+    mock_interpret_rowcount,
+    mock_resultset_cls,
+    mock_select_df_type,
+    mock_conns,
+    mock_config,
+):
+    mock__commit.return_value = Mock()
+    mock_interpret_rowcount.return_value = str()
+    mock_resultset_cls.return_value = Mock()
+
+    run(mock_conns, "\\", mock_config, "user_namespace")
+
+    mock_handle_postgres_special.assert_called()
+    mock_handle_postgres_special.assert_called_once_with(mock_conns, "\\")
+    mock__commit.assert_called()
+    mock_resultset_cls.assert_called()
+    mock_select_df_type.assert_called()

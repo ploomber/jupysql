@@ -49,6 +49,13 @@ def clean_conns():
 
 
 @pytest.fixture
+def mock_conns():
+    Connection.name = str()
+    Connection.dialect = "postgres"
+    return Connection
+
+
+@pytest.fixture
 def ip_empty():
     ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
