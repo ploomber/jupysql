@@ -51,7 +51,11 @@ import json
 from pathlib import Path
 
 url = 'https://api.github.com/search/repositories?q=jupyter&sort=stars&order=desc'
-headers = {'Accept': 'application/vnd.github+json', 'Authorization': f'Bearer {token}', 'X-Github-Api-Version': '2022-11-28'}
+headers = {
+        'Accept': 'application/vnd.github+json', 
+        'Authorization': f'Bearer {token}', 
+        'X-Github-Api-Version': '2022-11-28'
+        }
 res = requests.get(url, headers=headers)
 ```
 
