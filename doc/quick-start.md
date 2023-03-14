@@ -136,13 +136,13 @@ Magics are specific to and provided by the IPython kernel. Whether Magics are av
 
 **Line magics**, which are denoted by a single % prefix and operate on a single line of input, and **cell magics**, which are denoted by a double %% prefix and operate on multiple lines of input. 
 
-For example, for the code above, %sql is a line magic, and %% is a code magic. 
+For example, for the code above, **%sql** is a line magic, and **%%sql** is a code magic. 
 
 ```{code-cell} ipython3
-#line magic
+#line magic -- operate on a line of code
 %sql SELECT * FROM penguins.csv LIMIT 3
 
-#block magic
+#block magic -- operate on a block of code
 %%sql --save not-nulls --no-execute
 SELECT *
 FROM penguins.csv
