@@ -1,6 +1,7 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
 from ploomber_core.exceptions import modify_exceptions
+import warnings
 
 from jinja2 import Template
 
@@ -82,9 +83,10 @@ class SQLQuery:
         self._with_ = with_ or []
 
         if any(map(lambda x: "-" in x, self._with_)):
-            raise FutureWarning(
+            raise warnings.warn(
                 "Using hyphens will be deprecated soon, "
-                "please use underscores for the --with parameter in the future."
+                "please use underscores for the --with parameter in the future.",
+                FutureWarning,
             )
 
     def __str__(self) -> str:
