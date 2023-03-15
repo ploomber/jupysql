@@ -7,10 +7,10 @@ from sql import plot
 
 
 urllib.request.urlretrieve(
-    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
-    "penguins.csv",
+    "https://raw.githubusercontent.com/plotly/datasets/master/iris-data.csv",
+    "iris.csv",
 )
 
 conn = duckdb.connect(database=":memory:")
 
-plot.histogram("penguins.csv", "body_mass_g", bins=50, conn=conn)
+plot.histogram("iris.csv", "petal width", bins=50, conn=conn)
