@@ -88,7 +88,7 @@ _ = Path("people.json").write_text(json.dumps(data))
 print(data)
 ```
 
-We should also produce a `.jsonl` file. Due to its newline-delimited nature file, we will need to format our data in a way such that each object in our data array is separated by `/n`.
+We should also produce a `.jsonl` file. Due to its newline-delimited nature, we will need to format our data in a way such that each object in our data array is separated by `/n`.
 
 ```{code-cell} ipython3
 lines = ""
