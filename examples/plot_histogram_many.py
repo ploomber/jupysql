@@ -13,4 +13,4 @@ urllib.request.urlretrieve(
 
 conn = duckdb.connect(database=":memory:")
 
-plot.histogram("../penguins.csv", ["bill_length_mm", "body_mass_g"], bins=50, conn=conn)
+plot.histogram("penguins.csv", ["bill_length_mm", "body_mass_g"], bins=50, conn=conn)
