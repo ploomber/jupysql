@@ -57,6 +57,7 @@ class SQLStore(MutableMapping):
 
     @modify_exceptions
     def store(self, key, query, with_=None):
+        print(with_)
         if with_ and key in with_:
             raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
 
@@ -80,6 +81,12 @@ class SQLQuery:
         self._store = store
         self._query = query
         self._with_ = with_ or []
+
+        if any(map(lambda x: "-" in x, self._with_)):
+            raise FutureWarning(
+                "Using hyphens will be deprecated soon, "
+                "please use underscores for the --with parameter in the future."
+            )
 
     def __str__(self) -> str:
         with_all = _get_dependencies(self._store, self._with_)
