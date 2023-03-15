@@ -40,8 +40,11 @@ parts:
     - file: howto/postgres-install
     - file: howto/postgres-connect
     - file: howto/json
-    - file: howto/jupysql-duckdb
     - file: howto/syntax-highlighting
+
+  - caption: Tutorials
+    chapters:
+    - file: howto/jupysql-duckdb
 
   - caption: Community
     chapters:
