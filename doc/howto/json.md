@@ -81,6 +81,15 @@ data = [
 ]
 ```
 
+Next, let's dump our json data into a `.json` file:
+
+```{code-cell} ipython3
+_ = Path("people.json").write_text(json.dumps(data))
+print(data)
+```
+
+We should also produce a `.jsonl` file. Due to its newline-delimited nature file, we will need to format our data in a way such that each object in our data array is separated by `/n`.
+
 ```{code-cell} ipython3
 lines = ""
 
@@ -88,15 +97,10 @@ for d in data:
     lines += json.dumps(d) + "\n"
 
 _ = Path("people.jsonl").write_text(lines)
-_ = Path("people.json").write_text(json.dumps(data))
 ```
 
 ```{code-cell} ipython3
 print(lines)
-```
-
-```{code-cell} ipython3
-print(data)
 ```
 
 ## Query
@@ -122,7 +126,7 @@ FROM read_json_auto('people.json')
 
 ## Extract fields
 
-Extract fields from a JSON record:
+Extract fields from a JSON record. Keep in mind when using `read_json_auto`, arrays are 1-indexed (start at 1 rather than 0):
 
 ```{code-cell} ipython3
 %%sql
@@ -146,7 +150,7 @@ SELECT
 FROM read_json_auto('people.jsonl')
 ```
 
-We can also use `read_json_objects` and format our queries differently:
+We can also use `read_json_objects` and format our queries differently. In this case, arrays are zero-indexed:
 
 ```{code-cell} ipython3
 %%sql
