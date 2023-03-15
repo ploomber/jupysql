@@ -1,6 +1,7 @@
 import platform
 from invoke import task
 
+
 @task(aliases=["s"])
 def setup(c, version=None, doc=False):
     """
@@ -15,12 +16,10 @@ def setup(c, version=None, doc=False):
 
     c.run(f"conda create --name {env_name} python={version} --yes")
     if platform.system() == "Windows":
-        conda_shell_bash_hook_script = 'conda shell.bash hook '
+        conda_hook = "conda shell.bash hook "
     else:
-        conda_shell_bash_hook_script = 'eval "$(conda shell.bash hook)" '
-    c.run(
-        f"{conda_shell_bash_hook_script} && conda activate {env_name} && pip install --editable .[dev]"
-    )
+        conda_hook = 'eval "$(conda shell.bash hook)" '
+    c.run(f"{conda_hook} && conda activate {env_name} && pip install --editable .[dev]")
 
     if doc:
         c.run(
