@@ -82,10 +82,10 @@ class SQLQuery:
         self._query = query
         self._with_ = with_ or []
 
-        if any(map(lambda x: "-" in x, self._with_)):
-            raise warnings.warn(
+        if any("-" in x for x in self._with_):
+            warnings.warn(
                 "Using hyphens will be deprecated soon, "
-                "please use underscores for the --with parameter in the future.",
+                "please use " + ", ".join(self._with_).replace("-", "_") + " instead.",
                 FutureWarning,
             )
 
@@ -94,7 +94,7 @@ class SQLQuery:
         return _template.render(
             query=self._query, saved=self._store._data, with_=with_all
         )
-
+["no-nulls", "yes-nulls"]
 
 def _get_dependencies(store, keys):
     """Get a list of all dependencies to reconstruct the CTEs in keys"""
