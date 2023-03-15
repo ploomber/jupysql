@@ -12,3 +12,4 @@ def test_auto_commit_mode_on(ip_with_postgreSQL, capsys):
     assert out_after_creating.error_in_exec is None
     assert any(row[0] == "new_db" for row in out_all_dbs)
     assert "CREATE DATABASE cannot run inside a transaction block" not in out
+    
