@@ -83,7 +83,6 @@ class CsvResultDescriptor(object):
 def _nonbreaking_spaces(match_obj):
     """
     Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
-
     Call with a ``re`` match object.  Retain group 1, replace group 2
     with nonbreaking speaces.
     """
@@ -97,7 +96,6 @@ _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 class ResultSet(list, ColumnGuesserMixin):
     """
     Results of a SQL query.
-
     Can access rows listwise, or by string value of leftmost column.
     """
 
@@ -155,7 +153,6 @@ class ResultSet(list, ColumnGuesserMixin):
 
     def dict(self):
         """Returns a single dict built from the result set
-
         Keys are column names; values are a tuple"""
         return dict(zip(self.keys, zip(*self)))
 
@@ -186,22 +183,17 @@ class ResultSet(list, ColumnGuesserMixin):
     @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
-
         ``matplotlib`` must be installed, and in an
         IPython Notebook, inlining must be on::
-
             %%matplotlib inline
-
         Values (pie slice sizes) are taken from the
         rightmost column (numerical values required).
         All other columns are used to label the pie slices.
-
         Parameters
         ----------
         key_word_sep: string used to separate column values
                       from each other in pie labels
         title: Plot title, defaults to name of value column
-
         Any additional keyword arguments will be passsed
         through to ``matplotlib.pylab.pie``.
         """
@@ -217,19 +209,14 @@ class ResultSet(list, ColumnGuesserMixin):
     @telemetry.log_call("plot")
     def plot(self, title=None, **kwargs):
         """Generates a pylab plot from the result set.
-
         ``matplotlib`` must be installed, and in an
         IPython Notebook, inlining must be on::
-
             %%matplotlib inline
-
         The first and last columns are taken as the X and Y
         values.  Any columns between are ignored.
-
         Parameters
         ----------
         title: Plot title, defaults to names of Y value columns
-
         Any additional keyword arguments will be passsed
         through to ``matplotlib.pylab.plot``.
         """
@@ -256,21 +243,16 @@ class ResultSet(list, ColumnGuesserMixin):
     @telemetry.log_call("bar")
     def bar(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab bar plot from the result set.
-
         ``matplotlib`` must be installed, and in an
         IPython Notebook, inlining must be on::
-
             %%matplotlib inline
-
         The last quantitative column is taken as the Y values;
         all other columns are combined to label the X axis.
-
         Parameters
         ----------
         title: Plot title, defaults to names of Y value columns
         key_word_sep: string used to separate column values
                       from each other in labels
-
         Any additional keyword arguments will be passsed
         through to ``matplotlib.pylab.bar``.
         """
@@ -367,24 +349,29 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def _commit(conn, config):
+def _commit(conn, config, manual_commit):
     """Issues a commit, if appropriate for current config and dialect"""
 
-    _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    _should_commit = (
+        config.autocommit
+        and all(
+            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+        )
+        and manual_commit
     )
 
     if _should_commit:
         try:
             conn.session.execute("commit")
         except sqlalchemy.exc.OperationalError:
-            pass  # not all engines can commit
+            print("The database does not support the COMMIT command")
 
 
 def run(conn, sql, config, user_namespace):
     if sql.strip():
         for statement in sqlparse.split(sql):
             first_word = sql.strip().split()[0].lower()
+            manual_commit = False
             if first_word == "begin":
                 raise Exception("ipython_sql does not support transactions")
             if first_word.startswith("\\") and (
@@ -399,8 +386,21 @@ def run(conn, sql, config, user_namespace):
                 result = FakeResultProxy(cur, headers)
             else:
                 txt = sqlalchemy.sql.text(statement)
+                if config.autocommit:
+                    try:
+                        conn.session.execution_options(isolation_level="AUTOCOMMIT")
+                    except Exception as e:
+                        print(
+                            "The database driver doesn't support "
+                            "such AUTOCOMMIT execution option\n"
+                            "Perhaps you can try running a manual COMMIT command\n\n"
+                            "Message from the database driver: \n\tException:",
+                            e,
+                            "\n",
+                        )
+                        manual_commit = True
                 result = conn.session.execute(txt, user_namespace)
-            _commit(conn=conn, config=config)
+            _commit(conn=conn, config=config, manual_commit=manual_commit)
             if result and config.feedback:
                 print(interpret_rowcount(result.rowcount))
 
