@@ -24,7 +24,7 @@ JupySQL and DuckDB have many use cases. Here, let's query the Github REST API to
 :tags: [remove-cell]
 from pathlib import Path
 
-paths = ["jupyterdata.json"]
+paths = ["jupyterdata.json", "jupyterdata.csv"]
 
 for path in paths:
     path = Path(path)
