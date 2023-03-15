@@ -98,9 +98,6 @@ class SQLQuery:
         )
 
 
-["no-nulls", "yes-nulls"]
-
-
 def _get_dependencies(store, keys):
     """Get a list of all dependencies to reconstruct the CTEs in keys"""
     # get the dependencies for each key
