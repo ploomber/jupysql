@@ -417,6 +417,8 @@ def set_autocommit(conn, config):
                 "\n",
             )
             return True
+    else:
+        return False
 
 
 def select_df_type(result_set, config):
