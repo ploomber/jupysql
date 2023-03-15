@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import Mock
 
 import pandas
@@ -70,27 +69,23 @@ def test_handle_postgres_special(clean_conns):
         handle_postgres_special(clean_conns, "\\")
 
 
-@mock.patch("sql.run.select_df_type")
-def test_select_df_type_is_pandas(
-    mock_select_df_type, mock_config_is_pandas, mock_result_set
-):
-    mock_select_df_type.return_value = pandas.DataFrame()
+def test_select_df_type_is_pandas(monkeypatch, mock_config_is_pandas, mock_result_set):
+    mock_select_df_type = pandas.DataFrame()
+    monkeypatch.setattr("sql.run.select_df_type", mock_select_df_type)
     result = select_df_type(mock_result_set, mock_config_is_pandas)
     assert isinstance(result, pandas.DataFrame)
 
 
-@mock.patch("sql.run.select_df_type")
-def test_select_df_type_is_polars(
-    mock_select_df_type, mock_config_is_polars, mock_result_set
-):
-    mock_select_df_type.return_value = polars.DataFrame()
+def test_select_df_type_is_polars(monkeypatch, mock_config_is_polars, mock_result_set):
+    mock_select_df_type = polars.DataFrame()
+    monkeypatch.setattr("sql.run.select_df_type", mock_select_df_type)
     result = select_df_type(mock_result_set, mock_config_is_polars)
     assert isinstance(result, polars.DataFrame)
 
 
-@mock.patch("sql.run.select_df_type")
-def test_select_df_type_is_none(mock_select_df_type, mock_config, mock_result_set):
-    mock_select_df_type.return_value = mock_result_set
+def test_select_df_type_is_none(monkeypatch, mock_config, mock_result_set):
+    mock_select_df_type = mock_result_set
+    monkeypatch.setattr("sql.run.select_df_type", mock_select_df_type)
     result = select_df_type(mock_result_set, mock_config)
     assert isinstance(result, type(mock_result_set))
 
@@ -107,21 +102,16 @@ def test_sql_empty(mock_conns, mock_config):
     )
 
 
-@mock.patch("sql.run.ResultSet")
-@mock.patch("sql.run.interpret_rowcount")
-@mock.patch("sql.run._commit")
-@mock.patch("sql.run.handle_postgres_special")
 def test_handle_postgres_special_is_called(
-    mock_handle_postgres_special,
-    mock__commit,
-    mock_interpret_rowcount,
-    mock_resultset_cls,
+    monkeypatch,
     mock_conns,
     mock_config,
 ):
-    mock__commit.return_value = Mock()
-    mock_interpret_rowcount.return_value = str()
-    mock_resultset_cls.return_value = Mock()
+    mock_handle_postgres_special = Mock()
+    monkeypatch.setattr("sql.run.handle_postgres_special", mock_handle_postgres_special)
+    monkeypatch.setattr("sql.run._commit", Mock())
+    monkeypatch.setattr("sql.run.interpret_rowcount", Mock())
+    monkeypatch.setattr("sql.run.ResultSet", Mock())
 
     run(mock_conns, "\\", mock_config, "user_namespace")
 
