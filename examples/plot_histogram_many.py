@@ -7,8 +7,8 @@ from sql import plot
 
 
 urllib.request.urlretrieve(
-    "https://raw.githubusercontent.com/plotly/datasets/master/iris-data.csv",
-    "iris.csv",
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+    "penguins.csv",
 )
 
 conn = duckdb.connect(database=":memory:")
