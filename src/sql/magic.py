@@ -263,9 +263,6 @@ class SqlMagic(Magics, Configurable):
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
-        print("========================")
-        print(args)
-        print("========================")
         if args.connections:
             return sql.connection.Connection.connections
         elif args.close:

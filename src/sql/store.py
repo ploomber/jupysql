@@ -57,7 +57,6 @@ class SQLStore(MutableMapping):
 
     @modify_exceptions
     def store(self, key, query, with_=None):
-        print(with_)
         if with_ and key in with_:
             raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
 
