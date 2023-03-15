@@ -44,7 +44,7 @@ parts:
 
   - caption: Tutorials
     chapters:
-    - file: howto/jupysql-duckdb
+    - file: tutorials/duckdb-github
 
   - caption: Community
     chapters:
