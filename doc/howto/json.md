@@ -29,7 +29,7 @@ First, let's install the required dependencies:
 # this cell won't be visible in the docs
 from pathlib import Path
 
-paths = ["people.json", "people.csv"]
+paths = ["people.json", "people.jsonl", "people.csv"]
 
 for path in paths:
     path = Path(path)
@@ -79,7 +79,9 @@ data = [
         "likes": {"pizza": False, "tacos": True},
     },
 ]
+```
 
+```{code-cell} ipython3
 lines = ""
 
 for d in data:
