@@ -144,3 +144,32 @@ def test_telemetry_execute_command_has_connection_info(
             },
         },
     )
+
+
+def test_sql_cmd_magic_uno(ip):
+    result = ip.run_cell(
+        "%sqlcmd test --table author --column year_of_death"
+        " --less-than 1700 --greater 1600"
+    ).result
+
+    assert len(result) == 2
+    assert "William" in str(result["less_than"])
+
+
+def test_sql_cmd_magic_dos(ip):
+    result = ip.run_cell(
+        "%sqlcmd test --table author --column year_of_death" " --less-than 1650"
+    ).result
+
+    assert len(result) == 1
+    assert "William" in str(result["less_than"])
+
+
+def test_sql_cmd_magic_tres(ip):
+    result = ip.run_cell(
+        "%sqlcmd test --table author --column year_of_death"
+        " --greater-or-equal 1600 --less-than-or-equal 1956"
+    ).result
+
+    assert len(result) == 2
+    assert ("greater_or_equal" and "less_than_or_equal") in result.keys()
