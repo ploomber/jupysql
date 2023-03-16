@@ -25,6 +25,6 @@ Ensure that you are using `pgspecial 1.x`. `pgspecial 2.x` has migrated to `psyc
 ```sh
 conda install "pgspecial<2" -c conda-forge
 ```
+ 
 
 If you have trouble getting it to work, [message us on Slack.](https://ploomber.io/community)
-
