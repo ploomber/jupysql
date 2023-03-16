@@ -12,6 +12,7 @@ from IPython.core.magic import (
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
+import warnings
 import sql.connection
 import sql.parse
 import sql.run
@@ -319,6 +320,14 @@ class SqlMagic(Magics, Configurable):
 
         # store the query if needed
         if args.save:
+            if "-" in args.save:
+                warnings.warn(
+                    "Using hyphens will be deprecated soon, "
+                    "please use "
+                    + str(args.save)
+                    + " instead for the save argument.",
+                    FutureWarning,
+                )
             self._store.store(args.save, command.sql_original, with_=args.with_)
 
         if args.no_execute:
