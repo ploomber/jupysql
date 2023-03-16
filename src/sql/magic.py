@@ -335,7 +335,7 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = sql.run.run(conn, command.sql, self)
+            result = sql.run.run(conn, command.sql, self, user_ns)
 
             if (
                 result is not None
