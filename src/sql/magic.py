@@ -324,7 +324,7 @@ class SqlMagic(Magics, Configurable):
                 warnings.warn(
                     "Using hyphens will be deprecated soon, "
                     "please use "
-                    + str(args.save)
+                    + str(args.save.replace("-", "_"))
                     + " instead for the save argument.",
                     FutureWarning,
                 )
