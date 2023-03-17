@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## 0.6.6dev
+## 0.7.0dev
+
+* [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
+
+## 0.6.6 (2023-03-16)
+
+* [Fix] Pinning SQLAlchemy 1.x
 
 ## 0.6.5 (2023-03-15)
 
