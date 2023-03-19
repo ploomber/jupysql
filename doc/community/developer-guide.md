@@ -5,6 +5,7 @@ jupytext:
     format_name: myst
     format_version: 0.13
     jupytext_version: 1.14.4
+  notebook_metadata_filter: myst
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
