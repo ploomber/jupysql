@@ -4,6 +4,7 @@
 
 - [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
 - [Feature] Add persist-replace argument to save DataFrames that already exist
+- [Feature] Adds sql magic test to list of possible magics to test datasets
 
 ## 0.6.6 (2023-03-16)
 
