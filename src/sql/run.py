@@ -5,6 +5,7 @@ import os.path
 import re
 from functools import reduce
 from io import StringIO
+import html
 
 import prettytable
 import sqlalchemy
@@ -124,6 +125,8 @@ class ResultSet(list, ColumnGuesserMixin):
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
+            ## to create clickable links
+            result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
                 HTML = (
@@ -170,7 +173,28 @@ class ResultSet(list, ColumnGuesserMixin):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
 
+        "create a method to check for urls"
+        def styled(df):
+            def url_formatter(val):
+                if isinstance(val, str) and val.startswith('http'):
+                    return '<a href="{0}" target="_blank">{0}</a>'.format(val)
+                else:
+                    return str(val)
+
+            if len(df) > df.threshold:
+                return df
+            else:
+                return df.style.format({col: url_formatter for col in df.columns})
+
+
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
+
+        "set methods as an attribute to the dataframe"
+        "set add styling only if the returned dataframe has less than 1000 rows "
+        frame.threshold = 1000
+        "users can call the method to see a styler object"
+        frame.styled_func = lambda: styled(frame)
+
         payload[
             "connection_info"
         ] = sql.connection.Connection._get_curr_connection_info()
@@ -452,4 +476,10 @@ class PrettyTable(prettytable.PrettyTable):
         else:
             self.row_count = min(len(data), self.displaylimit)
         for row in data[: self.displaylimit]:
-            self.add_row(row)
+            formatted_row = []
+            for cell in row:
+                if isinstance(cell, str) and cell.startswith("http"):
+                    formatted_row.append("<a href={}>{}</a>".format(cell, cell))
+                else:
+                    formatted_row.append(cell)
+            self.add_row(formatted_row)
