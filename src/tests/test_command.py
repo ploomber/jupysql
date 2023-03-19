@@ -132,6 +132,7 @@ def test_args(ip, sql_magic):
         "creator": None,
         "section": None,
         "persist": False,
+        "persist_replace": False,
         "no_index": False,
         "append": False,
         "connection_arguments": None,
