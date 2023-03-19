@@ -51,7 +51,7 @@ def test_boxplot_stats(chinook_db):
     con.execute("LOAD 'sqlite_scanner';")
     con.execute(f"CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute(sqlalchemy.sql.text("SELECT * FROM Invoice"))
+    res = con.execute("SELECT * FROM Invoice")
     X = res.df().Total
     expected = cbook.boxplot_stats(X)
 
