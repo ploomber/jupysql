@@ -282,7 +282,7 @@ FROM "{{table}}"
     if with_:
         query = str(store.render(query, with_=with_))
 
-    min_, max_ = con.execute(sqlalchemy.sql.text(query)).fetchone()
+    min_, max_ = con.execute(query).fetchone()
     return min_, max_
 
 
