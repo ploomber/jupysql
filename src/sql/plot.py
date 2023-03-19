@@ -5,6 +5,7 @@ from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 import sqlalchemy
+from sqlalchemy.sql import text
 
 try:
     import matplotlib.pyplot as plt
@@ -282,7 +283,7 @@ FROM "{{table}}"
     if with_:
         query = str(store.render(query, with_=with_))
 
-    min_, max_ = con.execute(query).fetchone()
+    min_, max_ = con.execute(text(query)).fetchone()
     return min_, max_
 
 

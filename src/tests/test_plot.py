@@ -7,6 +7,7 @@ from matplotlib import cbook
 from sql import plot
 from pathlib import Path
 import pytest
+from sqlalchemy.sql import text
 
 
 class DictOfFloats(Mapping):
@@ -48,9 +49,9 @@ def test_boxplot_stats(chinook_db):
     con = duckdb.connect(database=":memory:")
     con.execute("INSTALL 'sqlite_scanner';")
     con.execute("LOAD 'sqlite_scanner';")
-    con.execute(f"CALL sqlite_attach({chinook_db!r});")
+    con.execute("CALL sqlite_attach({chinook_db!r});")
 
-    res = con.execute("SELECT * FROM Invoice")
+    res = con.execute(text("SELECT * FROM Invoice"))
     X = res.df().Total
     expected = cbook.boxplot_stats(X)
 
