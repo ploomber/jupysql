@@ -4,7 +4,6 @@ import pytest
 from functools import partial
 
 from sql import inspect, connection
-import sqlalchemy
 
 
 @pytest.fixture
