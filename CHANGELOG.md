@@ -101,7 +101,7 @@
 
 ## 0.4.2 (2022-07-26)
 
-_First version release by Ploomber_
+\_First version release by Ploomber\*
 
 - Adds `--no-index` option to `--persist` data frames without the index
 
@@ -150,7 +150,7 @@ _First version release by Ploomber_
 ## 0.3.5
 
 - Indentations visible in HTML cells
-- COMMIT each SQL statement immediately - prevent locks
+- COMMIT each SQL statement immediately \* prevent locks
 
 ## 0.3.4
 
@@ -211,11 +211,11 @@ _Release date: 15-June-2013_
 
 - Recognize socket connection strings
 
-- Bugfix - issue 4 (remember existing connections by case)
+- Bugfix \* issue 4 (remember existing connections by case)
 
 ## 0.2.0
 
-_Release date: 30-May-2013_
+Release date: 30-May-2013\*
 
 - Accept bind variables (Thanks Mike Wilson!)
 
