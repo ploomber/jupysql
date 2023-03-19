@@ -132,7 +132,6 @@ class SqlCmdMagic(Magics, Configurable):
                 )
                 return result_dict
             else:
-                print("All requirements were met. Test was succesful.")
                 return True
 
         raise UsageError(
