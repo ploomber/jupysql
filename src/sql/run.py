@@ -11,6 +11,7 @@ import sqlalchemy
 import sqlparse
 import sql.connection
 from .column_guesser import ColumnGuesserMixin
+from sqlalchemy import text
 
 try:
     from pgspecial.main import PGSpecial
@@ -381,7 +382,7 @@ def _commit(conn, config, manual_commit):
 
     if _should_commit:
         try:
-            conn.session.execute("commit")
+            conn.session.execute(text("commit"))
         except sqlalchemy.exc.OperationalError:
             print("The database does not support the COMMIT command")
 
