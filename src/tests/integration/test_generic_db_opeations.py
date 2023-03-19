@@ -186,8 +186,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
         "%sqlcmd test --table numbers --column numbers_elements" " --greater-or-equal 3"
     ).result
 
-    print(list(result["greater_or_equal"]))
-    print(type(result["greater_or_equal"][0]))
     assert len(result) == 1
     assert "greater_or_equal" in result.keys()
     assert list(result["greater_or_equal"]) == [2, 3]
