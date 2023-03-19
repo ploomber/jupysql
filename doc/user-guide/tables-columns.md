@@ -107,7 +107,7 @@ Get the columns for the table in the newly created schema:
 
 Use `%sqlcmd test` to run tests on your dataset.
 
-For example, see if your column name has values greater than 150:
+For example, to see if all the values in the column birth_year are greater than 100:
 
 ```{code-cell} ipython3
 %sqlcmd test --table people --column birth_year --greater 100
