@@ -10,6 +10,7 @@ from IPython.core.magic import (
 from IPython.core.magic_arguments import argument, magic_arguments
 from IPython.core.error import UsageError
 from sqlglot import select, condition
+from sqlalchemy import text
 
 try:
     from traitlets.config.configurable import Configurable
@@ -148,7 +149,7 @@ def run_each_individually(args, conn):
         where = condition(args.column + ">" + args.greater)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(current_query).fetchone()
+        res = conn.execute(text(current_query)).fetchone()
 
         if res is not None:
             storage["greater"] = res
@@ -157,28 +158,28 @@ def run_each_individually(args, conn):
 
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(current_query).fetchone()
+        res = conn.execute(text(current_query)).fetchone()
         if res is not None:
             storage["greater_or_equal"] = res
     if args.less_than_or_equal:
         where = condition(args.column + "<=" + args.less_than_or_equal)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(current_query).fetchone()
+        res = conn.execute(text(current_query)).fetchone()
         if res is not None:
             storage["less_than_or_equal"] = res
     if args.less_than:
         where = condition(args.column + "<" + args.less_than)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(current_query).fetchone()
+        res = conn.execute(text(current_query)).fetchone()
         if res is not None:
             storage["less_than"] = res
     if args.no_nulls:
         where = condition("{} is NULL".format(args.column))
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(current_query).fetchone()
+        res = conn.execute(text(current_query)).fetchone()
         if res is not None:
             storage["null"] = res
 

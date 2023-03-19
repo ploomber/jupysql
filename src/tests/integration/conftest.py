@@ -102,11 +102,10 @@ def load_taxi_data(engine):
     )
     df.to_sql(name=table_name, con=engine, chunksize=100_000, if_exists="replace")
 
+
 def load_numeric_data(engine):
     table_name = "numbers"
-    df = pd.DataFrame(
-        {"numbers_elements": [1, 2, 3]}
-    )
+    df = pd.DataFrame({"numbers_elements": [1, 2, 3]})
     df.to_sql(name=table_name, con=engine, chunksize=100_000, if_exists="replace")
 
 
