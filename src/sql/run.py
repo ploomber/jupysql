@@ -125,7 +125,7 @@ class ResultSet(list, ColumnGuesserMixin):
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
-            ## to create clickable links
+            # to create clickable links
             result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
@@ -174,9 +174,10 @@ class ResultSet(list, ColumnGuesserMixin):
         import pandas as pd
 
         "create a method to check for urls"
+
         def styled(df):
             def url_formatter(val):
-                if isinstance(val, str) and val.startswith('http'):
+                if isinstance(val, str) and val.startswith("http"):
                     return '<a href="{0}" target="_blank">{0}</a>'.format(val)
                 else:
                     return str(val)
@@ -185,7 +186,6 @@ class ResultSet(list, ColumnGuesserMixin):
                 return df
             else:
                 return df.style.format({col: url_formatter for col in df.columns})
-
 
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
 

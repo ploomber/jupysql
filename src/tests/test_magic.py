@@ -65,6 +65,7 @@ def test_result_var(ip, capsys):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
     assert "Returning data to local variable" not in out
 
+
 def test_result_var_link(ip, capsys):
     ip.run_cell_magic(
         "sql",
@@ -77,9 +78,14 @@ def test_result_var_link(ip, capsys):
     )
     result = ip.user_global_ns["x"]
     out, _ = capsys.readouterr()
-    assert '<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>https://en.wikipedia.org/wiki/Bertolt_Brecht</a>' in result._repr_html_() and '<a href=https://en.wikipedia.org/wiki/William_Shakespeare>https://en.wikipedia.org/wiki/William_Shakespeare</a>' in result._repr_html_()
+    assert (
+        "<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>"
+        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>" in result._repr_html_()
+        and "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
+        "https://en.wikipedia.org/wiki/William_Shakespeare</a>" in result._repr_html_()
+    )
     assert "Returning data to local variable" not in out
-    assert '<a href=google_link>google_link</a>' not in result._repr_html_()
+    assert "<a href=google_link>google_link</a>" not in result._repr_html_()
 
 
 def test_result_var_multiline_shovel(ip):
@@ -265,18 +271,26 @@ def test_autopandas(ip):
     assert dframe.ndim == 2
     assert dframe.name[0] == "foo"
 
+
 def test_autopandas_styler_attr(ip):
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     pframe = runsql(ip, "SELECT * FROM website")
-    assert hasattr(pframe, 'styled_func')
+    assert hasattr(pframe, "styled_func")
     assert callable(pframe.styled_func)
     styled_frame = pframe.styled_func()
     assert '<a href="' in styled_frame.to_html()
-    assert '</a>' in styled_frame.to_html()
-    assert '<a href="https://en.wikipedia.org/wiki/Bertolt_Brecht" target="_blank">https://en.wikipedia.org/wiki/Bertolt_Brecht</a>' in styled_frame.to_html()
-    assert '<a href="https://en.wikipedia.org/wiki/William_Shakespeare" target="_blank">https://en.wikipedia.org/wiki/William_Shakespeare</a>' in styled_frame.to_html()
-    assert '<a href=google-link' not in styled_frame.to_html()
-
+    assert "</a>" in styled_frame.to_html()
+    assert (
+        '<a href="https://en.wikipedia.org/wiki/Bertolt_Brecht"'
+        ' target="_blank">https://en.wikipedia.org/wiki/Bertolt_Brecht</a>'
+        in styled_frame.to_html()
+    )
+    assert (
+        '<a href="https://en.wikipedia.org/wiki/William_Shakespeare"'
+        ' target="_blank">https://en.wikipedia.org/wiki/William_Shakespeare</a>'
+        in styled_frame.to_html()
+    )
+    assert "<a href=google-link" not in styled_frame.to_html()
 
 
 def test_autopolars(ip):
