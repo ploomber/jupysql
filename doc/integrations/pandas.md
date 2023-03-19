@@ -81,8 +81,8 @@ df
 
 +++
 
-The `--persist` argument, with the name of a  DataFrame object in memory, 
-will create a table name in the database from the named DataFrame.   Or use `--append` to add rows to an existing  table by that name.
+The `--persist` argument, with the name of a DataFrame object in memory,
+will create a table name in the database from the named DataFrame. Or use `--append` to add rows to an existing table by that name.
 
 ```{code-cell} ipython3
 %sql --persist df
@@ -95,3 +95,10 @@ will create a table name in the database from the named DataFrame.   Or use `--a
 ```{code-cell} ipython3
 
 ```
+
+````
+The `--persist-replace` argument, with the name of a  DataFrame object in memory,
+will replace the existing name DataFrame object in memory.
+```{code-cell} ipython3
+%sql --persist-replace df
+````

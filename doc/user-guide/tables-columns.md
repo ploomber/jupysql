@@ -102,17 +102,3 @@ Get the columns for the table in the newly created schema:
 ```{code-cell} ipython3
 %sqlcmd columns --table numbers --schema some_schema
 ```
-
-## Run Tests on Column
-
-Use `%sqlcmd test` to run tests on your dataset.
-
-See if your column name has values greater than 150.
-
-```{code-cell} ipython3
-%sqlcmd test --table coordinates --column name --greater 150
-```
-
-Four different comparator commands exist: `greater`, `greater-or-equal`, `less-than`, `less-than-or-equal`, and `no-nulls`.
-
-Command will return True if tests pass, otherwise an error with sample breaking cases will be printed out.
