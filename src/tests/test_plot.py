@@ -7,7 +7,6 @@ from matplotlib import cbook
 from sql import plot
 from pathlib import Path
 import pytest
-import sqlalchemy
 
 
 class DictOfFloats(Mapping):
