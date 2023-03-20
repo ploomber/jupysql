@@ -169,7 +169,8 @@ class SqlMagic(Magics, Configurable):
         "-P",
         "--persist-replace",
         action="store_true",
-        help="replace dataframe when persisting the named DataFrame. Added in version 0.7.",
+        help="replace dataframe when persisting the named DataFrame. "
+             "Added in version 0.7.",
     )
     @argument(
         "-n",
