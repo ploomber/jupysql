@@ -118,6 +118,15 @@ def test_persist_replace_no_error(ip):
     assert out.error_in_exec is None
 
 
+def test_persist_replace_append_replace(ip):
+    runsql(ip, "")
+    ip.run_cell("results = %sql SELECT * FROM test;")
+    ip.run_cell("results_dframe = results.DataFrame()")
+    out = ip.run_cell("%sql --persist-replace --append sqlite:// results_dframe")
+
+    assert isinstance(out.error_in_exec, ValueError)
+
+
 def test_persist_normal_error(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
