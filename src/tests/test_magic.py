@@ -12,7 +12,7 @@ from IPython.core.error import UsageError
 from sql.connection import Connection
 from sql.magic import SqlMagic
 from sql.run import ResultSet
-from tests.conftest import runsql
+from conftest import runsql
 
 
 def test_memory_db(ip):
