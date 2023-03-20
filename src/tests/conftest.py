@@ -73,7 +73,7 @@ def ip(ip_empty):
             "INSERT INTO author VALUES ('William', 'Shakespeare', 1616)",
             "INSERT INTO author VALUES ('Bertold', 'Brecht', 1956)",
             "CREATE TABLE empty_table (column INT, another INT)",
-            "CREATE TABLE website (person , link, birthyear INT)",
+            "CREATE TABLE website (person, link, birthyear INT)",
             """INSERT INTO website VALUES ('Bertold Brecht',
             'https://en.wikipedia.org/wiki/Bertolt_Brecht', 1954 )""",
             """INSERT INTO website VALUES ('William Shakespeare',
