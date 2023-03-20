@@ -164,11 +164,12 @@ class SqlMagic(Magics, Configurable):
         action="store_true",
         help="create a table name in the database from the named DataFrame",
     )
+    # Added in version 0.7
     @argument(
         "-P",
         "--persist-replace",
         action="store_true",
-        help="replace dataframe when persisting the named DataFrame",
+        help="replace dataframe when persisting the named DataFrame. Added in version 0.7.",
     )
     @argument(
         "-n",
