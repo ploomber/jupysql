@@ -76,6 +76,10 @@ Check out our guide for connecting to a database:
 
 ### DSN connections
 
+```{tip} 
+It is recommended to use config file for connection as it's more secure and do not expose credentials.
+```
+
 To ensure the security of your credentials, you can store connection information in a configuration file, under a section name chosen to  refer to your database.
 
 For instance, suppose you have a configuration file named _dsn.ini_ that contains the following section:
