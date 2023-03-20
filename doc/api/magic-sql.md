@@ -18,56 +18,53 @@ myst:
 
 # `%sql`/`%%sql`
 
-`-l` / `--connections`
-List all active connections ([example](#list-connections))
+``-l`` / ``--connections``
+    List all active connections ([example](#list-connections))
 
-`-x` / `--close <session-name/alias>`
-Close named connection ([example](#close-connection))
+``-x`` / ``--close <session-name/alias>``
+    Close named connection ([example](#close-connection))
 
-`-c` / `--creator <creator-function>`
-Specify creator function for new connection
+``-c`` / ``--creator <creator-function>``
+    Specify creator function for new connection
 
-`-s` / `--section <section-name>`
-Section of dsn_file to be used for generating a connection string
+``-s`` / ``--section <section-name>``
+    Section of dsn_file to be used for generating a connection string
 
-`-p` / `--persist`
-Create a table name in the database from the named DataFrame ([example](#create-table))
+``-p`` / ``--persist``
+    Create a table name in the database from the named DataFrame ([example](#create-table))
 
-`-P` / `--persist-replace`
-Replace named table with new dataframe ([example](#create-table))
+``-P`` / ``--persist-replace``
+    Replace named table with new dataframe ([example](#create-table))
+    
+``--append``
+    Like ``--persist``, but appends to the table if it already exists ([example](#append-to-table))
 
-`--append`
-Like `--persist`, but appends to the table if it already exists ([example](#append-to-table))
+``-a`` / ``--connection_arguments <"{connection arguments}">``
+    Specify dictionary of connection arguments to pass to SQL driver
 
-`-a` / `--connection_arguments <"{connection arguments}">`
-Specify dictionary of connection arguments to pass to SQL driver
-
-`-f` / `--file <path>`
-Run SQL from file at this path ([example](#run-query-from-file))
+``-f`` / ``--file <path>``
+    Run SQL from file at this path ([example](#run-query-from-file))
 
 ```{versionadded} 0.4.2
-
 ```
 
-`-n` / `--no-index`
-Do not persist data frame's index (used with `-p/--persist`) ([example](#create-table-without-dataframe-index))
+``-n`` / ``--no-index``
+    Do not persist data frame's index (used with `-p/--persist`) ([example](#create-table-without-dataframe-index))
 
 ```{versionadded} 0.4.3
-
 ```
 
-`-S` / `--save <name>`
-Save this query for later use ([example](#compose-large-queries))
+``-S`` / ``--save <name>``
+    Save this query for later use ([example](#compose-large-queries))
 
-`-w` / `--with <name>`
-Use a previously saved query (used after `-S/--save`) ([example](#compose-large-queries))
+``-w`` / ``--with <name>``
+    Use a previously saved query (used after `-S/--save`) ([example](#compose-large-queries))
 
 ```{versionadded} 0.5.2
-
 ```
 
-`-A` / `--alias <alias>`
-Assign an alias when establishing a connection ([example](#connect-to-database))
+``-A`` / ``--alias <alias>``
+    Assign an alias when establishing a connection ([example](#connect-to-database))
 
 ```{code-cell} ipython3
 :tags: [remove-input]
