@@ -1,13 +1,9 @@
 # CHANGELOG
 
-## 0.7.1 (2023-03-19)
-
-- [Feature] Added styled_func method to Pandas DataFrame to render clickable urls using Styler object. [#230](https://github.com/ploomber/jupysql/issues/230)
-- [Feature] urls in the ResultSet object made clickable while rendering [#230](https://github.com/ploomber/jupysql/issues/230)
-
 ## 0.7.0dev
 
 - [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
+- [Feature] Adds sql magic test to list of possible magics to test datasets
 
 ## 0.6.6 (2023-03-16)
 
