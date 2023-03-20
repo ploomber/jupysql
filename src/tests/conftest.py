@@ -73,18 +73,30 @@ def ip(ip_empty):
             "INSERT INTO author VALUES ('William', 'Shakespeare', 1616)",
             "INSERT INTO author VALUES ('Bertold', 'Brecht', 1956)",
             "CREATE TABLE empty_table (column INT, another INT)",
-            "CREATE TABLE website (person , link, birthyear)",
+            "CREATE TABLE website (person , link, birthyear INT)",
             """INSERT INTO website VALUES ('Bertold Brecht',
-            'https://en.wikipedia.org/wiki/Bertolt_Brecht',1954 )""",
+            'https://en.wikipedia.org/wiki/Bertolt_Brecht', 1954 )""",
             """INSERT INTO website VALUES ('William Shakespeare',
-             'https://en.wikipedia.org/wiki/William_Shakespeare', 1564)""",
+            'https://en.wikipedia.org/wiki/William_Shakespeare', 1564)""",
             "INSERT INTO website VALUES ('Steve Steve', 'google_link', 2023)",
+            "CREATE TABLE number_table (x INT, y INT)",
+            "INSERT INTO number_table VALUES (4, (-2))",
+            "INSERT INTO number_table VALUES ((-5), 0)",
+            "INSERT INTO number_table VALUES (2, 4)",
+            "INSERT INTO number_table VALUES (0, 2)",
+            "INSERT INTO number_table VALUES ((-5), (-1))",
+            "INSERT INTO number_table VALUES ((-2), (-3))",
+            "INSERT INTO number_table VALUES ((-2), (-3))",
+            "INSERT INTO number_table VALUES ((-4), 2)",
+            "INSERT INTO number_table VALUES (2, (-5))",
+            "INSERT INTO number_table VALUES (4, 3)",
         ],
     )
     yield ip_empty
     runsql(ip_empty, "DROP TABLE test")
     runsql(ip_empty, "DROP TABLE author")
     runsql(ip_empty, "DROP TABLE website")
+    runsql(ip_empty, "DROP TABLE number_table")
 
 
 @pytest.fixture
