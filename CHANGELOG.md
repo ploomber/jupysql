@@ -172,7 +172,7 @@ _First version release by Ploomber_
 
 ## 0.3.0
 
-_Release date: 13-Oct-2013*
+*Release date: 13-Oct-2013*
 
 * displaylimit config parameter
 * reports number of rows affected by each query
@@ -181,7 +181,7 @@ _Release date: 13-Oct-2013*
 
 ## 0.2.3
 
-_Release date: 20-Sep-2013*
+*Release date: 20-Sep-2013*
 
 * Contributions from Olivier Le Thanh Duong:
 
@@ -194,33 +194,33 @@ _Release date: 20-Sep-2013*
 
 ## 0.2.2.1
 
-_Release date: 01-Aug-2013*
+*Release date: 01-Aug-2013*
 
 Deleted Plugin import left behind in 0.2.2
 
 ## 0.2.2
 
-_Release date: 30-July-2013*
+*Release date: 30-July-2013*
 
 Converted from an IPython Plugin to an Extension for 1.0 compatibility
 
 ## 0.2.1
 
-_Release date: 15-June-2013*
+*Release date: 15-June-2013*
 
 * Recognize socket connection strings
 
-* Bugfix \* issue 4 (remember existing connections by case)
+* Bugfix - issue 4 (remember existing connections by case)
 
 ## 0.2.0
 
-_Release date: 30-May-2013*
+*Release date: 30-May-2013*
 
 * Accept bind variables (Thanks Mike Wilson!)
 
 ## 0.1.2
 
-_Release date: 29-Mar-2013*
+*Release date: 29-Mar-2013*
 
 * Python 3 compatibility
 
@@ -230,18 +230,18 @@ _Release date: 29-Mar-2013*
 
 ## 0.1.1
 
-_Release date: 29-Mar-2013*
+*Release date: 29-Mar-2013*
 
 * Release to PyPI
 
 * Results returned as lists
 
-* print(\_) to get table form in text console
+* print(_) to get table form in text console
 
 * set autolimit and text wrap in configuration
 
 ## 0.1
 
-_Release date: 21-Mar-2013*
+*Release date: 21-Mar-2013*
 
 * Initial release
