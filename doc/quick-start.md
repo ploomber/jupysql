@@ -132,7 +132,7 @@ One may be unfamiliar with the commands prefixed with '%' used in this instructi
 
 Magics are specific to and provided by the IPython kernel. Some common usage of magic functions are: running external code files, timing code execution, and loading IPython Extensions. 
 
-```{code-cell} ipython3
+```tip
 
 # Suppose execute.py is a python code file
 
@@ -146,7 +146,7 @@ Magics are specific to and provided by the IPython kernel. Some common usage of 
 
 In our code above,  we use **%load_ext** to load an IPython extension by its module name, 'sql', and then directly use the extension using '%sql'.
 
-```{code-cell} ipython3
+```tip
 # load an IPython extension by its module name.
 %load_ext sql 
 ```
@@ -157,7 +157,7 @@ In our code above,  we use **%load_ext** to load an IPython extension by its mod
 
 For example, for the code above, **%sql** is a line magic, and **%%sql** is a code magic. 
 
-```{code-cell} ipython3
+```tip
 #line magic -- operate on a line of code
 %sql SELECT * FROM penguins.csv LIMIT 3
 
