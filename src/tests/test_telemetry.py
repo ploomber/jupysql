@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest.mock import ANY, Mock
 import pytest
 import urllib.request
-import duckdb
 from sql.telemetry import telemetry
 from sql import plot
 from sql.connection import Connection

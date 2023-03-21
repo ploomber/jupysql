@@ -1,7 +1,6 @@
 from typing import Iterator
 from collections.abc import Mapping
 
-import duckdb
 import numpy as np
 from matplotlib import cbook
 from sql import plot
@@ -67,8 +66,6 @@ def test_boxplot_stats_exception(ip_empty, chinook_db):
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
-
-    res = ip_empty.run_cell("%sql SELECT * FROM Invoice")
 
     with pytest.raises(
         BaseException, match="whis must be a float or list of percentiles.*"
