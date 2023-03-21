@@ -100,7 +100,7 @@
 
 ## 0.4.2 (2022-07-26)
 
-_First version release by Ploomber_
+*First version release by Ploomber*
 
 * Adds `--no-index` option to `--persist` data frames without the index
 
@@ -149,7 +149,7 @@ _First version release by Ploomber_
 ## 0.3.5
 
 * Indentations visible in HTML cells
-* COMMIT each SQL statement immediately \* prevent locks
+* COMMIT each SQL statement immediately - prevent locks
 
 ## 0.3.4
 
