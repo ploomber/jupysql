@@ -173,7 +173,7 @@ class ResultSet(list, ColumnGuesserMixin):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
 
-        "create a method to check for urls"
+        # create a method to check for urls
 
         def styled(df):
             def url_formatter(val):
@@ -189,10 +189,10 @@ class ResultSet(list, ColumnGuesserMixin):
 
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
 
-        "set methods as an attribute to the dataframe"
-        "set add styling only if the returned dataframe has less than 1000 rows "
+        # set methods as an attribute to the dataframe
+        # set add styling only if the returned dataframe has less than 1000 rows
         frame.threshold = 1000
-        "users can call the method to see a styler object"
+        # users can call the method to see a styler object
         frame.styled_func = lambda: styled(frame)
 
         payload[
