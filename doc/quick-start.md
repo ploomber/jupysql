@@ -132,22 +132,17 @@ One may be unfamiliar with the commands prefixed with '%' used in this instructi
 
 Magics are specific to and provided by the IPython kernel. Some common usage of magic functions are: running external code files, timing code execution, and loading IPython Extensions. 
 
+Suppose execute.py is a python code file
+
 ```{tip}
-
-# Suppose execute.py is a python code file
-
 %run execute.py
-
-
-# Timeing executions -- will return 1000 loops, best of 3: 325 µs per loop
-
-%timeit L = [n ** 2 for n in range(1000)]
+%timeit L = [n ** 2 for n in range(1000)] (Timeing executions -- will return 1000 loops, best of 3: 325 µs per loop)
 ```
 
 In our code above,  we use **%load_ext** to load an IPython extension by its module name, 'sql', and then directly use the extension using '%sql'.
 
 ```{tip}
-# load an IPython extension by its module name.
+load an IPython extension by its module name.
 %load_ext sql 
 ```
 
@@ -156,18 +151,6 @@ In our code above,  we use **%load_ext** to load an IPython extension by its mod
 **Line magics**, which are denoted by a single % prefix and operate on a single line of input, and **cell magics**, which are denoted by a double %% prefix and operate on multiple lines of input. 
 
 For example, for the code above, **%sql** is a line magic, and **%%sql** is a code magic. 
-
-```{tip}
-#line magic -- operate on a line of code
-%sql SELECT * FROM penguins.csv LIMIT 3
-
-#block magic -- operate on a block of code
-%%sql --save not-nulls --no-execute
-SELECT *
-FROM penguins.csv
-WHERE bill_length_mm IS NOT NULL
-AND bill_depth_mm IS NOT NULL
-```
 
 
 ### Reference 
