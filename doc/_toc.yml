@@ -14,6 +14,7 @@ parts:
     - file: user-guide/tables-columns
     - file: plot-legacy
     - file: user-guide/template
+    - file: user-guide/data-profiling
 
   - caption: Integrations
     chapters:
@@ -41,6 +42,10 @@ parts:
     - file: howto/postgres-connect
     - file: howto/json
     - file: howto/syntax-highlighting
+
+  - caption: Tutorials
+    chapters:
+    - file: tutorials/duckdb-github
 
   - caption: Community
     chapters:

@@ -18,6 +18,7 @@ except ImportError:
     PGSpecial = None
 
 from sql.telemetry import telemetry
+import logging
 
 
 def unduplicate_field_names(field_names):
@@ -106,13 +107,18 @@ class ResultSet(list, ColumnGuesserMixin):
         self.keys = {}
         if sqlaproxy.returns_rows:
             self.keys = sqlaproxy.keys()
-            if config.autolimit:
+            if isinstance(config.autolimit, int) and config.autolimit > 0:
                 list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
+
+            _style = None
+            if isinstance(config.style, str):
+                _style = prettytable.__dict__[config.style.upper()]
+
             self.pretty = PrettyTable(
-                self.field_names, style=prettytable.__dict__[config.style.upper()]
+                self.field_names, style=_style
             )
         else:
             list.__init__(self, [])
@@ -347,7 +353,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos : pos + size]
+                yield source_list[pos: pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -367,53 +373,97 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def _commit(conn, config):
+def _commit(conn, config, manual_commit):
     """Issues a commit, if appropriate for current config and dialect"""
 
-    _should_commit = config.autocommit and all(
-        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+    _should_commit = (
+        config.autocommit
+        and all(
+            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
+        )
+        and manual_commit
     )
 
     if _should_commit:
         try:
             conn.session.execute("commit")
         except sqlalchemy.exc.OperationalError:
-            pass  # not all engines can commit
+            print("The database does not support the COMMIT command")
 
 
-def run(conn, sql, config, user_namespace):
-    if sql.strip():
-        for statement in sqlparse.split(sql):
-            first_word = sql.strip().split()[0].lower()
-            if first_word == "begin":
-                raise Exception("ipython_sql does not support transactions")
-            if first_word.startswith("\\") and (
-                "postgres" in str(conn.dialect) or "redshift" in str(conn.dialect)
-            ):
-                if not PGSpecial:
-                    raise ImportError("pgspecial not installed")
-                pgspecial = PGSpecial()
-                _, cur, headers, _ = pgspecial.execute(
-                    conn.session.connection.cursor(), statement
-                )[0]
-                result = FakeResultProxy(cur, headers)
-            else:
-                txt = sqlalchemy.sql.text(statement)
-                result = conn.session.execute(txt, user_namespace)
-            _commit(conn=conn, config=config)
-            if result and config.feedback:
-                print(interpret_rowcount(result.rowcount))
+def is_postgres_or_redshift(dialect):
+    """Checks if dialect is postgres or redshift"""
+    return "postgres" in str(dialect) or "redshift" in str(dialect)
 
-        resultset = ResultSet(result, config)
-        if config.autopandas:
-            return resultset.DataFrame()
-        elif config.autopolars:
-            return resultset.PolarsDataFrame()
-        else:
-            return resultset
-        # returning only last result, intentionally
+
+def handle_postgres_special(conn, statement):
+    """Execute a PostgreSQL special statement using PGSpecial module."""
+    if not PGSpecial:
+        raise ImportError("pgspecial not installed")
+    pgspecial = PGSpecial()
+    _, cur, headers, _ = pgspecial.execute(conn.session.connection.cursor(), statement)[
+        0
+    ]
+    return FakeResultProxy(cur, headers)
+
+
+def set_autocommit(conn, config):
+    """Sets the autocommit setting for a database connection."""
+    if config.autocommit:
+        try:
+            conn.session.execution_options(isolation_level="AUTOCOMMIT")
+        except Exception as e:
+            logging.debug(
+                f"The database driver doesn't support such "
+                f"AUTOCOMMIT execution option"
+                f"\nPerhaps you can try running a manual COMMIT command"
+                f"\nMessage from the database driver\n\t"
+                f"Exception:  {e}\n",  # noqa: F841
+            )
+            return True
+    return False
+
+
+def select_df_type(resultset, config):
+    """
+    Converts the input resultset to either a Pandas DataFrame
+    or Polars DataFrame based on the config settings.
+    """
+    if config.autopandas:
+        return resultset.DataFrame()
+    elif config.autopolars:
+        return resultset.PolarsDataFrame()
     else:
+        return resultset
+    # returning only last result, intentionally
+
+
+def run(conn, sql, config):
+    if not sql.strip():
+        # returning only when sql is empty string
         return "Connected: %s" % conn.name
+
+    for statement in sqlparse.split(sql):
+        first_word = sql.strip().split()[0].lower()
+        manual_commit = False
+        if first_word == "begin":
+            raise ValueError("ipython_sql does not support transactions")
+        if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
+            result = handle_postgres_special(conn, statement)
+        else:
+            txt = sqlalchemy.sql.text(statement)
+            manual_commit = set_autocommit(conn, config)
+            result = conn.session.execute(txt)
+        _commit(conn=conn, config=config, manual_commit=manual_commit)
+        if result and config.feedback:
+            print(interpret_rowcount(result.rowcount))
+
+    resultset = ResultSet(result, config)
+    return select_df_type(resultset, config)
+
+
+def raw_run(conn, sql):
+    return conn.session.execute(sql)
 
 
 class PrettyTable(prettytable.PrettyTable):

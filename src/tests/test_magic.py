@@ -238,7 +238,7 @@ def test_userns_not_changed(ip):
 
 def test_bind_vars(ip):
     ip.user_global_ns["x"] = 22
-    result = runsql(ip, "SELECT :x")
+    result = runsql(ip, "SELECT {{x}}")
     assert result[0][0] == 22
 
 
@@ -351,28 +351,28 @@ def test_dicts(ip):
 
 def test_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
     assert not result
 
 
 # the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author\n" " WHERE {col} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author\n" " WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {col} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
     assert not result
 
 
@@ -383,7 +383,7 @@ def test_multiline_bracket_var_substitution_2(ip):
         "",
         """
         sqlite:// SELECT * FROM author
-        WHERE {col} = 'William'
+        WHERE {{col}} = 'William'
         """,
     )
     assert ("William", "Shakespeare", 1616) in result
@@ -394,7 +394,7 @@ def test_multiline_bracket_var_substitution_2(ip):
         "",
         """
         sqlite:// SELECT * FROM author
-        WHERE {col} = 'William'
+        WHERE {{col}} = 'William'
         """,
     )
     assert not result
@@ -603,3 +603,100 @@ def test_columns_with_dollar_sign(ip_empty):
     html = result.result._repr_html_()
 
     assert "$2" in html
+
+
+def test_save_with(ip):
+    # First Query
+    ip.run_cell(
+        "%sql --save shakespeare SELECT * FROM author WHERE last_name = 'Shakespeare'"
+    )
+    # Second Query
+    ip.run_cell(
+        "%sql --with shakespeare --save shake_born_in_1616 SELECT * FROM "
+        "shakespeare WHERE year_of_death = 1616"
+    )
+
+    # Third Query
+    ip.run_cell(
+        "%sql --save shake_born_in_1616_limit_10 --with shake_born_in_1616"
+        " SELECT * FROM shake_born_in_1616 LIMIT 10"
+    )
+
+    second_out = ip.run_cell(
+        "%sql --with shake_born_in_1616 SELECT * FROM shake_born_in_1616"
+    )
+    third_out = ip.run_cell(
+        "%sql --with shake_born_in_1616_limit_10"
+        " SELECT * FROM shake_born_in_1616_limit_10"
+    )
+    assert second_out.result == [("William", "Shakespeare", 1616)]
+    assert third_out.result == [("William", "Shakespeare", 1616)]
+
+
+@pytest.mark.parametrize(
+    "prep_cell_1, prep_cell_2, prep_cell_3, with_cell_1,"
+    " with_cell_2, with_cell_1_excepted, with_cell_2_excepted",
+    [
+        [
+            "%sql --save everything SELECT * FROM number_table",
+            "%sql --with everything --no-execute --save positive_x"
+            " SELECT * FROM everything WHERE x > 0",
+            "%sql --with positive_x --no-execute --save "
+            "positive_x_and_y SELECT * FROM positive_x WHERE y > 0",
+            "%sql --with positive_x SELECT * FROM positive_x",
+            "%sql --with positive_x_and_y SELECT * FROM positive_x_and_y",
+            [(4, -2), (2, 4), (2, -5), (4, 3)],
+            [(2, 4), (4, 3)],
+        ],
+        [
+            "%sql --save everything SELECT * FROM number_table",
+            "%sql --with everything --no-execute --save odd_x "
+            "SELECT * FROM everything WHERE x % 2 != 0",
+            "%sql --with odd_x --no-execute --save odd_x_and_y "
+            "SELECT * FROM odd_x WHERE y % 2 != 0",
+            "%sql --with odd_x SELECT * FROM odd_x",
+            "%sql --with odd_x_and_y SELECT * FROM odd_x_and_y",
+            [(-5, 0), (-5, -1)],
+            [(-5, -1)],
+        ],
+    ],
+)
+def test_save_with_number_table(
+    ip,
+    prep_cell_1,
+    prep_cell_2,
+    prep_cell_3,
+    with_cell_1,
+    with_cell_2,
+    with_cell_1_excepted,
+    with_cell_2_excepted,
+):
+    ip.run_cell(prep_cell_1)
+    ip.run_cell(prep_cell_2)
+    ip.run_cell(prep_cell_3)
+    ip.run_cell(prep_cell_1)
+
+    with_cell_1_out = ip.run_cell(with_cell_1).result
+    with_cell_2_out = ip.run_cell(with_cell_2).result
+    assert with_cell_1_excepted == with_cell_1_out
+    assert with_cell_2_excepted == with_cell_2_out
+
+
+def test_save_with_non_existing_with(ip):
+    out = ip.run_cell(
+        "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
+    )
+    assert isinstance(out.error_in_exec, KeyError)
+
+
+def test_save_with_non_existing_table(ip, capsys):
+    ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
+    out, _ = capsys.readouterr()
+    assert "(sqlite3.OperationalError) no such table: non_existing_table" in out
+
+
+def test_save_with_bad_query_save(ip, capsys):
+    ip.run_cell("%sql --save my_query SELECT * non_existing_table")
+    ip.run_cell("%sql --with my_query SELECT * FROM my_query")
+    out, _ = capsys.readouterr()
+    assert '(sqlite3.OperationalError) near "non_existing_table": syntax error' in out
