@@ -41,6 +41,9 @@ jobs:
 
       - name: Test with pytest
         run: |
+          # ensure we're running sqlalchemy 2
+          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
+          # run tests
           pytest --durations-min=5 --ignore=src/tests/integration
   test-sqlalchemy-v1:
     strategy:
@@ -73,6 +76,9 @@ jobs:
           pip install ".[dev]"
       - name: Test with pytest
         run: |
+          # ensure we're running sqlalchemy 1
+          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 1"
+          # run tests
           pytest --durations-min=5 --ignore=src/tests/integration
 
   # run: pkgmt check
