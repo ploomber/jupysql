@@ -4,16 +4,11 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-myst:
-  html_meta:
-    description lang=en: Documentation for the %sql and %%sql magics from JupySQL
-    keywords: jupyter, sql, jupysql
-    property=og:locale: en_US
 ---
 
 # `%sql`/`%%sql`
