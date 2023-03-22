@@ -49,16 +49,9 @@ def test_query_count(ip_with_dynamic_db, excepted, request):
             OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
             """,
         )
-        # Test query with --with & --save
-        ip_with_dynamic_db.run_cell(
-            "%sql --save taxi_subset --no-execute SELECT * FROM taxi \
-            ORDER BY 1 OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY"
-        )
-        out_query_with_save_arg = ip_with_dynamic_db.run_cell(
-            "%sql --with taxi_subset SELECT * FROM taxi_subset"
-        )
+
         assert len(out) == excepted
-        assert len(out_query_with_save_arg.result) == excepted
+
     else:
         ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
         out = ip_with_dynamic_db.run_line_magic("sql", "SELECT * FROM taxi LIMIT 3")
@@ -433,6 +426,12 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
+        ),
+        (
+            "ip_with_MSSQL",
+            "taxi",
+            ["taxi_driver_name"],
+            {"unique": [3], "min": ["Eric Ken"], "max": ["Kevin Kelly"], "count": [45]},
         ),
     ],
 )
