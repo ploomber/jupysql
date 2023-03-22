@@ -10,10 +10,10 @@ kernelspec:
   language: python
   name: python3
 myst:
-html_meta:
-  description lang=en: Documentation for the %sqlplot magic from JupySQL
-  keywords: jupyter, sql, jupysql, plotting
-  property=og:locale: en_US
+  html_meta:
+    description lang=en: Documentation for the %sqlplot magic from JupySQL
+    keywords: jupyter, sql, jupysql, plotting
+    property=og:locale: en_US
 ---
 
 # `%sqlplot`
