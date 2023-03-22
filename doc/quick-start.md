@@ -154,6 +154,6 @@ For example, for the code above, **%sql** is a line magic, and **%%sql** is a co
 
 
 ### Reference 
-IPython doc: https://ipython.readthedocs.io/en/stable/interactive/magics.html#cell-magics 
+[IPython doc](https://ipython.readthedocs.io/en/stable/interactive/magics.html#cell-magics)
 
 Python Data Science Handbook: https://jakevdp.github.io/PythonDataScienceHandbook/01.03-magic-commands.html
