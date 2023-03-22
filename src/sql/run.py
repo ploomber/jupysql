@@ -117,9 +117,7 @@ class ResultSet(list, ColumnGuesserMixin):
             if isinstance(config.style, str):
                 _style = prettytable.__dict__[config.style.upper()]
 
-            self.pretty = PrettyTable(
-                self.field_names, style=_style
-            )
+            self.pretty = PrettyTable(self.field_names, style=_style)
         else:
             list.__init__(self, [])
             self.pretty = None
@@ -353,7 +351,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos: pos + size]
+                yield source_list[pos : pos + size]
                 pos += size
 
         self.fetchmany = fetchmany

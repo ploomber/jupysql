@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.4
+    jupytext_version: 1.14.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -79,7 +79,6 @@ if not Path("example.db").is_file():
     urllib.request.urlretrieve(url, "example.db")
 ```
 
-
 ```{code-cell} ipython3
 :tags: [hide-output]
 
@@ -105,6 +104,7 @@ To save the generated report as an HTML file, use the `--output`/`-o` attribute 
 
 ```{code-cell} ipython3
 from IPython.display import HTML
+
 HTML("my-report.html")
 ```
 
