@@ -5,6 +5,7 @@ import warnings
 from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
 import math
+import pyodbc
 
 
 @pytest.fixture(autouse=True)
@@ -42,11 +43,11 @@ def test_query_count(ip_with_dynamic_db, excepted, request):
         out = ip_with_dynamic_db.run_line_magic(
             "sql",
             """
-                                    SELECT * 
-                                    FROM taxi
-                                    ORDER BY 1
-                                    OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
-                                    """,
+            SELECT *
+            FROM taxi
+            ORDER BY 1
+            OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            """,
         )
         # Test query with --with & --save
         ip_with_dynamic_db.run_cell(
@@ -90,8 +91,8 @@ def test_create_table_with_indexed_df(ip_with_dynamic_db, excepted, request):
         # MSSQL gives error if DB doesn't exist
         try:
             ip_with_dynamic_db.run_cell("%sql DROP TABLE new_table_from_df")
-        except:
-            pass
+        except pyodbc.ProgrammingError as e:
+            print(f"Error: {e}")
 
         # Prepare DF
         ip_with_dynamic_db.run_cell(
