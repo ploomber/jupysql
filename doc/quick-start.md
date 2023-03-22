@@ -126,7 +126,7 @@ df.head()
 
 # Jupyter Magic
 
-One may be unfamiliar with the commands prefixed with '%' used in this instruction. Here is a detailed description of this command and its usage. 
+One may be unfamiliar with the commands prefixed with `%` used in this instruction. Here is a detailed description of this command and its usage. 
 
 ## Definition of Jupyter Magic
 
