@@ -139,7 +139,7 @@ Suppose execute.py is a python code file
 %timeit L = [n ** 2 for n in range(1000)] (Timeing executions -- will return 1000 loops, best of 3: 325 µs per loop)
 ```
 
-In our code above,  we use **%load_ext** to load an IPython extension by its module name, 'sql', and then directly use the extension using '%sql'.
+In our code above, we use **%load_ext** to load an IPython extension by its module name, `sql`, and then directly use the extension by using `%sql`.
 
 ```{tip}
 load an IPython extension by its module name.
