@@ -173,28 +173,7 @@ class ResultSet(list, ColumnGuesserMixin):
         "Returns a Pandas DataFrame instance built from the result set."
         import pandas as pd
 
-        # create a method to check for urls
-
-        def styled(df):
-            def url_formatter(val):
-                if isinstance(val, str) and val.startswith("http"):
-                    return '<a href="{0}" target="_blank">{0}</a>'.format(val)
-                else:
-                    return str(val)
-
-            if len(df) > df.threshold:
-                return df
-            else:
-                return df.style.format({col: url_formatter for col in df.columns})
-
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
-
-        # set methods as an attribute to the dataframe
-        # set add styling only if the returned dataframe has less than 1000 rows
-        frame.threshold = 1000
-        # users can call the method to see a styler object
-        frame.styled_func = lambda: styled(frame)
-
         payload[
             "connection_info"
         ] = sql.connection.Connection._get_curr_connection_info()

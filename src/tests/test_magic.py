@@ -272,27 +272,6 @@ def test_autopandas(ip):
     assert dframe.name[0] == "foo"
 
 
-def test_autopandas_styler_attr(ip):
-    ip.run_line_magic("config", "SqlMagic.autopandas = True")
-    pframe = runsql(ip, "SELECT * FROM website")
-    assert hasattr(pframe, "styled_func")
-    assert callable(pframe.styled_func)
-    styled_frame = pframe.styled_func()
-    assert '<a href="' in styled_frame.to_html()
-    assert "</a>" in styled_frame.to_html()
-    assert (
-        '<a href="https://en.wikipedia.org/wiki/Bertolt_Brecht"'
-        ' target="_blank">https://en.wikipedia.org/wiki/Bertolt_Brecht</a>'
-        in styled_frame.to_html()
-    )
-    assert (
-        '<a href="https://en.wikipedia.org/wiki/William_Shakespeare"'
-        ' target="_blank">https://en.wikipedia.org/wiki/William_Shakespeare</a>'
-        in styled_frame.to_html()
-    )
-    assert "<a href=google-link" not in styled_frame.to_html()
-
-
 def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
