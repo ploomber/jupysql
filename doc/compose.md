@@ -16,7 +16,7 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Why Choose JupySQL for Organizing Large Queries? 🌟
+# Choose JupySQL for Organizing Large Queries? 🌟
 
 
 ```{dropdown} Required packages
@@ -138,3 +138,7 @@ We can verify the retrieved query returns the same result:
 %%sql
 $final
 ```
+
+### Summary
+
+In the given example, we demonstrated JupySQL's usage as a tool for managing large SQL queries in Jupyter Notebooks. It effectively broke down a complex query into smaller, organized parts, simplifying the process of analyzing a record store's sales database. By using JupySQL, users can easily maintain and reuse their queries, enhancing the overall data analysis experience.
