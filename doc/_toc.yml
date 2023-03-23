@@ -16,7 +16,7 @@ parts:
     - file: user-guide/template
     - file: user-guide/data-profiling
     - file: user-guide/ggplot
-    - file: FAQ
+    - file: user-guide/FAQ
 
   - caption: Integrations
     chapters:
