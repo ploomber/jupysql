@@ -44,6 +44,7 @@ parts:
     - file: howto/postgres-install
     - file: howto/json
     - file: howto/syntax-highlighting
+    - file: howto/etl
 
   - caption: Tutorials
     chapters:
