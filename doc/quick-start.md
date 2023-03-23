@@ -119,4 +119,4 @@ df = result.DataFrame()
 df.head()
 ```
 
-If you are unfamiliar with Jupyter Magic, you can refer to our [FAQ](doc/user-guide/FAQ.md)
+If you are unfamiliar with Jupyter Magic, you can refer to our [FAQ](user-guide/FAQ.md)
