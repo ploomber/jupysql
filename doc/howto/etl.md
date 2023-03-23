@@ -148,7 +148,7 @@ We're going to get our sample dataset (we will work with the Penguins datasets v
 
 ```python
 from urllib.request import urlretrieve
-import pandas as pd
+
 _ = urlretrieve(
     "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
     "penguins.csv",
