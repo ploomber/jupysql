@@ -15,6 +15,7 @@ parts:
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/data-profiling
+    - file: FAQ
 
   - caption: Integrations
     chapters:
