@@ -22,14 +22,14 @@ Magics are specific to and provided by the IPython kernel. Some common usage of 
 
 Suppose execute.py is a python code file
 
-```{tip}
+```
 %run execute.py
 %timeit L = [n ** 2 for n in range(1000)] (Timing executions -- will return 1000 loops, best of 3: 325 µs per loop)
 ```
 
 In our code above, we use **%load_ext** to load an IPython extension by its module name, `sql`, and then directly use the extension by using `%sql`.
 
-```{tip}
+```
 load an IPython extension by its module name.
 %load_ext sql 
 ```
@@ -44,7 +44,3 @@ For example, for the code above, **%sql** is a line magic, and **%%sql** is a co
 [IPython doc](https://ipython.readthedocs.io/en/stable/interactive/magics.html#cell-magics)
 
 [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/01.03-magic-commands.html)
-
-```{code-cell} ipython3
-
-```
