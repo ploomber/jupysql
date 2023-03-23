@@ -231,7 +231,8 @@ AND flipper_length_mm IS NOT NULL AND body_mass_g IS NOT NULL AND sex IS NOT NUL
 ```python
 # Map the species column into classifiers
 transformed_df = transformed_df.DataFrame().dropna()
-transformed_df['mapped_species'] = transformed_df.species.map({"Adelie": 0, "Chinstrap": 1, "Gentoo": 2})
+transformed_df['mapped_species'] = \
+    transformed_df.species.map({"Adelie": 0, "Chinstrap": 1, "Gentoo": 2})
 transformed_df.drop("species", inplace=True, axis=1)
 ```
 
