@@ -5,6 +5,7 @@ import os.path
 import re
 from functools import reduce
 from io import StringIO
+import html
 
 import prettytable
 import sqlalchemy
@@ -107,13 +108,18 @@ class ResultSet(list, ColumnGuesserMixin):
         self.keys = {}
         if sqlaproxy.returns_rows:
             self.keys = sqlaproxy.keys()
-            if config.autolimit:
+            if isinstance(config.autolimit, int) and config.autolimit > 0:
                 list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
             else:
                 list.__init__(self, sqlaproxy.fetchall())
             self.field_names = unduplicate_field_names(self.keys)
+
+            _style = None
+            if isinstance(config.style, str):
+                _style = prettytable.__dict__[config.style.upper()]
+
             self.pretty = PrettyTable(
-                self.field_names, style=prettytable.__dict__[config.style.upper()]
+                self.field_names, style=_style
             )
         else:
             list.__init__(self, [])
@@ -124,6 +130,8 @@ class ResultSet(list, ColumnGuesserMixin):
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
+            # to create clickable links
+            result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
             if self.config.displaylimit and len(self) > self.config.displaylimit:
                 HTML = (
@@ -348,7 +356,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos : pos + size]
+                yield source_list[pos: pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -457,6 +465,10 @@ def run(conn, sql, config):
     return select_df_type(resultset, config)
 
 
+def raw_run(conn, sql):
+    return conn.session.execute(sql)
+
+
 class PrettyTable(prettytable.PrettyTable):
     def __init__(self, *args, **kwargs):
         self.row_count = 0
@@ -475,4 +487,10 @@ class PrettyTable(prettytable.PrettyTable):
         else:
             self.row_count = min(len(data), self.displaylimit)
         for row in data[: self.displaylimit]:
-            self.add_row(row)
+            formatted_row = []
+            for cell in row:
+                if isinstance(cell, str) and cell.startswith("http"):
+                    formatted_row.append("<a href={}>{}</a>".format(cell, cell))
+                else:
+                    formatted_row.append(cell)
+            self.add_row(formatted_row)
