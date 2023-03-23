@@ -96,7 +96,6 @@ will create a table name in the database from the named DataFrame. Or use `--app
 
 ```
 
-````
 The `--persist-replace` argument, with the name of a DataFrame object in memory,
 will replace the existing named DataFrame object in memory.
 
