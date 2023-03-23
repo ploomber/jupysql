@@ -15,7 +15,7 @@ jupyter:
 # Schedule ETLs with Jupysql and GitHub actions
 
 
-![syntax](../static/syntax-highlighting-working.png)
+![syntax](../static/etl-header.png)
 
 
 ## Introduction
