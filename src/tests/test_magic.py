@@ -2,13 +2,14 @@ import platform
 from pathlib import Path
 import os.path
 import re
+import sys
 import tempfile
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
-
 from sql.connection import Connection
 from sql.magic import SqlMagic
 from sql.run import ResultSet
@@ -708,7 +709,7 @@ def test_save_with_non_existing_with(ip):
     out = ip.run_cell(
         "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
     )
-    assert isinstance(out.error_in_exec, KeyError)
+    assert isinstance(out.error_in_exec, UsageError)
 
 
 def test_save_with_non_existing_table(ip, capsys):
@@ -722,3 +723,47 @@ def test_save_with_bad_query_save(ip, capsys):
     ip.run_cell("%sql --with my_query SELECT * FROM my_query")
     out, _ = capsys.readouterr()
     assert '(sqlite3.OperationalError) near "non_existing_table": syntax error' in out
+
+
+def test_interact_basic_data_types(ip, capsys):
+    ip.user_global_ns["my_variable"] = 5
+    ip.run_cell(
+        "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
+    )
+    out, _ = capsys.readouterr()
+
+    assert (
+        "Interactive mode, please interact with below widget(s)"
+        " to control the variable" in out
+    )
+
+
+@pytest.fixture
+def mockValueWidget(monkeypatch):
+    with patch("ipywidgets.widgets.IntSlider") as MockClass:
+        instance = MockClass.return_value
+        yield instance
+
+
+def test_interact_basic_widgets(ip, mockValueWidget, capsys):
+    print("mock", mockValueWidget.value)
+    ip.user_global_ns["my_widget"] = mockValueWidget
+
+    ip.run_cell(
+        "%sql --interact my_widget SELECT * FROM number_table LIMIT {{my_widget}}"
+    )
+    out, _ = capsys.readouterr()
+    assert (
+        "Interactive mode, please interact with below widget(s)"
+        " to control the variable" in out
+    )
+
+
+def test_interact_and_missing_ipywidgets_installed(ip):
+    with patch.dict(sys.modules):
+        sys.modules["ipywidgets"] = None
+        ip.user_global_ns["my_variable"] = 5
+        out = ip.run_cell(
+            "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
+        )
+        assert isinstance(out.error_in_exec, ModuleNotFoundError)
