@@ -1,46 +1,47 @@
 ---
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.14.5
-kernelspec:
-  display_name: Python 3 (ipykernel)
-  language: python
-  name: python3
-myst:
-  html_meta:
-    description lang=en: Schedule ETL with JupySQL and GitHub actions
-    keywords: jupyter, jupyterlab, sql, jupysql, github, ETL, Data engineering
-    property=og:locale: en_US
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.3'
+      jupytext_version: 1.14.4
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
 ---
 
 # Schedule ETLs with Jupysql and GitHub actions
 
-+++
 
 ![syntax](../static/syntax-highlighting-working.png)
 
+
 ## Introduction
-In this short guide we will cover the basics of ETLs and Jupysql and how to perform 
-ETLs through JupySQL and  scheduling a full ETL notebook via GitHub actions.
+In this brief yet informative guide, we aim to provide you with a comprehensive 
+understanding of the fundamental concepts of ETL (Extract, Transform, Load) and Jupysql, 
+a flexible and versatile tool that allows for seamless SQL based ETL from Jupyter. 
 
-#### But first, what is an ETL?
+Our primary focus will be on demonstrating how to effectively execute ETLs through 
+JupySQL, the popular and powerful Python library designed for SQL interaction, 
+while also highlighting the benefits of automating the ETL process through 
+scheduling a full example ETL notebook via GitHub actions.
 
-`ETL` (Extract, Transform, Load) is a crucial process for data analytics and business intelligence. 
-It involves extracting data from various sources, transforming it into a structured format, 
-and loading it into a database or data warehouse. 
-ETLs are an essential part of any data integration process, and they help businesses 
-to make informed decisions based on their data.
 
-#### Why JupySQL?
-JupySQL is a powerful tool that allows you to interact with databases using 
-SQL queries directly in Jupyter notebooks. We will start by discussing the importance 
-of ETLs, followed by a brief introduction to JupySQL. 
-Finally, we will dive into how to perform ETLs using JupySQL.
+### But first, what is an ETL?
+Now, let's dive into the details. `ETL` (Extract, Transform, Load) crucial process 
+in data management that involves the extraction of data from various sources, 
+transformation of the extracted data into a usable format, and loading the 
+transformed data into a target database or data warehouse. It is an essential 
+process for data analysis, data science, data integration, and data migration, among other purposes. 
+On the other hand, Jupysql is a widely-used Python library that simplifies the interaction 
+with databases through the power of SQL queries. By using Jupysql, data scientists 
+and analysts can easily execute SQL queries, manipulate data frames, and interact 
+with databases from their Jupyter notebooks. 
 
-## Why ETLs are important?
+<!-- #region jp-MarkdownHeadingCollapsed=true tags=[] -->
+### Why ETLs are important?
 
 ETLs play a significant role in data analytics and business intelligence. 
 They help businesses to collect data from various sources, including social media, 
@@ -56,8 +57,9 @@ Finally, ETLs load the data into a database or data warehouse,
 where businesses can access it easily. By doing this, 
 ETLs enable businesses to access accurate and up-to-date information, 
 allowing them to make informed decisions.
+<!-- #endregion -->
 
-## What is JupySQL?
+### What is JupySQL?
 
 JupySQL (based on ipython-sql) is an extension for Jupyter notebooks that allows you 
 to interact with databases using SQL queries. It provides a convenient way to access 
@@ -69,11 +71,29 @@ PostgreSQL, DuckDB, Oracle, Snowflake and more (check out our integrations secti
 on the left to learn more). You can connect to databases using standard connection 
 strings or through the use of environment variables.
 
+
+### Why JupySQL?
+JupySQL, a powerful tool, facilitates direct SQL query interaction with 
+databases inside Jupyter notebooks. With a view to carrying out efficient 
+and accurate data extraction and transformation processes, there are several 
+critical factors to consider when performing ETLs via JupySQL. JupySQL provides 
+users with the necessary tools to interact with data sources and perform data 
+transformations with ease. To save valuable time and effort while guaranteeing 
+consistency and reliability, automating the ETL process through scheduling a 
+full ETL notebook via GitHub actions can be a game-changer. By utilizing 
+JupySQL, users can achieve the best of both worlds, data interactivity (Jupyter) 
+and ease of usage and SQL connectivity (JupySQL), thereby streamlining the data 
+management process and allowing data scientists and analysts to concentrate on 
+their core competencies - generating valuable insights and reports.
+
+
+### Getting started with JupySQL
+
 To use JupySQL, you need to install it using pip.
 You can run the following command:
 
 ```python
-pip install jupysql --quiet
+!pip install jupysql --quiet
 ```
 
 Once installed, you can load the extension in Jupyter notebooks using the following command:
@@ -82,20 +102,19 @@ Once installed, you can load the extension in Jupyter notebooks using the follow
 %load_ext sql
 ```
 
-
+<!-- #region -->
 After loading the extension, you can connect to a database using the following command:
 
-```sh
-#%sql dialect://username:password@host:port/database
+```python
+%sql dialect://username:password@host:port/database
 ```
 
-
-For example, to connect to a SQLite database, you can use the following command:
+For example, to connect to a local DuckDB database, you can use the following command:
+<!-- #endregion -->
 
 ```python
-%sql sqlite:///mydatabase.db
+%sql duckdb://
 ```
-
 
 ## Performing ETLs using JupySQL
 
@@ -107,6 +126,7 @@ the following steps:
 3. Load data
 4. Extract data
 
+<!-- #region -->
 ### Extract data
 To extract data using JupySQL, we need to connect to the source database and execute 
 a query to retrieve the data. For example, to extract data from a MySQL database, 
@@ -116,12 +136,32 @@ we can use the following command:
 %sql mysql://username:password@host:port/database
 data = %sql SELECT * FROM mytable
 ```
-
 This command connects to the MySQL database using the specified connection string 
 and retrieves all the data from the "mytable" table. The data is stored in the 
 "data" variable as a Pandas DataFrame.
 
 **Note**: We can also use `%%sql df <<` to save the data into the `df` variable
+
+Since we'll be running locally via DuckDB we can simply Extract a public dataset and start working immediately.
+We're going to get our sample dataset (we will work with the Penguins datasets via a csv file):
+<!-- #endregion -->
+
+```python
+from urllib.request import urlretrieve
+import pandas as pd
+_ = urlretrieve(
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+    "penguins.csv",
+)
+```
+
+And we can get a sample of the data to check we're connected and we can query the data:
+
+```sql
+SELECT *
+FROM penguins.csv
+LIMIT 3
+```
 
 ### Transform data
 After extracting data, it's often necessary to transform it into a format that's 
@@ -142,41 +182,60 @@ data transformation techniques:
    to create a single dataset. For example, you might combine data from different 
    tables in a relational database, or combine data from different files.
 
-In JupySQL, you can use Pandas DataFrame methods to perform data transformations. 
+In JupySQL, you can use Pandas DataFrame methods to perform data transformations or native SQL. 
 For example, you can use the rename method to rename columns, the dropna method to 
-remove missing values, and the astype method to convert data types.
+remove missing values, and the astype method to convert data types. I'll demonstrate how to do it either with pandas or SQL.
 
-Here's an example of how to use Pandas to transform data:
+* Note: You can use either `%sql` or `%%sql`, check out the difference between the two [here](https://jupysql.ploomber.io/en/latest/community/developer-guide.html?highlight=%25sql%20vs%20%25%25sql#magics-e-g-sql-sql-etc)
+
+<!-- #region -->
+Here's an example of how to use Pandas and the JupySQL alternatives to transform data:
 ```python
 # Rename columns
-data = data.rename(columns={'old_column_name': 'new_column_name'})
+df = data.rename(columns={'old_column_name': 'new_column_name'})  # Pandas
+%sql df << SELECT *, old_column_name AS new_column_name FROM data;  # JupySQL
+
 
 # Remove missing values
-data = data.dropna()
+data = data.dropna()  # Pandas
+%sql df << SELECT * FROM data WHERE column_name IS NOT NULL;  # JupySQL single column, can add conditions to all columns as needed.
+
 
 # Convert data types
-data['date_column'] = data['date_column'].astype('datetime64[ns]')
+data['date_column'] = data['date_column'].astype('datetime64[ns]')  # Pandas
+%sql df << SELECT *, CAST(date_column AS timestamp) AS date_column FROM data  # Jupysql
 
 # Filter data
-filtered_data = data[data['sales'] > 1000]
+filtered_data = data[data['sales'] > 1000]  # Pandas
+%%sql df << SELECT * FROM data WHERE sales > 1000;  # JupySQL
 
 # Aggregate data
-monthly_sales = data.groupby(['year', 'month'])['sales'].sum()
+monthly_sales = data.groupby(['year', 'month'])['sales'].sum()  # Pandas
+%sql df << SELECT year, month, SUM(sales) as monthly_sales FROM data GROUP BY year, month  # JupySQL
 
 # Combine data
-merged_data = pd.merge(data1, data2, on='key_column')
+merged_data = pd.merge(data1, data2, on='key_column')  # Pandas
+%sql df << SELECT * FROM data1 JOIN data2 ON data1.key_column = data2.key_column;  # JupySQL
 ```
+In our example we'll use a simple transformations, in a similar manner to the above code.
+We'll clean our data from NAs and will split a column (species) into 3 individual columns (named for each species):
+<!-- #endregion -->
 
-**TODO**: In our example we'll use a simple transformation, cleaning NAs and renaming a column.
+```sql magic_args="transformed_df <<"
+SELECT *
+FROM penguins.csv
+WHERE species IS NOT NULL AND island IS NOT NULL AND bill_length_mm IS NOT NULL AND bill_depth_mm IS NOT NULL 
+AND flipper_length_mm IS NOT NULL AND body_mass_g IS NOT NULL AND sex IS NOT NULL;
+```
 
 ```python
-# Rename columns
-data = data.rename(columns={'old_column_name': 'new_column_name'})
-
-# Remove missing values
-data = data.dropna()
+# Map the species column into classifiers
+transformed_df = transformed_df.DataFrame().dropna()
+transformed_df['mapped_species'] = transformed_df.species.map({"Adelie": 0, "Chinstrap": 1, "Gentoo": 2})
+transformed_df.drop("species", inplace=True, axis=1)
 ```
 
+<!-- #region -->
 ### Load data
 
 After transforming the data, we need to load it into a destination database or 
@@ -195,19 +254,80 @@ This command connects to the PostgreSQL database using the specified connection
 string, drops the "mytable" table if it exists, creates a new table with the specified 
 columns and data types, and loads the data from the CSV file.
 
-## Scheduling on GitHub actions
-The last step is executing our complete notebook via GitHub actions.
-To do that we can use `ploomber-engine` which lets you schedule notebooks in a 
-similar manner to papermill but in an external process.
+<!-- #endregion -->
 
-We can use this sample ci.yml file and put it in our repository, the final file should
-be located under `.github/workflows/ci.yml`:
+Since our use case is using DuckDB locally we can simply save the newly created `transformed_df` into a csv file, but we can also use the snipped above to save it into our DB or DWH depending on our use case. 
 
-```shell
-# This is the ci.yml file
+Run the following step to save the new data as a CSV file:
+
+```python
+transformed_df.to_csv('transformed_data.csv')
 ```
 
+We can see a new file called `transformed_data.csv` was created for us.
+In the next step we'll see how we can automate this process and consume the final file via GitHub.
 
+
+## Scheduling on GitHub actions
+The last step in our process is executing the complete notebook via GitHub actions.
+To do that we can use `ploomber-engine` which lets you schedule notebooks, along with other notebook capabilities such as profiling, debugging etc. If needed we can pass external parameters to our notebook and make it a generic template. 
+- Note: Our notebook file is loading a public dataset and saves it after ETL locally, we can easily change it to consume any dataset, and load it to S3, visualize the data as a dashboard and more.
+
+For our example we can use this sample ci.yml file (this is what sets the github workflow in your repository), and put it in our repository, the final file should
+be located under `.github/workflows/ci.yml`. 
+
+Content of the `ci.yml` file:
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 4 * *'
+
+# These permissions are needed to interact with GitHub's OIDC Token endpoint.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: '3.10'
+        miniconda-version: latest
+        activate-environment: conda-env
+        channels: conda-forge, defaults
+
+
+    - name: Run notebook
+      env:
+        PLOOMBER_STATS_ENABLED: false
+        PYTHON_VERSION: '3.10'
+      shell: bash -l {0}
+      run: |
+        eval "$(conda shell.bash hook)"
+        
+        # pip install -r requirements.txt
+        pip install jupysql pandas ploomber-engine --quiet
+        ploomber-engine --log-output posthog.ipynb report.ipynb
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: Transformed_data
+        path: transformed_data.csv
+```
+
+In this example CI, I've also added a scheduled trigger, this job will run nightly at 4 am.
+
+<!-- #region tags=[] -->
 ## Conclusion
 
 ETLs are an essential process for data analytics and business intelligence. 
@@ -220,3 +340,8 @@ can be scheduled and help us get the data to its final stage.
 By using JupySQL, you can perform ETLs easily and efficiently, 
 allowing you to extract, transform, and load data in a structured format while 
 Github actions allocate compute and set the environment.
+<!-- #endregion -->
+
+```python
+
+```
