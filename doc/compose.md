@@ -16,7 +16,7 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Organizing large queries
+# Why Choose JupySQL for Organizing Large Queries? 🌟
 
 
 ```{dropdown} Required packages
@@ -33,10 +33,16 @@ This is a beta feature, please [join our community](https://ploomber.io/communit
 let us know how we can improve it!
 ```
 
-JupySQL allows you to break queries into multiple cells, simplifying the process of
-building large queries.
+Tired of wrangling complex, large-scale SQL queries? JupySQL is here to revolutionize your experience with an intuitive, user-friendly package specifically designed to help you manage and organize large SQL queries in Jupyter Notebooks.
 
-As an example, we are using a sales database from a record store. We'll find the
+- **Simplify your workflow:** JupySQL allows you to break down large SQL queries into manageable chunks and organize them within your Jupyter Notebook, enhancing readability and maintainability.
+- **Modularize your queries:** With JupySQL, you can create reusable query modules and leverage them across your project, promoting code reusability and reducing redundancy.
+- **Seamless integration:** JupySQL flawlessly combines the power of SQL with the flexibility of Jupyter Notebooks, offering a one-stop solution for all your data analysis needs.
+- **Cross-platform compatibility:** JupySQL supports popular databases like PostgreSQL, MySQL, SQLite, and more, ensuring you can work with any data source.
+
+### Example: record store data
+
+Let's use JupySQL to find the
 artists that have produced the largest number of Rock and Metal songs.
 
 Let's load some data:
