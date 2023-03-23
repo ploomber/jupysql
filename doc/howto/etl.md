@@ -72,13 +72,13 @@ strings or through the use of environment variables.
 To use JupySQL, you need to install it using pip.
 You can run the following command:
 
-```{code-cell} ipython3
+```python
 pip install jupysql --quiet
 ```
 
 Once installed, you can load the extension in Jupyter notebooks using the following command:
 
-```{code-cell} ipython3
+```python
 %load_ext sql
 ```
 
@@ -92,7 +92,7 @@ After loading the extension, you can connect to a database using the following c
 
 For example, to connect to a SQLite database, you can use the following command:
 
-```{code-cell} ipython3
+```python
 %sql sqlite:///mydatabase.db
 ```
 
