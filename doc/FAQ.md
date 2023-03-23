@@ -40,9 +40,6 @@ load an IPython extension by its module name.
 
 For example, for the code above, **%sql** is a line magic, and **%%sql** is a code magic. 
 
-
-You can also see our [FAQ](target) for more information. 
-
 ### Reference 
 [IPython doc](https://ipython.readthedocs.io/en/stable/interactive/magics.html#cell-magics)
 
