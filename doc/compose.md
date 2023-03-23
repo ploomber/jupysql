@@ -16,7 +16,7 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Choose JupySQL for Organizing Large Queries? 🌟
+# Using JupySQL for Organizing Large Queries 🌟
 
 
 ```{dropdown} Required packages
