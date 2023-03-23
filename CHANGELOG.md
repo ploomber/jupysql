@@ -1,10 +1,14 @@
 # CHANGELOG
 
 ## 0.7.0dev
-
+* [Feature] Adds `%sqlcmd profile` (#66)
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
+* [Fix] `--save` + `--with` double quotes syntax error in MySQL ([#145](https://github.com/ploomber/jupysql/issues/145))
 * [Feature] Adds sql magic test to list of possible magics to test datasets
-* [Fix] Fixes issue with sqlalchemy 2.0 when calling .execute
+* [Feature] Adds `--interact` argument to `%%sql` to enable interactivity in parametrized SQL queries (#293)
+* [Feature] Results parse HTTP URLs to make them clickable (#230)
+* [Feature] Adds `ggplot` plotting API (histogram and boxplot)
+* [Feature] Adds persist-replace argument for when datasets already exist.
 
 ## 0.6.6 (2023-03-16)
 

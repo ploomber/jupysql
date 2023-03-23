@@ -1,8 +1,10 @@
 import shutil
+from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
+import math
 
 
 @pytest.fixture(autouse=True)
@@ -34,8 +36,19 @@ def mock_log_api(monkeypatch):
 )
 def test_query_count(ip_with_dynamic_db, excepted, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out = ip_with_dynamic_db.run_line_magic("sql", "SELECT * FROM taxi LIMIT 3")
-    assert len(out) == excepted
+    out_normal_query = ip_with_dynamic_db.run_line_magic(
+        "sql", "SELECT * FROM taxi LIMIT 3"
+    )
+    assert len(out_normal_query) == excepted
+
+    # Test query with --with & --save
+    ip_with_dynamic_db.run_cell(
+        "%sql --save taxi_subset --no-execute SELECT * FROM taxi LIMIT 3"
+    )
+    out_query_with_save_arg = ip_with_dynamic_db.run_cell(
+        "%sql --with taxi_subset SELECT * FROM taxi_subset"
+    )
+    assert len(out_query_with_save_arg.result) == excepted
 
 
 # Create
@@ -147,6 +160,94 @@ def test_telemetry_execute_command_has_connection_info(
 
 
 @pytest.mark.parametrize(
+    "cell",
+    [
+        ("%sqlplot histogram --table plot_something --column x"),
+        ("%sqlplot hist --table plot_something --column x"),
+        ("%sqlplot histogram --table plot_something --column x --bins 10"),
+    ],
+    ids=[
+        "histogram",
+        "hist",
+        "histogram-bins",
+    ],
+)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+    ],
+)
+def test_sqlplot_histogram(ip_with_dynamic_db, cell, request):
+    # clean current Axes
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    plt.cla()
+
+    ip_with_dynamic_db.run_cell(
+        "%sql --save plot_something_subset"
+        " --no-execute SELECT * from plot_something LIMIT 3"
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+BOX_PLOT_FAIL_REASON = (
+    "Known issue, the SQL engine must support percentile_disc() SQL clause"
+)
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sqlplot boxplot --table plot_something --column x",
+        "%sqlplot box --table plot_something --column x",
+        "%sqlplot boxplot --table plot_something --column x --orient h",
+        "%sqlplot boxplot --with plot_something_subset --table "
+        "plot_something_subset --column x",
+    ],
+    ids=[
+        "boxplot",
+        "box",
+        "boxplot-horizontal",
+        "boxplot-with",
+    ],
+)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        pytest.param("ip_with_postgreSQL"),
+        pytest.param(
+            "ip_with_mySQL", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
+        ),
+        pytest.param(
+            "ip_with_mariaDB", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
+        ),
+        pytest.param(
+            "ip_with_SQLite", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
+        ),
+        pytest.param("ip_with_duckDB"),
+    ],
+)
+def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request):
+    # clean current Axes
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    plt.cla()
+    ip_with_dynamic_db.run_cell(
+        "%sql --save plot_something_subset"
+        " --no-execute SELECT * from plot_something LIMIT 3"
+    )
+
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
         ("ip_with_postgreSQL"),
@@ -189,3 +290,117 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     assert len(result) == 1
     assert "greater_or_equal" in result.keys()
     assert list(result["greater_or_equal"]) == [2, 3]
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, table, table_columns, expected",
+    [
+        (
+            "ip_with_postgreSQL",
+            "taxi",
+            ["index", "taxi_driver_name"],
+            {
+                "count": [45, 45],
+                "mean": [22.0, math.nan],
+                "min": [0, "Eric Ken"],
+                "max": [44, "Kevin Kelly"],
+                "unique": [45, 3],
+                "freq": [1, 15],
+                "top": [0, "Eric Ken"],
+                "std": ["1.299e+01", math.nan],
+                "25%": [11.0, math.nan],
+                "50%": [22.0, math.nan],
+                "75%": [33.0, math.nan],
+            },
+        ),
+        pytest.param(
+            "ip_with_mySQL",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+            marks=pytest.mark.xfail(
+                reason="Need to get column names from table with a different query"
+            ),
+        ),
+        pytest.param(
+            "ip_with_mariaDB",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+            marks=pytest.mark.xfail(
+                reason="Need to get column names from table with a different query"
+            ),
+        ),
+        (
+            "ip_with_SQLite",
+            "taxi",
+            ["taxi_driver_name"],
+            {
+                "count": [45],
+                "mean": [0.0],
+                "min": ["Eric Ken"],
+                "max": ["Kevin Kelly"],
+                "unique": [3],
+                "freq": [15],
+                "top": ["Kevin Kelly"],
+            },
+        ),
+        (
+            "ip_with_duckDB",
+            "taxi",
+            ["index", "taxi_driver_name"],
+            {
+                "count": [45, 45],
+                "mean": [22.0, math.nan],
+                "min": [0, "Eric Ken"],
+                "max": [44, "Kevin Kelly"],
+                "unique": [45, 3],
+                "freq": [1, 15],
+                "top": [0, "Eric Ken"],
+                "std": ["1.299e+01", math.nan],
+                "25%": [11.0, math.nan],
+                "50%": [22.0, math.nan],
+                "75%": [33.0, math.nan],
+            },
+        ),
+    ],
+)
+def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expected):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    out = ip_with_dynamic_db.run_cell(
+        f"""
+        %sqlcmd profile --table "{table}"
+        """
+    ).result
+
+    stats_table = out._table
+
+    assert len(stats_table.rows) == len(expected)
+
+    for row in stats_table:
+        criteria = row.get_string(fields=[" "], border=False).strip()
+
+        for i, column in enumerate(table_columns):
+            cell_value = row.get_string(
+                fields=[column], border=False, header=False
+            ).strip()
+
+            assert criteria in expected
+            assert cell_value == str(expected[criteria][i])
