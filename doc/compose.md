@@ -40,7 +40,7 @@ Tired of wrangling complex, large-scale SQL queries? JupySQL is here to revoluti
 - **Seamless integration:** JupySQL flawlessly combines the power of SQL with the flexibility of Jupyter Notebooks, offering a one-stop solution for all your data analysis needs.
 - **Cross-platform compatibility:** JupySQL supports popular databases like PostgreSQL, MySQL, SQLite, and more, ensuring you can work with any data source.
 
-### Example: record store data
+## Example: record store data
 
 Let's use JupySQL to find the
 artists that have produced the largest number of Rock and Metal songs.
@@ -139,6 +139,6 @@ We can verify the retrieved query returns the same result:
 $final
 ```
 
-### Summary
+## Summary
 
 In the given example, we demonstrated JupySQL's usage as a tool for managing large SQL queries in Jupyter Notebooks. It effectively broke down a complex query into smaller, organized parts, simplifying the process of analyzing a record store's sales database. By using JupySQL, users can easily maintain and reuse their queries, enhancing the overall data analysis experience.
