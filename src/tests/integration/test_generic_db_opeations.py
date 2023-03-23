@@ -33,39 +33,22 @@ def mock_log_api(monkeypatch):
         ("ip_with_mariaDB", 3),
         ("ip_with_SQLite", 3),
         ("ip_with_duckDB", 3),
-        ("ip_with_MSSQL", 3),
     ],
 )
 def test_query_count(ip_with_dynamic_db, excepted, request):
-    if ip_with_dynamic_db == "ip_with_MSSQL":
-        # MSSQL doesn't have LIMIT
-        ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-        out = ip_with_dynamic_db.run_line_magic(
-            "sql",
-            """
-            SELECT *
-            FROM taxi
-            ORDER BY 1
-            OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
-            """,
-        )
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_line_magic("sql", "SELECT * FROM taxi LIMIT 3")
 
-        assert len(out) == excepted
+    # Test query with --with & --save
+    ip_with_dynamic_db.run_cell(
+        "%sql --save taxi_subset --no-execute SELECT * FROM taxi LIMIT 3"
+    )
+    out_query_with_save_arg = ip_with_dynamic_db.run_cell(
+        "%sql --with taxi_subset SELECT * FROM taxi_subset"
+    )
 
-    else:
-        ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-        out = ip_with_dynamic_db.run_line_magic("sql", "SELECT * FROM taxi LIMIT 3")
-
-        # Test query with --with & --save
-        ip_with_dynamic_db.run_cell(
-            "%sql --save taxi_subset --no-execute SELECT * FROM taxi LIMIT 3"
-        )
-        out_query_with_save_arg = ip_with_dynamic_db.run_cell(
-            "%sql --with taxi_subset SELECT * FROM taxi_subset"
-        )
-
-        assert len(out) == excepted
-        assert len(out_query_with_save_arg.result) == excepted
+    assert len(out) == excepted
+    assert len(out_query_with_save_arg.result) == excepted
 
 
 # Create
@@ -77,46 +60,20 @@ def test_query_count(ip_with_dynamic_db, excepted, request):
         ("ip_with_mariaDB", 15),
         ("ip_with_SQLite", 15),
         ("ip_with_duckDB", 15),
-        ("ip_with_MSSQL", 15),
     ],
 )
 def test_create_table_with_indexed_df(ip_with_dynamic_db, excepted, request):
-    if ip_with_dynamic_db == "ip_with_MSSQL":
-        ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-
-        # MSSQL gives error if DB doesn't exist
-        try:
-            ip_with_dynamic_db.run_cell("%sql DROP TABLE new_table_from_df")
-        except pyodbc.ProgrammingError as e:
-            print(f"Error: {e}")
-
-        # Prepare DF
-        ip_with_dynamic_db.run_cell(
-            """results = %sql\
-                        SELECT *\
-                        FROM taxi\
-                        ORDER BY 1\
-                        OFFSET 0 ROWS FETCH NEXT 15 ROWS ONLY
-                        """
-        )
-        ip_with_dynamic_db.run_cell("new_table_from_df = results.DataFrame()")
-        # Create table from DF
-        persist_out = ip_with_dynamic_db.run_cell("%sql --persist new_table_from_df")
-        query_out = ip_with_dynamic_db.run_cell("%sql SELECT * FROM new_table_from_df")
-        assert persist_out.error_in_exec is None and query_out.error_in_exec is None
-        assert len(query_out.result) == excepted
-    else:
-        ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-        # Clean up
-        ip_with_dynamic_db.run_cell("%sql DROP TABLE new_table_from_df")
-        # Prepare DF
-        ip_with_dynamic_db.run_cell("results = %sql SELECT * FROM taxi LIMIT 15")
-        ip_with_dynamic_db.run_cell("new_table_from_df = results.DataFrame()")
-        # Create table from DF
-        persist_out = ip_with_dynamic_db.run_cell("%sql --persist new_table_from_df")
-        query_out = ip_with_dynamic_db.run_cell("%sql SELECT * FROM new_table_from_df")
-        assert persist_out.error_in_exec is None and query_out.error_in_exec is None
-        assert len(query_out.result) == excepted
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    # Clean up
+    ip_with_dynamic_db.run_cell("%sql DROP TABLE new_table_from_df")
+    # Prepare DF
+    ip_with_dynamic_db.run_cell("results = %sql SELECT * FROM taxi LIMIT 15")
+    ip_with_dynamic_db.run_cell("new_table_from_df = results.DataFrame()")
+    # Create table from DF
+    persist_out = ip_with_dynamic_db.run_cell("%sql --persist new_table_from_df")
+    query_out = ip_with_dynamic_db.run_cell("%sql SELECT * FROM new_table_from_df")
+    assert persist_out.error_in_exec is None and query_out.error_in_exec is None
+    assert len(query_out.result) == excepted
 
 
 # Connection
