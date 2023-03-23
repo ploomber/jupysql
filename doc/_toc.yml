@@ -15,6 +15,7 @@ parts:
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/data-profiling
+    - file: user-guide/ggplot
     - file: FAQ
 
   - caption: Integrations
@@ -27,6 +28,7 @@ parts:
       - file: integrations/mariadb
       - file: integrations/clickhouse
       - file: integrations/mindsdb
+      - file: integrations/postgres-connect
 
   - caption: API Reference
     chapters:
@@ -40,7 +42,6 @@ parts:
     chapters:
     - file: howto
     - file: howto/postgres-install
-    - file: howto/postgres-connect
     - file: howto/json
     - file: howto/syntax-highlighting
 
