@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -12,6 +13,17 @@ kernelspec:
 ---
 
 # Data profiling
+
+
+```{note}
+This feature will be released in version 0.7, but you can give it a try now!
+
+~~~
+pip uninstall jupysql -y
+pip install git+https://github.com/ploomber/jupysql
+~~~
+```
+
 
 When dealing with a new dataset, it's crucial for practitioners to have a comprehensive understanding of the data in a timely manner. This involves exploring and summarizing the dataset efficiently to extract valuable insights. However, this can be a time-consuming process. Fortunately, `%sqlcmd profile` offers an easy way to generate statistics and descriptive information, enabling practitioners to quickly gain a deeper understanding of the dataset.
 
