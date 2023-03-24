@@ -1,6 +1,7 @@
 ---
 jupytext:
-  notebook_metadata_filter: myst
+  cell_metadata_filter: -all
+  formats: md:myst
   text_representation:
     extension: .md
     format_name: myst
@@ -10,6 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+myst:
+  html_meta:
+    description lang=en: "Quickstart for JupySQL: a package to run SQL in Jupyter"
+    keywords: jupyter, sql, jupysql
+    property=og:locale: en_US
 ---
 
 
