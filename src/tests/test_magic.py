@@ -6,7 +6,6 @@ import sys
 import tempfile
 from textwrap import dedent
 from unittest.mock import patch
-import pandas as pd
 
 import pytest
 from sqlalchemy import create_engine
@@ -131,6 +130,7 @@ def test_persist(ip):
     persisted = runsql(ip, "SELECT * FROM results_dframe")
     assert persisted == [(0, 1, "foo"), (1, 2, "bar")]
 
+
 def persist_replace_works(ip):
     ip.run_cell("results = %sql SELECT * FROM test LIMIT 2;")
     ip.run_cell("df = results.DataFrame()")
@@ -141,8 +141,10 @@ def persist_replace_works(ip):
 
     out = ip.run_cell("%sql SELECT * FROM df")
 
-    assert(len(out) == 1)
+    assert len(out) == 1
     # To assert if the length of out is 1 instead of 2
+
+
 def test_persist_replace_no_error(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")

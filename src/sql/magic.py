@@ -177,7 +177,7 @@ class SqlMagic(Magics, Configurable):
         "--persist-replace",
         action="store_true",
         help="replace dataframe when persisting the named DataFrame"
-             "Added in version 0.7",
+        "Added in version 0.7",
     )
     @argument(
         "-n",
