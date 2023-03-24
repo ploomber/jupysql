@@ -33,8 +33,8 @@ myst:
 
 ```{code-cell} ipython3
 import pandas as pd
-url = ("https://gist.githubusercontent.com/jaidevd"  
-       "/23aef12e9bf56c618c41/raw/c05e98672b8d52fa0"  
+url = ("https://gist.githubusercontent.com/jaidevd"
+       "/23aef12e9bf56c618c41/raw/c05e98672b8d52fa0"
        "cb94aad80f75eb78342e5d4/books.csv")
 authors = pd.read_csv(url)
 ```
