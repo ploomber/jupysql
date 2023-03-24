@@ -11,6 +11,11 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
+ myst:
+  html_meta:
+    description lang=en: Use JupySQL and DuckDB to query JSON files with SQL
+    keywords: jupyter, sql, jupysql, json, duckdb
+    property=og:locale: en_US
 ---
 
 # Quick Start
