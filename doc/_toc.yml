@@ -48,6 +48,7 @@ parts:
 
   - caption: Tutorials
     chapters:
+    - file: tutorials/computing-product-analytics
     - file: tutorials/duckdb-github
 
   - caption: Community
