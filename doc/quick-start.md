@@ -5,16 +5,11 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.4
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-myst:
-  html_meta:
-    description lang=en: Use JupySQL and DuckDB to query JSON files with SQL
-    keywords: jupyter, sql, jupysql, json, duckdb
-    property=og:locale: en_US
 ---
 
 
