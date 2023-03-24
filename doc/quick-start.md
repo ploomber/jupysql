@@ -43,6 +43,11 @@ Or the following in a Jupyter notebook:
 
 ## Setup
 
+```{tip}
+If you are unfamiliar with Jupyter magics, you can refer to our [FAQ](user-guide/FAQ.md)
+```
+
+
 Load the extension:
 
 ```{code-cell} ipython3
@@ -124,5 +129,3 @@ df = result.DataFrame()
 ```{code-cell} ipython3
 df.head()
 ```
-
-If you are unfamiliar with Jupyter Magic, you can refer to our [FAQ](user-guide/FAQ.md)
