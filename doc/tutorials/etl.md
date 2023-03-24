@@ -15,12 +15,12 @@ jupyter:
 # Schedule ETLs with Jupysql and GitHub actions
 
 
-![syntax](../static/etl-header.png)
+![etl-header](../static/etl-header.png)
 
 
 ## Introduction
 In this brief yet informative guide, we aim to provide you with a comprehensive 
-understanding of the fundamental concepts of ETL (Extract, Transform, Load) and Jupysql, 
+understanding of the fundamental concepts of ETL (Extract, Transform, Load) and JupySQL, 
 a flexible and versatile tool that allows for seamless SQL based ETL from Jupyter. 
 
 Our primary focus will be on demonstrating how to effectively execute ETLs through 
@@ -35,8 +35,8 @@ in data management that involves the extraction of data from various sources,
 transformation of the extracted data into a usable format, and loading the 
 transformed data into a target database or data warehouse. It is an essential 
 process for data analysis, data science, data integration, and data migration, among other purposes. 
-On the other hand, Jupysql is a widely-used Python library that simplifies the interaction 
-with databases through the power of SQL queries. By using Jupysql, data scientists 
+On the other hand, JupySQL is a widely-used Python library that simplifies the interaction 
+with databases through the power of SQL queries. By using JupySQL, data scientists 
 and analysts can easily execute SQL queries, manipulate data frames, and interact 
 with databases from their Jupyter notebooks. 
 
@@ -61,10 +61,10 @@ allowing them to make informed decisions.
 
 ### What is JupySQL?
 
-JupySQL (based on ipython-sql) is an extension for Jupyter notebooks that allows you 
-to interact with databases using SQL queries. It provides a convenient way to access 
-databases and data warehouses directly from Jupyter notebooks, allowing you to perform 
-complex data manipulations and analyses.
+JupySQL is an extension for Jupyter notebooks that allows you to interact
+ with databases using SQL queries. It provides a convenient way to access 
+databases and data warehouses directly from Jupyter notebooks, allowing you to
+ perform complex data manipulations and analyses.
 
 JupySQL supports multiple database management systems, including SQLite, MySQL, 
 PostgreSQL, DuckDB, Oracle, Snowflake and more (check out our integrations section 
@@ -193,29 +193,47 @@ Here's an example of how to use Pandas and the JupySQL alternatives to transform
 ```python
 # Rename columns
 df = data.rename(columns={'old_column_name': 'new_column_name'})  # Pandas
-%sql df << SELECT *, old_column_name AS new_column_name FROM data;  # JupySQL
+%%sql df << 
+SELECT *, old_column_name 
+AS new_column_name 
+FROM data;  # JupySQL
 
 
 # Remove missing values
 data = data.dropna()  # Pandas
-%sql df << SELECT * FROM data WHERE column_name IS NOT NULL;  # JupySQL single column, can add conditions to all columns as needed.
+%%sql df << 
+SELECT * 
+FROM data 
+WHERE column_name IS NOT NULL;  # JupySQL single column, can add conditions to all columns as needed.
 
 
 # Convert data types
 data['date_column'] = data['date_column'].astype('datetime64[ns]')  # Pandas
-%sql df << SELECT *, CAST(date_column AS timestamp) AS date_column FROM data  # Jupysql
+%sql df << 
+SELECT *, 
+CAST(date_column AS timestamp) AS date_column 
+FROM data  # Jupysql
 
 # Filter data
 filtered_data = data[data['sales'] > 1000]  # Pandas
-%%sql df << SELECT * FROM data WHERE sales > 1000;  # JupySQL
+%%sql df << 
+SELECT * FROM data 
+WHERE sales > 1000;  # JupySQL
 
 # Aggregate data
 monthly_sales = data.groupby(['year', 'month'])['sales'].sum()  # Pandas
-%sql df << SELECT year, month, SUM(sales) as monthly_sales FROM data GROUP BY year, month  # JupySQL
+%%sql df << 
+SELECT year, month, 
+SUM(sales) as monthly_sales 
+FROM data 
+GROUP BY year, month  # JupySQL
 
 # Combine data
 merged_data = pd.merge(data1, data2, on='key_column')  # Pandas
-%sql df << SELECT * FROM data1 JOIN data2 ON data1.key_column = data2.key_column;  # JupySQL
+%%sql df << 
+SELECT * FROM data1 
+JOIN data2 
+ON data1.key_column = data2.key_column;  # JupySQL
 ```
 In our example we'll use a simple transformations, in a similar manner to the above code.
 We'll clean our data from NAs and will split a column (species) into 3 individual columns (named for each species):
