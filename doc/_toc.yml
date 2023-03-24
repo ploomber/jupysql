@@ -50,6 +50,7 @@ parts:
     - file: tutorials/duckdb-github
     - file: tutorials/etl
 
+
   - caption: Community
     chapters:
     - file: community/vs
