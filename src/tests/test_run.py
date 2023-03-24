@@ -94,11 +94,13 @@ def test_handle_postgres_special(mock_conns):
 def test_set_autocommit(mock_conns, mock_config, caplog):
     caplog.set_level(logging.DEBUG)
     output = set_autocommit(mock_conns, mock_config)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
     assert "The database driver doesn't support such " in caplog.records[0].msg
     assert output is True
 
 
-def test_pytds_autocommit(pytds_conns):
+def test_pytds_autocommit(pytds_conns, mock_config):
     with warnings.catch_warnings(record=True) as w:
         output = set_autocommit(pytds_conns, mock_config)
         assert (
