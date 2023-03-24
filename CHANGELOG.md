@@ -9,6 +9,7 @@
 * [Feature] Results parse HTTP URLs to make them clickable (#230)
 * [Feature] Adds `ggplot` plotting API (histogram and boxplot)
 * [Feature] Adds persist-replace argument for when datasets already exist.
+* [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
 
 ## 0.6.6 (2023-03-16)
 
