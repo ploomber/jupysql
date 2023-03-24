@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.4
+      jupytext_version: 1.14.5
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -17,6 +17,12 @@ jupyter:
 
 ![etl-header](../static/etl-header.png)
 
+<!-- #region -->
+In this blog you'll achieve:
+1. Have basic understanding of ETLs and JupySQL
+2. Use the public Penguins dataset and perform ETL.
+3. Schedule the ETL we've built on GitHub actions.
+
 
 ## Introduction
 In this brief yet informative guide, we aim to provide you with a comprehensive 
@@ -27,7 +33,7 @@ Our primary focus will be on demonstrating how to effectively execute ETLs throu
 JupySQL, the popular and powerful Python library designed for SQL interaction, 
 while also highlighting the benefits of automating the ETL process through 
 scheduling a full example ETL notebook via GitHub actions.
-
+<!-- #endregion -->
 
 ### But first, what is an ETL?
 Now, let's dive into the details. `ETL` (Extract, Transform, Load) crucial process 
@@ -40,7 +46,7 @@ with databases through the power of SQL queries. By using JupySQL, data scientis
 and analysts can easily execute SQL queries, manipulate data frames, and interact 
 with databases from their Jupyter notebooks. 
 
-<!-- #region jp-MarkdownHeadingCollapsed=true tags=[] -->
+<!-- #region jp-MarkdownHeadingCollapsed=true -->
 ### Why ETLs are important?
 
 ETLs play a significant role in data analytics and business intelligence. 
@@ -254,6 +260,11 @@ transformed_df['mapped_species'] = \
 transformed_df.drop("species", inplace=True, axis=1)
 ```
 
+```python
+# Checking our transformed data
+transformed_df.head()
+```
+
 <!-- #region -->
 ### Load data
 
@@ -346,7 +357,7 @@ jobs:
 
 In this example CI, I've also added a scheduled trigger, this job will run nightly at 4 am.
 
-<!-- #region tags=[] -->
+
 ## Conclusion
 
 ETLs are an essential process for data analytics and business intelligence. 
@@ -359,8 +370,3 @@ can be scheduled and help us get the data to its final stage.
 By using JupySQL, you can perform ETLs easily and efficiently, 
 allowing you to extract, transform, and load data in a structured format while 
 Github actions allocate compute and set the environment.
-<!-- #endregion -->
-
-```python
-
-```
