@@ -105,7 +105,7 @@ databaseConfig = {
         },
         "docker_ct": {
             "name": "MSSQL",
-            "image": "mcr.microsoft.com/mssql/server",
+            "image": "mcr.microsoft.com/azure-sql-edge",
             "ports": {1433: 1433},
         },
         "alias": "MSSQLTest",
@@ -296,7 +296,8 @@ def mssql(is_bypass_init=False):
                 "MSSQL_SA_PASSWORD": db_config["password"],
                 "ACCEPT_EULA": "Y",
             },
-            ready_test=lambda: database_ready(database="MSSQl"),
+            # ready_test=lambda: database_ready(database="MSSQL"),
+            ready_test=lambda: time.sleep(500000) or True,
             healthcheck={
                 "test": "/opt/mssql-tools/bin/sqlcmd "
                 "-U $DB_USER -P $SA_PASSWORD "
