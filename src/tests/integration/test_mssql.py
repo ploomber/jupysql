@@ -65,7 +65,6 @@ def test_create_table_with_indexed_df(ip_with_MSSQL):
     ],
 )
 def test_sqlplot_histogram(ip_with_MSSQL, cell):
-
     # clean current Axes
     plt.cla()
 
