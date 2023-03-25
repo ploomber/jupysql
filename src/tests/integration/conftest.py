@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 from sqlalchemy import create_engine
 from sql import _testing
-from sql import _testing
 
 is_on_github = False
 if "GITHUB_ACTIONS" in os.environ:
@@ -195,6 +194,7 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
 
 @pytest.fixture(scope="session")
 def setup_MSSQL():
