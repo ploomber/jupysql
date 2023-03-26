@@ -50,6 +50,7 @@ parts:
     chapters:
     - file: tutorials/duckdb-github
     - file: tutorials/etl
+    - file: tutorials/computing-product-analytics
 
   - caption: Community
     chapters:
