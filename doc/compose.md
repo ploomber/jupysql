@@ -139,14 +139,13 @@ We can render the full query with the `%sqlrender` magic:
 ```{code-cell} ipython3
 final = %sqlrender top_artist
 print(final)
-final_str = str(final)
 ```
 
 We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
-$final_str
+$final
 ```
 
 ## Summary
