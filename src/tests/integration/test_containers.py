@@ -67,7 +67,7 @@ def test_database_config_helper(monkeypatch):
     )
     assert (
         _testing.DatabaseConfigHelper.get_database_url(mock_config_key)
-        == "some_driver_name://some_username:some_password@some_host:1234/some_db?\
-            key1=value1&key2=value2"
+        == "some_driver_name://some_username:some_password@some_host:1234/some_db?"
+            "key1=value1&key2=value2"
     )
     assert _testing.DatabaseConfigHelper.get_tmp_dir() == mock_tmp_dir
