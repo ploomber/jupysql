@@ -48,7 +48,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
       # MSSQL Service
       mssql:
-        image: mcr.microsoft.com/mssql/server
+        image: mcr.microsoft.com/azure-sql-edge
         env:
           ACCEPT_EULA: Y
           MSSQL_DATABASE: master

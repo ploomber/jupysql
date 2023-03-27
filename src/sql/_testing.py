@@ -310,7 +310,7 @@ def mssql(is_bypass_init=False):
 def main():
     print("Starting test containers...")
 
-    with mssql():
+    with postgres(), mysql(), mariadb(), mssql():
         print("Press CTRL+C to exit")
         try:
             while True:
