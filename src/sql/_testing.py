@@ -150,8 +150,6 @@ def database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            tmp = _get_database_url(database)
-            print(tmp)
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             return True
