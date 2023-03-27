@@ -16,7 +16,7 @@ def test_query_count(ip_with_MSSQL):
     assert len(out) == 3
 
 
-@pytest.mark.xfail(reason="Parsing error CTE due to sqlglot")
+@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 def test_cte(ip_with_MSSQL):
     ip_with_MSSQL.run_cell(
         "%sql --save taxi_subset --no-execute \
@@ -50,7 +50,7 @@ def test_create_table_with_indexed_df(ip_with_MSSQL):
     assert len(query_out.result) == 15
 
 
-@pytest.mark.xfail(reason="Parsing error CTE due to sqlglot")
+@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
     [
@@ -77,7 +77,7 @@ def test_sqlplot_histogram(ip_with_MSSQL, cell):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
-@pytest.mark.xfail(reason="Parsing error CTE due to sqlglot")
+@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
     [

@@ -17,7 +17,7 @@ if "GITHUB_ACTIONS" in os.environ:
         ),
         (_testing.mysql, "mysqld: ready for connections", "mySQL"),
         (_testing.mariadb, "mysqld: ready for connections", "mariaDB"),
-        # (_testing.mssql, "","MSSQl")
+        (_testing.mssql, "This container is running as user mssql", "MSSQL"),
     ],
 )
 def test_invidual_container(
@@ -49,7 +49,7 @@ def test_database_config_helper(monkeypatch):
             "image": "some_image",
             "ports": {1234: 5678},
         },
-        "query": {},
+        "query": {"key1": "value1", "key2": "value2"},
     }
     monkeypatch.setattr(
         _testing,
@@ -65,9 +65,9 @@ def test_database_config_helper(monkeypatch):
         _testing.DatabaseConfigHelper.get_database_config(mock_config_key)
         == mock_config_dict
     )
-    # Also add 'query' here
     assert (
         _testing.DatabaseConfigHelper.get_database_url(mock_config_key)
-        == "some_driver_name://some_username:some_password@some_host:1234/some_db"
+        == "some_driver_name://some_username:some_password@some_host:1234/some_db?\
+            key1=value1&key2=value2"
     )
     assert _testing.DatabaseConfigHelper.get_tmp_dir() == mock_tmp_dir
