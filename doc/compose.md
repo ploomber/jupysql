@@ -33,10 +33,9 @@ This is a beta feature, please [join our community](https://ploomber.io/communit
 let us know how we can improve it!
 ```
 
-Tired of wrangling complex, large-scale SQL queries? JupySQL is here to revolutionize your experience with an intuitive, user-friendly package specifically designed to help you manage and organize large SQL queries in Jupyter Notebooks.
+JupySQL allows you to break queries into multiple cells, simplifying the process of building large queries.
 
-- **Simplify your workflow:** JupySQL allows you to break down large SQL queries into manageable chunks and organize them within your Jupyter Notebook, enhancing readability and maintainability.
-- **Modularize your queries:** With JupySQL, you can create reusable query modules and leverage them across your project, promoting code reusability and reducing redundancy.
+- **Simplify  and modularize your workflow:** JupySQL simplifies SQL queries and promotes code reusability by breaking down large queries into manageable chunks and enabling the creation of reusable query modules.
 - **Seamless integration:** JupySQL flawlessly combines the power of SQL with the flexibility of Jupyter Notebooks, offering a one-stop solution for all your data analysis needs.
 - **Cross-platform compatibility:** JupySQL supports popular databases like PostgreSQL, MySQL, SQLite, and more, ensuring you can work with any data source.
 
