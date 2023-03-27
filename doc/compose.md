@@ -41,10 +41,12 @@ JupySQL allows you to break queries into multiple cells, simplifying the process
 
 ## Example: record store data
 
-Let's use JupySQL to find the
-artists that have produced the largest number of Rock and Metal songs.
+### Goal: Using Jupyter notebooks, create a query for an SQLite database table named 'Track' with Rock and Metal song information. Find and show the artists with the most Rock and Metal songs. Show your results in a bar chart.
 
-Let's load some data:
+
+#### Data download and initialization
+
+Download the SQLite database file if it doesn't exist
 
 ```{code-cell} ipython3
 import urllib.request
@@ -55,7 +57,7 @@ if not Path("my.db").is_file():
     urllib.request.urlretrieve(url, "my.db")
 ```
 
-Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
+Initialize the SQL extension and set autolimit=3 to only retrieve a few rows
 
 ```{code-cell} ipython3
 %load_ext sql
@@ -65,14 +67,16 @@ Initialize the extension and set `autolimit=3` so we only retrieve a few rows.
 %config SqlMagic.autolimit = 3
 ```
 
-Let's see the track-level information:
+Query the track-level information from the Track table
 
 ```{code-cell} ipython3
 %%sql sqlite:///my.db
 SELECT * FROM Track
 ```
 
-Let's join track with album and artist to get the artist name and store the query using `--save tracks_with_info`.
+#### Data wrangling
+
+Join the Track, Album, and Artist tables to get the artist name, and save the query as `tracks_with_info`
 
 *Note: `--save` stores the query, not the data*
 
@@ -86,7 +90,7 @@ JOIN Artist ar
 USING (ArtistId)
 ```
 
-Let's subset the genres we are interested in (Rock and Metal) and save the query.
+Filter genres we are interested in (Rock and Metal) and save the query as `genres_fav`
 
 ```{code-cell} ipython3
 %%sql --save genres_fav
@@ -96,7 +100,7 @@ LIKE '%rock%'
 OR Name LIKE '%metal%' 
 ```
 
-Now, join genres and tracks, so we only get Rock and Metal tracks. 
+Join the filtered genres and tracks, so we only get Rock and Metal tracks, and save the query as `track_fav`
 
 Note that we are using `--with`; this will retrieve previously saved queries, and preprend them (using CTEs), then, we save the query in `track_fav` .
 
@@ -108,7 +112,7 @@ JOIN genres_fav
 ON t.GenreId = genres_fav.GenreId
 ```
 
-We can now use `track_fav` (which contains Rock and Metal tracks). Let's find which artists have produced the most tracks (and save the query):
+Use the `track_fav` query to find artists with the most Rock and Metal tracks, and save the query as `top_artist`
 
 ```{code-cell} ipython3
 %%sql --with track_fav --save top_artist
@@ -117,7 +121,9 @@ GROUP BY artist
 ORDER BY COUNT(*) DESC
 ```
 
-Let's retrieve `top_artist` and plot the results:
+#### Data visualization
+
+Once we have the desired results from the query `top_artist`, we can generate a visualization using the bar method
 
 ```{code-cell} ipython3
 top_artist = %sql --with top_artist SELECT * FROM top_artist
@@ -135,6 +141,7 @@ We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
+-- Execute the final query
 $final
 ```
 
