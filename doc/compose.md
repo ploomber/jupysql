@@ -145,7 +145,7 @@ We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
-$final
+{{final}}
 ```
 
 ## Summary
