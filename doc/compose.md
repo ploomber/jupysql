@@ -141,7 +141,6 @@ We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
--- Execute the final query
 $final
 ```
 
