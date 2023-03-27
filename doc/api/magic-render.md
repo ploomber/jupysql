@@ -36,15 +36,15 @@ import pandas as pd
 url = ("https://gist.githubusercontent.com/jaidevd"
        "/23aef12e9bf56c618c41/raw/c05e98672b8d52fa0"
        "cb94aad80f75eb78342e5d4/books.csv")
-authors = pd.read_csv(url)
+books = pd.read_csv(url)
 ```
 
 ```{code-cell} ipython3
-%sql --persist authors
+%sql --persist books
 ```
 
 ```{code-cell} ipython3
-%sql SELECT * FROM authors LIMIT 5
+%sql SELECT * FROM books LIMIT 5
 ```
 
 ## `%sqlrender`
@@ -52,20 +52,20 @@ authors = pd.read_csv(url)
 `-w`/`--with` Use a previously saved query as input data
 
 ```{code-cell} ipython3
-%%sql --save writers_fav --no-execute
+%%sql --save books_fav --no-execute
 SELECT *
-FROM authors
+FROM books
 WHERE genre = 'data_science'
 ```
 
 ```{code-cell} ipython3
-%%sql --save writers_fav_long --no-execute --with writers_fav
-SELECT * FROM writers_fav
+%%sql --save books_fav_long --no-execute --with books_fav
+SELECT * FROM books_fav
 WHERE Height >= 240
 ```
 
 ```{code-cell} ipython3
-query = %sqlrender writers_fav_long --with writers_fav_long
+query = %sqlrender books_fav_long --with books_fav_long
 print(query)
 ```
 
