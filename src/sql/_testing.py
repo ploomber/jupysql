@@ -296,8 +296,7 @@ def mssql(is_bypass_init=False):
                 "MSSQL_SA_PASSWORD": db_config["password"],
                 "ACCEPT_EULA": "Y",
             },
-            # ready_test=lambda: database_ready(database="MSSQL"),
-            ready_test=lambda: time.sleep(500000) or True,
+            ready_test=lambda: database_ready(database="MSSQL"),
             healthcheck={
                 "test": "/opt/mssql-tools/bin/sqlcmd "
                 "-U $DB_USER -P $SA_PASSWORD "
@@ -311,7 +310,7 @@ def mssql(is_bypass_init=False):
 def main():
     print("Starting test containers...")
 
-    with postgres(), mysql(), mariadb(), mssql():
+    with mssql():
         print("Press CTRL+C to exit")
         try:
             while True:
