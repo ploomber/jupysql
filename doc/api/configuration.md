@@ -161,6 +161,21 @@ df = %sql SELECT * FROM languages
 type(df)
 ```
 
+## `polars_dataframe_kwargs`
+
+Default: `{}`
+
+Polars DataFrame constructor keyword arguments (e.g. infer_schema_length, nan_to_null, schema_overrides, etc)
+
+```{code-cell} ipython3
+# infer_schema_length = None => unlimited
+%config SqlMagic.polars_dataframe_kwargs = { "infer_schema_length": None }
+```
+
+```{code-cell} ipython3
+%config SqlMagic.polars_dataframe_kwargs = {}
+```
+
 ## `feedback`
 
 Default: `True`
