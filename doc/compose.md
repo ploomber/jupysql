@@ -41,7 +41,9 @@ JupySQL allows you to break queries into multiple cells, simplifying the process
 
 ## Example: record store data
 
-### Goal: Using Jupyter notebooks, create a query for an SQLite database table named 'Track' with Rock and Metal song information. Find and show the artists with the most Rock and Metal songs. Show your results in a bar chart.
+### Goal: 
+
+Using Jupyter notebooks, make a query against an SQLite database table named 'Track' with Rock and Metal song information. Find and show the artists with the most Rock and Metal songs. Show your results in a bar chart.
 
 
 #### Data download and initialization
@@ -130,6 +132,8 @@ top_artist = %sql --with top_artist SELECT * FROM top_artist
 top_artist.bar()
 ```
 
+It looks like Iron Maiden had the highest number of rock and metal songs in the table.
+
 We can render the full query with the `%sqlrender` magic:
 
 ```{code-cell} ipython3
@@ -141,7 +145,7 @@ We can verify the retrieved query returns the same result:
 
 ```{code-cell} ipython3
 %%sql
-$final
+{final}
 ```
 
 ## Summary
