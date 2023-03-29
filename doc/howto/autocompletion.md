@@ -19,7 +19,7 @@ myst:
 # SQL keywords autocompletion
 
 ```{note}
-This feature is new and we're looking for feedback, please join our [Slack](https://ploomber.io/community) to share your feedback
+This feature is new and we're looking for feedback, please join our [Slack](https://ploomber.io/community) and share your thoughts!
 ```
 
 JupySQL supports autocompletion of the most common SQL keywords. You can press
