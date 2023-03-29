@@ -8,6 +8,9 @@ from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
 
+# from sqlalchemy.orm import declarative_base
+# from sqlalchemy import MetaData
+
 try:
     from traitlets.config.configurable import Configurable
 except ImportError:
@@ -135,6 +138,20 @@ class SqlCmdMagic(Magics, Configurable):
             )
 
             args = parser.parse_args(others)
+
+            COMPARATOR_ARGS = [
+                args.greater,
+                args.greater_or_equal,
+                args.less_than,
+                args.less_than_or_equal,
+            ]
+
+            if args.table and not any(COMPARATOR_ARGS):
+                raise UsageError("Please input a comparator.")
+
+            if args.table and any(COMPARATOR_ARGS) and not args.column:
+                raise UsageError("Please pass a column to test.")
+
             if args.greater and args.greater_or_equal:
                 return ValueError(
                     "You cannot use both greater and greater "
@@ -148,12 +165,10 @@ class SqlCmdMagic(Magics, Configurable):
 
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
-
             if len(result_dict.keys()):
-                print(
-                    "Test failed. Returned are samples of the failures from your data:"
-                )
-                return result_dict
+                for k, v in result_dict.items():
+                    print(f'{k}: {v} \n')
+                raise UsageError(f"The above values do not not match your test requirements.")
             else:
                 return True
 
@@ -184,43 +199,78 @@ class SqlCmdMagic(Magics, Configurable):
 
 def run_each_individually(args, conn):
     base_query = select("*").from_(args.table)
+
     storage = {}
 
     if args.greater:
-        where = condition(args.column + ">" + args.greater)
+        where = condition(args.column + "<=" + args.greater)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = None
+
+        try:
+            res = conn.execute(text(current_query)).fetchall()
+        except Exception as e:
+            if "column" in str(e):
+                raise UsageError(f"Referenced column '{args.column}' not found!")
 
         if res is not None:
             storage["greater"] = res
     if args.greater_or_equal:
-        where = condition(args.column + ">=" + args.greater_or_equal)
+        where = condition(args.column + "<" + args.greater_or_equal)
 
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = None
+
+        try:
+            res = conn.execute(text(current_query)).fetchall()
+        except Exception as e:
+            if "column" in str(e):
+                raise UsageError(f"Referenced column '{args.column}' not found!")
+
         if res is not None:
             storage["greater_or_equal"] = res
     if args.less_than_or_equal:
-        where = condition(args.column + "<=" + args.less_than_or_equal)
+        where = condition(args.column + ">" + args.less_than_or_equal)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = None
+
+        try:
+            res = conn.execute(text(current_query)).fetchall()
+        except Exception as e:
+            if "column" in str(e):
+                raise UsageError(f"Referenced column '{args.column}' not found!")
+
         if res is not None:
             storage["less_than_or_equal"] = res
     if args.less_than:
-        where = condition(args.column + "<" + args.less_than)
+        where = condition(args.column + ">=" + args.less_than)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = None
+
+        try:
+            res = conn.execute(text(current_query)).fetchall()
+        except Exception as e:
+            if "column" in str(e):
+                raise UsageError(f"Referenced column '{args.column}' not found!")
+
         if res is not None:
             storage["less_than"] = res
     if args.no_nulls:
         where = condition("{} is NULL".format(args.column))
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = None
+
+        try:
+            res = conn.execute(text(current_query)).fetchall()
+        except Exception as e:
+            if "column" in str(e):
+                raise UsageError(f"Referenced column {args.column} not found!")
+
         if res is not None:
             storage["null"] = res
 
