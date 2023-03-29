@@ -18,7 +18,7 @@ myst:
 
 # SQL keywords autocompletion
 
-```{notes}
+```{note}
 This feature is new and we're looking for feedback, please join our [Slack](https://ploomber.io/community) to share your feedback
 ```
 
