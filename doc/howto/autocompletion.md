@@ -18,26 +18,17 @@ myst:
 
 # SQL keywords autocompletion
 
-+++
+```{notes}
+This feature is new and we're looking for feedback, please join our [Slack](https://ploomber.io/community) to share your feedback
+```
 
-JupySQL natively supports autocompletion of the most common SQL keywords. The user may press the `tab` key while typing the keyword to view the list of suggestions.
-
+JupySQL supports autocompletion of the most common SQL keywords. You can press
+the `tab` key while typing the keyword to view the list of suggestions.
 
 ## Installation
 
-Optionally, create a new environment with JupyterLab installed:
-
-```sh
-conda create --name jupysqlenv python=3.10 jupyterlab --yes --channel conda-forge
-conda activate jupysqlenv
-```
-
-+++
-
-To run SQL queries on Jupyter, install [JupySQL](https://github.com/ploomber/jupysql):
-
 ```bash
-pip install jupysql --quiet
+pip install jupysql jupysql-plugin --quiet
 ```
 
 +++
@@ -47,3 +38,7 @@ Now, start Jupyter Lab, and try out the autocomplete feature:
 ![syntax](../static/sql-autocompletion.png)
 
 
+## Known limitations
+
+- It currently autocompletes all cells
+- Limited to most common SQL keywords
