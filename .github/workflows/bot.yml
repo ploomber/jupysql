@@ -1,0 +1,32 @@
+name: bot-format
+on:
+  issue_comment:
+    types: [created]
+jobs:
+ add-release-commit:
+    # probably only open PRs?
+   if: contains(github.event.comment.html_url, '/pull/')    # check if the comments come from pull request, exclude those from issue.
+   runs-on: ubuntu-latest
+   steps:
+    - uses: actions/checkout@v3
+
+  # https://github.com/actions/checkout/issues/331#issuecomment-925405415
+    - name: Checkout Pull Request
+      run: hub pr checkout ${{ github.event.issue.number }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: say hello
+      if: contains(github.event.comment.body, '/release')   # check the comment if it contains the keywords
+      run: |
+        python -m pip install --upgrade pip pkgmt
+        pip install pkgmt[check]
+        git config user.email "github-actions@ploomber.io"
+        git config user.name "github-actions"
+        pkgmt format
+        git commit -m 'formattting'
+        git push
