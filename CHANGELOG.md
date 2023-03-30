@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.0dev
+* [Fix] Clearer error when using bad table/schema name with `%sqlcmd` and `%sqlplot` (#155)
 * [Fix] Fix `%sqlcmd` exception handling (#262)
 * [Doc] Tutorial on ETLs via Jupysql and Github actions
 * [Feature] Adds `%sqlcmd profile` (#66)
@@ -15,6 +16,7 @@
 * [Doc] SQL keywords autocompletion
 * [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}`
 * [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows ([#312](https://github.com/ploomber/jupysql/issues/312))
+
 ## 0.6.6 (2023-03-16)
 
 * [Fix] Pinning SQLAlchemy 1.x
