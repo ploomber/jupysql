@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -68,7 +69,7 @@ myst:
 
 from pathlib import Path
 
-files = [Path("db_one.db"), Path("db_two.db"), Path("my_data.csv")]
+files = [Path("db_one.db"), Path("db_two.db"), Path("db_three.db"), Path("my_data.csv")]
 
 for f in files:
     if f.exists():
@@ -92,6 +93,30 @@ Assign an alias to the connection (**added 0.5.2**):
 ```{code-cell} ipython3
 %sql sqlite:///db_two.db --alias db-two
 ```
+
+```{code-cell} ipython3
+%sql sqlite:///db_three.db --alias db-three
+```
+
+To make all subsequent queries to use certain connection, pass the connection name:
+
+```{code-cell} ipython3
+%sql db-two
+```
+
+```{code-cell} ipython3
+%sql db-three
+```
+
+You can inspect which is the current active connection:
+
+```{code-cell} ipython3
+%sql --list
+```
+
+For more details on managing connections, see [Switch connections](../howto.md#switch-connections).
+
++++
 
 ## List connections
 

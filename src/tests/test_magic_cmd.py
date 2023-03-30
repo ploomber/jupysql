@@ -9,10 +9,34 @@ from pathlib import Path
     "cell, error_type, error_message",
     [
         [
+            "%sqlcmd",
+            UsageError,
+            "Missing argument for %sqlcmd. "
+            "Valid commands are: tables, columns, test, profile",
+        ],
+        [
+            "%sqlcmd " "",
+            UsageError,
+            "Missing argument for %sqlcmd. "
+            "Valid commands are: tables, columns, test, profile",
+        ],
+        [
+            "%sqlcmd " "",
+            UsageError,
+            "Missing argument for %sqlcmd. "
+            "Valid commands are: tables, columns, test, profile",
+        ],
+        [
+            "%sqlcmd " "",
+            UsageError,
+            "Missing argument for %sqlcmd. "
+            "Valid commands are: tables, columns, test, profile",
+        ],
+        [
             "%sqlcmd stuff",
             UsageError,
-            "%sqlcmd has no command: 'stuff'. Valid commands are: 'tables', "
-            "'columns', 'profile'",
+            "%sqlcmd has no command: 'stuff'. "
+            "Valid commands are: tables, columns, test, profile",
         ],
         [
             "%sqlcmd columns",
@@ -125,7 +149,6 @@ def test_table_profile(ip, tmp_empty):
 
 
 def test_table_schema_profile(ip, tmp_empty):
-
     with sqlite3.connect("a.db") as conn:
         conn.execute("CREATE TABLE t (n FLOAT)")
         conn.execute("INSERT INTO t VALUES (1)")

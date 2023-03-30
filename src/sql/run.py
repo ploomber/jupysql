@@ -20,6 +20,7 @@ except ImportError:
 
 from sql.telemetry import telemetry
 import logging
+import warnings
 
 
 def unduplicate_field_names(field_names):
@@ -118,9 +119,7 @@ class ResultSet(list, ColumnGuesserMixin):
             if isinstance(config.style, str):
                 _style = prettytable.__dict__[config.style.upper()]
 
-            self.pretty = PrettyTable(
-                self.field_names, style=_style
-            )
+            self.pretty = PrettyTable(self.field_names, style=_style)
         else:
             list.__init__(self, [])
             self.pretty = None
@@ -356,7 +355,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos: pos + size]
+                yield source_list[pos : pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -399,6 +398,11 @@ def is_postgres_or_redshift(dialect):
     return "postgres" in str(dialect) or "redshift" in str(dialect)
 
 
+def is_pytds(dialect):
+    """Checks if driver is pytds"""
+    return "pytds" in str(dialect)
+
+
 def handle_postgres_special(conn, statement):
     """Execute a PostgreSQL special statement using PGSpecial module."""
     if not PGSpecial:
@@ -412,6 +416,11 @@ def handle_postgres_special(conn, statement):
 
 def set_autocommit(conn, config):
     """Sets the autocommit setting for a database connection."""
+    if is_pytds(conn.dialect):
+        warnings.warn(
+            "Autocommit is not supported for pytds, thus is automatically disabled"
+        )
+        return False
     if config.autocommit:
         try:
             conn.session.execution_options(isolation_level="AUTOCOMMIT")

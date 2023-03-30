@@ -24,24 +24,29 @@ install_requires = [
     "sqlglot",
     "jinja2",
     "sqlglot>=11.3.7",
-    "ploomber-core>=0.2.4",
-    'importlib-metadata;python_version<"3.8"'
+    "ploomber-core>=0.2.7",
+    'importlib-metadata;python_version<"3.8"',
 ]
 
 DEV = [
     "flake8",
     "pytest",
     "pandas",
-    "polars",
+    "polars==0.16.14",  # 03/24/23 this breaks our CI
     "invoke",
     "pkgmt",
     "twine",
     # tests
     "duckdb",
     "duckdb-engine",
+    "pyodbc",
     # sql.plot module tests
     "matplotlib",
     "black",
+    "dockerctx",
+    "docker",
+    # for %%sql --interact
+    "ipywidgets",
 ]
 
 setup(
