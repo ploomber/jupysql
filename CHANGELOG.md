@@ -14,6 +14,7 @@
 * [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
 * [Fix] Pytds now automatically compatible
 * [Doc] SQL keywords autocompletion
+* [Doc] Included schema and dataspec into `%sqlrender` API reference
 
 ## 0.6.6 (2023-03-16)
 
