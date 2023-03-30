@@ -7,6 +7,7 @@ import tempfile
 from textwrap import dedent
 from unittest.mock import patch
 
+import polars as pl
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
@@ -277,8 +278,6 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    import polars as pl
-
     assert type(dframe) == pl.DataFrame
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
@@ -297,8 +296,6 @@ def test_autopolars_infer_schema_length(ip):
         sql.append(f"INSERT INTO test_autopolars_infer_schema VALUES ({i}, NULL)")
     sql.append("INSERT INTO test_autopolars_infer_schema VALUES (100, 'foo')")
     runsql(ip, sql)
-
-    import polars as pl
 
     # By default, this dataset should raise a ComputeError
     with pytest.raises(pl.exceptions.ComputeError):
@@ -321,8 +318,6 @@ def test_autopolars_infer_schema_length(ip):
 def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == ResultSet
-
-    import polars as pl
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")

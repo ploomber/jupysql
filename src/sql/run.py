@@ -184,7 +184,7 @@ class ResultSet(list, ColumnGuesserMixin):
         return frame
 
     @telemetry.log_call("polars-data-frame")
-    def PolarsDataFrame(self, polars_dataframe_kwargs=None):
+    def PolarsDataFrame(self, **polars_dataframe_kwargs):
         "Returns a Polars DataFrame instance built from the result set."
         import polars as pl
 
@@ -445,7 +445,7 @@ def select_df_type(resultset, config):
     if config.autopandas:
         return resultset.DataFrame()
     elif config.autopolars:
-        return resultset.PolarsDataFrame(config.polars_dataframe_kwargs)
+        return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
     else:
         return resultset
     # returning only last result, intentionally
