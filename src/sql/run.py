@@ -188,8 +188,9 @@ class ResultSet(list, ColumnGuesserMixin):
         "Returns a Polars DataFrame instance built from the result set."
         import polars as pl
 
-        frame = pl.DataFrame((tuple(row) for row in self), schema=self.keys,
-                             **polars_dataframe_kwargs)
+        frame = pl.DataFrame(
+            (tuple(row) for row in self), schema=self.keys, **polars_dataframe_kwargs
+        )
         return frame
 
     @telemetry.log_call("pie")

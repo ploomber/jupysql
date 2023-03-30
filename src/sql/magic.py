@@ -113,8 +113,10 @@ class SqlMagic(Magics, Configurable):
     polars_dataframe_kwargs = Dict(
         {},
         config=True,
-        help=("Polars DataFrame constructor keyword arguments"
-              "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"),
+        help=(
+            "Polars DataFrame constructor keyword arguments"
+            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
+        ),
     )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"

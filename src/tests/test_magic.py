@@ -302,10 +302,10 @@ def test_autopolars_infer_schema_length(ip):
         runsql(ip, "SELECT * FROM test_autopolars_infer_schema;")
 
     # To avoid this error, pass the `infer_schema_length` argument to polars.DataFrame
-    line_magic = "SqlMagic.polars_dataframe_kwargs = {\"infer_schema_length\": None}"
+    line_magic = 'SqlMagic.polars_dataframe_kwargs = {"infer_schema_length": None}'
     ip.run_line_magic("config", line_magic)
     dframe = runsql(ip, "SELECT * FROM test_autopolars_infer_schema;")
-    assert dframe.schema == {'n': pl.Int64, 'name': pl.Utf8}
+    assert dframe.schema == {"n": pl.Int64, "name": pl.Utf8}
 
     # Assert that if we unset the dataframe kwargs, the error is raised again
     ip.run_line_magic("config", "SqlMagic.polars_dataframe_kwargs = {}")
