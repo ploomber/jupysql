@@ -1,6 +1,8 @@
 # CHANGELOG
 
 ## 0.7.0dev
+* [Fix] Fix `%sqlcmd` exception handling (#262)
+* [Doc] Tutorial on ETLs via Jupysql and Github actions
 * [Feature] Adds `%sqlcmd profile` (#66)
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
 * [Fix] `--save` + `--with` double quotes syntax error in MySQL ([#145](https://github.com/ploomber/jupysql/issues/145))
@@ -10,6 +12,7 @@
 * [Feature] Adds `ggplot` plotting API (histogram and boxplot)
 * [Fix] Clearer error when using `--with` with snippets that do not exist (#257)
 * [Fix] Pytds now automatically compatible
+* [Doc] SQL keywords autocompletion
 * [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}`
 * [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows ([#312](https://github.com/ploomber/jupysql/issues/312))
 ## 0.6.6 (2023-03-16)
