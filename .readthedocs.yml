@@ -6,7 +6,7 @@ build:
     python: "mambaforge-4.10"
 
 conda:
-  environment: doc/conda-linux-64.lock
+  environment: doc/conda-linux-64.txt
 
 sphinx:
   builder: html
