@@ -184,7 +184,7 @@ dependencies:
   - zlib=1.2.13
   - zstd=1.5.2
   - pip:
-    - -e .
+    - -e ..
     - accessible-pygments==0.0.4
     - asttokens==2.2.1
     - attrs==22.2.0
