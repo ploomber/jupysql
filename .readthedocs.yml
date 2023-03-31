@@ -4,9 +4,14 @@ build:
   os: ubuntu-22.04
   tools:
     python: mambaforge-4.10
+  jobs:
+    post_build:
+      - conda env export --no-build > environment.lock.yml
+      - cat environment.lock.yml
+
 
 conda:
-  environment: doc/environment.lock.yml
+  environment: doc/environment.yml
 
 sphinx:
   builder: html
