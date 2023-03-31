@@ -11,7 +11,7 @@ build:
 
 
 conda:
-  environment: doc/environment.yml
+  environment: doc/environment.lock.yml
 
 sphinx:
   builder: html
