@@ -3,7 +3,7 @@ import pytest
 from sql.magic import SqlMagic
 from IPython.core.interactiveshell import InteractiveShell
 
-ip = InteractiveShell()  # lnslkfn
+ip = InteractiveShell()  # lnslkfnd
 
 
 class SqlEnv(object):
