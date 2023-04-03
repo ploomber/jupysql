@@ -47,7 +47,7 @@ DEV = [
     "docker",
     # for %%sql --interact
     "ipywidgets",
-    "pytest-xdist"
+    "pytest-xdist",
 ]
 
 setup(
