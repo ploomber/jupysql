@@ -56,6 +56,9 @@ def _fill_nulls(keys, mapping):
     return out
 
 
+# we're assuming there's one row that contains all keys, I tested this and worked fine
+# my initial implementation just took all keys that appeared in "rows" but then order
+# isn't preserved, which is important for user experience
 def _get_keys(rows):
     max_idx, max_ = None, 0
 
