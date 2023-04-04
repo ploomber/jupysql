@@ -81,6 +81,9 @@ class Columns(DatabaseInspection):
 
         inspector = _get_inspector(conn)
 
+        # this returns a list of dictionaries. e.g.,
+        # [{"name": "column_a", "type": "INT"}
+        #  {"name": "column_b", "type": "FLOAT"}]
         columns = inspector.get_columns(name, schema)
 
         self._table = PrettyTable()
