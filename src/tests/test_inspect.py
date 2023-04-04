@@ -144,7 +144,7 @@ ATTACH DATABASE 'my.db' AS test_schema
                     "column_a": "a2",
                 },
             ],
-            [["a", "b"], ["a2", None]],
+            [["a", "b"], ["a2", ""]],
             ["column_a", "column_b"],
         ],
         [
@@ -155,7 +155,7 @@ ATTACH DATABASE 'my.db' AS test_schema
                 # contains an extra column
                 {"column_a": "a", "column_b": "b"},
             ],
-            [["a2", None], ["a", "b"]],
+            [["a2", ""], ["a", "b"]],
             ["column_a", "column_b"],
         ],
         [
