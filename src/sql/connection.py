@@ -350,7 +350,7 @@ class Connection:
             conn.session.close()
 
     @classmethod
-    def _get_current_sqlalchemy_connection_info(cls):
+    def _get_curr_sqlalchemy_connection_info(cls):
         """Get the dialect, driver, and database server version info of current
         connected dialect
 
@@ -380,7 +380,7 @@ class Connection:
             Available dialect in sqlglot package, see more:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
-        connection_info = cls._get_current_sqlalchemy_connection_info()
+        connection_info = cls._get_curr_sqlalchemy_connection_info()
         if not connection_info:
             return None
 
@@ -437,7 +437,7 @@ class Connection:
         """
         identifiers = ["", '"']
         try:
-            connection_info = cls._get_curr_connection_info()
+            connection_info = cls._get_curr_sqlalchemy_connection_info()
             if connection_info:
                 cur_dialect = connection_info["dialect"]
                 identifiers_ = sqlglot.Dialect.get_or_raise(

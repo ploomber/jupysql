@@ -38,9 +38,9 @@ def test_alias(cleanup):
     assert list(Connection.connections) == ["some-alias"]
 
 
-def test_get_current_sqlalchemy_connection_info(mock_postgres):
+def test_get_curr_sqlalchemy_connection_info(mock_postgres):
     Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
-    assert Connection._get_current_sqlalchemy_connection_info() == {
+    assert Connection._get_curr_sqlalchemy_connection_info() == {
         "dialect": "postgresql",
         "driver": "psycopg2",
         "server_version_info": None,
@@ -49,7 +49,7 @@ def test_get_current_sqlalchemy_connection_info(mock_postgres):
 
 def test_get_curr_sqlglot_dialect_no_curr_connection(monkeypatch):
     monkeypatch.setattr(
-        Connection, "_get_current_sqlalchemy_connection_info", lambda: None
+        Connection, "_get_curr_sqlalchemy_connection_info", lambda: None
     )
     assert Connection._get_curr_sqlglot_dialect() is None
 
@@ -104,7 +104,7 @@ def test_get_curr_sqlglot_dialect(
     """
     monkeypatch.setattr(
         Connection,
-        "_get_current_sqlalchemy_connection_info",
+        "_get_curr_sqlalchemy_connection_info",
         lambda: sqlalchemy_connection_info,
     )
     monkeypatch.setattr(
@@ -229,4 +229,4 @@ def test_missing_driver(
 
 def test_no_current_connection_and_get_info(monkeypatch):
     monkeypatch.setattr(Connection, "current", None)
-    assert Connection._get_current_sqlalchemy_connection_info() is None
+    assert Connection._get_curr_sqlalchemy_connection_info() is None
