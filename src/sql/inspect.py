@@ -1,5 +1,3 @@
-from copy import copy
-
 from sqlalchemy import inspect
 from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
