@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 0.7.1dev
-
+* [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
 ## 0.7.0 (2023-04-05)
 
 * [API Change] Deprecates old SQL parametrization: `$var`, `:var`, and `{var}` in favor of `{{var}}`
@@ -23,6 +23,9 @@
 * [Doc] Tutorial on ETLs via Jupysql and Github actions
 * [Doc] SQL keywords autocompletion
 * [Doc] Included schema and dataspec into `%sqlrender` API reference
+* [Feature] Adds `%%config SqlMagic.polars_dataframe_kwargs = {...}` (by [@jorisroovers](https://github.com/jorisroovers))
+* [Fix] Jupysql with autopolars crashes when schema cannot be inferred from the first 100 rows (by [@jorisroovers](https://github.com/jorisroovers)) ([#312](https://github.com/ploomber/jupysql/issues/312))
+* [Feature] Adding `sqlglot` to better support SQL dialects in some internal SQL queries
 
 ## 0.6.6 (2023-03-16)
 
