@@ -1,3 +1,5 @@
+from copy import copy
+
 from sqlalchemy import inspect
 from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
@@ -44,6 +46,29 @@ class Tables(DatabaseInspection):
         self._table_txt = self._table.get_string()
 
 
+def _fill_nulls(keys, mapping):
+    out = dict()
+
+    for key in keys:
+        if key not in mapping:
+            out[key] = ""
+        else:
+            out[key] = mapping[key]
+
+    return out
+
+
+def _get_keys(rows):
+    max_idx, max_ = None, 0
+
+    for idx, row in enumerate(rows):
+        if len(row) > max_:
+            max_idx = idx
+            max_ = len(row)
+
+    return list(rows[max_idx])
+
+
 @modify_exceptions
 class Columns(DatabaseInspection):
     """
@@ -58,10 +83,12 @@ class Columns(DatabaseInspection):
         columns = inspector.get_columns(name, schema)
 
         self._table = PrettyTable()
-        self._table.field_names = list(columns[0].keys())
+        self._table.field_names = _get_keys(columns)
 
         for row in columns:
-            self._table.add_row(list(row.values()))
+            self._table.add_row(
+                list(_fill_nulls(self._table.field_names, row).values())
+            )
 
         self._table_html = self._table.get_html_string()
         self._table_txt = self._table.get_string()
