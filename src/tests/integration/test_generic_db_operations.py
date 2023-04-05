@@ -191,6 +191,10 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
+        ),
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request):
@@ -422,11 +426,23 @@ def test_sqlcmd_tables_columns(ip_with_dynamic_db, cell, request):
 @pytest.mark.parametrize(
     "cell",
     [
-        "%%sql\nSELECT *\n-- %variable\nFROM NUMBERS WHERE 0=1",
+        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
+    ],
+    ids=[
+        "simple-query",
+        "cte",
+        "interpolation-like-comment",
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
-def test_sql_query_with_interpolation_like_comments(ip_with_dynamic_db, cell, request):
+def test_sql_query(ip_with_dynamic_db, cell, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        """%%sql --save subset --no-execute
+SELECT * FROM numbers WHERE 1=0
+"""
+    )
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
