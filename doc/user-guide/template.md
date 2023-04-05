@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -17,6 +18,11 @@ myst:
 ---
 
 # Parameterizing SQL queries
+
+```{versionchanged} 0.7
+Queries are parametrized with  `{{variable}}` instead of the legacy `{variable}`, `:variable`, and `$variable` formats from ipython-sql to prevent SQL parsing issues.
+```
+
 
 ## Variable Expansion as `{{variable}}`
 

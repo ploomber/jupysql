@@ -2,11 +2,7 @@ import sys
 import argparse
 
 from IPython.utils.process import arg_split
-from IPython.core.magic import (
-    Magics,
-    line_magic,
-    magics_class,
-)
+from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
 from IPython.core.error import UsageError
 from sqlglot import select, condition
@@ -37,13 +33,40 @@ class SqlCmdMagic(Magics, Configurable):
 
     @line_magic("sqlcmd")
     @magic_arguments()
-    @argument("line", default="", type=str, help="Command name")
-    def execute(self, line="", cell="", local_ns=None):
+    @argument("line", type=str, help="Command name")
+    def _validate_execute_inputs(self, line):
+        """
+        Function to validate %sqlcmd inputs.
+        Raises UsageError in case of an invalid input, executes command otherwise.
+        """
+
+        AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
+
+        if line == "":
+            raise UsageError(
+                "Missing argument for %sqlcmd. "
+                "Valid commands are: {}".format(", ".join(AVAILABLE_SQLCMD_COMMANDS))
+            )
+        else:
+            split = arg_split(line)
+            command, others = split[0].strip(), split[1:]
+
+            if command in AVAILABLE_SQLCMD_COMMANDS:
+                return self.execute(command, others)
+            else:
+                raise UsageError(
+                    f"%sqlcmd has no command: {command!r}. "
+                    "Valid commands are: {}".format(
+                        ", ".join(AVAILABLE_SQLCMD_COMMANDS)
+                    )
+                )
+
+    @argument("cmd_name", default="", type=str, help="Command name")
+    @argument("others", default="", type=str, help="Other tags")
+    def execute(self, cmd_name="", others="", cell="", local_ns=None):
         """
         Command
         """
-        split = arg_split(line)
-        cmd_name, others = split[0].strip(), split[1:]
 
         if cmd_name == "tables":
             parser = CmdParser()
@@ -134,10 +157,29 @@ class SqlCmdMagic(Magics, Configurable):
             else:
                 return True
 
-        raise UsageError(
-            f"%sqlcmd has no command: {cmd_name!r}. "
-            "Valid commands are: 'tables', 'columns'"
-        )
+        elif cmd_name == "profile":
+            parser = CmdParser()
+            parser.add_argument(
+                "-t", "--table", type=str, help="Table name", required=True
+            )
+
+            parser.add_argument(
+                "-s", "--schema", type=str, help="Schema name", required=False
+            )
+
+            parser.add_argument(
+                "-o", "--output", type=str, help="Store report location", required=False
+            )
+
+            args = parser.parse_args(others)
+
+            report = inspect.get_table_statistics(schema=args.schema, name=args.table)
+
+            if args.output:
+                with open(args.output, "w") as f:
+                    f.write(report._repr_html_())
+
+            return report
 
 
 def run_each_individually(args, conn):

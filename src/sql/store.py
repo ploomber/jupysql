@@ -1,9 +1,11 @@
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
-from ploomber_core.exceptions import modify_exceptions
-import warnings
-
 from jinja2 import Template
+from ploomber_core.exceptions import modify_exceptions
+import sql.connection
+from IPython.core.error import UsageError
+import warnings
+import difflib
 
 
 class SQLStore(MutableMapping):
@@ -40,6 +42,16 @@ class SQLStore(MutableMapping):
         self._data[key] = value
 
     def __getitem__(self, key) -> str:
+        if not self._data:
+            raise UsageError("No saved SQL")
+        if key not in self._data:
+            matches = difflib.get_close_matches(key, self._data)
+            error = f'"{key}" is not a valid snippet identifier.'
+            if matches:
+                raise UsageError(error + f' Did you mean "{matches[0]}"?')
+            else:
+                valid = ", ".join(f'"{key}"' for key in self._data.keys())
+                raise UsageError(error + f" Valid identifiers are {valid}.")
         return self._data[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -58,20 +70,15 @@ class SQLStore(MutableMapping):
 
     @modify_exceptions
     def store(self, key, query, with_=None):
+        if "-" in key:
+            raise UsageError(
+                "Using hyphens in save argument isn't allowed."
+                " Please use dashes(-) instead"
+            )
         if with_ and key in with_:
             raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
 
         self._data[key] = SQLQuery(self, query, with_)
-
-
-_template = Template(
-    """\
-WITH{% for name in with_ %} "{{name}}" AS (
-    {{saved[name]._query}}
-){{ "," if not loop.last }}{% endfor %}
-{{query}}
-"""
-)
 
 
 class SQLQuery:
@@ -92,8 +99,24 @@ class SQLQuery:
             )
 
     def __str__(self) -> str:
+        """
+        Since some dialects don't support " (double quote) symbol, we will
+        replace to the ' (backtick) symbol if it's supported
+        """
+        with_clause_template = Template(
+            """WITH{% for name in with_ %} "{{name}}" AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        with_clause_template_backtick = Template(
+            """WITH{% for name in with_ %} `{{name}}` AS ({{saved[name]._query}})\
+{{ "," if not loop.last }}{% endfor %}{{query}}"""
+        )
+        is_use_backtick = sql.connection.Connection.is_use_backtick_template()
         with_all = _get_dependencies(self._store, self._with_)
-        return _template.render(
+        template = (
+            with_clause_template_backtick if is_use_backtick else with_clause_template
+        )
+        return template.render(
             query=self._query, saved=self._store._data, with_=with_all
         )
 

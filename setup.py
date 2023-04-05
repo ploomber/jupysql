@@ -23,7 +23,8 @@ install_requires = [
     "ipython-genutils>=0.1.0",
     "sqlglot",
     "jinja2",
-    "ploomber-core>=0.2.4",
+    "sqlglot>=11.3.7",
+    "ploomber-core>=0.2.7",
     'importlib-metadata;python_version<"3.8"',
 ]
 
@@ -31,16 +32,29 @@ DEV = [
     "flake8",
     "pytest",
     "pandas",
-    "polars",
+    "polars==0.16.14",  # 03/24/23 this breaks our CI
     "invoke",
     "pkgmt",
     "twine",
     # tests
     "duckdb",
     "duckdb-engine",
+    "pyodbc",
     # sql.plot module tests
     "matplotlib",
     "black",
+    # for %%sql --interact
+    "ipywidgets",
+]
+
+# dependencies for running integration tests
+INTEGRATION = [
+    "dockerctx",
+    "pyarrow",
+    "psycopg2-binary",
+    "pymysql",
+    "pgspecial==2.0.1",
+    "pyodbc",
 ]
 
 setup(
@@ -69,5 +83,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    extras_require={"dev": DEV},
+    extras_require={
+        "dev": DEV,
+        "integration": DEV + INTEGRATION,
+    },
 )

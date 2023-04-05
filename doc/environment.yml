@@ -10,6 +10,7 @@ dependencies:
   - pandas
   - pip
   - pip:
+    - -e ..
     - jupyter-book
     # duckdb example
     - duckdb>=0.7.1
@@ -22,4 +23,8 @@ dependencies:
     - polars
     # for developer guide
     - pytest
-    - -e ..
+    # for %%sql --interact
+    - ipywidgets
+    # 0.13.2 is broken currently
+    # https://github.com/pydata/pydata-sphinx-theme/issues/1274
+    - pydata-sphinx-theme<0.13.2
