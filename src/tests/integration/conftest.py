@@ -4,10 +4,6 @@ import pytest
 from sqlalchemy import create_engine
 from sql import _testing
 
-is_on_github = False
-# if "GITHUB_ACTIONS" in os.environ:
-#     is_on_github = True
-
 
 @pytest.fixture
 def get_database_config_helper():
@@ -50,7 +46,7 @@ def load_numeric_data(engine):
 
 @pytest.fixture(scope="session")
 def setup_postgreSQL():
-    with _testing.postgres(is_bypass_init=is_on_github):
+    with _testing.postgres():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
         )
@@ -81,7 +77,7 @@ def ip_with_postgreSQL(ip_empty, setup_postgreSQL):
 
 @pytest.fixture(scope="session")
 def setup_mySQL():
-    with _testing.mysql(is_bypass_init=is_on_github):
+    with _testing.mysql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("mySQL"))
         # Load pre-defined datasets
         load_taxi_data(engine)
@@ -110,7 +106,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
 
 @pytest.fixture(scope="session")
 def setup_mariaDB():
-    with _testing.mariadb(is_bypass_init=is_on_github):
+    with _testing.mariadb():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("mariaDB")
         )
@@ -197,7 +193,7 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
 
 @pytest.fixture(scope="session")
 def setup_MSSQL():
-    with _testing.mssql(is_bypass_init=is_on_github):
+    with _testing.mssql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("MSSQL"))
         # Load taxi_data
         load_taxi_data(engine)
