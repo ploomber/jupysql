@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   text_representation:
     extension: .md
     format_name: myst
@@ -13,12 +14,9 @@ kernelspec:
 
 # Interactive SQL Queries
 
-```{note}
-This feature will be released in version 0.7, but you can give it a try now!
-
+```{versionadded} 0.7
 ~~~
-pip uninstall jupysql -y
-pip install git+https://github.com/ploomber/jupysql
+pip install jupysql --upgrade
 ~~~
 ```
 

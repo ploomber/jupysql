@@ -180,15 +180,17 @@ class ResultSet(list, ColumnGuesserMixin):
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         payload[
             "connection_info"
-        ] = sql.connection.Connection._get_curr_connection_info()
+        ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
         return frame
 
     @telemetry.log_call("polars-data-frame")
-    def PolarsDataFrame(self):
+    def PolarsDataFrame(self, **polars_dataframe_kwargs):
         "Returns a Polars DataFrame instance built from the result set."
         import polars as pl
 
-        frame = pl.DataFrame((tuple(row) for row in self), schema=self.keys)
+        frame = pl.DataFrame(
+            (tuple(row) for row in self), schema=self.keys, **polars_dataframe_kwargs
+        )
         return frame
 
     @telemetry.log_call("pie")
@@ -444,7 +446,7 @@ def select_df_type(resultset, config):
     if config.autopandas:
         return resultset.DataFrame()
     elif config.autopolars:
-        return resultset.PolarsDataFrame()
+        return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
     else:
         return resultset
     # returning only last result, intentionally
@@ -475,7 +477,7 @@ def run(conn, sql, config):
 
 
 def raw_run(conn, sql):
-    return conn.session.execute(sql)
+    return conn.session.execute(sqlalchemy.sql.text(sql))
 
 
 class PrettyTable(prettytable.PrettyTable):
