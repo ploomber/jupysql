@@ -414,3 +414,26 @@ def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expect
 
             assert criteria in expected
             assert cell_value == str(expected[criteria][i])
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sqlcmd tables",
+        "%sqlcmd columns --table numbers",
+    ],
+)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+    ],
+)
+def test_sqlcmd_tables_columns(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.result
