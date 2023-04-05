@@ -19,8 +19,13 @@ myst:
 
 # ggplot
 
+
 ```{versionadded} 0.7
+~~~
+pip install jupysql --upgrade
+~~~
 ```
+
 
 
 ```{note}
