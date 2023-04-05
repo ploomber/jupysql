@@ -1,4 +1,3 @@
-import os
 import shutil
 import pandas as pd
 import pytest
@@ -8,7 +7,6 @@ from sql import _testing
 is_on_github = False
 # if "GITHUB_ACTIONS" in os.environ:
 #     is_on_github = True
-
 
 
 @pytest.fixture
