@@ -2,6 +2,7 @@
 
 ## 0.7.1dev
 * [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
+* [Doc] Updating connecting guide (by @DaveOkpare) (#56)
 
 ## 0.7.0 (2023-04-05)
 
