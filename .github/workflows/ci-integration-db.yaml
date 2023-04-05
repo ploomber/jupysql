@@ -23,4 +23,4 @@ jobs:
       - name: Integration Test
         run: |
           # Run the integration test by pytest marker
-          pytest src/tests/integration
+          pytest src/tests/integration --verbose
