@@ -500,7 +500,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             select
             floor("{{column}}"/{{bin_size}})*{{bin_size}},
             count(*) as count
-            from "{{table}}"
+            from (select * from "{{table}}" where "{{column}}" is not NULL)
             {{filter_query}}
             group by 1
             order by 1;
@@ -514,7 +514,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             """
         select
             "{{column}}", count ({{column}})
-        from "{{table}}"
+        from (select * from "{{table}}" where "{{column}}" is not NULL)
         {{filter_query}}
         group by 1
         order by 1;
@@ -528,9 +528,6 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     query = sql.connection.Connection._transpile_query(query)
     data = conn.execute(query).fetchall()
     bin_, height = zip(*data)
-
-    if bin_[0] is None:
-        raise ValueError("Data contains NULLs")
 
     return bin_, height, bin_size
 
