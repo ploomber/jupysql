@@ -6,6 +6,15 @@ from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
 import math
 
+ALL_DATABASES = [
+    "ip_with_postgreSQL",
+    "ip_with_mySQL",
+    "ip_with_mariaDB",
+    "ip_with_SQLite",
+    "ip_with_duckDB",
+    "ip_with_MSSQL",
+]
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):
@@ -249,17 +258,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-        ("ip_with_MSSQL"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -273,17 +272,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     assert "greater" in result.keys()
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-        ("ip_with_MSSQL"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -423,17 +412,21 @@ def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expect
         "%sqlcmd columns --table numbers",
     ],
 )
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sqlcmd_tables_columns(ip_with_dynamic_db, cell, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.result
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT *\n-- %variable\nFROM NUMBERS WHERE 0=1",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_query_with_interpolation_like_comments(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None
