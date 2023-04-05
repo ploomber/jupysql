@@ -85,3 +85,6 @@ jobs:
         run:
           # Run the integration test by pytest marker
           pytest src/tests/integration
+
+          pip install ploomber-engine
+          ploomber-engine doc/integrations/mariadb.ipynb mariadb.ipynb
