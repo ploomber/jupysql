@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.1dev
+* [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
 
 ## 0.7.0 (2023-04-05)
 

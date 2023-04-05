@@ -44,6 +44,32 @@ class Tables(DatabaseInspection):
         self._table_txt = self._table.get_string()
 
 
+def _fill_nulls(keys, mapping):
+    out = dict()
+
+    for key in keys:
+        if key not in mapping:
+            out[key] = ""
+        else:
+            out[key] = mapping[key]
+
+    return out
+
+
+# we're assuming there's one row that contains all keys, I tested this and worked fine
+# my initial implementation just took all keys that appeared in "rows" but then order
+# isn't preserved, which is important for user experience
+def _get_keys(rows):
+    max_idx, max_ = None, 0
+
+    for idx, row in enumerate(rows):
+        if len(row) > max_:
+            max_idx = idx
+            max_ = len(row)
+
+    return list(rows[max_idx])
+
+
 @modify_exceptions
 class Columns(DatabaseInspection):
     """
@@ -55,13 +81,18 @@ class Columns(DatabaseInspection):
 
         inspector = _get_inspector(conn)
 
+        # this returns a list of dictionaries. e.g.,
+        # [{"name": "column_a", "type": "INT"}
+        #  {"name": "column_b", "type": "FLOAT"}]
         columns = inspector.get_columns(name, schema)
 
         self._table = PrettyTable()
-        self._table.field_names = list(columns[0].keys())
+        self._table.field_names = _get_keys(columns)
 
         for row in columns:
-            self._table.add_row(list(row.values()))
+            self._table.add_row(
+                list(_fill_nulls(self._table.field_names, row).values())
+            )
 
         self._table_html = self._table.get_html_string()
         self._table_txt = self._table.get_string()
