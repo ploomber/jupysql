@@ -19,15 +19,9 @@ myst:
 
 # ggplot
 
-
-```{note}
-This feature will be released in version 0.7, but you can give it a try now!
-
-~~~
-pip uninstall jupysql -y
-pip install git+https://github.com/ploomber/jupysql
-~~~
+```{versionadded} 0.7
 ```
+
 
 ```{note}
 `ggplot` API requires `matplotlib`: `pip install matplotlib`
