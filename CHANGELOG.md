@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 0.7.1dev
-* [Doc] Updating connecting guide (by [@DaveOkpare](https://github.com/DaveOkpare)) (#56)
+* [Doc] Updating connecting guide (by @DaveOkpare) (#56)
 
 ## 0.7.0 (2023-04-05)
 
