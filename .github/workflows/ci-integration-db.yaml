@@ -98,7 +98,8 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
-          activate-environment: condaenv
+          auto-activate-base: true
+          activate-environment: ""
 
       - name: Install dependencies
         run: |
