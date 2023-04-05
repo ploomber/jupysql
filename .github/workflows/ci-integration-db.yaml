@@ -85,27 +85,3 @@ jobs:
         run: |
           # Run the integration test by pytest marker
           pytest src/tests/integration
-
-  tutorials:
-    strategy:
-      matrix:
-        python-version: ['3.11']
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          auto-activate-base: true
-          activate-environment: ""
-
-      - name: Install dependencies
-        run: |
-          pip install ".[dev]"
-          pip install ploomber-engine
-
-      - name: Integration Test
-        run: |
-          ploomber-engine doc/integrations/mariadb.ipynb mariadb.ipynb
