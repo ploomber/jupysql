@@ -511,7 +511,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             select
             floor("{{column}}"/{{bin_size}})*{{bin_size}},
             count(*) as count
-            from (select * from "{{table}}" where "{{column}}" is not NULL)
+            from (select * from "{{table}}" where "{{column}}" is not NULL) AS no_nulls
             {{filter_query}}
             group by 1
             order by 1;
@@ -529,7 +529,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template_ = """
         select
             "{{column}}", count ({{column}})
-        from (select * from "{{table}}" where "{{column}}" is not NULL)
+        from (select * from "{{table}}" where "{{column}}" is not NULL) AS no_nulls
         {{filter_query}}
         group by 1
         order by 1;
