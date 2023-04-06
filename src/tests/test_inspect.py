@@ -166,11 +166,26 @@ ATTACH DATABASE 'my.db' AS test_schema
             [["a", "b"], ["a2", "b2"]],
             ["column_a", "column_b"],
         ],
+        [
+            [
+                dict(),
+                dict(),
+            ],
+            [[], []],
+            [],
+        ],
+        [
+            None,
+            [[], []],
+            [],
+        ],
     ],
     ids=[
         "missing-val-second-row",
         "extra-val-second-row",
         "keeps-order",
+        "empty-dictionaries",
+        "none-return-value",
     ],
 )
 def test_columns_with_missing_values(ip, monkeypatch, get_columns, rows, field_names):
