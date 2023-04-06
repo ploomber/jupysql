@@ -162,7 +162,7 @@ each PR; however, you might need to run them locally.
 ```{note}
 Setting up the development environment for running integration tests locally
 is challenging given the number of dependencies. If you have problems,
-[message us on Slack.](https://github.com/orgs/community/discussions/26940)
+[message us on Slack.](https://ploomber.io/community)
 ```
 
 Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) before continuing.
@@ -188,7 +188,11 @@ To run all integration tests (the tests are pre-configured to start and shut dow
 the required Docker images):
 
 ```sh
-pytest src/test/integration
+pytest src/tests/integration
+```
+
+```{important}
+If you're using **Windows**, the command above might get stuck. Send us a [message on Slack](https://ploomber.io/community) if it happens.
 ```
 
 To run some of the tests:
