@@ -15,6 +15,7 @@
 - Parametrized SQL queries via `{{parameter}}` ✅
 - Interactive SQL queries via `--interact` ✅
 
+
 ## PostgreSQL
 
 **Almost full compatibility**
@@ -27,5 +28,20 @@
 - Profiling tables with `%sqlcmd profile` ✅
 - Listing tables with `%sqlcmd tables` ✅
 - Listing columns with `%sqlcmd columns` ✅
+- Parametrized SQL queries via `{{parameter}}` ✅
+- Interactive SQL queries via `--interact` ✅
+
+## Snowflake
+
+Uncertain since we're not testing against it (yet)
+
+- Running queries with `%%sql` ✅
+- CTEs with `%%sql --save NAME` ✅
+- Plotting with `%%sqlplot boxplot` ❓
+- Plotting with `%%sqlplot histogram` ❓
+- Plotting with `ggplot` API ❓
+- Profiling tables with `%sqlcmd profile` ❓
+- Listing tables with `%sqlcmd tables` ❓
+- Listing columns with `%sqlcmd columns` ❓
 - Parametrized SQL queries via `{{parameter}}` ✅
 - Interactive SQL queries via `--interact` ✅
