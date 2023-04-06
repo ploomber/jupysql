@@ -6,6 +6,15 @@ from sql.telemetry import telemetry
 from unittest.mock import ANY, Mock
 import math
 
+ALL_DATABASES = [
+    "ip_with_postgreSQL",
+    "ip_with_mySQL",
+    "ip_with_mariaDB",
+    "ip_with_SQLite",
+    "ip_with_duckDB",
+    "ip_with_MSSQL",
+]
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):
@@ -36,10 +45,7 @@ def mock_log_api(monkeypatch):
 )
 def test_query_count(ip_with_dynamic_db, excepted, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out_normal_query = ip_with_dynamic_db.run_line_magic(
-        "sql", "SELECT * FROM taxi LIMIT 3"
-    )
-    assert len(out_normal_query) == excepted
+    out = ip_with_dynamic_db.run_line_magic("sql", "SELECT * FROM taxi LIMIT 3")
 
     # Test query with --with & --save
     ip_with_dynamic_db.run_cell(
@@ -48,6 +54,8 @@ def test_query_count(ip_with_dynamic_db, excepted, request):
     out_query_with_save_arg = ip_with_dynamic_db.run_cell(
         "%sql --with taxi_subset SELECT * FROM taxi_subset"
     )
+
+    assert len(out) == excepted
     assert len(out_query_with_save_arg.result) == excepted
 
 
@@ -93,6 +101,7 @@ def get_connection_count(ip_with_dynamic_db):
         ("ip_with_mariaDB", 1),
         ("ip_with_SQLite", 1),
         ("ip_with_duckDB", 1),
+        ("ip_with_MSSQL", 1),
     ],
 )
 def test_active_connection_number(ip_with_dynamic_db, excepted, request):
@@ -108,6 +117,7 @@ def test_active_connection_number(ip_with_dynamic_db, excepted, request):
         ("ip_with_mariaDB", "mariaDB"),
         ("ip_with_SQLite", "SQLite"),
         ("ip_with_duckDB", "duckDB"),
+        ("ip_with_MSSQL", "MSSQL"),
     ],
 )
 def test_close_and_connect(
@@ -138,6 +148,7 @@ def test_close_and_connect(
         ("ip_with_mariaDB", "mysql", "pymysql"),
         ("ip_with_SQLite", "sqlite", "pysqlite"),
         ("ip_with_duckDB", "duckdb", "duckdb_engine"),
+        ("ip_with_MSSQL", "mssql", "pyodbc"),
     ],
 )
 def test_telemetry_execute_command_has_connection_info(
@@ -180,6 +191,10 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
+        ),
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request):
@@ -247,16 +262,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -270,16 +276,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     assert "greater" in result.keys()
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -379,6 +376,12 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
                 "75%": [33.0, math.nan],
             },
         ),
+        (
+            "ip_with_MSSQL",
+            "taxi",
+            ["taxi_driver_name"],
+            {"unique": [3], "min": ["Eric Ken"], "max": ["Kevin Kelly"], "count": [45]},
+        ),
     ],
 )
 def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expected):
@@ -404,3 +407,42 @@ def test_profile_query(request, ip_with_dynamic_db, table, table_columns, expect
 
             assert criteria in expected
             assert cell_value == str(expected[criteria][i])
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sqlcmd tables",
+        "%sqlcmd columns --table numbers",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sqlcmd_tables_columns(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.result
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
+    ],
+    ids=[
+        "simple-query",
+        "cte",
+        "interpolation-like-comment",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_query(ip_with_dynamic_db, cell, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        """%%sql --save subset --no-execute
+SELECT * FROM numbers WHERE 1=0
+"""
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None

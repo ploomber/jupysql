@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
   text_representation:
@@ -18,7 +19,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Polars integration
+# Polars
 
 If you have installed [`polars`](https://www.pola.rs/), you can use a result set's `.PolarsDataFrame()` method.
 

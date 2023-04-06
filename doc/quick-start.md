@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
   text_representation:
@@ -17,6 +18,7 @@ myst:
     keywords: jupyter, sql, jupysql
     property=og:locale: en_US
 ---
+
 
 # Quick Start
 
@@ -40,7 +42,18 @@ Or the following in a Jupyter notebook:
 %pip install jupysql duckdb-engine --quiet
 ```
 
+You might also install it from conda:
+
+```sh
+conda install jupysql -c conda-forge
+```
+
 ## Setup
+
+```{tip}
+If you are unfamiliar with Jupyter magics, you can refer to our [FAQ](user-guide/FAQ.md)
+```
+
 
 Load the extension:
 

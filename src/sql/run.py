@@ -20,6 +20,7 @@ except ImportError:
 
 from sql.telemetry import telemetry
 import logging
+import warnings
 
 
 def unduplicate_field_names(field_names):
@@ -118,9 +119,7 @@ class ResultSet(list, ColumnGuesserMixin):
             if isinstance(config.style, str):
                 _style = prettytable.__dict__[config.style.upper()]
 
-            self.pretty = PrettyTable(
-                self.field_names, style=_style
-            )
+            self.pretty = PrettyTable(self.field_names, style=_style)
         else:
             list.__init__(self, [])
             self.pretty = None
@@ -181,15 +180,17 @@ class ResultSet(list, ColumnGuesserMixin):
         frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         payload[
             "connection_info"
-        ] = sql.connection.Connection._get_curr_connection_info()
+        ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
         return frame
 
     @telemetry.log_call("polars-data-frame")
-    def PolarsDataFrame(self):
+    def PolarsDataFrame(self, **polars_dataframe_kwargs):
         "Returns a Polars DataFrame instance built from the result set."
         import polars as pl
 
-        frame = pl.DataFrame((tuple(row) for row in self), schema=self.keys)
+        frame = pl.DataFrame(
+            (tuple(row) for row in self), schema=self.keys, **polars_dataframe_kwargs
+        )
         return frame
 
     @telemetry.log_call("pie")
@@ -356,7 +357,7 @@ class FakeResultProxy(object):
         def fetchmany(size):
             pos = 0
             while pos < len(source_list):
-                yield source_list[pos: pos + size]
+                yield source_list[pos : pos + size]
                 pos += size
 
         self.fetchmany = fetchmany
@@ -399,6 +400,11 @@ def is_postgres_or_redshift(dialect):
     return "postgres" in str(dialect) or "redshift" in str(dialect)
 
 
+def is_pytds(dialect):
+    """Checks if driver is pytds"""
+    return "pytds" in str(dialect)
+
+
 def handle_postgres_special(conn, statement):
     """Execute a PostgreSQL special statement using PGSpecial module."""
     if not PGSpecial:
@@ -412,6 +418,11 @@ def handle_postgres_special(conn, statement):
 
 def set_autocommit(conn, config):
     """Sets the autocommit setting for a database connection."""
+    if is_pytds(conn.dialect):
+        warnings.warn(
+            "Autocommit is not supported for pytds, thus is automatically disabled"
+        )
+        return False
     if config.autocommit:
         try:
             conn.session.execution_options(isolation_level="AUTOCOMMIT")
@@ -435,7 +446,7 @@ def select_df_type(resultset, config):
     if config.autopandas:
         return resultset.DataFrame()
     elif config.autopolars:
-        return resultset.PolarsDataFrame()
+        return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
     else:
         return resultset
     # returning only last result, intentionally
@@ -466,7 +477,7 @@ def run(conn, sql, config):
 
 
 def raw_run(conn, sql):
-    return conn.session.execute(sql)
+    return conn.session.execute(sqlalchemy.sql.text(sql))
 
 
 class PrettyTable(prettytable.PrettyTable):

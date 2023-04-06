@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
   text_representation:
@@ -49,6 +50,8 @@ For an `impala` connection with [`impyla`](https://github.com/cloudera/impyla) f
 %sql impala://hserverhost:port/default?kerberos_service_name=hive&auth_mechanism=GSSAPI
 ```
 
+Additionally, note that autocommit features for `pytds` connections are disabled.
+
 Connection arguments not whitelisted by SQLALchemy can be provided as
 a flag with (-a|--connection_arguments)the connection string as a JSON string. See [SQLAlchemy Args](https://docs.sqlalchemy.org/en/13/core/engines.html#custom-dbapi-args)
 
@@ -81,7 +84,6 @@ Check out our guide for connecting to a database:
 ```{code-cell} ipython3
 %load_ext sql
 ```
-
 
 ### DSN connections
 

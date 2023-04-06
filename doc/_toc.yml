@@ -9,14 +9,15 @@ parts:
     - file: intro
     - file: connecting
     - file: plot
-    - file: csv
     - file: compose
     - file: user-guide/tables-columns
     - file: plot-legacy
     - file: user-guide/template
+    - file: user-guide/interactive
     - file: user-guide/data-profiling
     - file: user-guide/ggplot
-    
+    - file: user-guide/FAQ
+
   - caption: Integrations
     chapters:
       - file: integrations/duckdb
@@ -28,6 +29,7 @@ parts:
       - file: integrations/clickhouse
       - file: integrations/mindsdb
       - file: integrations/postgres-connect
+      - file: integrations/compatibility
 
   - caption: API Reference
     chapters:
@@ -43,10 +45,13 @@ parts:
     - file: howto/postgres-install
     - file: howto/json
     - file: howto/syntax-highlighting
+    - file: howto/csv
+    - file: howto/autocompletion
 
   - caption: Tutorials
     chapters:
     - file: tutorials/duckdb-github
+    - file: tutorials/etl
 
   - caption: Community
     chapters:
