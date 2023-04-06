@@ -176,7 +176,7 @@ ATTACH DATABASE 'my.db' AS test_schema
         ],
         [
             None,
-            [[], []],
+            [],
             [],
         ],
     ],

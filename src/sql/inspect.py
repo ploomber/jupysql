@@ -89,7 +89,7 @@ class Columns(DatabaseInspection):
         # this returns a list of dictionaries. e.g.,
         # [{"name": "column_a", "type": "INT"}
         #  {"name": "column_b", "type": "FLOAT"}]
-        columns = inspector.get_columns(name, schema)
+        columns = inspector.get_columns(name, schema) or []
 
         self._table = PrettyTable()
         self._table.field_names = _get_row_with_most_keys(columns)
