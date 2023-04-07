@@ -19,9 +19,9 @@ myst:
     property=og:locale: "en_US"
 ---
 
-# Connecting to Databases with SQL Magic
+# Connecting to Databases with JupySQL
 
-Learn how to connect to various databases using SQL Magic in this tutorial. SQL Magic is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
+Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
 
 ## Establishing a connection
 
@@ -183,7 +183,7 @@ SELECT * FROM numbers
 ```
 ## Conclusion
 
-In this tutorial demonstrated how to leverage the power of SQL Magic in Jupyter Notebooks for connecting to and interacting with databases. We covered key aspects such as:
+This tutorial demonstrated how to leverage the power of JupySQL in Jupyter Notebooks for connecting to and interacting with databases. We covered key aspects such as:
 
 - Connection strings for different databases following SQLAlchemy URL standards.
 - Connecting to databases using the %sql magic command.
@@ -191,4 +191,4 @@ In this tutorial demonstrated how to leverage the power of SQL Magic in Jupyter 
 - Using DSN connections for managing connection information in configuration files.
 - Utilizing existing sqlalchemy.engine.Engine instances for database connections.
 
-With these techniques, you can confidently manage connections to your databases while ensuring security and flexibility. SQL Magic provides a convenient and powerful way to execute SQL queries and analyze data within Jupyter Notebooks.
+With these techniques, you can confidently manage connections to your databases while ensuring security and flexibility. JupySQL provides a convenient and powerful way to execute SQL queries and analyze data within Jupyter Notebooks.
