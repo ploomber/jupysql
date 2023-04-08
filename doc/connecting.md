@@ -23,11 +23,13 @@ myst:
 
 Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
 
-## Establishing a connection
+## Establishing a connection 
 
-Connection strings follow the SQLAlchemy URL standard. Here are some example connection strings for various databases:
+### Connect with SQLAlchemy
 
-Some example connection strings:
+Connection strings follow the SQLAlchemy URL standard. 
+
+Here are some example connection strings for various databases:
 
 ```
 mysql+pymysql://scott:tiger@localhost/foo
@@ -62,6 +64,12 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 ```
 
 +++
+
+### Custom Connection Support
+
+JupySQL's next goal is to provide support for custom connections that are not directly supported by SQLAlchemy. This allows users to run JupySQL functionality, such as `%sql`, `%sqlcmd`, `%sqlplot`, `%sqlrender`, and the ggplot API, without causing disruptions to the existing API or registering a new dialect.
+
+**Note** This feature is still under development, and improvements are being made to provide more seamless integration with custom database connections.
 
 ## Connecting to Databases
 
