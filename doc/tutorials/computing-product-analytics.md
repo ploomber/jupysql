@@ -10,11 +10,6 @@ kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-myst:
-  html_meta:
-    description lang=en: Compute Product Analytics
-    keywords: jupyter, sql, jupysql, json, duckdb
-    property=og:locale: en_US
 ---
 
 # Conduct Product Analysis Using SQL
@@ -57,6 +52,8 @@ For simplicity, we just use some small-scale randomly generated data. The datase
 | 7      | 2021-03-01 | 10             |
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %pip install jupysql duckdb-engine --quiet
 ```
 
@@ -68,6 +65,8 @@ For simplicity, we just use some small-scale randomly generated data. The datase
 Let's create the table by ourself first using SQL.
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 DROP TABLE IF EXISTS user_activity;
 CREATE TABLE user_activity (
@@ -95,6 +94,8 @@ VALUES
 Let's check our table using select.
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 SELECT * FROM user_activity
 ```
@@ -106,6 +107,8 @@ We defined growth rate to be the percentage increase of total number of users be
 We first retrive the total number of users in each month
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 Select MONTH(date) as month, COUNT(DISTINCT user_id) AS total_users
 FROM user_activity
@@ -129,6 +132,8 @@ We save it using a temporary table called CTE. Then calculate using self join.
 ```
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 WITH CTE AS(
     Select MONTH(date) as month, COUNT(DISTINCT user_id) AS total_users
@@ -182,6 +187,8 @@ Retention is a bit more complex. Every company might have a different definition
 We first retrieve two tables. The first one is the number of first-login users in each month. We will create a temporary table called first_time_users to hold the results.
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 DROP TABLE IF EXISTS first_time_users;
 CREATE TABLE first_time_users (
@@ -209,6 +216,8 @@ This means that in January, 3 users start to use the app. Similarly, 2 start usi
 Then we check the retention users (number of users who still use the app after one month of first-login) in each month.
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 DROP TABLE IF EXISTS retention_users;
 CREATE TABLE retention_users (
@@ -239,13 +248,11 @@ Then, we combine these two table and make our calculation
 We join the new_users and retention users based on the month we are looking at. Then, we make calculation for retention_rate.
 
 ```{code-cell} ipython3
+:tags: [hide-output]
+
 %%sql
 SELECT f.month, first_time_users, IFNULL(retention_users, 0) AS retention_users, ROUND(retention_users * 1.0 / first_time_users, 4)*100 AS retention_rate
 FROM first_time_users f 
 FULL OUTER JOIN retention_users r
 ON f.month = r.month
-```
-
-```{code-cell} ipython3
-
 ```
