@@ -122,7 +122,7 @@ then you can establish a connection to your database by running the following co
 
 +++
 
-### Building connection strings with `getpass`
+### Building connection strings
 
 One option is to use `getpass`, type your password, build your connection string and pass it to `%sql`:
 
@@ -161,7 +161,7 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 
 ## Using an existing `sqlalchemy.engine.Engine`
 
-Available since version 0.5.1, you can use an existing `Engine` by passing the variable name to `%sql`.
+Use an existing `Engine` by passing the variable name to `%sql`.
 
 ```{code-cell} ipython3
 import pandas as pd
