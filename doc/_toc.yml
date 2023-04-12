@@ -38,6 +38,7 @@ parts:
     - file: api/magic-render
     - file: api/configuration
     - file: api/python
+    - file: api/magic-tables-columns
 
   - caption: How-To
     chapters:
