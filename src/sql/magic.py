@@ -262,11 +262,12 @@ class SqlMagic(Magics, Configurable):
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
         # Remove trailing semicolons
         line_without_semicolon = line.rstrip(";")
-        cell_without_semicolon = cell.rstrip()
-
-        # Remove trailing semicolon from cell if it's present
-        if cell_without_semicolon.endswith(";"):
-            cell_without_semicolon = cell_without_semicolon[:-1]
+        cell_without_semicolon = cell
+        if cell_without_semicolon.strip().endswith(";"):
+            # Preserve line breaks
+            index_of_semicolon = cell_without_semicolon.rfind(';')
+            if index_of_semicolon > -1:
+                cell_without_semicolon = cell_without_semicolon[:index_of_semicolon] + cell_without_semicolon[index_of_semicolon + 1:]
 
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
