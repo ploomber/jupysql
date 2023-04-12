@@ -8,6 +8,8 @@ from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
 
+from prettytable import PrettyTable
+
 # from sqlalchemy.orm import declarative_base
 # from sqlalchemy import MetaData
 
@@ -166,9 +168,13 @@ class SqlCmdMagic(Magics, Configurable):
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
             if any(result_dict.values()):
+                for k, v in result_dict.items():
+                    print(f'\n\t\t\t{k}')
+                    for column in v:
+                        # field_names = sql.run.unduplicate_field_names(column)
+                        print(PrettyTable(field_names=column))
                 raise UsageError(
-                    "These values do not not match your test requirements: "
-                    f"{result_dict}"
+                    "The above values do not not match your test requirements."
                 )
             else:
                 return True
