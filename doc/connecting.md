@@ -65,12 +65,6 @@ a flag with (-a|--connection_arguments)the connection string as a JSON string. S
 
 +++
 
-### Custom Connection Support
-
-JupySQL's next goal is to provide support for custom connections that are not directly supported by SQLAlchemy. This allows users to run JupySQL functionality, such as `%sql`, `%sqlcmd`, `%sqlplot`, `%sqlrender`, and the ggplot API, without causing disruptions to the existing API or registering a new dialect.
-
-**Note** This feature is still under development, and improvements are being made to provide more seamless integration with custom database connections.
-
 ## Connecting to Databases
 
 Check out our guide for connecting to a database:
