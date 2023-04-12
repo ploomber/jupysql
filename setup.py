@@ -18,7 +18,7 @@ with open("src/sql/__init__.py", "rb") as f:
 install_requires = [
     "prettytable",
     "ipython>=1.0",
-    "sqlalchemy<2",
+    "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
     "sqlglot",
@@ -43,10 +43,19 @@ DEV = [
     # sql.plot module tests
     "matplotlib",
     "black",
-    "dockerctx",
-    "docker",
     # for %%sql --interact
     "ipywidgets",
+]
+
+# dependencies for running integration tests
+INTEGRATION = [
+    "dockerctx",
+    "pyarrow",
+    "psycopg2-binary",
+    "pymysql",
+    "pgspecial==2.0.1",
+    "pyodbc",
+    "snowflake-sqlalchemy",
 ]
 
 setup(
@@ -75,5 +84,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    extras_require={"dev": DEV},
+    extras_require={
+        "dev": DEV,
+        "integration": DEV + INTEGRATION,
+    },
 )

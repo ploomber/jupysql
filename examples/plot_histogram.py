@@ -1,7 +1,6 @@
 import urllib.request
 
-# this requires duckdb: pip install duckdb
-import duckdb
+from sql.connection import Connection
 
 from sql import plot
 
@@ -11,6 +10,6 @@ urllib.request.urlretrieve(
     "iris.csv",
 )
 
-conn = duckdb.connect(database=":memory:")
+conn = Connection.from_connect_str("duckdb://").session
 
 plot.histogram("iris.csv", "petal width", bins=50, conn=conn)

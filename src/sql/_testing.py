@@ -5,6 +5,8 @@ import time
 import docker
 from docker import errors
 from sqlalchemy.engine import URL
+import os
+
 
 TMP_DIR = "tmp"
 
@@ -110,6 +112,21 @@ databaseConfig = {
         },
         "alias": "MSSQLTest",
     },
+    "Snowflake": {
+        "drivername": "snowflake",
+        "username": os.getenv("SF_USERNAME"),
+        "password": os.getenv("SF_PASSWORD"),
+        # database/schema
+        "database": os.getenv("SF_DATABASE"),
+        "host": "lpb17716.us-east-1",
+        "port": None,
+        "alias": "snowflakeTest",
+        "docker_ct": None,
+        "query": {
+            "warehouse": "COMPUTE_WH",
+            "role": "SYSADMIN",
+        },
+    },
 }
 
 
@@ -132,13 +149,10 @@ client = docker.from_env()
 def database_ready(
     database,
     timeout=20,
-    poll_freq=0.2,
+    poll_freq=0.5,
 ):
-    """Wait until a postgres instance is ready to receive connections.
+    """Wait until the container is ready to receive connections.
 
-    .. note::
-
-        This requires psycopg2 to be installed.
 
     :type host: str
     :type port: int
@@ -147,15 +161,23 @@ def database_ready(
     """
     import sqlalchemy
 
+    errors = []
+
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             return True
-        except Exception:
-            pass
+        except Exception as e:
+            errors.append(str(e))
+
         time.sleep(poll_freq)
+
+    # print all the errors so we know what's goin on since failing to connect might be
+    # to some misconfiguration error
+    errors_ = "\n".join(errors)
+    print(f"ERRORS: {errors_}")
 
     return False
 

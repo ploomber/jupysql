@@ -1,5 +1,6 @@
 ---
 jupytext:
+  notebook_metadata_filter: myst
   cell_metadata_filter: -all
   formats: md:myst
   text_representation:
@@ -39,6 +40,12 @@ Or the following in a Jupyter notebook:
 
 ```{code-cell} ipython3
 %pip install jupysql duckdb-engine --quiet
+```
+
+You might also install it from conda:
+
+```sh
+conda install jupysql -c conda-forge
 ```
 
 ## Setup

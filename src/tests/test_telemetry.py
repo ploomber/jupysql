@@ -2,10 +2,9 @@ from pathlib import Path
 from unittest.mock import ANY, Mock
 import pytest
 import urllib.request
-import duckdb
 from sql.telemetry import telemetry
 from sql import plot
-
+from sql.connection import Connection
 
 # Ref: https://pytest.org/en/7.2.x/how-to/tmp_path.html#
 # Utilize tmp directory to store downloaded csv
@@ -40,8 +39,7 @@ def simple_file_path_penguins(tmpdir):
 
 @pytest.fixture
 def simple_db_conn():
-    conn = duckdb.connect(database=":memory:")
-    return conn
+    return Connection.from_connect_str("duckdb://").session
 
 
 @pytest.fixture
