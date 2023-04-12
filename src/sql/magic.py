@@ -265,9 +265,12 @@ class SqlMagic(Magics, Configurable):
         cell_without_semicolon = cell
         if cell_without_semicolon.strip().endswith(";"):
             # Preserve line breaks
-            index_of_semicolon = cell_without_semicolon.rfind(';')
+            index_of_semicolon = cell_without_semicolon.rfind(";")
             if index_of_semicolon > -1:
-                cell_without_semicolon = cell_without_semicolon[:index_of_semicolon] + cell_without_semicolon[index_of_semicolon + 1:]
+                cell_without_semicolon = (
+                    cell_without_semicolon[:index_of_semicolon]
+                    + cell_without_semicolon[index_of_semicolon + 1 :]
+                )
 
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
