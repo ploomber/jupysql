@@ -329,7 +329,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         # ("ip_with_Snowflake"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     ip_with_dynamic_db.run_cell(
@@ -346,8 +346,6 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
     output = ip_with_dynamic_db.run_cell(
         "%sqlcmd test --table test_numbers --column value" " --less-than 5 --greater 1"
     ).error_in_exec
-
-    print(str(output))
 
     assert "less_than" in str(output)
     assert "greater" in str(output)
@@ -370,7 +368,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
         # ),
     ],
 )
-def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, test_table_name_dict):
+def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     ip_with_dynamic_db.run_cell(

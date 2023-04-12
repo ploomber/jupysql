@@ -10,9 +10,6 @@ from sqlalchemy import text
 
 from prettytable import PrettyTable
 
-# from sqlalchemy.orm import declarative_base
-# from sqlalchemy import MetaData
-
 try:
     from traitlets.config.configurable import Configurable
 except ImportError:
@@ -167,12 +164,14 @@ class SqlCmdMagic(Magics, Configurable):
 
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
-            if any(result_dict.values()):
-                for k, v in result_dict.items():
-                    print(f'\n\t\t\t{k}')
-                    for column in v:
-                        # field_names = sql.run.unduplicate_field_names(column)
-                        print(PrettyTable(field_names=column))
+            if (list(result_dict.values())[0][1:]):
+                for comparator, rows in result_dict.items():
+                    print(f'\n{comparator}:\n')
+                    _pretty = PrettyTable()
+                    _pretty.field_names = rows[0]
+                    for row in rows[1:]:
+                        _pretty.add_row(row)
+                    print(_pretty)
                 raise UsageError(
                     "The above values do not not match your test requirements."
                 )
@@ -216,7 +215,12 @@ def run_each_individually(args, conn):
         res = None
 
         try:
+            columns = []
+            column_data = conn.execute(text(current_query)).cursor.description
             res = conn.execute(text(current_query)).fetchall()
+            for column in column_data:
+                columns.append(column[0])
+            res = [columns, *res]
         except Exception as e:
             if "column" in str(e):
                 raise UsageError(f"Referenced column '{args.column}' not found!")
@@ -231,7 +235,12 @@ def run_each_individually(args, conn):
         res = None
 
         try:
+            columns = []
+            column_data = conn.execute(text(current_query)).cursor.description
             res = conn.execute(text(current_query)).fetchall()
+            for column in column_data:
+                columns.append(column[0])
+            res = [columns, *res]
         except Exception as e:
             if "column" in str(e):
                 raise UsageError(f"Referenced column '{args.column}' not found!")
@@ -245,7 +254,12 @@ def run_each_individually(args, conn):
         res = None
 
         try:
+            columns = []
+            column_data = conn.execute(text(current_query)).cursor.description
             res = conn.execute(text(current_query)).fetchall()
+            for column in column_data:
+                columns.append(column[0])
+            res = [columns, *res]
         except Exception as e:
             if "column" in str(e):
                 raise UsageError(f"Referenced column '{args.column}' not found!")
@@ -259,7 +273,12 @@ def run_each_individually(args, conn):
         res = None
 
         try:
+            columns = []
+            column_data = conn.execute(text(current_query)).cursor.description
             res = conn.execute(text(current_query)).fetchall()
+            for column in column_data:
+                columns.append(column[0])
+            res = [columns, *res]
         except Exception as e:
             if "column" in str(e):
                 raise UsageError(f"Referenced column '{args.column}' not found!")
@@ -273,7 +292,11 @@ def run_each_individually(args, conn):
         res = None
 
         try:
+            column_data = conn.execute(text(current_query)).cursor.description
             res = conn.execute(text(current_query)).fetchall()
+            for column in column_data:
+                columns.append(column[0])
+            res = [columns, *res]
         except Exception as e:
             if "column" in str(e):
                 raise UsageError(f"Referenced column {args.column} not found!")
