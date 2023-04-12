@@ -164,9 +164,9 @@ class SqlCmdMagic(Magics, Configurable):
 
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
-            if (list(result_dict.values())[0][1:]):
+            if list(result_dict.values())[0][1:]:
                 for comparator, rows in result_dict.items():
-                    print(f'\n{comparator}:\n')
+                    print(f"\n{comparator}:\n")
                     _pretty = PrettyTable()
                     _pretty.field_names = rows[0]
                     for row in rows[1:]:
