@@ -684,6 +684,45 @@ def test_save_with(ip):
     assert third_out.result == [("William", "Shakespeare", 1616)]
 
 
+def test_line_magic_save_with_trailing_semicolon(ip):
+    # First Query
+    first_out = ip.run_cell(
+        "%sql --save shakespeare SELECT * FROM author WHERE last_name = 'Shakespeare';"
+    )
+    # Second Query
+    second_out = ip.run_cell(
+        """
+            %%sql --with shakespeare --save final
+            SELECT * FROM shakespeare
+        """
+    )
+
+    assert first_out.success
+    assert second_out.success
+    assert second_out.result == [("William", "Shakespeare", 1616)]
+
+
+def test_cell_magic_save_with_trailing_semicolon(ip):
+    # First Query
+    first_out = ip.run_cell(
+        """
+            %%sql --save shakespeare 
+            SELECT * FROM author WHERE last_name = 'Shakespeare';
+        """
+    )
+    # Second Query
+    second_out = ip.run_cell(
+        """
+            %%sql --with shakespeare --save final
+            SELECT * FROM shakespeare
+        """
+    )
+
+    assert first_out.success
+    assert second_out.success
+    assert second_out.result == [("William", "Shakespeare", 1616)]
+
+
 @pytest.mark.parametrize(
     "prep_cell_1, prep_cell_2, prep_cell_3, with_cell_1,"
     " with_cell_2, with_cell_1_excepted, with_cell_2_excepted",
