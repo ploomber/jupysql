@@ -134,7 +134,7 @@ ATTACH DATABASE 'my.db' AS test_schema
 
 
 @pytest.mark.parametrize(
-    "get_columns, rows, field_names",
+    "get_columns, rows, field_names, name, schema",
     [
         [
             [
@@ -146,6 +146,21 @@ ATTACH DATABASE 'my.db' AS test_schema
             ],
             [["a", "b"], ["a2", ""]],
             ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                # the second row does not have column_b
+                {
+                    "column_a": "a2",
+                },
+            ],
+            [["a", "b"], ["a2", ""]],
+            ["column_a", "column_b"],
+            "another_table",
+            "another_schema",
         ],
         [
             [
@@ -157,6 +172,8 @@ ATTACH DATABASE 'my.db' AS test_schema
             ],
             [["a2", ""], ["a", "b"]],
             ["column_a", "column_b"],
+            "test_table",
+            None,
         ],
         [
             [
@@ -165,6 +182,8 @@ ATTACH DATABASE 'my.db' AS test_schema
             ],
             [["a", "b"], ["a2", "b2"]],
             ["column_a", "column_b"],
+            "test_table",
+            None,
         ],
         [
             [
@@ -173,26 +192,39 @@ ATTACH DATABASE 'my.db' AS test_schema
             ],
             [[], []],
             [],
+            "test_table",
+            None,
         ],
         [
             None,
             [],
             [],
+            "test_table",
+            None,
         ],
     ],
     ids=[
         "missing-val-second-row",
+        "missing-val-second-row-another-schema",
         "extra-val-second-row",
         "keeps-order",
         "empty-dictionaries",
         "none-return-value",
     ],
 )
-def test_columns_with_missing_values(ip, monkeypatch, get_columns, rows, field_names):
+def test_columns_with_missing_values(
+    tmp_empty, ip, monkeypatch, get_columns, rows, field_names, name, schema
+):
     mock = Mock()
     mock.get_columns.return_value = get_columns
 
     monkeypatch.setattr(inspect, "_get_inspector", lambda _: mock)
+
+    ip.run_cell(
+        """%%sql sqlite:///another.db
+CREATE TABLE IF NOT EXISTS another_table (id INT)
+"""
+    )
 
     ip.run_cell(
         """%%sql sqlite:///my.db
@@ -200,7 +232,13 @@ CREATE TABLE IF NOT EXISTS test_table (id INT)
 """
     )
 
+    ip.run_cell(
+        """%%sql
+ATTACH DATABASE 'another.db' as 'another_schema';
+"""
+    )
+
     pt = PrettyTable(field_names=field_names)
     pt.add_rows(rows)
 
-    assert str(inspect.get_columns(name="test_table")) == str(pt)
+    assert str(inspect.get_columns(name=name, schema=schema)) == str(pt)
