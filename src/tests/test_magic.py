@@ -706,7 +706,7 @@ def test_cell_magic_save_with_trailing_semicolon(ip):
     # First Query
     first_out = ip.run_cell(
         """
-            %%sql --save shakespeare 
+            %%sql --save shakespeare
             SELECT * FROM author WHERE last_name = 'Shakespeare';
         """
     )

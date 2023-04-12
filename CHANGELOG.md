@@ -2,6 +2,8 @@
 
 ## 0.7.2dev
 
+* [Fix] Fixes error that causes magic functions to break when including a trailing semicolon (by @alextongme) (#319)
+
 ## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
