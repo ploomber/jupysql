@@ -223,7 +223,7 @@ def test_table_profile_store(ip, tmp_empty):
         [
             "%sqlcmd test --table test_numbers --column something --greater 100",
             UsageError,
-            "Referenced column something not found!",
+            "Referenced column 'something' not found!",
         ],
     ],
 )

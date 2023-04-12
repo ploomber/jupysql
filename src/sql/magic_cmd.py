@@ -165,10 +165,11 @@ class SqlCmdMagic(Magics, Configurable):
 
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
-            if len(result_dict.keys()):
-                for k, v in result_dict.items():
-                    print(f'{k}: {v} \n')
-                raise UsageError(f"The above values do not not match your test requirements.")
+            if any(result_dict.values()):
+                raise UsageError(
+                    "These values do not not match your test requirements: "
+                    f"{result_dict}"
+                )
             else:
                 return True
 
