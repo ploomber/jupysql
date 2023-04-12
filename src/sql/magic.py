@@ -261,7 +261,7 @@ class SqlMagic(Magics, Configurable):
     @telemetry.log_call("execute", payload=True)
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
         # Remove trailing semicolons
-        line_without_semicolon = line.rstrip(';')
+        line_without_semicolon = line.rstrip(";")
         cell_without_semicolon = cell.rstrip()
 
         # Remove trailing semicolon from cell if it's present
@@ -271,7 +271,12 @@ class SqlMagic(Magics, Configurable):
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
                 local_ns[key] = value
-            return self._execute(line_without_semicolon, cell_without_semicolon, local_ns, is_interactive_mode=True)
+            return self._execute(
+                line_without_semicolon,
+                cell_without_semicolon,
+                local_ns,
+                is_interactive_mode=True,
+            )
 
         """
         This function implements the cell logic; we create this private
@@ -295,7 +300,9 @@ class SqlMagic(Magics, Configurable):
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
 
-        command = SQLCommand(self, user_ns, line_without_semicolon, cell_without_semicolon)
+        command = SQLCommand(
+            self, user_ns, line_without_semicolon, cell_without_semicolon
+        )
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
