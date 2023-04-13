@@ -1,8 +1,11 @@
 # CHANGELOG
 
 ## 0.7.1dev
+* [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
 * [Doc] Updating connecting guide (by @DaveOkpare) (#56)
 * [Fix] Histograms now support data with `NULL` values (#176)
+
+* [Feature] Upgrades SQLAlchemy version to 2
 
 ## 0.7.0 (2023-04-05)
 

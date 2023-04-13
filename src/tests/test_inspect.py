@@ -1,24 +1,26 @@
+from unittest.mock import Mock
+
 from inspect import getsource
-import sqlite3
 import pytest
 from functools import partial
+
+from prettytable import PrettyTable
 
 from sql import inspect, connection
 
 
 @pytest.fixture
-def sample_db(tmp_empty):
-    conn = connection.Connection.from_connect_str("sqlite://")
+def sample_db(ip):
+    ip.run_cell("%sql sqlite://")
+    ip.run_cell("%sql CREATE TABLE one (x INT, y TEXT)")
+    ip.run_cell("%sql CREATE TABLE another (i INT, j TEXT)")
+    ip.run_cell("%sql sqlite:///my.db")
+    ip.run_cell("%sql CREATE TABLE uno (x INT, y TEXT)")
+    ip.run_cell("%sql CREATE TABLE dos (i INT, j TEXT)")
+    ip.run_cell("%sql --close sqlite:///my.db")
+    ip.run_cell("%sql sqlite://")
 
-    conn.session.execute("CREATE TABLE one (x INT, y TEXT)")
-    conn.session.execute("CREATE TABLE another (i INT, j TEXT)")
-
-    conn_mydb = sqlite3.connect("my.db")
-    conn_mydb.execute("CREATE TABLE uno (x INT, y TEXT)")
-    conn_mydb.execute("CREATE TABLE dos (i INT, j TEXT)")
-    conn_mydb.close()
-
-    conn.session.execute("ATTACH DATABASE 'my.db' AS schema")
+    ip.run_cell("%sql ATTACH DATABASE 'my.db' AS schema")
 
 
 @pytest.mark.parametrize(
@@ -92,10 +94,9 @@ def test_get_column(sample_db, name, first, second, schema):
         ],
     ],
 )
-def test_nonexistent_table(name, schema, error):
+def test_nonexistent_table(sample_db, name, schema, error):
     with pytest.raises(ValueError) as excinfo:
         inspect.get_columns(name, schema)
-
     assert error.lower() in str(excinfo.value).lower()
 
 
@@ -127,3 +128,114 @@ ATTACH DATABASE 'my.db' AS test_schema
     schema_names = inspect.get_schema_names()
     for schema in schema_names:
         assert schema in expected_schema_names
+
+
+@pytest.mark.parametrize(
+    "get_columns, rows, field_names, name, schema",
+    [
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                # the second row does not have column_b
+                {
+                    "column_a": "a2",
+                },
+            ],
+            [["a", "b"], ["a2", ""]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                # the second row does not have column_b
+                {
+                    "column_a": "a2",
+                },
+            ],
+            [["a", "b"], ["a2", ""]],
+            ["column_a", "column_b"],
+            "another_table",
+            "another_schema",
+        ],
+        [
+            [
+                {
+                    "column_a": "a2",
+                },
+                # contains an extra column
+                {"column_a": "a", "column_b": "b"},
+            ],
+            [["a2", ""], ["a", "b"]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                {"column_a": "a", "column_b": "b"},
+                {"column_b": "b2", "column_a": "a2"},
+            ],
+            [["a", "b"], ["a2", "b2"]],
+            ["column_a", "column_b"],
+            "test_table",
+            None,
+        ],
+        [
+            [
+                dict(),
+                dict(),
+            ],
+            [[], []],
+            [],
+            "test_table",
+            None,
+        ],
+        [
+            None,
+            [],
+            [],
+            "test_table",
+            None,
+        ],
+    ],
+    ids=[
+        "missing-val-second-row",
+        "missing-val-second-row-another-schema",
+        "extra-val-second-row",
+        "keeps-order",
+        "empty-dictionaries",
+        "none-return-value",
+    ],
+)
+def test_columns_with_missing_values(
+    tmp_empty, ip, monkeypatch, get_columns, rows, field_names, name, schema
+):
+    mock = Mock()
+    mock.get_columns.return_value = get_columns
+
+    monkeypatch.setattr(inspect, "_get_inspector", lambda _: mock)
+
+    ip.run_cell(
+        """%%sql sqlite:///another.db
+CREATE TABLE IF NOT EXISTS another_table (id INT)
+"""
+    )
+
+    ip.run_cell(
+        """%%sql sqlite:///my.db
+CREATE TABLE IF NOT EXISTS test_table (id INT)
+"""
+    )
+
+    ip.run_cell(
+        """%%sql
+ATTACH DATABASE 'another.db' as 'another_schema';
+"""
+    )
+
+    pt = PrettyTable(field_names=field_names)
+    pt.add_rows(rows)
+
+    assert str(inspect.get_columns(name=name, schema=schema)) == str(pt)

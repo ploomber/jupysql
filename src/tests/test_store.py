@@ -2,6 +2,7 @@ import pytest
 from sql.connection import Connection
 from IPython.core.error import UsageError
 from sql.store import SQLStore
+from sqlalchemy import create_engine
 
 
 @pytest.fixture(autouse=True)
@@ -106,12 +107,14 @@ def test_serial(with_, is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
+    conn = Connection(engine=create_engine("sqlite://"))
+
     monkeypatch.setattr(
-        Connection,
+        conn,
         "is_use_backtick_template",
         lambda: is_dialect_support_backtick,
     )
-    identifier = "`" if is_dialect_support_backtick else '"'
+    identifier = "`" if is_dialect_support_backtick else ""
 
     store = SQLStore()
     store.store("first", "SELECT * FROM a WHERE x > 10")
@@ -149,13 +152,13 @@ def test_branch_root(is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
-
+    conn = Connection(engine=create_engine("sqlite://"))
     monkeypatch.setattr(
-        Connection,
+        conn,
         "is_use_backtick_template",
         lambda: is_dialect_support_backtick,
     )
-    identifier = "`" if is_dialect_support_backtick else '"'
+    identifier = "`" if is_dialect_support_backtick else ""
 
     store = SQLStore()
     store.store("first_a", "SELECT * FROM a WHERE x > 10")
@@ -194,12 +197,14 @@ def test_branch_root_reverse_final_with(is_dialect_support_backtick, monkeypatch
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
+    conn = Connection(engine=create_engine("sqlite://"))
+
     monkeypatch.setattr(
-        Connection,
+        conn,
         "is_use_backtick_template",
         lambda: is_dialect_support_backtick,
     )
-    identifier = "`" if is_dialect_support_backtick else '"'
+    identifier = "`" if is_dialect_support_backtick else ""
 
     store = SQLStore()
 
@@ -237,12 +242,14 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
     monkeypatch : Monkeypatch
         A convenient fixture for monkey-patching
     """
+    conn = Connection(engine=create_engine("sqlite://"))
+
     monkeypatch.setattr(
-        Connection,
+        conn,
         "is_use_backtick_template",
         lambda: is_dialect_support_backtick,
     )
-    identifier = "`" if is_dialect_support_backtick else '"'
+    identifier = "`" if is_dialect_support_backtick else ""
 
     store = SQLStore()
 

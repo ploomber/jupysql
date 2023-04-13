@@ -47,13 +47,14 @@ class DictOfFloats(Mapping):
 def test_boxplot_stats(chinook_db, ip_empty):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 
     res = ip_empty.run_cell("%sql SELECT * FROM Invoice").result
     X = res.DataFrame().Total
     expected = cbook.boxplot_stats(X)
-    result = plot._boxplot_stats(Connection.current.session, "Invoice", "Total")
+    result = plot._boxplot_stats(Connection.current, "Invoice", "Total")
 
     assert DictOfFloats(result) == DictOfFloats(expected[0])
 
@@ -61,6 +62,7 @@ def test_boxplot_stats(chinook_db, ip_empty):
 def test_boxplot_stats_exception(chinook_db, ip_empty):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
     ip_empty.run_cell(f"%sql CALL sqlite_attach({chinook_db!r});")
 
@@ -72,7 +74,7 @@ def test_boxplot_stats_exception(chinook_db, ip_empty):
         BaseException, match="whis must be a float or list of percentiles.*"
     ):
         plot._boxplot_stats(
-            Connection.current.session,
+            Connection.current,
             "Invoice",
             "Total",
             "Not a float or list of percentiles whis param",
