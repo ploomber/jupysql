@@ -164,14 +164,16 @@ class SqlCmdMagic(Magics, Configurable):
 
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
-            if list(result_dict.values())[0][1:]:
+
+            if any(len(rows) > 1 for rows in list(result_dict.values())):
                 for comparator, rows in result_dict.items():
-                    print(f"\n{comparator}:\n")
-                    _pretty = PrettyTable()
-                    _pretty.field_names = rows[0]
-                    for row in rows[1:]:
-                        _pretty.add_row(row)
-                    print(_pretty)
+                    if len(rows) > 1:
+                        print(f"\n{comparator}:\n")
+                        _pretty = PrettyTable()
+                        _pretty.field_names = rows[0]
+                        for row in rows[1:]:
+                            _pretty.add_row(row)
+                        print(_pretty)
                 raise UsageError(
                     "The above values do not not match your test requirements."
                 )

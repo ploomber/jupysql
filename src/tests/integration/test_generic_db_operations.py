@@ -329,7 +329,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         # ("ip_with_Snowflake"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     ip_with_dynamic_db.run_cell(
@@ -343,12 +343,14 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
     """
     )
 
-    output = ip_with_dynamic_db.run_cell(
+    ip_with_dynamic_db.run_cell(
         "%sqlcmd test --table test_numbers --column value" " --less-than 5 --greater 1"
-    ).error_in_exec
+    )
 
-    assert "less_than" in str(output)
-    assert "greater" in str(output)
+    _out = capsys.readouterr()
+
+    assert "less_than" in _out.out
+    assert "greater" in _out.out
 
 
 @pytest.mark.parametrize(
@@ -368,7 +370,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request):
         # ),
     ],
 )
-def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
+def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     ip_with_dynamic_db.run_cell(
@@ -384,10 +386,12 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request):
 
     output = ip_with_dynamic_db.run_cell(
         "%sqlcmd test --table test_numbers --column value --greater-or-equal 3"
-    ).error_in_exec
+    )
 
-    assert "greater_or_equal" in str(output)
-    assert "0" in str(output)
+    _out = capsys.readouterr()
+
+    assert "greater_or_equal" in _out.out
+    assert "0" in _out.out
 
 
 @pytest.mark.parametrize(
