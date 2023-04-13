@@ -1,6 +1,5 @@
 ---
 jupytext:
-  cell_metadata_filter: -all
   formats: md:myst
   notebook_metadata_filter: myst
   text_representation:
@@ -19,21 +18,23 @@ myst:
     property=og:locale: en_US
 ---
 
-# Connecting to Databases with JupySQL
+# Connecting to a database
 
-Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections, connect securely, and use existing `sqlalchemy.engine.Engine` instances.
+Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections.
 
 ## Connect with a URL string
 
 Connection strings follow the [SQLAlchemy URL format](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls). This is the fastest way to connect to your database and the recommended way if you're using SQLite or DuckDB.
 
-However, if you're using a database that requires a password, keep reading for more secure methods.
-
-
 Database URLs have the following format:
 
 ```
 dialect+driver://username:password@host:port/database
+```
+
+
+```{important}
+If you're using a database that requires a password, keep reading for more secure methods.
 ```
 
 +++
@@ -51,6 +52,8 @@ password = getpass()
 When you execute the cell above in a notebook, a text box will appear and whatever you type will be stored in the `password` variable.
 
 ```{code-cell} ipython3
+:tags: [remove-cell]
+
 # this cell is hidden in the docs, only used to simulate
 # the getpass() call
 password = "mysupersecretpassword"
@@ -65,6 +68,8 @@ db_url = f"postgresql://user:{password}@localhost/database"
 Create an engine and connect:
 
 ```{code-cell} ipython3
+:tags: [remove-cell]
+
 # this cell is hidden in the docs, only used to fake
 # the db_url
 db_url = "duckdb://"
@@ -77,8 +82,16 @@ engine = create_engine(db_url)
 ```
 
 ```{code-cell} ipython3
+:tags: [remove-output]
+
+%load_ext sql
+```
+
+```{code-cell} ipython3
 %sql engine
 ```
+
++++ {"user_expressions": []}
 
 ```{important}
 Unlike `ipython-sql`, JupySQL doesn't allow expanding your database URL with the `$` character:
@@ -90,13 +103,15 @@ db_url = "dialect+driver://username:password@host:port/database"
 ~~~
 ```
 
-+++
++++ {"user_expressions": []}
 
 ## Securely storing your password
 
-If you want to store your password securely (and don't get prompted whenever you start a connection), you can use keyring:
+If you want to store your password securely (and don't get prompted whenever you start a connection), you can use [keyring](https://github.com/jaraco/keyring):
 
 ```{code-cell} ipython3
+:tags: [remove-output]
+
 %pip install keyring --quiet
 ```
 
@@ -108,7 +123,9 @@ import keyring
 keyring.set_password("my_database", "my_username", "my_password")
 ```
 
-Then, delete the cell (so your password isn't hardcoded!). Now, you can retrieve your password with:
++++ {"user_expressions": []}
+
+Then, delete the cell above (so your password isn't hardcoded!). Now, you can retrieve your password with:
 
 ```{code-cell} ipython3
 from sqlalchemy import create_engine
@@ -119,13 +136,25 @@ db_url = f"postgresql://user:{password}@localhost/database"
 ```
 
 ```{code-cell} ipython3
+:tags: [remove-cell]
+
 # this cell is hidden in the docs, only used to fake
 # the db_url
 db_url = "duckdb://"
 ```
 
++++ {"user_expressions": []}
+
+Create an engine and connect:
+
 ```{code-cell} ipython3
 engine = create_engine(db_url)
+```
+
+```{code-cell} ipython3
+:tags: [remove-output]
+
+%load_ext sql
 ```
 
 ```{code-cell} ipython3
@@ -147,11 +176,13 @@ Connection arguments not whitelisted by SQLALchemy can be provided with `--conne
 Here's an example using SQLite:
 
 ```{code-cell} ipython3
+:tags: [remove-output]
+
 %load_ext sql
 ```
 
 ```{code-cell} ipython3
-%sql --connection_arguments '{"timeout":10, "mode":"ro"}' sqlite://
+%sql --connection_arguments '{"timeout":10}' sqlite://
 ```
 
 ## Connecting via an environment variable
@@ -169,10 +200,18 @@ environ["DATABASE_URL"] = f"postgresql://user:{password}@localhost/database"
 ```
 
 ```{code-cell} ipython3
+:tags: [remove-cell]
+
 # this cell is hidden in the docs, only used to fake
 # the environment variable
 from os import environ
 environ["DATABASE_URL"] = "sqlite://"
+```
+
+```{code-cell} ipython3
+:tags: [remove-output]
+
+%load_ext sql
 ```
 
 ```{code-cell} ipython3
@@ -198,6 +237,8 @@ df.to_sql("numbers", engine)
 ```
 
 ```{code-cell} ipython3
+:tags: [remove-output]
+
 %load_ext sql
 ```
 
@@ -210,24 +251,51 @@ df.to_sql("numbers", engine)
 SELECT * FROM numbers
 ```
 
++++ {"user_expressions": []}
+
 ## Using a URL object
 
-+++
+If your URL has too many fields, rt's easier to build it with the `URL` object from SQLAlchemy:
+
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
+
+connection_url = URL.create(
+    "mssql+pyodbc",
+    username="sa",
+    password="MyPassword!",
+    host="localhost",
+    port=1433,
+    database="master",
+    query={
+        "driver": "ODBC Driver 18 for SQL Server",
+        "Encrypt": "yes",
+        "TrustServerCertificate": "yes",
+    },
+)
+
+print(connection_url)
+```
+
++++ {"user_expressions": []}
+
+Once you have the URL, you can create an engine and connect:
+
+```python
+engine = create_engine(connection_url)
+%sql engine
+```
+
++++ {"user_expressions": []}
 
 ## Configuration file
 
-
-```{tip} 
-It is recommended to use config file for connection as it's more secure and do not expose credentials.
-```
-
-To ensure the security of your credentials, you can store connection information in a configuration file, under a section name chosen to  refer to your database.
-
-For instance, suppose you have a configuration file named _dsn.ini_ that contains the following section:
+You can store connection information in a `odbc.ini` configuration file:
 
 ```
-[DB_CONFIG_1] 
-drivername=postgres 
+[MY_DB] 
+drivername=postgresql
 host=my.remote.host 
 port=5433 
 database=mydatabase 
@@ -239,14 +307,19 @@ password=1234
 Leave your configuration file out of your git repository by adding it to the `.gitignore` file!
 ```
 
-then you can establish a connection to your database by running the following commands:
+To connect to the database:
 
 ```
+%sql --section MY_DB
+```
+
++++ {"user_expressions": []}
+
+If your configuration file has a different name:
+
+```{code-cell} ipython3
 %config SqlMagic.dsn_filename='./dsn.ini'
-%sql --section DB_CONFIG_1 
 ```
-
-+++
 
 ## Tutorials
 
