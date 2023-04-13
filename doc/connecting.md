@@ -20,7 +20,7 @@ myst:
 
 # Connecting to a database
 
-Learn how to connect to various databases using JupySQL in this tutorial. JupySQL is a Jupyter Notebook extension that allows you to execute SQL queries directly in your notebook cells. We'll show you how to establish connections.
+Learn how to connect to various databases using JupySQL.
 
 ## Connect with a URL string
 
@@ -302,7 +302,7 @@ engine = create_engine(connection_url)
 
 +++ {"user_expressions": []}
 
-## Configuration file
+## Configuration file (DSN)
 
 You can store connection information in a `odbc.ini` configuration file:
 
