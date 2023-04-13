@@ -18,7 +18,7 @@ build:
       - aws s3 cp _readthedocs/.jupyter_cache/ s3://jupysql-build-docs/${READTHEDOCS_VERSION} --recursive
 
 conda:
-  environment: doc/environment.lock.yml
+  environment: doc/environment.yml
 
 sphinx:
   builder: html
