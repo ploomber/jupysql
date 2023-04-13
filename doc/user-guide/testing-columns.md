@@ -49,14 +49,16 @@ For example, to see if all the values in the column birth_year are less than 200
 %sqlcmd test --table writer --column year_of_death --less-than 2000
 ```
 
-Because both William Shakespeare and Bertold Brecht died before the year 2000, this command will return True. However, if we were to run:
+Because both William Shakespeare and Bertold Brecht died before the year 2000, this command will return True. 
+
+However, if we were to run:
 
 ```{code-cell} ipython3
 :tags: [raises-exception]
 %sqlcmd test --table writer --column year_of_death --greater 1700
 ```
 
-We see that a value that failed our test was William Shakespeare, as he was born in 1616.
+We see that a value that failed our test was William Shakespeare, as he died in 1616.
 
 We can also pass several comparator arguments to test:
 
@@ -65,7 +67,9 @@ We can also pass several comparator arguments to test:
 %sqlcmd test --table writer --column year_of_death --greater-or-equal 1616 --less-than-or-equal 1956
 ```
 
-Here, because Shakespeare died in 1616 and Brecht in 1956, our test passes. However, if we search for a window between 1800 and 1900:
+Here, because Shakespeare died in 1616 and Brecht in 1956, our test passes. 
+
+However, if we search for a window between 1800 and 1900:
 
 ```{code-cell} ipython3
 :tags: [raises-exception]
@@ -74,5 +78,5 @@ Here, because Shakespeare died in 1616 and Brecht in 1956, our test passes. Howe
 
 The test fails, returning both Shakespeare and Brecht.
 
-Five different comparator arguments exist: `greater`, `greater-or-equal`, `less-than`, `less-than-or-equal`, and `no-nulls`. 
+Currently, 5 different comparator arguments are supported: `greater`, `greater-or-equal`, `less-than`, `less-than-or-equal`, and `no-nulls`. 
 

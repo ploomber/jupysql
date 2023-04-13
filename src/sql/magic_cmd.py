@@ -146,7 +146,7 @@ class SqlCmdMagic(Magics, Configurable):
             ]
 
             if args.table and not any(COMPARATOR_ARGS):
-                raise UsageError("Please input a comparator.")
+                raise UsageError("Please use a valid comparator")
 
             if args.table and any(COMPARATOR_ARGS) and not args.column:
                 raise UsageError("Please pass a column to test.")
@@ -205,6 +205,20 @@ class SqlCmdMagic(Magics, Configurable):
             return report
 
 
+def return_test_results(args, conn, query):
+    try:
+        columns = []
+        column_data = conn.execute(text(query)).cursor.description
+        res = conn.execute(text(query)).fetchall()
+        for column in column_data:
+            columns.append(column[0])
+        res = [columns, *res]
+        return res
+    except Exception as e:
+        if "column" in str(e):
+            raise UsageError(f"Referenced column '{args.column}' not found!")
+
+
 def run_each_individually(args, conn):
     base_query = select("*").from_(args.table)
 
@@ -214,18 +228,7 @@ def run_each_individually(args, conn):
         where = condition(args.column + "<=" + args.greater)
         current_query = base_query.where(where).sql()
 
-        res = None
-
-        try:
-            columns = []
-            column_data = conn.execute(text(current_query)).cursor.description
-            res = conn.execute(text(current_query)).fetchall()
-            for column in column_data:
-                columns.append(column[0])
-            res = [columns, *res]
-        except Exception as e:
-            if "column" in str(e):
-                raise UsageError(f"Referenced column '{args.column}' not found!")
+        res = return_test_results(args, conn, query=current_query)
 
         if res is not None:
             storage["greater"] = res
@@ -234,37 +237,16 @@ def run_each_individually(args, conn):
 
         current_query = base_query.where(where).sql()
 
-        res = None
-
-        try:
-            columns = []
-            column_data = conn.execute(text(current_query)).cursor.description
-            res = conn.execute(text(current_query)).fetchall()
-            for column in column_data:
-                columns.append(column[0])
-            res = [columns, *res]
-        except Exception as e:
-            if "column" in str(e):
-                raise UsageError(f"Referenced column '{args.column}' not found!")
+        res = return_test_results(args, conn, query=current_query)
 
         if res is not None:
             storage["greater_or_equal"] = res
+
     if args.less_than_or_equal:
         where = condition(args.column + ">" + args.less_than_or_equal)
         current_query = base_query.where(where).sql()
 
-        res = None
-
-        try:
-            columns = []
-            column_data = conn.execute(text(current_query)).cursor.description
-            res = conn.execute(text(current_query)).fetchall()
-            for column in column_data:
-                columns.append(column[0])
-            res = [columns, *res]
-        except Exception as e:
-            if "column" in str(e):
-                raise UsageError(f"Referenced column '{args.column}' not found!")
+        res = return_test_results(args, conn, query=current_query)
 
         if res is not None:
             storage["less_than_or_equal"] = res
@@ -272,18 +254,7 @@ def run_each_individually(args, conn):
         where = condition(args.column + ">=" + args.less_than)
         current_query = base_query.where(where).sql()
 
-        res = None
-
-        try:
-            columns = []
-            column_data = conn.execute(text(current_query)).cursor.description
-            res = conn.execute(text(current_query)).fetchall()
-            for column in column_data:
-                columns.append(column[0])
-            res = [columns, *res]
-        except Exception as e:
-            if "column" in str(e):
-                raise UsageError(f"Referenced column '{args.column}' not found!")
+        res = return_test_results(args, conn, query=current_query)
 
         if res is not None:
             storage["less_than"] = res
@@ -291,17 +262,9 @@ def run_each_individually(args, conn):
         where = condition("{} is NULL".format(args.column))
         current_query = base_query.where(where).sql()
 
-        res = None
+        res = return_test_results(args, conn, query=current_query)
 
-        try:
-            column_data = conn.execute(text(current_query)).cursor.description
-            res = conn.execute(text(current_query)).fetchall()
-            for column in column_data:
-                columns.append(column[0])
-            res = [columns, *res]
-        except Exception as e:
-            if "column" in str(e):
-                raise UsageError(f"Referenced column {args.column} not found!")
+        print(res)
 
         if res is not None:
             storage["null"] = res
