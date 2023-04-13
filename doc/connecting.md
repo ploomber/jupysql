@@ -115,9 +115,11 @@ If you want to store your password securely (and don't get prompted whenever you
 %pip install keyring --quiet
 ```
 
++++ {"user_expressions": []}
+
 Execute the following in your notebook:
 
-```{code-cell} ipython3
+```python
 import keyring
 
 keyring.set_password("my_database", "my_username", "my_password")
@@ -127,11 +129,22 @@ keyring.set_password("my_database", "my_username", "my_password")
 
 Then, delete the cell above (so your password isn't hardcoded!). Now, you can retrieve your password with:
 
-```{code-cell} ipython3
+```python
 from sqlalchemy import create_engine
 import keyring
 
 password = keyring.get_password("my_database", "my_username")
+```
+
+```{code-cell} ipython3
+:tags: [remove-cell]
+
+# this cell is hidden in the docs, only used to fake
+# the password variable
+password = "password"
+```
+
+```{code-cell} ipython3
 db_url = f"postgresql://user:{password}@localhost/database"
 ```
 
