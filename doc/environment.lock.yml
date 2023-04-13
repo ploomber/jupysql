@@ -176,6 +176,7 @@ dependencies:
   - zlib=1.2.13
   - zstd=1.5.2
   - pip:
+    - -e ..
     - accessible-pygments==0.0.4
     - asttokens==2.2.1
     - attrs==22.2.0
@@ -209,7 +210,6 @@ dependencies:
     - jedi==0.18.2
     - jmespath==1.0.1
     - jsonschema==4.17.3
-    - jupysql==0.7.1.dev0
     - jupyter-book==0.15.1
     - jupyter-cache==0.5.0
     - jupyter-client==8.1.0
