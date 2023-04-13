@@ -214,7 +214,7 @@ def test_table_profile_store(ip, tmp_empty):
 @pytest.mark.parametrize(
     "cell, error_type, error_message",
     [
-        ["%sqlcmd test -t test_numbers", UsageError, "Please input a comparator."],
+        ["%sqlcmd test -t test_numbers", UsageError, "Please use a valid comparator."],
         [
             "%sqlcmd test --t test_numbers --greater 12",
             UsageError,
