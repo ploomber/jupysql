@@ -146,7 +146,7 @@ class SqlCmdMagic(Magics, Configurable):
             ]
 
             if args.table and not any(COMPARATOR_ARGS):
-                raise UsageError("Please use a valid comparator")
+                raise UsageError("Please use a valid comparator.")
 
             if args.table and any(COMPARATOR_ARGS) and not args.column:
                 raise UsageError("Please pass a column to test.")
