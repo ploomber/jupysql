@@ -384,7 +384,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     """
     )
 
-    output = ip_with_dynamic_db.run_cell(
+    ip_with_dynamic_db.run_cell(
         "%sqlcmd test --table test_numbers --column value --greater-or-equal 3"
     )
 
