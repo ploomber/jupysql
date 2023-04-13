@@ -264,8 +264,6 @@ def run_each_individually(args, conn):
 
         res = return_test_results(args, conn, query=current_query)
 
-        print(res)
-
         if res is not None:
             storage["null"] = res
 
