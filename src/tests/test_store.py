@@ -269,3 +269,46 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
             identifier
         )
     )
+
+
+@pytest.mark.parametrize(
+    "is_dialect_support_backtick",
+    [(True), (False)],
+)
+def test_branch_with_trailing_semicolon(is_dialect_support_backtick, monkeypatch):
+    """To test if SQLStore can store multiple with sql clauses containing trailing
+    semicolons, but some sub-queries have same with_ dependency.
+    To see if SQLStore can parse into final combined sql clause
+
+    Parameters
+    ----------
+    with_ : string
+        The key to use in with sql clause
+    monkeypatch : Monkeypatch
+        A convenient fixture for monkey-patching
+    """
+    monkeypatch.setattr(
+        Connection,
+        "is_use_backtick_template",
+        lambda: is_dialect_support_backtick,
+    )
+    identifier = "`" if is_dialect_support_backtick else ""
+
+    store = SQLStore()
+
+    store.store("first_a", "SELECT * FROM a WHERE x > 10;")
+    store.store("second_a", "SELECT * FROM first_a WHERE x > 20;", with_=["first_a"])
+    store.store("third_a", "SELECT * FROM second_a WHERE x > 30;", with_=["second_a"])
+
+    store.store("first_b", "SELECT * FROM second_a WHERE y > 10;", with_=["second_a"])
+
+    result = store.render("SELECT * FROM third;", with_=["first_b", "third_a"])
+    assert (
+        str(result)
+        == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
+{0}second_a{0} AS (SELECT * FROM first_a WHERE x > 20), \
+{0}first_b{0} AS (SELECT * FROM second_a WHERE y > 10), \
+{0}third_a{0} AS (SELECT * FROM second_a WHERE x > 30)SELECT * FROM third".format(
+            identifier
+        )
+    )
