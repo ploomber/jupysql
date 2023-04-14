@@ -684,6 +684,14 @@ def test_save_with(ip):
     assert third_out.result == [("William", "Shakespeare", 1616)]
 
 
+def test_line_magic_save_trailing_semicolon(ip):
+    result = ip.run_cell(
+        "%sql --save shakespeare SELECT * FROM author WHERE last_name = 'Shakespeare';"
+    )
+
+    assert result.success
+
+
 def test_line_magic_save_with_trailing_semicolon(ip):
     # First Query
     first_out = ip.run_cell(
@@ -700,6 +708,17 @@ def test_line_magic_save_with_trailing_semicolon(ip):
     assert first_out.success
     assert second_out.success
     assert second_out.result == [("William", "Shakespeare", 1616)]
+
+
+def test_cell_magic_save_trailing_semicolon(ip):
+    result = ip.run_cell(
+        """
+            %%sql --save shakespeare
+            SELECT * FROM author WHERE last_name = 'Shakespeare';
+        """
+    )
+
+    assert result.success
 
 
 def test_cell_magic_save_with_trailing_semicolon(ip):

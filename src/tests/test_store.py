@@ -279,16 +279,11 @@ def test_branch_with_trailing_semicolon(is_dialect_support_backtick, monkeypatch
     """To test if SQLStore can store multiple with sql clauses containing trailing
     semicolons, but some sub-queries have same with_ dependency.
     To see if SQLStore can parse into final combined sql clause
-
-    Parameters
-    ----------
-    with_ : string
-        The key to use in with sql clause
-    monkeypatch : Monkeypatch
-        A convenient fixture for monkey-patching
     """
+    conn = Connection(engine=create_engine("sqlite://"))
+
     monkeypatch.setattr(
-        Connection,
+        conn,
         "is_use_backtick_template",
         lambda: is_dialect_support_backtick,
     )
