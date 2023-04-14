@@ -263,12 +263,7 @@ class SqlMagic(Magics, Configurable):
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
                 local_ns[key] = value
-            return self._execute(
-                line,
-                cell,
-                local_ns,
-                is_interactive_mode=True,
-            )
+            return self._execute(line, cell, local_ns, is_interactive_mode=True)
 
         """
         This function implements the cell logic; we create this private
