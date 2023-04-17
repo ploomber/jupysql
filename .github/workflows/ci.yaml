@@ -38,6 +38,7 @@ jobs:
           pip install .
           # check package is importable
           python -c "import sql"
+          cargo clean
           pip install ".[dev]"
           pip install sqlalchemy -U
 
