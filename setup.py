@@ -32,7 +32,7 @@ DEV = [
     "flake8",
     "pytest",
     "pandas",
-    "polars"
+    "polars",
     "invoke",
     "pkgmt",
     "twine",
