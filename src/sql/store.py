@@ -78,9 +78,11 @@ class SQLStore(MutableMapping):
         if with_ and key in with_:
             raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
         # Remove trailing semicolon from query
-        query_without_semicolon = query.replace(";", "")
+        query_without_trailing_semicolon = query
+        if query.strip().endswith(';'):
+            query_without_trailing_semicolon = query[::-1].replace(";", "", 1)[::-1]
 
-        self._data[key] = SQLQuery(self, query_without_semicolon, with_)
+        self._data[key] = SQLQuery(self, query_without_trailing_semicolon, with_)
 
 
 class SQLQuery:
@@ -119,10 +121,12 @@ class SQLQuery:
             with_clause_template_backtick if is_use_backtick else with_clause_template
         )
         # Remove trailing semicolon from query
-        query_without_semicolon = self._query.replace(";", "")
+        query_without_trailing_semicolon = self._query
+        if self._query.strip().endswith(';'):
+            query_without_trailing_semicolon = self._query[::-1].replace(";", "", 1)[::-1]
 
         return template.render(
-            query=query_without_semicolon, saved=self._store._data, with_=with_all
+            query=query_without_trailing_semicolon, saved=self._store._data, with_=with_all
         )
 
 
