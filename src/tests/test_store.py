@@ -307,3 +307,46 @@ def test_branch_with_trailing_semicolon(is_dialect_support_backtick, monkeypatch
             identifier
         )
     )
+
+
+@pytest.mark.parametrize(
+    "is_dialect_support_backtick",
+    [(True), (False)],
+)
+def test_branch_with_semicolons_in_query(is_dialect_support_backtick, monkeypatch):
+    """To test if SQLStore can store multiple with sql clauses containing semicolons
+    in query, but some sub-queries have same with_ dependency.
+    To see if SQLStore can parse into final combined sql clause
+    """
+    conn = Connection(engine=create_engine("sqlite://"))
+
+    monkeypatch.setattr(
+        conn,
+        "is_use_backtick_template",
+        lambda: is_dialect_support_backtick,
+    )
+    identifier = "`" if is_dialect_support_backtick else ""
+
+    store = SQLStore()
+
+    store.store("first_a", "SELECT * FROM a WHERE x LIKE `%;%`;")
+    store.store(
+        "second_a", "SELECT * FROM first_a WHERE x LIKE `%;%`", with_=["first_a"]
+    )
+    store.store("third_a", "SELECT * FROM second_a WHERE x > 30;", with_=["second_a"])
+
+    store.store("first_b", "SELECT * FROM second_a WHERE y > 10;", with_=["second_a"])
+
+    result = store.render(
+        "SELECT * FROM third WHERE x LIKE `%;%`;", with_=["first_b", "third_a"]
+    )
+    assert (
+        str(result)
+        == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x LIKE `%;%`), \
+{0}second_a{0} AS (SELECT * FROM first_a WHERE x LIKE `%;%`), \
+{0}first_b{0} AS (SELECT * FROM second_a WHERE y > 10), \
+{0}third_a{0} AS (SELECT * FROM second_a WHERE x > 30)\
+SELECT * FROM third WHERE x LIKE `%;%`".format(
+            identifier
+        )
+    )
