@@ -1,6 +1,8 @@
 import pytest
 from sql import util
 
+from IPython.core.error import UsageError
+
 ERROR_MESSAGE = "Table cannot be None"
 EXPECTED_SUGGESTIONS_MESSAGE = "Did you mean :"
 EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA = (
@@ -191,20 +193,20 @@ def test_is_table_exists_ignore_error(ip, table, expected_result):
 @pytest.mark.parametrize(
     "table, expected_error",
     [
-        ("number_table", None),
-        ("test", None),
-        ("author", None),
-        ("empty_table", None),
-        ("numbers1", ValueError),
-        ("test1", ValueError),
-        ("author1", ValueError),
-        ("empty_table1", ValueError),
-        (None, ValueError),
+        ("number_table", False),
+        ("test", False),
+        ("author", False),
+        ("empty_table", False),
+        ("numbers1", True),
+        ("test1", True),
+        ("author1", True),
+        ("empty_table1", True),
+        (None, True),
     ],
 )
 def test_is_table_exists(ip, table, expected_error):
     if expected_error:
-        with pytest.raises(ValueError):
+        with pytest.raises(UsageError):
             util.is_table_exists(table)
     else:
         util.is_table_exists(table)
