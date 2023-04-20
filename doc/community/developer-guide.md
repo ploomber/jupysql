@@ -49,6 +49,14 @@ from sql.exceptions import ArgumentError
 raise ArgumentError("something bad happened")
 ```
 
++++ {"user_expressions": []}
+
+### Unit testing custom errors
+
+The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples.
+
++++
+
 ## Unit testing
 
 ### Running tests
