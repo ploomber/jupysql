@@ -3,6 +3,7 @@ import difflib
 import sql.run
 from sql.connection import Connection
 from sql.store import store
+from sql import exceptions
 
 
 def convert_to_scientific(value):
@@ -118,7 +119,7 @@ def is_table_exists(
                     suggestions_message = f"\nDid you mean : {_suggestions_string}"
                     err_message = f"{err_message}{suggestions_message}"
 
-            raise ValueError(err_message)
+            raise exceptions.TableNotFoundError(err_message)
 
     return _is_exist
 

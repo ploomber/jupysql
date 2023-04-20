@@ -25,6 +25,7 @@ from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
+from sql._patch import patch_ipython
 from ploomber_core.dependencies import check_installed
 
 from traitlets.config.configurable import Configurable
@@ -454,6 +455,8 @@ def load_ipython_extension(ip):
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
+
+    patch_ipython(ip)
 
 
 # %%
