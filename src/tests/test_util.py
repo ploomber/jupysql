@@ -38,7 +38,7 @@ def test_missing_with(ip, store_table, query):
     expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_store_message).lower() in error_message.lower()
 
 
@@ -89,7 +89,7 @@ def test_bad_table_error_message(ip, table, query, suggestions):
     expected_error_message = EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA.format(table)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
@@ -161,7 +161,7 @@ ATTACH DATABASE 'my.db' AS test_schema
     out = ip.run_cell(query)
 
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, ValueError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
@@ -216,9 +216,9 @@ def test_is_table_exists(ip, table, expected_error):
     "table, expected_error, expected_suggestions",
     [
         ("number_table", None, []),
-        ("number_tale", ValueError, ["number_table"]),
-        ("_table", ValueError, ["number_table", "empty_table"]),
-        (None, ValueError, []),
+        ("number_tale", UsageError, ["number_table"]),
+        ("_table", UsageError, ["number_table", "empty_table"]),
+        (None, UsageError, []),
     ],
 )
 def test_is_table_exists_with(ip, table, expected_error, expected_suggestions):
