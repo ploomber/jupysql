@@ -383,7 +383,6 @@ def histogram(
     if not conn:
         conn = sql.connection.Connection.current
 
-    print("Current conn: ", conn)
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
     if category:
