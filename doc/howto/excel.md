@@ -34,7 +34,7 @@ Reading dataframe using `pandas.read_excel`:
 
 ```{code-cell} ipython3
 import pandas as pd
-pd.read_excel("https://go.microsoft.com/fwlink/?LinkID=521962")
+df = pd.read_excel("https://go.microsoft.com/fwlink/?LinkID=521962")
 ```
 
 Initializing jupysql and connecting to `duckdb` database
