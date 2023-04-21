@@ -71,8 +71,10 @@ def test_sqlstore_getitem():
 def test_key():
     store = SQLStore()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(UsageError) as excinfo:
         store.store("first", "SELECT * FROM first WHERE x > 20", with_=["first"])
+
+    assert "cannot appear in with_ argument" in str(excinfo.value)
 
 
 @pytest.mark.parametrize(

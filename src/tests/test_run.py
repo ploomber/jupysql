@@ -7,6 +7,7 @@ import pytest
 
 import warnings
 
+from IPython.core.error import UsageError
 from sql.connection import Connection
 from sql.run import (
     run,
@@ -88,8 +89,10 @@ def test_is_postgres_or_redshift(dialect):
 
 
 def test_handle_postgres_special(mock_conns):
-    with pytest.raises(ImportError):
+    with pytest.raises(UsageError) as excinfo:
         handle_postgres_special(mock_conns, "\\")
+
+    assert "pgspecial not installed" in str(excinfo.value)
 
 
 def test_set_autocommit(mock_conns, mock_config, caplog):
@@ -124,7 +127,7 @@ def test_select_df_type_is_polars(monkeypatch, config_polars, mock_resultset):
 
 
 def test_sql_starts_with_begin(mock_conns, mock_config):
-    with pytest.raises(ValueError, match="does not support transactions"):
+    with pytest.raises(UsageError, match="does not support transactions"):
         run(mock_conns, "BEGIN", mock_config)
 
 
