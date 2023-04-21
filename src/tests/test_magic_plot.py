@@ -80,10 +80,10 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "boxplot-with",
         "boxplot-shortcuts",
         "boxplot-nas",
-        "boxplot-column-spaces",
-        "histogram-spaces",
-        "boxplot-table-spaces",
-        "histogram-table-spaces",
+        "boxplot-column-name-with-spaces",
+        "histogram-column-name-with-spaces",
+        "boxplot-table-name-with-spaces",
+        "histogram-table-name-with-spaces",
     ],
 )
 def test_sqlplot(tmp_empty, ip, cell):
