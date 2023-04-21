@@ -76,7 +76,7 @@ class SQLStore(MutableMapping):
                 " Please use dashes(-) instead"
             )
         if with_ and key in with_:
-            raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
+            raise UsageError(f"Script name ({key!r}) cannot appear in with_ argument")
 
         self._data[key] = SQLQuery(self, query, with_)
 

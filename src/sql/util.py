@@ -80,7 +80,7 @@ def is_table_exists(
         else:
             raise exceptions.ArgumentError("Table cannot be None")
     if not Connection.current:
-        raise RuntimeError("No active connection")
+        raise exceptions.RuntimeError("No active connection")
     if not conn:
         conn = Connection.current
 
@@ -247,4 +247,4 @@ def support_only_sql_alchemy_connection(command):
     Throws an AttributeError if connection is not SQLAlchemy
     """
     if Connection.is_custom_connection():
-        raise AttributeError(f"{command} is not supported for a custom engine")
+        raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")

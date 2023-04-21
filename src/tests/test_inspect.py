@@ -34,7 +34,7 @@ def sample_db(ip):
 )
 def test_no_active_session(function, monkeypatch):
     monkeypatch.setattr(connection.Connection, "current", None)
-    with pytest.raises(RuntimeError, match="No active connection"):
+    with pytest.raises(UsageError, match="No active connection"):
         function()
 
 

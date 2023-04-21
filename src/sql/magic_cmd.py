@@ -13,7 +13,7 @@ from prettytable import PrettyTable
 
 try:
     from traitlets.config.configurable import Configurable
-except ImportError:
+except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
 
 import sql.connection
