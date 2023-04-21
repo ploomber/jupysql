@@ -9,6 +9,7 @@ import difflib
 import sqlglot
 from sql.store import store
 from sql.telemetry import telemetry
+from sql import exceptions
 
 PLOOMBER_SUPPORT_LINK_STR = (
     "For technical support: https://ploomber.io/community"
@@ -342,9 +343,9 @@ class Connection:
                 descriptor.lower()
             )
         if not conn:
-            raise Exception(
+            raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
-                % str(cls.connections.keys())
+                % str(list(cls.connections.keys()))
             )
 
         if descriptor in cls.connections:
@@ -363,7 +364,7 @@ class Connection:
 
         if conn is None:
             if not Connection.current:
-                raise RuntimeError("No active connection")
+                raise exceptions.RuntimeError("No active connection")
             else:
                 conn = Connection.current.session
 
