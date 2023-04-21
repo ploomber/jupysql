@@ -1,3 +1,4 @@
+import sys
 import sqlite3
 
 import pytest
@@ -74,6 +75,10 @@ ATTACH DATABASE 'my.db' AS some_schema
     assert "numbers" in out
 
 
+@pytest.mark.xfail(
+    sys.platform == "win32",
+    reason="problem in IPython.core.magic_arguments.parse_argstring",
+)
 @pytest.mark.parametrize(
     "cmd, cols",
     [
