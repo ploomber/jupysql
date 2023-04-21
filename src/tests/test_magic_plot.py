@@ -64,6 +64,10 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "%sqlplot boxplot --table subset --column x --with subset",
         "%sqlplot boxplot -t subset -c x -w subset -o h",
         "%sqlplot boxplot --table nas.csv --column x",
+        "%sqlplot boxplot --table spaces.csv --column 'some column'",
+        "%sqlplot histogram --table spaces.csv --column 'some column'",
+        "%sqlplot boxplot --table 'file with spaces.csv' --column x",
+        "%sqlplot histogram --table 'file with spaces.csv' --column x",
     ],
     ids=[
         "histogram",
@@ -76,11 +80,24 @@ def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
         "boxplot-with",
         "boxplot-shortcuts",
         "boxplot-nas",
+        "boxplot-column-spaces",
+        "histogram-spaces",
+        "boxplot-table-spaces",
+        "histogram-table-spaces",
     ],
 )
 def test_sqlplot(tmp_empty, ip, cell):
     # clean current Axes
     plt.cla()
+
+    Path("spaces.csv").write_text(
+        """\
+"some column", y
+0, 0
+1, 1
+2, 2
+"""
+    )
 
     Path("data.csv").write_text(
         """\
@@ -100,6 +117,14 @@ x, y
 """
     )
 
+    Path("file with spaces.csv").write_text(
+        """\
+x, y
+0, 0
+1, 1
+2, 2
+"""
+    )
     ip.run_cell("%sql duckdb://")
 
     ip.run_cell(
