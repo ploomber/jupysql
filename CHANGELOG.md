@@ -1,9 +1,10 @@
 # CHANGELOG
 
 ## 0.7.2dev
+* [Feature] Support for DB API 2.0 drivers (#350)
+* [Feature] Improve boxplot performance (#152)
+* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
 
-* [Feature] Improve boxplot performance [#152]
-* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden)
 ## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
