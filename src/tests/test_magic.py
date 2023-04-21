@@ -141,6 +141,16 @@ def test_persist_no_index(ip):
     assert persisted == [(1, "foo"), (2, "bar")]
 
 
+def test_persist_invalid_identifier(ip):
+    result = ip.run_cell("%sql --persist sqlite:// not an identifier")
+    assert "not a valid identifier" in str(result.error_in_exec)
+
+
+def test_persist_undefined_variable(ip):
+    result = ip.run_cell("%sql --persist sqlite:// not_a_variable")
+    assert "it's undefined" in str(result.error_in_exec)
+
+
 def test_append(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
