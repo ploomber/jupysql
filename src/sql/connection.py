@@ -194,10 +194,6 @@ class Connection:
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
 
-    @classmethod
-    def _error_module_not_found(cls, e):
-        return ModuleNotFoundError("test")
-
     def __init__(self, engine, alias=None):
         self.url = engine.url
         self.name = self.assign_name(engine)
