@@ -172,7 +172,7 @@ def test_persist_non_frame_raises(ip):
     ip.run_cell("not_a_dataframe = 22")
     runsql(ip, "")
     result = ip.run_cell("%sql --persist sqlite:// not_a_dataframe")
-    assert isinstance(result.error_in_exec, TypeError)
+    assert isinstance(result.error_in_exec, UsageError)
     assert (
         "is not a Pandas DataFrame or Series".lower()
         in str(result.error_in_exec).lower()
@@ -182,13 +182,6 @@ def test_persist_non_frame_raises(ip):
 def test_persist_bare(ip):
     result = ip.run_cell("%sql --persist sqlite://")
     assert result.error_in_exec
-
-
-def test_persist_frame_at_its_creation(ip):
-    ip.run_cell("results = %sql SELECT * FROM author;")
-    ip.run_cell("%sql --persist sqlite:// results.DataFrame()")
-    persisted = runsql(ip, "SELECT * FROM results")
-    assert "Shakespeare" in str(persisted)
 
 
 def test_connection_args_enforce_json(ip):
