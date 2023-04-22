@@ -1,9 +1,19 @@
 # CHANGELOG
 
-## 0.7.1dev
-* [Doc] Updating connecting guide (by @DaveOkpare) (#56)
+## 0.7.2dev
+* [Feature] Support for DB API 2.0 drivers (#350)
+* [Feature] Improve boxplot performance (#152)
+* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
+* [Doc] Add QuestDB tutorial (#350)
+* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
+
+## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
+* [Fix] Fix `%sqlcmd columns` in MySQL and MariaDB
+* [Fix] `%sqlcmd --test` improved, changes in logic and addition of user guide ([#275](https://github.com/ploomber/jupysql/issues/275))
+* [Doc] Algolia search added ([#64](https://github.com/ploomber/jupysql/issues/64))
+* [Doc] Updating connecting guide (by [@DaveOkpare](https://github.com/DaveOkpare)) ([#56](https://github.com/ploomber/jupysql/issues/56))
 
 ## 0.7.0 (2023-04-05)
 

@@ -23,6 +23,40 @@ Before continuing, ensure you have a working [development environment.](https://
 
 +++
 
+## Throwing errors
+
+When writing Python libraries, we often throw errors (and display error tracebacks) to let users know that something went wrong. However, JupySQL is an abstraction for executing SQL queries; hence, Python tracebacks a useless to end-users since they expose JupySQL's internals.
+
+So in most circumstances, we only display an error without a traceback. For example, when calling `%sqlplot` without arguments, we get an error:
+
+```{code-cell} ipython3
+%load_ext sql
+```
+
+```{code-cell} ipython3
+:tags: [raises-exception]
+
+%sqlplot
+```
+
+To implement such behavior, you can use any of the functions defined in `sql.exceptions`, or implement your own. For example, we have an `ArgumentError` that can be raised when users pass incorrect arguments:
+
+```{code-cell} ipython3
+:tags: [raises-exception]
+
+from sql.exceptions import ArgumentError
+
+raise ArgumentError("something bad happened")
+```
+
++++ {"user_expressions": []}
+
+### Unit testing custom errors
+
+The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples.
+
++++
+
 ## Unit testing
 
 ### Running tests
@@ -201,3 +235,8 @@ To run some of the tests:
 pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 ```
 
+### Integration tests with cloud databases
+
+We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
+
+Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
