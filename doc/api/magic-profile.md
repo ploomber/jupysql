@@ -19,6 +19,8 @@ myst:
 
 # `%sqlcmd profile`
 
+`%sqlcmd profile` allows you to summarize a table quickly.
+
 +++
 
 ## Load Data
@@ -40,8 +42,6 @@ if not Path("penguins.csv").is_file():
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %%sql
 SELECT * FROM penguins.csv LIMIT 3
 ```
@@ -84,15 +84,15 @@ Arguments:
 `-o`/`--output` (Optional) Output the profile at a specified location (path name expected)
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %sqlcmd profile -t s1.penguins
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %sqlcmd profile -s s1 -t penguins
 ```
 
-The output of these two command should be the same. However, look at how we specify the table name differently (whether or not we specify the schema) to get a better sense of the schema argument. 
+The output of these two command should be the same. However, look at how we specify the table name differently (whether or not we specify the schema) to get a better sense of the schema argument.
+
+```{code-cell} ipython3
+%sqlcmd profile -t s1.penguins -o penguins-profile.html
+```
