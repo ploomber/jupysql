@@ -44,6 +44,37 @@ class Tables(DatabaseInspection):
         self._table_txt = self._table.get_string()
 
 
+def _add_missing_keys(keys, mapping):
+    """
+    Return a copy of `mapping` with all the missing `keys`, setting the
+    value as an empty string
+    """
+    return {key: mapping.get(key, "") for key in keys}
+
+
+# we're assuming there's one row that contains all keys, I tested this and worked fine
+# my initial implementation just took all keys that appeared in "rows" but then order
+# isn't preserved, which is important for user experience
+def _get_row_with_most_keys(rows):
+    """
+    Get the row with the maximum length from the nested lists in `rows`
+    """
+    if not rows:
+        return list()
+
+    max_idx, max_ = None, 0
+
+    for idx, row in enumerate(rows):
+        if len(row) > max_:
+            max_idx = idx
+            max_ = len(row)
+
+    if max_idx is None:
+        return list()
+
+    return list(rows[max_idx])
+
+
 @modify_exceptions
 class Columns(DatabaseInspection):
     """
@@ -55,13 +86,18 @@ class Columns(DatabaseInspection):
 
         inspector = _get_inspector(conn)
 
-        columns = inspector.get_columns(name, schema)
+        # this returns a list of dictionaries. e.g.,
+        # [{"name": "column_a", "type": "INT"}
+        #  {"name": "column_b", "type": "FLOAT"}]
+        columns = inspector.get_columns(name, schema) or []
 
         self._table = PrettyTable()
-        self._table.field_names = list(columns[0].keys())
+        self._table.field_names = _get_row_with_most_keys(columns)
 
         for row in columns:
-            self._table.add_row(list(row.values()))
+            self._table.add_row(
+                list(_add_missing_keys(self._table.field_names, row).values())
+            )
 
         self._table_html = self._table.get_html_string()
         self._table_txt = self._table.get_string()
@@ -100,9 +136,14 @@ class TableDescription(DatabaseInspection):
         if schema:
             table_name = f"{schema}.{table_name}"
 
-        columns = sql.run.raw_run(
+        columns_query_result = sql.run.raw_run(
             Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
-        ).keys()
+        )
+
+        if Connection.is_custom_connection():
+            columns = [i[0] for i in columns_query_result.description]
+        else:
+            columns = columns_query_result.keys()
 
         table_stats = dict({})
         columns_to_include_in_report = set()
@@ -116,7 +157,7 @@ class TableDescription(DatabaseInspection):
                     Connection.current,
                     f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
-                    GROUP BY {column} ORDER BY Count({column}) Desc""",
+                    GROUP BY top ORDER BY frequency Desc""",
                 ).fetchall()
 
                 table_stats[column]["freq"] = result_col_freq_values[0][1]
@@ -134,7 +175,6 @@ class TableDescription(DatabaseInspection):
                     f"""
                     SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
-                    COUNT(DISTINCT {column}) AS unique_count,
                     COUNT({column}) AS count
                     FROM {table_name}
                     WHERE {column} IS NOT NULL
@@ -143,10 +183,27 @@ class TableDescription(DatabaseInspection):
 
                 table_stats[column]["min"] = result_value_values[0][0]
                 table_stats[column]["max"] = result_value_values[0][1]
-                table_stats[column]["unique"] = result_value_values[0][2]
-                table_stats[column]["count"] = result_value_values[0][3]
+                table_stats[column]["count"] = result_value_values[0][2]
 
-                columns_to_include_in_report.update(["count", "unique", "min", "max"])
+                columns_to_include_in_report.update(["count", "min", "max"])
+
+            except Exception:
+                pass
+
+            try:
+                # get unique values
+                result_value_values = sql.run.raw_run(
+                    Connection.current,
+                    f"""
+                    SELECT
+                    COUNT(DISTINCT {column}) AS unique_count
+                    FROM {table_name}
+                    WHERE {column} IS NOT NULL
+                    """,
+                ).fetchall()
+                table_stats[column]["unique"] = result_value_values[0][0]
+
+                columns_to_include_in_report.update(["unique"])
 
             except Exception:
                 pass
