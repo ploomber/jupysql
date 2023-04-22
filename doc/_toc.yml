@@ -39,7 +39,6 @@ parts:
     - file: api/configuration
     - file: api/python
     - file: api/magic-profile
-    - file: api/penguins-profile
 
   - caption: How-To
     chapters:
