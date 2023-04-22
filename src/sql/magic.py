@@ -21,6 +21,7 @@ import warnings
 import sql.connection
 import sql.parse
 import sql.run
+from sql import display
 from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
@@ -344,6 +345,7 @@ class SqlMagic(Magics, Configurable):
             alias=args.alias,
         )
         payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index
@@ -369,7 +371,7 @@ class SqlMagic(Magics, Configurable):
             self._store.store(args.save, command.sql_original, with_=args.with_)
 
         if args.no_execute:
-            print("Skipping execution...")
+            display.message("Skipping execution...")
             return
 
         try:
@@ -441,7 +443,8 @@ class SqlMagic(Magics, Configurable):
         if_exists = "append" if append else "fail"
 
         frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
-        return "Persisted %s" % table_name
+
+        display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
 def load_ipython_extension(ip):
