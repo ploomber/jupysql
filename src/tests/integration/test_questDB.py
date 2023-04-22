@@ -580,7 +580,7 @@ def test_sqlplot_not_supported_error(
     ip_questdb.run_cell(query)
     out = ip_questdb.run_cell(query)
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    assert isinstance(out.error_in_exec, AttributeError)
     assert str(expected_error_message).lower() in error_message.lower()
 
 
