@@ -1,3 +1,4 @@
+import sys
 import sqlite3
 
 import pytest
@@ -15,19 +16,19 @@ from pathlib import Path
             "Valid commands are: tables, columns, test, profile",
         ],
         [
-            "%sqlcmd " "",
+            "%sqlcmd ",
             UsageError,
             "Missing argument for %sqlcmd. "
             "Valid commands are: tables, columns, test, profile",
         ],
         [
-            "%sqlcmd " "",
+            "%sqlcmd  ",
             UsageError,
             "Missing argument for %sqlcmd. "
             "Valid commands are: tables, columns, test, profile",
         ],
         [
-            "%sqlcmd " "",
+            "%sqlcmd   ",
             UsageError,
             "Missing argument for %sqlcmd. "
             "Valid commands are: tables, columns, test, profile",
@@ -74,11 +75,27 @@ ATTACH DATABASE 'my.db' AS some_schema
     assert "numbers" in out
 
 
-def test_columns(ip):
-    out = ip.run_cell("%sqlcmd columns -t author").result._repr_html_()
-    assert "first_name" in out
-    assert "last_name" in out
-    assert "year_of_death" in out
+@pytest.mark.xfail(
+    sys.platform == "win32",
+    reason="problem in IPython.core.magic_arguments.parse_argstring",
+)
+@pytest.mark.parametrize(
+    "cmd, cols",
+    [
+        ["%sqlcmd columns -t author", ["first_name", "last_name", "year_of_death"]],
+        [
+            "%sqlcmd columns -t 'table with spaces'",
+            ["first", "second"],
+        ],
+        [
+            '%sqlcmd columns -t "table with spaces"',
+            ["first", "second"],
+        ],
+    ],
+)
+def test_columns(ip, cmd, cols):
+    out = ip.run_cell(cmd).result._repr_html_()
+    assert all(col in out for col in cols)
 
 
 def test_columns_with_schema(ip, tmp_empty):
@@ -209,3 +226,37 @@ def test_table_profile_store(ip, tmp_empty):
 
     report = Path("test_report.html")
     assert report.is_file()
+
+
+@pytest.mark.parametrize(
+    "cell, error_type, error_message",
+    [
+        ["%sqlcmd test -t test_numbers", UsageError, "Please use a valid comparator."],
+        [
+            "%sqlcmd test --t test_numbers --greater 12",
+            UsageError,
+            "Please pass a column to test.",
+        ],
+        [
+            "%sqlcmd test --table test_numbers --column something --greater 100",
+            UsageError,
+            "Referenced column 'something' not found!",
+        ],
+    ],
+)
+def test_test_error(ip, cell, error_type, error_message):
+    ip.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE test_numbers (value);
+    INSERT INTO test_numbers VALUES (14);
+    INSERT INTO test_numbers VALUES (13);
+    INSERT INTO test_numbers VALUES (12);
+    INSERT INTO test_numbers VALUES (11);
+    """
+    )
+
+    out = ip.run_cell(cell)
+
+    assert isinstance(out.error_in_exec, error_type)
+    assert str(out.error_in_exec) == error_message

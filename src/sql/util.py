@@ -1,8 +1,20 @@
 from sql import inspect
 import difflib
-import sql.run
 from sql.connection import Connection
 from sql.store import store
+from sql import exceptions
+
+SINGLE_QUOTE = "'"
+DOUBLE_QUOTE = '"'
+
+
+def sanitize_identifier(identifier):
+    if (identifier[0] == SINGLE_QUOTE and identifier[-1] == SINGLE_QUOTE) or (
+        identifier[0] == DOUBLE_QUOTE and identifier[-1] == DOUBLE_QUOTE
+    ):
+        return identifier[1:-1]
+    else:
+        return identifier
 
 
 def convert_to_scientific(value):
@@ -39,7 +51,11 @@ def _is_long_number(num) -> bool:
 
 
 def is_table_exists(
-    table: str, schema: str = None, ignore_error: bool = False, with_: str = None
+    table: str,
+    schema: str = None,
+    ignore_error: bool = False,
+    with_: str = None,
+    conn=None,
 ) -> bool:
     """
     Checks if a given table exists for a given connection
@@ -62,7 +78,11 @@ def is_table_exists(
         if ignore_error:
             return False
         else:
-            raise ValueError("Table cannot be None")
+            raise exceptions.ArgumentError("Table cannot be None")
+    if not Connection.current:
+        raise RuntimeError("No active connection")
+    if not conn:
+        conn = Connection.current
 
     table = strip_multiple_chars(table, "\"'")
 
@@ -71,17 +91,25 @@ def is_table_exists(
     else:
         table_ = table
 
-    _is_exist = _is_table_exists(table_, with_)
+    _is_exist = _is_table_exists(table_, with_, conn)
 
     if not _is_exist:
         if not ignore_error:
+            try_find_suggestions = not Connection.is_custom_connection(conn)
             expected = []
-            existing_schemas = inspect.get_schema_names()
+            existing_schemas = []
+            existing_tables = []
+
+            if try_find_suggestions:
+                existing_schemas = inspect.get_schema_names()
+
             if schema and schema not in existing_schemas:
                 expected = existing_schemas
                 invalid_input = schema
             else:
-                existing_tables = _get_list_of_existing_tables()
+                if try_find_suggestions:
+                    existing_tables = _get_list_of_existing_tables()
+
                 expected = existing_tables
                 invalid_input = table
 
@@ -110,7 +138,7 @@ def is_table_exists(
                     suggestions_message = f"\nDid you mean : {_suggestions_string}"
                     err_message = f"{err_message}{suggestions_message}"
 
-            raise ValueError(err_message)
+            raise exceptions.TableNotFoundError(err_message)
 
     return _is_exist
 
@@ -152,11 +180,13 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     return string.translate(str.maketrans("", "", chars))
 
 
-def _is_table_exists(table: str, with_: str) -> bool:
+def _is_table_exists(table: str, with_: str, conn) -> bool:
     """
     Runs a SQL query to check if table exists
     """
-    identifiers = Connection.get_curr_identifiers()
+    if not conn:
+        conn = Connection.current
+    identifiers = conn.get_curr_identifiers()
     if with_:
         return table in list(store)
     else:
@@ -168,10 +198,53 @@ def _is_table_exists(table: str, with_: str) -> bool:
             else:
                 query = "SELECT * FROM {0}{1}{0} WHERE 1=0".format(iden, table)
             try:
-                query = sql.connection.Connection._transpile_query(query)
-                sql.run.raw_run(Connection.current, query)
+                conn.execute(query)
                 return True
             except Exception:
                 pass
 
     return False
+
+
+def flatten(src, ltypes=(list, tuple)):
+    """The flatten function creates a new tuple / list
+    with all sub-tuple / sub-list elements concatenated into it recursively
+
+    Parameters
+    ----------
+    src : tuple / list
+        Source tuple / list with all sub-tuple / sub-list elements
+    ltypes : tuple, optional
+        sub element's data type, by default (list, tuple)
+
+    Returns
+    -------
+    tuple / list
+        Flatten tuple / list
+    """
+    ltype = type(src)
+    # Create a process list to handle flatten elements
+    process_list = list(src)
+    i = 0
+    while i < len(process_list):
+        while isinstance(process_list[i], ltypes):
+            if not process_list[i]:
+                process_list.pop(i)
+                i -= 1
+                break
+            else:
+                process_list[i : i + 1] = process_list[i]
+        i += 1
+
+    # If input src data type is tuple, return tuple
+    if not isinstance(process_list, ltype):
+        return tuple(process_list)
+    return process_list
+
+
+def support_only_sql_alchemy_connection(command):
+    """
+    Throws an AttributeError if connection is not SQLAlchemy
+    """
+    if Connection.is_custom_connection():
+        raise AttributeError(f"{command} is not supported for a custom engine")

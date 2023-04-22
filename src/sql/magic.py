@@ -25,6 +25,7 @@ from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
+from sql._patch import patch_ipython_usage_error
 from ploomber_core.dependencies import check_installed
 
 from traitlets.config.configurable import Configurable
@@ -291,6 +292,7 @@ class SqlMagic(Magics, Configurable):
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
+
         # Create the interactive slider
         if args.interact and not is_interactive_mode:
             check_installed(["ipywidgets"], "--interactive argument")
@@ -341,9 +343,7 @@ class SqlMagic(Magics, Configurable):
             creator=args.creator,
             alias=args.alias,
         )
-        payload[
-            "connection_info"
-        ] = sql.connection.Connection._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
         if args.persist:
             return self._persist_dataframe(
                 command.sql, conn, user_ns, append=False, index=not args.no_index
@@ -456,6 +456,8 @@ def load_ipython_extension(ip):
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
+
+    patch_ipython_usage_error(ip)
 
 
 # %%
