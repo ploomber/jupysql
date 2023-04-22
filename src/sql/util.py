@@ -244,7 +244,7 @@ def flatten(src, ltypes=(list, tuple)):
 
 def support_only_sql_alchemy_connection(command):
     """
-    Throws an AttributeError if connection is not SQLAlchemy
+    Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
     if Connection.is_custom_connection():
         raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")
