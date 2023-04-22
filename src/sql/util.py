@@ -186,7 +186,9 @@ def _is_table_exists(table: str, with_: str, conn) -> bool:
     """
     if not conn:
         conn = Connection.current
+
     identifiers = conn.get_curr_identifiers()
+
     if with_:
         return table in list(store)
     else:

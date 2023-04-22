@@ -463,7 +463,7 @@ class Connection:
                 identifiers = [*set(identifiers + identifiers_)]
         except ValueError:
             pass
-        except UsageError:
+        except AttributeError:
             # this might be a custom connection..
             pass
 
