@@ -554,7 +554,7 @@ def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
 def test_ggplot_boxplot_not_supported_error(
     ip_questdb, penguins_no_nulls_questdb, penguins_data, func, expected_error_message
 ):
-    with pytest.raises(AttributeError) as err:
+    with pytest.raises(UsageError) as err:
         func()
 
     assert expected_error_message in str(err)
@@ -580,7 +580,7 @@ def test_sqlplot_not_supported_error(
     ip_questdb.run_cell(query)
     out = ip_questdb.run_cell(query)
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, AttributeError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
 

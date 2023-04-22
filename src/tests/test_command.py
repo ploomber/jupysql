@@ -22,6 +22,7 @@ def sql_magic(ip):
         ("my_var << SELECT * FROM table", "", "SELECT * FROM table", "", "my_var"),
         ("my_var << SELECT *", "FROM table", "SELECT *\nFROM table", "", "my_var"),
         ("[db]", "", "", "sqlite://", None),
+        ("--persist df", "", "df", "", None),
     ],
     ids=[
         "arg-with-option",
@@ -31,6 +32,7 @@ def sql_magic(ip):
         "parsed-var-single-line",
         "parsed-var-multi-line",
         "config",
+        "persist-dataframe",
     ],
 )
 def test_parsed(
