@@ -12,12 +12,19 @@ kernelspec:
   name: python3
 myst:
   html_meta:
-    description lang=en: Documentation for the %sqlcmd tables and %sqlcmd columns from JupySQL
+    description lang=en: Documentation for the %sqlcmd tables and %sqlcmd columns
+      from JupySQL
     keywords: jupyter, sql, jupysql, tables, columns
     property=og:locale: en_US
 ---
 
 # `%sqlcmd tables` and `%sqlcmd columns`
+
++++
+
+`%sqlcmd tables` return the current table names saved in environments.
+
+`sqlcmd columns` returns the column information in a specified table
 
 +++
 
@@ -40,8 +47,6 @@ if not Path("penguins.csv").is_file():
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %%sql
 SELECT * FROM penguins.csv LIMIT 3
 ```
@@ -71,11 +76,9 @@ COPY penguins FROM 'penguins.csv' WITH (FORMAT CSV, HEADER TRUE);
 
 +++
 
-Returns the current table names saved in environments. 
+Returns the current table names saved in environments.
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %sqlcmd tables
 ```
 
@@ -102,7 +105,7 @@ CREATE TABLE s2.t2(id INTEGER PRIMARY KEY, j VARCHAR);
 %sqlcmd tables -s s1
 ```
 
-As expected, the argument returns the table names under schema s1, which is t1. 
+As expected, the argument returns the table names under schema s1, which is t1.
 
 +++
 
@@ -114,16 +117,13 @@ Arguments:
 
 `-t/--table` (Required) Get the column features of a specified table. 
 
-`-s/--schema` (Optional) Get the column features of a table under a schema 
+`-s/--schema` (Optional) Get the column features of a table under a schema
 
 ```{code-cell} ipython3
-:tags: [hide-output]
-
 %sqlcmd columns -t penguins
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-output]
 
 %sqlcmd columns -s s1 -t t1
 ```
