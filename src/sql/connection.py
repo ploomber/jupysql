@@ -318,6 +318,7 @@ class Connection:
     def connection_list(cls):
         """Returns the list of connections, appending '*' to the current one"""
         result = []
+
         for key in sorted(cls.connections):
             conn = cls.connections[key]
 
@@ -333,9 +334,11 @@ class Connection:
             else:
                 repr_ = f"{prefix} {engine_url!r}"
 
-            result.append(repr_)
+            result.append([repr_])
 
-        return "\n".join(result)
+        from sql.display import Table
+
+        return Table(headers=["Connection name"], rows=result)
 
     @classmethod
     def close(cls, descriptor):
