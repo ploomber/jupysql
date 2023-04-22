@@ -459,7 +459,13 @@ class SqlMagic(Magics, Configurable):
 
         if_exists = "append" if append else "fail"
 
-        frame.to_sql(table_name, conn.session.engine, if_exists=if_exists, index=index)
+        try:
+            frame.to_sql(
+                table_name, conn.session.engine, if_exists=if_exists, index=index
+            )
+        except ValueError as e:
+            raise exceptions.ValueError(e) from e
+
         return "Persisted %s" % table_name
 
 
