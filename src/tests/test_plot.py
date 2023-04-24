@@ -7,6 +7,7 @@ from sql import plot
 from sql.connection import Connection
 from pathlib import Path
 import pytest
+from sqlalchemy.exc import OperationalError
 
 
 class DictOfFloats(Mapping):
@@ -81,7 +82,7 @@ def test_boxplot_stats_exception(chinook_db, ip_empty):
         )
 
 
-def test_summary_stats(chinook_db, ip_empty):
+def test_summary_stats(chinook_db, ip_empty, tmp_empty):
     Path("data.csv").write_text(
         """\
 x, y
@@ -96,9 +97,19 @@ x, y
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
     ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
-    result = plot._summary_stats(None, "data.csv", column="x")
+    result = plot._summary_stats(Connection.current, "data.csv", column="x")
     expected = {"q1": 1.0, "med": 2.0, "q3": 5.0, "mean": 3.4, "N": 5.0}
     assert result == expected
+
+
+def test_summary_stats_missing_file(chinook_db, ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
+    ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
+    with pytest.raises(OperationalError) as e:
+        plot._summary_stats(Connection.current, "data.csv", column="x")
+    assert 'No files found that match the pattern "data.csv"' in str(e)
 
 
 @pytest.mark.parametrize(
