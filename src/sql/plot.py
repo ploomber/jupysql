@@ -4,7 +4,6 @@ Plot using the SQL backend
 from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
-import sqlalchemy
 
 from sql.util import flatten
 
@@ -20,16 +19,18 @@ try:
 except ModuleNotFoundError:
     np = None
 
-from sql.store import store
 import sql.connection
 from sql.telemetry import telemetry
 import warnings
+from sql import util
 
 
 def _summary_stats(conn, table, column, with_=None):
+    """Compute percentiles and mean for boxplot"""
+
     if not conn:
         conn = sql.connection.Connection.current
-    """Compute percentiles and mean for boxplot"""
+
     template = Template(
         """
     SELECT
@@ -43,10 +44,7 @@ def _summary_stats(conn, table, column, with_=None):
 
     query = template.render(table=table, column=column)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = conn._transpile_query(query)
-    values = conn.session.execute(sqlalchemy.sql.text(query)).fetchone()
+    values = conn.execute(query, with_).fetchone()
     keys = ["q1", "med", "q3", "mean", "N"]
     return {k: float(v) for k, v in zip(keys, flatten(values))}
 
@@ -67,10 +65,7 @@ FROM (
 
     query = template.render(table=table, column=column, hival=hival)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = conn._transpile_query(query)
-    values = conn.session.execute(sqlalchemy.sql.text(query)).fetchone()
+    values = conn.execute(query, with_).fetchone()
     keys = ["N", "wiskhi_max"]
     return {k: float(v) for k, v in zip(keys, values)}
 
@@ -91,10 +86,7 @@ FROM (
 
     query = template.render(table=table, column=column, loval=loval)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = conn._transpile_query(query)
-    values = conn.session.execute(sqlalchemy.sql.text(query)).fetchone()
+    values = conn.execute(query, with_).fetchone()
     keys = ["N", "wisklo_min"]
     return {k: float(v) for k, v in zip(keys, values)}
 
@@ -111,10 +103,7 @@ FROM "{{table}}"
     )
     query = template.render(table=table, column=column, pct=pct)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = conn._transpile_query(query)
-    values = conn.session.execute(sqlalchemy.sql.text(query)).fetchone()[0]
+    values = conn.execute(query, with_).fetchone()[0]
     return values
 
 
@@ -129,21 +118,19 @@ OR  "{{column}}" > {{whishi}}
     )
     query = template.render(table=table, column=column, whislo=whislo, whishi=whishi)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = conn._transpile_query(query)
-    results = [
-        float(n[0]) for n in conn.session.execute(sqlalchemy.sql.text(query)).fetchall()
-    ]
+    results = [float(n[0]) for n in conn.execute(query, with_).fetchall()]
     return results
 
 
 # https://github.com/matplotlib/matplotlib/blob/b5ac96a8980fdb9e59c9fb649e0714d776e26701/lib/matplotlib/cbook/__init__.py
 @modify_exceptions
 def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
+    """Compute statistics required to create a boxplot"""
     if not conn:
         conn = sql.connection.Connection.current
-    """Compute statistics required to create a boxplot"""
+
+    # calculating stats might fail on other DBs (percentile_disc)
+    util.support_only_sql_alchemy_connection("boxplot")
 
     def _compute_conf_interval(N, med, iqr):
         notch_min = med - 1.57 * iqr / np.sqrt(N)
@@ -299,10 +286,7 @@ FROM "{{table}}"
     template = Template(template_)
     query = template.render(table=table, column=column)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-    query = con._transpile_query(query)
-    min_, max_ = con.session.execute(sqlalchemy.sql.text(query)).fetchone()
+    min_, max_ = con.execute(query, with_).fetchone()
     return min_, max_
 
 
@@ -383,7 +367,6 @@ def histogram(
     if not conn:
         conn = sql.connection.Connection.current
 
-    print("Current conn: ", conn)
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
     if category:
@@ -521,12 +504,12 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         template_ = """
             select
-            floor("{{column}}"/{{bin_size}})*{{bin_size}},
+            floor("{{column}}"/{{bin_size}})*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
             {{filter_query}}
-            group by 1
-            order by 1;
+            group by bin
+            order by bin;
             """
 
         if use_backticks:
@@ -540,11 +523,11 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     else:
         template_ = """
         select
-            "{{column}}", count ({{column}})
+            "{{column}}" as col, count ({{column}})
         from "{{table}}"
         {{filter_query}}
-        group by 1
-        order by 1;
+        group by col
+        order by col;
         """
 
         if use_backticks:
@@ -554,11 +537,8 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         query = template.render(table=table, column=column, filter_query=filter_query)
 
-    if with_:
-        query = str(store.render(query, with_=with_))
+    data = conn.execute(query, with_).fetchall()
 
-    query = conn._transpile_query(query)
-    data = conn.session.execute(sqlalchemy.sql.text(query)).fetchall()
     bin_, height = zip(*data)
 
     if bin_[0] is None:
@@ -584,7 +564,8 @@ def _histogram_stacked(
 
     cases = []
     for bin in bins:
-        case = f'SUM(CASE WHEN floor = {bin} THEN count ELSE 0 END) AS "{bin}",'
+        case = f'SUM(CASE WHEN FLOOR({column}/{bin_size})*{bin_size} = {bin} \
+                 THEN 1 ELSE 0 END) AS "{bin}",'
         cases.append(case)
 
     cases = " ".join(cases)
@@ -595,13 +576,8 @@ def _histogram_stacked(
         """
         SELECT {{category}},
         {{cases}}
-        FROM (
-        SELECT FLOOR("{{column}}"/{{bin_size}})*{{bin_size}} AS floor,
-        {{category}}, COUNT(*) as count
         FROM "{{table}}"
-        GROUP BY floor, {{category}}
         {{filter_query}}
-        ) AS subquery
         GROUP BY {{category}};
         """
     )
@@ -614,10 +590,6 @@ def _histogram_stacked(
         cases=cases,
     )
 
-    if with_:
-        query = str(store.render(query, with_=with_))
-
-    query = conn._transpile_query(query)
-    data = conn.session.execute(sqlalchemy.sql.text(query)).fetchall()
+    data = conn.execute(query, with_).fetchall()
 
     return data

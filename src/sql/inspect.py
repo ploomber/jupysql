@@ -3,9 +3,11 @@ from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
 from sql.connection import Connection
 from sql.telemetry import telemetry
+from sql import exceptions
 import sql.run
 import math
 from sql import util
+from IPython.core.display import HTML
 
 
 def _get_inspector(conn):
@@ -13,7 +15,7 @@ def _get_inspector(conn):
         return inspect(conn)
 
     if not Connection.current:
-        raise RuntimeError("No active connection")
+        raise exceptions.RuntimeError("No active connection")
     else:
         return inspect(Connection.current.session)
 
@@ -136,9 +138,14 @@ class TableDescription(DatabaseInspection):
         if schema:
             table_name = f"{schema}.{table_name}"
 
-        columns = sql.run.raw_run(
+        columns_query_result = sql.run.raw_run(
             Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
-        ).keys()
+        )
+
+        if Connection.is_custom_connection():
+            columns = [i[0] for i in columns_query_result.description]
+        else:
+            columns = columns_query_result.keys()
 
         table_stats = dict({})
         columns_to_include_in_report = set()
@@ -152,7 +159,7 @@ class TableDescription(DatabaseInspection):
                     Connection.current,
                     f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
-                    GROUP BY {column} ORDER BY Count({column}) Desc""",
+                    GROUP BY top ORDER BY frequency Desc""",
                 ).fetchall()
 
                 table_stats[column]["freq"] = result_col_freq_values[0][1]
@@ -170,7 +177,6 @@ class TableDescription(DatabaseInspection):
                     f"""
                     SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
-                    COUNT(DISTINCT {column}) AS unique_count,
                     COUNT({column}) AS count
                     FROM {table_name}
                     WHERE {column} IS NOT NULL
@@ -179,10 +185,27 @@ class TableDescription(DatabaseInspection):
 
                 table_stats[column]["min"] = result_value_values[0][0]
                 table_stats[column]["max"] = result_value_values[0][1]
-                table_stats[column]["unique"] = result_value_values[0][2]
-                table_stats[column]["count"] = result_value_values[0][3]
+                table_stats[column]["count"] = result_value_values[0][2]
 
-                columns_to_include_in_report.update(["count", "unique", "min", "max"])
+                columns_to_include_in_report.update(["count", "min", "max"])
+
+            except Exception:
+                pass
+
+            try:
+                # get unique values
+                result_value_values = sql.run.raw_run(
+                    Connection.current,
+                    f"""
+                    SELECT
+                    COUNT(DISTINCT {column}) AS unique_count
+                    FROM {table_name}
+                    WHERE {column} IS NOT NULL
+                    """,
+                ).fetchall()
+                table_stats[column]["unique"] = result_value_values[0][0]
+
+                columns_to_include_in_report.update(["unique"])
 
             except Exception:
                 pass
@@ -262,7 +285,24 @@ class TableDescription(DatabaseInspection):
 
             self._table.add_row(values)
 
-        self._table_html = self._table.get_html_string()
+        # Inject css to html to make first column sticky
+        sticky_column_css = """<style>
+ #profile-table td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: var(--jp-cell-editor-background);
+}
+ #profile-table thead tr th:first-child {
+  position: sticky;
+  left: 0;
+  background-color: var(--jp-cell-editor-background);
+}
+            </style>"""
+        self._table_html = HTML(
+            sticky_column_css
+            + self._table.get_html_string(attributes={"id": "profile-table"})
+        ).__html__()
+
         self._table_txt = self._table.get_string()
 
 

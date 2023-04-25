@@ -1,9 +1,14 @@
 # CHANGELOG
 
 ## 0.7.2dev
-
-* [Feature] Improve boxplot performance [#152]
+* [Feature] Support for DB API 2.0 drivers (#350)
+* [Feature] Improve boxplot performance (#152)
+* [Fix] Updates errors so only the error message is displayed (and traceback is hidden) (#407)
+* [Doc] Add QuestDB tutorial (#350)
+* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
+* [Feature] Add sticky first column styling to sqlcmd profile command
 * [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
+
 ## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
