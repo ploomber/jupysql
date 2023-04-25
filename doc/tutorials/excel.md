@@ -1,22 +1,23 @@
 ---
-jupytext:
-  notebook_metadata_filter: myst
-  cell_metadata_filter: -all
-  formats: md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.14.4
-kernelspec:
-  display_name: Python 3 (ipykernel)
-  language: python
-  name: python3
-myst:
-  html_meta:
-    description lang=en: "Read Excel files using Jupysql and query on it"
-    keywords: "jupyter, sql, jupysql, excel, xlsx"
-    property=og:locale: "en_US"
+jupyter:
+  jupytext:
+    notebook_metadata_filter: myst
+    cell_metadata_filter: -all
+    formats: md:myst
+    text_representation:
+      extension: .md
+      format_name: myst
+      format_version: 0.13
+      jupytext_version: 1.14.4
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+  myst:
+    html_meta:
+      description lang=en: "Read Excel files using Jupysql and query on it"
+      keywords: "jupyter, sql, jupysql, excel, xlsx"
+      property=og:locale: "en_US"
 ---
 
 # Loading and Querying Excel Files
