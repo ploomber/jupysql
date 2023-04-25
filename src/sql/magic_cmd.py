@@ -4,7 +4,6 @@ import argparse
 from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
 from sql import util

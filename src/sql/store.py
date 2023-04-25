@@ -3,7 +3,6 @@ from collections.abc import MutableMapping
 from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
 import sql.connection
-from IPython.core.error import UsageError
 import warnings
 import difflib
 
