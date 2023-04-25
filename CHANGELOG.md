@@ -7,6 +7,7 @@
 * [Doc] Add QuestDB tutorial (#350)
 * [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
 * [Feature] Add sticky first column styling to sqlcmd profile command
+* [Fix] Fix `--alias` when passing an existing engine
 
 ## 0.7.1 (2023-04-19)
 
