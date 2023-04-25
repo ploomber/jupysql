@@ -18,7 +18,12 @@ myst:
 ---
 
 # Loading and Querying Excel Files
-In this how-to guide, we are going to use small financial data stored in an Excel file, containing over 700 records. The dataset is publicly available [here](https://go.microsoft.com/fwlink/?LinkID=521962). We are going to use pandas `read_excel` function to read the Excel file and store it in the database using `%sql --persist` command of jupysql.
+
+In this how-to guide, we will be using small financial data stored in an Excel file containing over 700 records. The dataset is publicly available [here](https://go.microsoft.com/fwlink/?LinkID=521962). We will use the `read_excel` function from the pandas library to read the Excel file and store it in the database using the `%sql --persist` command of jupysql, which works across multiple databases. For additional compatibility between different databases and jupysql, please check out this [page](https://jupysql.ploomber.io/en/latest/integrations/compatibility.html).
+
+<!-- Note: DuckDB also has a native extension for loading Excel files. If you have a local installation of DuckDB, you can read directly from Excel files. To install the extension, please refer to this [article](https://duckdb.org/docs/extensions/overview).After installing the extension, you can load the  -->
+
+Note: For this tutorial, we aim to showcase the versatility of jupysql as a framework by using `--persist`. However, DuckDB natively supports Pandas DataFrame and you do not need to use `--persist`. With DuckDB, complex queries such as aggregations and joins can run more efficiently on the DataFrame compared to Pandas native functions. You can refer to this [blog](https://duckdb.org/2021/05/14/sql-on-pandas.html) for a detailed comparison (Note: the comparison is based on Pandas v1.\*, not the recently released Pandas v2.\*, which uses PyArrow as a backend). 
 
 Installing dependecies:
 
@@ -46,6 +51,7 @@ Initializing jupysql and connecting to `duckdb` database
 
 Persisting the dataframe in duckdb database. It is stored in table named `df`.
 ```{code-cell} ipython3
+# If you are using DuckDB, you can omit this cell
 %sql --persist df
 ```
 
