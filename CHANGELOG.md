@@ -3,6 +3,7 @@
 ## 0.7.2dev
 
 * [Feature] Improve boxplot performance [#152]
+* [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
 ## 0.7.1 (2023-04-19)
 
 * [Feature] Upgrades SQLAlchemy version to 2
