@@ -52,23 +52,23 @@ Persisting the dataframe in duckdb database. It is stored in table named `df`.
 
 ## Running some standard queries
 - Selecting first 3 queries
-    ```{code-cell} ipython3
-    %%sql 
-    SELECT *
-    FROM df
-    LIMIT 3
-    ```
+  ```{code-cell} ipython3
+  %%sql 
+  SELECT *
+  FROM df
+  LIMIT 3
+  ```
 - Countries in the database
-    ```{code-cell} ipython3
-    %%sql 
-    SELECT DISTINCT Country
-    FROM df
-    ``` 
+  ```{code-cell} ipython3
+  %%sql 
+  SELECT DISTINCT Country
+  FROM df
+  ``` 
 - Evaluating total profit country-wise and ordering them in desceding order according to profit.
-    ```{code-cell} ipython3
-    %%sql
-    select Country, SUM(Profit) Total_Profit
-    from df
-    group by Country
-    order by Total_Profit DESC
-    ```
+  ```{code-cell} ipython3
+  %%sql
+  select Country, SUM(Profit) Total_Profit
+  from df
+  group by Country
+  order by Total_Profit DESC
+  ```

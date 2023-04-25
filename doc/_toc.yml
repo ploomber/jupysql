@@ -53,6 +53,7 @@ parts:
     chapters:
     - file: tutorials/duckdb-github
     - file: tutorials/etl
+    - file: tutorials/excel
 
   - caption: Community
     chapters:
