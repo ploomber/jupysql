@@ -78,7 +78,7 @@ def is_table_exists(
         if ignore_error:
             return False
         else:
-            raise exceptions.ArgumentError("Table cannot be None")
+            raise exceptions.UsageError("Table cannot be None")
     if not Connection.current:
         raise exceptions.RuntimeError("No active connection")
     if not conn:

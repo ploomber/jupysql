@@ -13,7 +13,7 @@ def exception_factory(name):
     return _error
 
 
-ArgumentError = exception_factory("ArgumentError")
+UsageError = exception_factory("UsageError")
 TableNotFoundError = exception_factory("TableNotFoundError")
 MissingPackageError = exception_factory("MissingPackageError")
 TypeError = exception_factory("TypeError")

@@ -7,6 +7,7 @@ from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
+
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions
@@ -238,7 +239,7 @@ class Connection:
                 )
         except (ModuleNotFoundError, NoSuchModuleError) as e:
             suggestion_str = get_missing_package_suggestion_str(e)
-            raise UsageError(
+            raise exceptions.MissingPackageError(
                 "\n\n".join(
                     [
                         str(e),

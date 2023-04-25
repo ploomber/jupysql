@@ -557,6 +557,7 @@ def test_ggplot_boxplot_not_supported_error(
     with pytest.raises(UsageError) as err:
         func()
 
+    assert err.value.error_type == "RuntimeError"
     assert expected_error_message in str(err)
 
 

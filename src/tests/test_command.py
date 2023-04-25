@@ -205,7 +205,5 @@ def test_with_contains_dash_show_warning_message(ip, sql_magic, capsys):
             "SELECT last_name FROM author WHERE year_of_death > 1900",
         )
 
-    assert (
-        "Using hyphens in save argument isn't allowed. Please use dashes(-) instead"
-        == str(error.value)
-    )
+    assert error.value.error_type == "UsageError"
+    assert "Using hyphens (-) in save argument isn't allowed" in str(error.value)

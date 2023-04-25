@@ -127,8 +127,10 @@ def test_select_df_type_is_polars(monkeypatch, config_polars, mock_resultset):
 
 
 def test_sql_starts_with_begin(mock_conns, mock_config):
-    with pytest.raises(UsageError, match="does not support transactions"):
+    with pytest.raises(UsageError, match="does not support transactions") as excinfo:
         run(mock_conns, "BEGIN", mock_config)
+
+    assert excinfo.value.error_type == "RuntimeError"
 
 
 def test_sql_is_empty(mock_conns, mock_config):

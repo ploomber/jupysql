@@ -429,20 +429,20 @@ class SqlMagic(Magics, Configurable):
 
         # invalid identifier
         if not frame_name.isidentifier():
-            raise exceptions.ArgumentError(
+            raise exceptions.UsageError(
                 f"Expected {frame_name!r} to be a a pd.DataFrame but it's"
                 " not a valid identifier"
             )
 
         # missing argument
         if not frame_name:
-            raise exceptions.ArgumentError(
+            raise exceptions.UsageError(
                 "Missing argument: %sql --persist <name_of_data_frame>"
             )
 
         # undefined variable
         if frame_name not in user_ns:
-            raise exceptions.ArgumentError(
+            raise exceptions.UsageError(
                 f"Expected {frame_name!r} to be a pd.DataFrame but it's undefined"
             )
 
