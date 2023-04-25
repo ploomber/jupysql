@@ -4,18 +4,22 @@ import argparse
 from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from IPython.core.error import UsageError
 from sqlglot import select, condition
 from sqlalchemy import text
+from sql import util
+
+from prettytable import PrettyTable
 
 try:
     from traitlets.config.configurable import Configurable
-except ImportError:
+except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
 
 import sql.connection
 from sql import inspect
 import sql.run
+from sql.util import sanitize_identifier
+from sql import exceptions
 
 
 class CmdParser(argparse.ArgumentParser):
@@ -24,7 +28,7 @@ class CmdParser(argparse.ArgumentParser):
             self._print_message(message, sys.stderr)
 
     def error(self, message):
-        raise UsageError(message)
+        raise exceptions.UsageError(message)
 
 
 @magics_class
@@ -40,10 +44,13 @@ class SqlCmdMagic(Magics, Configurable):
         Raises UsageError in case of an invalid input, executes command otherwise.
         """
 
+        # We relly on SQLAlchemy when inspecting tables
+        util.support_only_sql_alchemy_connection("%sqlcmd")
+
         AVAILABLE_SQLCMD_COMMANDS = ["tables", "columns", "test", "profile"]
 
         if line == "":
-            raise UsageError(
+            raise exceptions.UsageError(
                 "Missing argument for %sqlcmd. "
                 "Valid commands are: {}".format(", ".join(AVAILABLE_SQLCMD_COMMANDS))
             )
@@ -54,7 +61,7 @@ class SqlCmdMagic(Magics, Configurable):
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 return self.execute(command, others)
             else:
-                raise UsageError(
+                raise exceptions.UsageError(
                     f"%sqlcmd has no command: {command!r}. "
                     "Valid commands are: {}".format(
                         ", ".join(AVAILABLE_SQLCMD_COMMANDS)
@@ -67,7 +74,6 @@ class SqlCmdMagic(Magics, Configurable):
         """
         Command
         """
-
         if cmd_name == "tables":
             parser = CmdParser()
 
@@ -89,7 +95,9 @@ class SqlCmdMagic(Magics, Configurable):
             )
 
             args = parser.parse_args(others)
-            return inspect.get_columns(name=args.table, schema=args.schema)
+            return inspect.get_columns(
+                name=sanitize_identifier(args.table), schema=args.schema
+            )
         elif cmd_name == "test":
             parser = CmdParser()
 
@@ -135,13 +143,27 @@ class SqlCmdMagic(Magics, Configurable):
             )
 
             args = parser.parse_args(others)
+
+            COMPARATOR_ARGS = [
+                args.greater,
+                args.greater_or_equal,
+                args.less_than,
+                args.less_than_or_equal,
+            ]
+
+            if args.table and not any(COMPARATOR_ARGS):
+                raise exceptions.UsageError("Please use a valid comparator.")
+
+            if args.table and any(COMPARATOR_ARGS) and not args.column:
+                raise exceptions.UsageError("Please pass a column to test.")
+
             if args.greater and args.greater_or_equal:
-                return ValueError(
+                return exceptions.UsageError(
                     "You cannot use both greater and greater "
                     "than or equal to arguments at the same time."
                 )
             elif args.less_than and args.less_than_or_equal:
-                return ValueError(
+                return exceptions.UsageError(
                     "You cannot use both less and less than "
                     "or equal to arguments at the same time."
                 )
@@ -149,11 +171,18 @@ class SqlCmdMagic(Magics, Configurable):
             conn = sql.connection.Connection.current.session
             result_dict = run_each_individually(args, conn)
 
-            if len(result_dict.keys()):
-                print(
-                    "Test failed. Returned are samples of the failures from your data:"
+            if any(len(rows) > 1 for rows in list(result_dict.values())):
+                for comparator, rows in result_dict.items():
+                    if len(rows) > 1:
+                        print(f"\n{comparator}:\n")
+                        _pretty = PrettyTable()
+                        _pretty.field_names = rows[0]
+                        for row in rows[1:]:
+                            _pretty.add_row(row)
+                        print(_pretty)
+                raise exceptions.UsageError(
+                    "The above values do not not match your test requirements."
                 )
-                return result_dict
             else:
                 return True
 
@@ -182,45 +211,67 @@ class SqlCmdMagic(Magics, Configurable):
             return report
 
 
+def return_test_results(args, conn, query):
+    try:
+        columns = []
+        column_data = conn.execute(text(query)).cursor.description
+        res = conn.execute(text(query)).fetchall()
+        for column in column_data:
+            columns.append(column[0])
+        res = [columns, *res]
+        return res
+    except Exception as e:
+        if "column" in str(e):
+            raise exceptions.UsageError(
+                f"Referenced column '{args.column}' not found!"
+            ) from e
+
+
 def run_each_individually(args, conn):
     base_query = select("*").from_(args.table)
+
     storage = {}
 
     if args.greater:
-        where = condition(args.column + ">" + args.greater)
+        where = condition(args.column + "<=" + args.greater)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = return_test_results(args, conn, query=current_query)
 
         if res is not None:
             storage["greater"] = res
     if args.greater_or_equal:
-        where = condition(args.column + ">=" + args.greater_or_equal)
+        where = condition(args.column + "<" + args.greater_or_equal)
 
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = return_test_results(args, conn, query=current_query)
+
         if res is not None:
             storage["greater_or_equal"] = res
+
     if args.less_than_or_equal:
-        where = condition(args.column + "<=" + args.less_than_or_equal)
+        where = condition(args.column + ">" + args.less_than_or_equal)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = return_test_results(args, conn, query=current_query)
+
         if res is not None:
             storage["less_than_or_equal"] = res
     if args.less_than:
-        where = condition(args.column + "<" + args.less_than)
+        where = condition(args.column + ">=" + args.less_than)
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = return_test_results(args, conn, query=current_query)
+
         if res is not None:
             storage["less_than"] = res
     if args.no_nulls:
         where = condition("{} is NULL".format(args.column))
         current_query = base_query.where(where).sql()
 
-        res = conn.execute(text(current_query)).fetchone()
+        res = return_test_results(args, conn, query=current_query)
+
         if res is not None:
             storage["null"] = res
 

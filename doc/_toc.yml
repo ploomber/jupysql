@@ -11,6 +11,7 @@ parts:
     - file: plot
     - file: compose
     - file: user-guide/tables-columns
+    - file: user-guide/testing-columns
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/interactive
@@ -30,6 +31,7 @@ parts:
       - file: integrations/mindsdb
       - file: integrations/postgres-connect
       - file: integrations/compatibility
+      - file: integrations/questdb
 
   - caption: API Reference
     chapters:

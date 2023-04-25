@@ -8,12 +8,13 @@ from ploomber_core.exceptions import modify_exceptions
 
 try:
     from traitlets.config.configurable import Configurable
-except ImportError:
+except ModuleNotFoundError:
     from IPython.config.configurable import Configurable
 
 
 from sql import plot
 from sql.command import SQLPlotCommand
+from sql import exceptions
 from sql import util
 
 
@@ -64,31 +65,34 @@ class SqlPlotMagic(Magics, Configurable):
             column = cmd.args.column
 
         if not cmd.args.line:
-            raise ValueError(
-                "Missing the first argument, must be: 'histogram' or 'boxplot'"
+            raise exceptions.UsageError(
+                "Missing the first argument, must be: 'histogram' or 'boxplot'. "
+                "Example: %sqlplot histogram"
             )
 
-        if cmd.args.line[0] in {"box", "boxplot"}:
-            util.is_table_exists(cmd.args.table, with_=cmd.args.with_)
+        column = util.sanitize_identifier(column)
+        table = util.sanitize_identifier(cmd.args.table)
 
+        if cmd.args.line[0] in {"box", "boxplot"}:
+            util.is_table_exists(table, with_=cmd.args.with_)
             return plot.boxplot(
-                table=cmd.args.table,
+                table=table,
                 column=column,
                 with_=cmd.args.with_,
                 orient=cmd.args.orient,
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
-            util.is_table_exists(cmd.args.table, with_=cmd.args.with_)
+            util.is_table_exists(table, with_=cmd.args.with_)
 
             return plot.histogram(
-                table=cmd.args.table,
+                table=table,
                 column=column,
                 bins=cmd.args.bins,
                 with_=cmd.args.with_,
                 conn=None,
             )
         else:
-            raise ValueError(
+            raise exceptions.UsageError(
                 f"Unknown plot {cmd.args.line[0]!r}. Must be: 'histogram' or 'boxplot'"
             )
