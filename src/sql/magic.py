@@ -430,7 +430,7 @@ class SqlMagic(Magics, Configurable):
         # invalid identifier
         if not frame_name.isidentifier():
             raise exceptions.UsageError(
-                f"Expected {frame_name!r} to be a a pd.DataFrame but it's"
+                f"Expected {frame_name!r} to be a pd.DataFrame but it's"
                 " not a valid identifier"
             )
 
