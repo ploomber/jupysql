@@ -422,7 +422,7 @@ class SqlMagic(Magics, Configurable):
         """Implements PERSIST, which writes a DataFrame to the RDBMS"""
         if not DataFrame:
             raise exceptions.MissingPackageError(
-                "Must `pip install pandas` to use DataFrames"
+                "You must install pandas to persist results: pip install pandas"
             )
 
         frame_name = raw.strip(";")

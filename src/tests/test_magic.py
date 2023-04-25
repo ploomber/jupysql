@@ -14,6 +14,8 @@ from IPython.core.error import UsageError
 from sql.connection import Connection
 from sql.magic import SqlMagic
 from sql.run import ResultSet
+from sql import magic
+
 from conftest import runsql
 
 
@@ -121,6 +123,15 @@ def test_duplicate_column_names_accepted(ip):
         """,
     )
     assert ("Brecht", "Brecht") in result
+
+
+def test_persist_missing_pandas(ip, monkeypatch):
+    monkeypatch.setattr(magic, "DataFrame", None)
+
+    ip.run_cell("results = %sql SELECT * FROM test;")
+    ip.run_cell("results_dframe = results.DataFrame()")
+    result = ip.run_cell("%sql --persist sqlite:// results_dframe")
+    assert "pip install pandas" in str(result.error_in_exec)
 
 
 def test_persist(ip):
