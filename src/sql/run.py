@@ -6,7 +6,6 @@ import re
 from functools import reduce
 from io import StringIO
 import html
-from contextlib import contextmanager
 
 import prettytable
 import sqlalchemy
