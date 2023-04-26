@@ -6,6 +6,7 @@ import re
 from functools import reduce
 from io import StringIO
 import html
+from contextlib import contextmanager
 
 import prettytable
 import sqlalchemy
@@ -473,6 +474,23 @@ def select_df_type(resultset, config):
 
 
 def run(conn, sql, config):
+    """Run a SQL query with the given connection
+
+    Parameters
+    ----------
+    conn : sql.connection.Connection
+        The connection to use
+
+    sql : str
+        SQL query to execution
+
+    config
+        Configuration object
+    """
+    info = conn._get_curr_sqlalchemy_connection_info()
+
+    duckdb_autopandas = info and info.get("dialect") == "duckdb" and config.autopandas
+
     if not sql.strip():
         # returning only when sql is empty string
         return "Connected: %s" % conn.name
@@ -480,29 +498,45 @@ def run(conn, sql, config):
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
         manual_commit = False
+
+        # attempting to run a transaction
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
+
+        # postgres metacommand
         if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
+
+        # regulat query
         else:
-            txt = sqlalchemy.sql.text(statement)
             manual_commit = set_autocommit(conn, config)
-
             is_custom_connection = Connection.is_custom_connection(conn)
-            if is_custom_connection:
-                txt_ = str(txt)
-            else:
-                txt_ = txt
-            # stringify txt to avoid TypeError:
-            # Boolean value of this clause is not defined
-            result = conn.session.execute(txt_)
-        _commit(conn=conn, config=config, manual_commit=manual_commit)
-        if result and config.feedback:
-            if hasattr(result, "rowcount"):
-                print(interpret_rowcount(result.rowcount))
 
-    resultset = ResultSet(result, config)
-    return select_df_type(resultset, config)
+            # if regular sqlalchemy, pass a text object
+            if not is_custom_connection:
+                statement = sqlalchemy.sql.text(statement)
+
+            if duckdb_autopandas:
+                conn = conn.engine.raw_connection()
+                cursor = conn.cursor()
+                cursor.execute(str(statement))
+
+            else:
+                result = conn.session.execute(statement)
+                _commit(conn=conn, config=config, manual_commit=manual_commit)
+
+                if result and config.feedback:
+                    if hasattr(result, "rowcount"):
+                        print(interpret_rowcount(result.rowcount))
+
+    # bypass ResultSet and use duckdb's native method to return a pandas data frame
+    if duckdb_autopandas:
+        df = cursor.df()
+        conn.close()
+        return df
+    else:
+        resultset = ResultSet(result, config)
+        return select_df_type(resultset, config)
 
 
 def raw_run(conn, sql):
