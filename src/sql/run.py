@@ -100,7 +100,7 @@ def _nonbreaking_spaces(match_obj):
 _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
 
-class ResultSet(list, ColumnGuesserMixin):
+class ResultSet(ColumnGuesserMixin):
     """
     Results of a SQL query.
 
@@ -110,10 +110,10 @@ class ResultSet(list, ColumnGuesserMixin):
     def __init__(self, sqlaproxy, config):
         self.config = config
         self.keys = {}
+        self._results = []
 
         is_sql_alchemy_results = not hasattr(sqlaproxy, "description")
 
-        list.__init__(self, [])
         self.pretty = None
 
         if is_sql_alchemy_results:
@@ -131,12 +131,14 @@ class ResultSet(list, ColumnGuesserMixin):
 
             if len(self.keys) > 0:
                 if isinstance(config.autolimit, int) and config.autolimit > 0:
-                    list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
+                    self._results = sqlaproxy.fetchmany(size=config.autolimit)
                 else:
-                    list.__init__(self, sqlaproxy.fetchall())
+                    self._results = sqlaproxy.fetchall()
+
                 self.field_names = unduplicate_field_names(self.keys)
 
                 _style = None
+
                 if isinstance(config.style, str):
                     _style = prettytable.__dict__[config.style.upper()]
 
@@ -160,6 +162,13 @@ class ResultSet(list, ColumnGuesserMixin):
         else:
             return None
 
+    def __len__(self):
+        return len(self._results)
+
+    def __iter__(self):
+        for result in self._results:
+            yield result
+
     def __str__(self, *arg, **kwarg):
         self.pretty.add_rows(self)
         return str(self.pretty or "")
@@ -170,7 +179,7 @@ class ResultSet(list, ColumnGuesserMixin):
         or by string (value of leftmost column)
         """
         try:
-            return list.__getitem__(self, key)
+            return self._results[key]
         except TypeError:
             result = [row for row in self if row[0] == key]
             if not result:

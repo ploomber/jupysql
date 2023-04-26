@@ -11,13 +11,22 @@ from sql import run as run_module
 
 
 @pytest.fixture
-def result_set():
+def config():
+    config = Mock()
+    config.displaylimit = 5
+    return config
+
+
+@pytest.fixture
+def result():
     df = pd.DataFrame({"x": range(3)})  # noqa
     engine = create_engine("duckdb://")
     result = engine.execute("select * from df")
+    return result
 
-    config = Mock()
-    config.displaylimit = 5
+
+@pytest.fixture
+def result_set(result, config):
     return ResultSet(result, config)
 
 
@@ -62,3 +71,9 @@ def test_resultset_repr_html(result_set):
         "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n        "
         "</tr>\n    </tbody>\n</table>"
     )
+
+
+def test_resultset_config_autolimit_dict(result, config):
+    config.autolimit = 1
+
+    assert ResultSet(result, config).dict() == {"x": (0,)}
