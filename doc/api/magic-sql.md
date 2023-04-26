@@ -26,7 +26,7 @@ myst:
     Close named connection ([example](#close-connection))
 
 ``-c`` / ``--creator <creator-function>``
-    Specify creator function for new connection
+    Specify creator function for new connection ([example](#specify-creator-function))
 
 ``-s`` / ``--section <section-name>``
     Section of dsn_file to be used for generating a connection string
@@ -135,6 +135,21 @@ Or pass an alias (**added in 0.5.2**):
 ```{code-cell} ipython3
 %sql --close db-two
 ```
+
+
+## Specify creator function
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+
+engine = create_engine("sqlite:///my_database.db")
+
+%sql engine
+```
+
+```{code-cell} ipython3
+%sql --creator engine
+```
+
 
 ## Create table
 
