@@ -21,6 +21,7 @@ import warnings
 import sql.connection
 import sql.parse
 import sql.run
+
 from sql import exceptions
 from sql.store import store
 from sql.command import SQLCommand
@@ -261,6 +262,7 @@ class SqlMagic(Magics, Configurable):
         )
 
     @telemetry.log_call("execute", payload=True)
+    @modify_exceptions
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
         def interactive_execute_wrapper(**kwargs):
             for key, value in kwargs.items():
