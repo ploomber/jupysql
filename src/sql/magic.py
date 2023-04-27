@@ -415,8 +415,8 @@ class SqlMagic(Magics, Configurable):
             detailed_msg = detail(e, command.sql)
             if self.short_errors:
                 print(e)
-                if detailed_msg is not None:
-                    raise exceptions.UsageError(detailed_msg)
+                # if detailed_msg is not None:
+                #     raise exceptions.UsageError(detailed_msg)
             else:
                 if detailed_msg is not None:
                     print(detailed_msg)
