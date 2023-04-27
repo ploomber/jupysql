@@ -11,11 +11,12 @@ import sqlglot
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions
+from sql.error_message import detail
 from ploomber_core.exceptions import modify_exceptions
 
+
 PLOOMBER_SUPPORT_LINK_STR = (
-    "For technical support: https://ploomber.io/community"
-    "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
+    "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
 )
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
@@ -203,7 +204,7 @@ class Connection:
         self.url = engine.url
         self.name = self.assign_name(engine)
         self.dialect = self.url.get_dialect()
-        self.session = engine.connect()
+        self.session = self._create_session(engine)
 
         if IS_SQLALCHEMY_ONE:
             self.metadata = sqlalchemy.MetaData(bind=engine)
@@ -314,6 +315,21 @@ class Connection:
     def assign_name(cls, engine):
         name = "%s@%s" % (engine.url.username or "", engine.url.database)
         return name
+
+    @classmethod
+    @modify_exceptions
+    def _create_session(cls, engine):
+        try:
+            session = engine.connect()
+            return session
+        except OperationalError as e:
+            print(e)
+            detailed_msg = detail(e)
+            if detailed_msg is not None:
+                raise exceptions.RuntimeError(detailed_msg)
+        except Exception as e:
+            e.modify_exception = True
+            raise
 
     @classmethod
     def connection_list(cls):
