@@ -582,7 +582,6 @@ OR
 Set the environment variable $DATABASE_URL
 
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
-If you need help solving this issue, send us a message: https://ploomber.io/community
 """
 
 
@@ -600,7 +599,6 @@ To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
-If you need help solving this issue, send us a message: https://ploomber.io/community
 """  # noqa
 
 
@@ -618,7 +616,6 @@ To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
-If you need help solving this issue, send us a message: https://ploomber.io/community
 """  # noqa
 
 
@@ -636,7 +633,6 @@ Can't load plugin: sqlalchemy.dialects:sqlit
 Perhaps you meant to use driver the dialect: "sqlite"
 
 Documentation: https://jupysql.ploomber.io/en/latest/connecting.html
-If you need help solving this issue, send us a message: https://ploomber.io/community
 """  # noqa
 
 
