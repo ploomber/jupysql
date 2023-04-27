@@ -10,6 +10,7 @@
 * [Fix] Updates errors so only the error message is displayed (and traceback is hidden) ([#407](https://github.com/ploomber/jupysql/issues/407))
 * [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces ([#409](https://github.com/ploomber/jupysql/issues/409))
 * [Doc] Add QuestDB tutorial ([#350](https://github.com/ploomber/jupysql/issues/350))
+* [Feature] Testing Windows CI fail
 
 ## 0.7.1 (2023-04-19)
 

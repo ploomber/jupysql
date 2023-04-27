@@ -3,7 +3,7 @@ from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError
+from sqlalchemy.exc import NoSuchModuleError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
