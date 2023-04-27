@@ -3,7 +3,7 @@ from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
@@ -11,6 +11,7 @@ import sqlglot
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions
+from ploomber_core.exceptions import modify_exceptions
 
 PLOOMBER_SUPPORT_LINK_STR = (
     "For technical support: https://ploomber.io/community"
@@ -187,7 +188,9 @@ class Connection:
     @classmethod
     def _error_no_connection(cls):
         """Error when there isn't any connection"""
-        return UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err = UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err.modify_exception = True
+        return err
 
     @classmethod
     def _error_invalid_connection_info(cls, e, connect_str):
