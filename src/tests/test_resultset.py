@@ -5,6 +5,7 @@ import pytest
 import pandas as pd
 import polars as pl
 import sqlalchemy
+import duckdb
 
 from sql.run import ResultSet
 from sql import run as run_module
@@ -81,3 +82,10 @@ def test_resultset_config_autolimit_dict(result, config):
     config.autolimit = 1
 
     assert ResultSet(result, config).dict() == {"x": (0,)}
+
+
+def test_resultset_with_non_sqlalchemy_results(config):
+    df = pd.DataFrame({"x": range(3)})  # noqa
+    conn = duckdb.connect()
+    result = conn.execute("SELECT * FROM df")
+    assert ResultSet(result, config) == [(0,), (1,), (2,)]

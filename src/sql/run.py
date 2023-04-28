@@ -112,17 +112,19 @@ class ResultSet(ColumnGuesserMixin):
         self.keys = {}
         self._results = []
 
-        is_sql_alchemy_results = not hasattr(sqlaproxy, "description")
+        # https://peps.python.org/pep-0249/#description
+        is_dbapi_results = hasattr(sqlaproxy, "description")
 
         self.pretty = None
 
-        if is_sql_alchemy_results:
-            should_try_fetch_results = sqlaproxy.returns_rows
-        else:
+        if is_dbapi_results:
             should_try_fetch_results = True
+        else:
+            should_try_fetch_results = sqlaproxy.returns_rows
 
         if should_try_fetch_results:
-            if is_sql_alchemy_results:
+            # sql alchemy results
+            if not is_dbapi_results:
                 self.keys = sqlaproxy.keys()
             elif isinstance(sqlaproxy.description, Iterable):
                 self.keys = [i[0] for i in sqlaproxy.description]
@@ -521,7 +523,7 @@ def run(conn, sql, config):
         if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
 
-        # regulat query
+        # regular query
         else:
             manual_commit = set_autocommit(conn, config)
             is_custom_connection = Connection.is_custom_connection(conn)
