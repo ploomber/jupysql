@@ -173,6 +173,12 @@ class ResultSet(ColumnGuesserMixin):
         self.pretty.add_rows(self)
         return str(self.pretty or "")
 
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, another: object) -> bool:
+        return self._results == another
+
     def __getitem__(self, key):
         """
         Access by integer (row position within result set)
