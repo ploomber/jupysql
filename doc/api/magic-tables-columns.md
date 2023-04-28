@@ -18,11 +18,11 @@ myst:
     property=og:locale: en_US
 ---
 
-# `%sqlcmd tables` and `%sqlcmd columns`
+# `%sqlcmd tables`/`%sqlcmd columns`
 
 `%sqlcmd tables` returns the current table names saved in environments.
 
-`sqlcmd columns` returns the column information in a specified table.
+`%sqlcmd columns` returns the column information in a specified table.
 
 ## Load Data
 
