@@ -17,7 +17,7 @@ with open("src/sql/__init__.py", "rb") as f:
 
 install_requires = [
     "prettytable",
-    "ipython==8.12.0",
+    "ipython==8.11.0",
     "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
