@@ -22,9 +22,9 @@ myst:
 
 +++
 
-`%sqlcmd tables` return the current table names saved in environments.
+`%sqlcmd tables` returns the current table names saved in environments.
 
-`sqlcmd columns` returns the column information in a specified table
+`sqlcmd columns` returns the column information in a specified table.
 
 +++
 
