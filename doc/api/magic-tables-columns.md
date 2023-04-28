@@ -20,13 +20,9 @@ myst:
 
 # `%sqlcmd tables` and `%sqlcmd columns`
 
-+++
-
 `%sqlcmd tables` returns the current table names saved in environments.
 
 `sqlcmd columns` returns the column information in a specified table.
-
-+++
 
 ## Load Data
 
