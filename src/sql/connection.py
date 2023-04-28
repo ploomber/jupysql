@@ -271,7 +271,7 @@ class Connection:
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
-                cls.current = Connection(descriptor)
+                cls.current = Connection(descriptor, alias=alias)
             elif is_custom_connection_:
                 cls.current = CustomConnection(descriptor, alias=alias)
             else:
