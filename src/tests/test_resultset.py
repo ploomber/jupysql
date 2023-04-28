@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 import pandas as pd
 import polars as pl
-from sqlalchemy import create_engine
+import sqlalchemy
 
 from sql.run import ResultSet
 from sql import run as run_module
@@ -14,15 +14,19 @@ from sql import run as run_module
 def config():
     config = Mock()
     config.displaylimit = 5
+    config.autolimit = 100
     return config
 
 
 @pytest.fixture
 def result():
     df = pd.DataFrame({"x": range(3)})  # noqa
-    engine = create_engine("duckdb://")
-    result = engine.execute("select * from df")
-    return result
+    engine = sqlalchemy.create_engine("duckdb://")
+
+    conn = engine.connect()
+    result = conn.execute(sqlalchemy.text("select * from df"))
+    yield result
+    conn.close()
 
 
 @pytest.fixture
