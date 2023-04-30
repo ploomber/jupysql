@@ -12,21 +12,21 @@ kernelspec:
   name: python3
 myst:
   html_meta:
-    description lang=en: Enable SQL syntax highlighting in JupyterLab
+    description lang=en: Format your SQL cells in Jupyter
     keywords: jupyter, jupyterlab, sql
     property=og:locale: en_US
 ---
 
-# SQL syntax highlighting
+# SQL formatting
 
 +++
 
-To enable syntax highlighting, install `jupysql-plugin`:
+To enable SQL formatting, install `jupysql-plugin`:
 
 ```sh
 pip install jupysql-plugin --upgrade
 ```
 
-Then, open a notebook and *click* on any `%%sql` cell:
+Then, a "Format SQL" button will appear in JupyterLab:
 
-![syntax](../static/syntax-highlighting.png)
+![format](../static/format-sql.gif)
