@@ -131,10 +131,17 @@ databaseConfig = {
         "drivername": "oracle+oracledb",
         "username": "ploomber_app",
         "password": "ploomber_app_password",
+        "admin_password": "ploomber_app_admin_password",
         # database/schema
         "host": "localhost",
         "port": "1521",
         "alias": "oracle",
+        "database": None,
+        "docker_ct": {
+            "name": "oracle",
+            "image": "gvenzl/oracle-xe",
+            "ports": {1521: 1521},
+        },
         "query": {
             "service_name": "XEPDB1",
         },
@@ -180,6 +187,7 @@ def database_ready(
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
+            print (f"{database} is initialized successfully")
             return True
         except Exception as e:
             errors.append(str(e))
@@ -344,37 +352,24 @@ def oracle(is_bypass_init=False):
     if is_bypass_init:
         yield None
         return
-    db_config = DatabaseConfigHelper.get_database_config("ora")
+    db_config = DatabaseConfigHelper.get_database_config("oracle")
     try:
         client = docker.from_env(version="auto")
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
-        print("Creating new container: mariaDB")
+        print("Creating new container: oracle")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
             ports=db_config["docker_ct"]["ports"],
             environment={
-                "MYSQL_DATABASE": db_config["database"],
-                "MYSQL_USER": db_config["username"],
-                "MYSQL_PASSWORD": db_config["password"],
-                "MYSQL_ROOT_PASSWORD": db_config["root_password"],
+                "APP_USER": db_config["username"],
+                "APP_USER_PASSWORD": db_config["password"],
+                "ORACLE_PASSWORD": db_config["admin_password"],
             },
-            command="mysqld --default-authentication-plugin=mysql_native_password",
-            ready_test=lambda: database_ready(database="mariaDB"),
-            healthcheck={
-                "test": [
-                    "CMD",
-                    "mysqladmin",
-                    "ping",
-                    "-h",
-                    "localhost",
-                    "--user=root",
-                    "--password=ploomber_app_root_password",
-                ],
-                "timeout": 5000000000,
-            },
+            # Oracle takes more time to initialize
+            ready_test=lambda: database_ready("oracle", timeout=100),
         ) as container:
             yield container
 
@@ -382,7 +377,8 @@ def oracle(is_bypass_init=False):
 def main():
     print("Starting test containers...")
 
-    with postgres(), mysql(), mariadb(), mssql():
+    # with oracle():
+    with postgres(), mysql(), mariadb(), mssql(), oracle():
         print("Press CTRL+C to exit")
         try:
             while True:
