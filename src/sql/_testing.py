@@ -354,7 +354,8 @@ def oracle(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("oracle")
     try:
-        client = docker.from_env(version="auto")
+        # TODO: The requires to have colima installed if running on Mac M1/M2 env
+        client = docker.DockerClient(base_url="unix:///Users/tonykuo/.colima/docker.sock")
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
