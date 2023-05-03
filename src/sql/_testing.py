@@ -130,7 +130,7 @@ databaseConfig = {
     "oracle": {
         "drivername": "oracle+oracledb",
         "username": "ploomber_app",
-        "password": "ploomber_app_password",p
+        "password": "ploomber_app_password",
         "admin_password": "ploomber_app_admin_password",
         # database/schema
         "host": "localhost",
