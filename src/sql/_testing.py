@@ -130,7 +130,7 @@ databaseConfig = {
     "oracle": {
         "drivername": "oracle+oracledb",
         "username": "ploomber_app",
-        "password": "ploomber_app_password",
+        "password": "ploomber_app_password",p
         "admin_password": "ploomber_app_admin_password",
         # database/schema
         "host": "localhost",
@@ -206,9 +206,10 @@ def database_ready(
 
 
 def get_docker_client():
-    return docker.from_env(
-        version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
-    )
+    # return docker.from_env(
+    #     version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
+    # )
+    return docker.from_env(version="auto")
 
 
 @contextmanager
