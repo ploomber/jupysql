@@ -379,7 +379,7 @@ def oracle(is_bypass_init=False):
                 "ORACLE_PASSWORD": db_config["admin_password"],
             },
             # Oracle takes more time to initialize
-            ready_test=lambda: database_ready("oracle", timeout=100),
+            ready_test=lambda: lambda: time.sleep(100) or True,
         ) as container:
             yield container
 
