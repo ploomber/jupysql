@@ -151,6 +151,7 @@ databaseConfig = {
 
 # SQLAlchmey URL: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 def _get_database_url(database):
+    print ("drivername: ", databaseConfig[database]["drivername"])
     return URL.create(
         drivername=databaseConfig[database]["drivername"],
         username=databaseConfig[database]["username"],
