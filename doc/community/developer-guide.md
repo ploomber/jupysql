@@ -230,6 +230,12 @@ pytest src/tests/integration
 ```
 
 ```{important}
+If you're using **Mac M1/M2**, the docker container on Oracle Database might fail since it's only supporting to x86_64.
+
+You will need to install [colima](https://github.com/abiosoft/colima) then type `colima start --cpu 4 --memory 4 --disk 30 --arch x86_64` before running integration testing
+```
+
+```{important}
 If you're using **Windows**, the command above might get stuck. Send us a [message on Slack](https://ploomber.io/community) if it happens.
 ```
 
