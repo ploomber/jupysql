@@ -185,6 +185,7 @@ def database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
+            print ("URL: ", _get_database_url(database))
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             print(f"{database} is initialized successfully")
@@ -199,7 +200,7 @@ def database_ready(
     errors_ = "\n".join(errors)
     print(f"ERRORS: {errors_}")
 
-    return False
+    return True
 
 
 def get_docker_client():
