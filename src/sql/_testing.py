@@ -151,7 +151,7 @@ databaseConfig = {
 
 # SQLAlchmey URL: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 def _get_database_url(database):
-    print ("drivername: ", databaseConfig[database]["drivername"])
+    print("drivername: ", databaseConfig[database]["drivername"])
     return URL.create(
         drivername=databaseConfig[database]["drivername"],
         username=databaseConfig[database]["username"],
@@ -192,7 +192,7 @@ def database_ready(
             print(f"{database} is initialized successfully")
             return True
         except Exception as e:
-            print (type(e))
+            print(type(e))
             errors.append(str(e))
 
         time.sleep(poll_freq)
