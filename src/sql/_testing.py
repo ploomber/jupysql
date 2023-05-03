@@ -191,7 +191,8 @@ def database_ready(
             print(f"{database} is initialized successfully")
             return True
         except Exception as e:
-            errors.append(type(e) + str(e))
+            print (type(e))
+            errors.append(str(e))
 
         time.sleep(poll_freq)
 
