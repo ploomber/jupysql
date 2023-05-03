@@ -14,13 +14,13 @@ def test_query_count(ip_with_oracle, test_table_name_dict):
 
     assert len(out) == 3
 
+
 @pytest.mark.xfail(reason="Some issue with checking isidentifier part in persist")
 def test_create_table_with_indexed_df(ip_with_oracle, test_table_name_dict):
     # Prepare DF
     ip_with_oracle.run_cell(
-        f"""results = %sql SELECT * FROM {test_table_name_dict['taxi']} 
-        FETCH FIRST 3 ROWS ONLY
-                    """
+        f"""results = %sql SELECT * FROM {test_table_name_dict['taxi']} \
+        FETCH FIRST 3 ROWS ONLY"""
     )
     ip_with_oracle.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
@@ -40,9 +40,18 @@ def test_create_table_with_indexed_df(ip_with_oracle, test_table_name_dict):
 @pytest.mark.parametrize(
     "cell",
     [
-        ("%sqlplot histogram --with plot_something_subset --table plot_something_subset --column x"),
-        ("%sqlplot hist --with plot_something_subset --table plot_something_subset --column x"),
-        ("%sqlplot histogram --with plot_something_subset --table plot_something_subset --column x --bins 10"),
+        (
+            "%sqlplot histogram --with plot_something_subset \
+            --table plot_something_subset --column x"
+        ),
+        (
+            "%sqlplot hist --with plot_something_subset \
+            --table plot_something_subset --column x"
+        ),
+        (
+            "%sqlplot histogram --with plot_something_subset \
+            --table plot_something_subset --column x --bins 10"
+        ),
     ],
     ids=[
         "histogram",
@@ -56,9 +65,9 @@ def test_sqlplot_histogram(ip_with_oracle, cell, request, test_table_name_dict):
 
     ip_with_oracle.run_cell(
         f"%sql --save plot_something_subset\
-         --no-execute SELECT * from {test_table_name_dict['plot_something']} FETCH FIRST 3 ROWS ONLY"
+         --no-execute SELECT * from {test_table_name_dict['plot_something']} \
+         FETCH FIRST 3 ROWS ONLY"
     )
     out = ip_with_oracle.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
-

@@ -14,7 +14,7 @@ ALL_DATABASES = [
     "ip_with_duckDB",
     "ip_with_MSSQL",
     "ip_with_Snowflake",
-    "ip_with_oracle"
+    "ip_with_oracle",
 ]
 
 

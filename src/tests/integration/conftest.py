@@ -297,6 +297,7 @@ def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
     # Disconnect database
     ip_empty.run_cell("%sql -x " + config["alias"])
 
+
 @pytest.fixture(scope="session")
 def setup_oracle(test_table_name_dict, skip_on_live_mode):
     with _testing.oracle():

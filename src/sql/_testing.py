@@ -187,7 +187,7 @@ def database_ready(
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
-            print (f"{database} is initialized successfully")
+            print(f"{database} is initialized successfully")
             return True
         except Exception as e:
             errors.append(str(e))
@@ -201,8 +201,11 @@ def database_ready(
 
     return False
 
+
 def get_docker_client():
-    return docker.from_env(version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")})
+    return docker.from_env(
+        version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
+    )
 
 
 @contextmanager
