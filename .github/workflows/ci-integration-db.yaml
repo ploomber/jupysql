@@ -38,4 +38,4 @@ jobs:
       - name: Integration Test
         run:
           # Run the integration test by pytest marker
-          pytest src/tests/integration/test_oracle.py
+          pytest src/tests/integration/test_oracle.py -s
