@@ -59,7 +59,7 @@ INTEGRATION = [
     "pyodbc",
     "snowflake-sqlalchemy",
     "oracledb",
-    "cx_Oracle"
+    "cx_Oracle",
 ]
 
 setup(

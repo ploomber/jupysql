@@ -191,7 +191,7 @@ def database_ready(
             print(f"{database} is initialized successfully")
             return True
         except Exception as e:
-            errors.append(str(e))
+            errors.append(type(e) + str(e))
 
         time.sleep(poll_freq)
 
@@ -383,7 +383,7 @@ def oracle(is_bypass_init=False):
 
 def main():
     print("Starting test containers...")
-    with postgres(), mysql(), mariadb(), mssql(), oracle():
+    with oracle():
         print("Press CTRL+C to exit")
         try:
             while True:
