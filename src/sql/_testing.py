@@ -167,7 +167,7 @@ client = docker.from_env()
 
 def database_ready(
     database,
-    timeout=20,
+    timeout=40,
     poll_freq=0.5,
 ):
     """Wait until the container is ready to receive connections.
@@ -201,6 +201,9 @@ def database_ready(
 
     return False
 
+def get_docker_client():
+    return docker.from_env(version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")})
+
 
 @contextmanager
 def postgres(is_bypass_init=False):
@@ -209,7 +212,7 @@ def postgres(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("postgreSQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
@@ -241,7 +244,7 @@ def mysql(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("mySQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
@@ -281,7 +284,7 @@ def mariadb(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("mariaDB")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
@@ -321,7 +324,7 @@ def mssql(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("MSSQL")
     try:
-        client = docker.from_env(version="auto")
+        client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
@@ -354,8 +357,7 @@ def oracle(is_bypass_init=False):
         return
     db_config = DatabaseConfigHelper.get_database_config("oracle")
     try:
-        # TODO: The requires to have colima installed if running on Mac M1/M2 env
-        client = docker.DockerClient(base_url="unix:///Users/tonykuo/.colima/docker.sock")
+        client = get_docker_client()
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
@@ -377,8 +379,6 @@ def oracle(is_bypass_init=False):
 
 def main():
     print("Starting test containers...")
-
-    # with oracle():
     with postgres(), mysql(), mariadb(), mssql(), oracle():
         print("Press CTRL+C to exit")
         try:
