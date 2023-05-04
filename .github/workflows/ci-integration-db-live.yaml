@@ -38,7 +38,7 @@ jobs:
         if: ${{ steps.secret-check.outputs.available == 'true' }}
         run:
           pip install ".[integration]"
-          pip install "sqlalchemy>=2"
+          pip install sqlalchemy -U
       - name: Integration Test
         if: ${{ steps.secret-check.outputs.available == 'true' }}
         env:
