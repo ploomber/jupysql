@@ -184,6 +184,7 @@ def database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
+            print("version: ", sqlalchemy.__version__)
             print("oracledb: ", sqlalchemy.dialects.oracle.oracledb)
             print("URL: ", _get_database_url(database))
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
