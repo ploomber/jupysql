@@ -6,6 +6,7 @@ import docker
 from docker import errors
 from sqlalchemy.engine import URL
 import os
+import sqlalchemy
 
 TMP_DIR = "tmp"
 
@@ -178,8 +179,6 @@ def database_ready(
     :type timeout: float
     :type poll_freq: float
     """
-    import sqlalchemy
-
     errors = []
 
     t0 = time.time()
