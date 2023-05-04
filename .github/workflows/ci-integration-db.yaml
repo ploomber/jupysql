@@ -35,7 +35,11 @@ jobs:
           source ~/.bashrc
 
           pip install ".[integration]"
+          pip install sqlalchemy -U
+
       - name: Integration Test
         run:
+          # ensure we're running sqlalchemy 2
+          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
           # Run the integration test by pytest marker
           pytest src/tests/integration/test_oracle.py -s

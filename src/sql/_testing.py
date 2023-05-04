@@ -151,7 +151,6 @@ databaseConfig = {
 
 # SQLAlchmey URL: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 def _get_database_url(database):
-    print("drivername: ", databaseConfig[database]["drivername"])
     return URL.create(
         drivername=databaseConfig[database]["drivername"],
         username=databaseConfig[database]["username"],
@@ -184,9 +183,6 @@ def database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            print("version: ", sqlalchemy.__version__)
-            print("oracledb: ", sqlalchemy.dialects.oracle.oracledb)
-            print("URL: ", _get_database_url(database))
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
             print(f"{database} is initialized successfully")
@@ -206,10 +202,9 @@ def database_ready(
 
 
 def get_docker_client():
-    # return docker.from_env(
-    #     version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
-    # )
-    return docker.from_env(version="auto")
+    return docker.from_env(
+        version="auto", environment={"DOCKER_HOST": os.getenv("DOCKER_HOST")}
+    )
 
 
 @contextmanager
