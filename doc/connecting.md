@@ -92,6 +92,7 @@ Check out our guide for connecting to a database:
 - [MSSQL](integrations/mssql)
 - [MySQL](integrations/mysql)
 - [QuestDB](integrations/questdb)
+- [Oracle](integrations/oracle)
 
 +++
 
