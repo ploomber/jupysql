@@ -40,7 +40,7 @@ We use the non-official image [gvenzl/oracle-xe](https://hub.docker.com/r/gvenzl
 
 ```{code-cell} ipython3
 %%bash 
-docker run -d -p 1521:1521 \
+docker run --name postgres -d -p 1521:1521 \
   -e ORACLE_PASSWORD=ploomber_app_admin_password \
   -e APP_USER=ploomber_app \
   -e APP_USER_PASSWORD=ploomber_app_password gvenzl/oracle-xe
@@ -155,6 +155,4 @@ WHERE sepal_length > 6.0
 %sql --with saved_cte SELECT * FROM saved_cte
 ```
 
-```{code-cell} ipython3
-
-```
+This is what JupySQL executes:
