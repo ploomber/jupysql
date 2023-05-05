@@ -81,6 +81,26 @@ def test_boxplot_stats_exception(chinook_db, ip_empty):
         )
 
 
+def test_summary_stats(chinook_db, ip_empty):
+    Path("data.csv").write_text(
+        """\
+x, y
+0, 0
+1, 1
+2, 2
+5, 7
+9, 9
+"""
+    )
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
+    ip_empty.run_cell("%sql commit")
+    ip_empty.run_cell("%sql LOAD 'sqlite_scanner';")
+    result = plot._summary_stats(None, "data.csv", column="x")
+    expected = {"q1": 1.0, "med": 2.0, "q3": 5.0, "mean": 3.4, "N": 5.0}
+    assert result == expected
+
+
 @pytest.mark.parametrize(
     "cell, error_type, error_message",
     [
