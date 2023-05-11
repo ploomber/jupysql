@@ -3,6 +3,8 @@
 ## 0.7.8dev
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie`
+* [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
+
 
 ## 0.7.7 (2023-05-31)
 
