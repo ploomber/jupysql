@@ -4,6 +4,8 @@
 * [Feature] Using native DuckDB `.df()` method when using `autopandas` 
 
 * [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
+* [Feature] Better error messages when function used in plotting API unsupported by DB driver (#159)
+* [Fix] Fix the default value of %config SqlMagic.displaylimit to 10 (#462)
 
 ## 0.7.4 (2023-04-28)
 No changes
