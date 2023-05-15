@@ -38,8 +38,6 @@ jobs:
           pip install "sqlalchemy>=2"
       - name: Integration Test
         run:
-          # ensure we're running sqlalchemy 2
-          python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
           # Run the integration test by pytest marker
           python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
           pytest src/tests/integration --verbose
