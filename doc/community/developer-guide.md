@@ -19,7 +19,12 @@ myst:
 
 # Developer guide
 
-Before continuing, ensure you have a working [development environment.](https://ploomber-contributing.readthedocs.io/en/latest/contributing/setup.html)
+Before continuing, ensure you have a [working development environment locally](https://ploomber-contributing.readthedocs.io/en/latest/contributing/setup.html) or on [github codespaces](https://github.com/features/codespaces).
+
+![JupySQL github codespace](../static/github-codespace.png)
+You can launch a new github codespace from the green "Code" button on [the JupySQL github repository](https://github.com/ploomber/jupysql). 
+
+After the codespace has finished setting up, you can run `conda activate jupysql` to activate the JupySQL Conda environment.
 
 +++
 

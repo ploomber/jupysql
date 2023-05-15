@@ -9,6 +9,7 @@
 * [Feature] Detailed error messages when syntax error in SQL query, postgres connection password missing or inaccessible, invalid DuckDB connection string ([#229](https://github.com/ploomber/jupysql/issues/229))
 * [Fix] Fix the default value of %config SqlMagic.displaylimit to 10 ([#462](https://github.com/ploomber/jupysql/issues/462))
 * [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
+* [Feature] Github Codespace (Devcontainer) support for development (by [@jorisroovers](https://github.com/jorisroovers)) ([#484](https://github.com/ploomber/jupysql/issues/484))
 
 ## 0.7.4 (2023-04-28)
 
