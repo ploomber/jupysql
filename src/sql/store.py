@@ -93,12 +93,11 @@ class SQLQuery:
         self._with_ = with_ or []
 
         if any("-" in x for x in self._with_):
-            warnings.warn(
-                "Using hyphens will be deprecated soon, "
-                "please use "
+            exceptions.UsageError(
+                "Using hyphens is not allowed."
+                "Please use "
                 + ", ".join(self._with_).replace("-", "_")
                 + " instead for the with argument.",
-                FutureWarning,
             )
 
     def __str__(self) -> str:
