@@ -93,7 +93,7 @@ class SQLQuery:
 
         if any("-" in x for x in self._with_):
             raise exceptions.UsageError(
-                "Using hyphens is not allowed."
+                "Using hyphens is not allowed. "
                 "Please use "
                 + ", ".join(self._with_).replace("-", "_")
                 + " instead for the with argument.",
