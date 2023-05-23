@@ -344,3 +344,4 @@ Vendor-specific details are available in our tutorials:
 - [MSSQL](integrations/mssql)
 - [MySQL](integrations/mysql)
 - [QuestDB](integrations/questdb)
+- [Oracle](integrations/oracle)
