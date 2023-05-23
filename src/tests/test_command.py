@@ -13,7 +13,10 @@ def sql_magic(ip):
 
 
 @pytest.mark.parametrize(
-    "line, cell, parsed_sql, parsed_connection, parsed_result_var, parsed_return_result_var",
+    (
+        "line, cell, parsed_sql, parsed_connection, parsed_result_var,"
+        "parsed_return_result_var"
+    ),
     [
         ("something --no-execute", "", "something", "", None, False),
         ("sqlite://", "", "", "sqlite://", None, False),
