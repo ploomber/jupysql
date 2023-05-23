@@ -36,7 +36,7 @@ def test_create_table_with_indexed_df(ip_with_oracle, test_table_name_dict):
     assert len(query_out.result) == 15
 
 
-@pytest.mark.xfail(reason="Known table parameter issue with oracledb")
+@pytest.mark.xfail(reason="Known table parameter issue with oracledb, addressing in #506")
 @pytest.mark.parametrize(
     "cell",
     [
