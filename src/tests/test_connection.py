@@ -270,21 +270,19 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 
 
 @pytest.mark.parametrize(
-    "conn, expected, desc",
+    "conn, expected",
     [
-        [sqlite3.connect(""), True, None],
+        [sqlite3.connect(""), True],
         [
             CustomConnection(engine=sqlalchemy.create_engine("sqlite://")),
             True,
-            "custom_driver",
         ],
         [
             Connection(engine=sqlalchemy.create_engine("sqlite://")),
             False,
-            "sqlite://",
         ],
-        ["not_a_valid_connection", False, None],
-        [0, False, None],
+        ["not_a_valid_connection", False],
+        [0, False],
     ],
     ids=[
         "sqlite3_connection",
@@ -294,6 +292,6 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
         "int",
     ],
 )
-def test_custom_connection(conn, expected, desc):
+def test_custom_connection(conn, expected):
     is_custom = Connection.is_custom_connection(conn)
     assert is_custom == expected
