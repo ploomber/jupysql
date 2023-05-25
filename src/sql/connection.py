@@ -416,8 +416,6 @@ class Connection:
         if isinstance(conn, (CustomConnection, CustomSession)):
             is_custom_connection_ = True
         else:
-            # TODO: Better check when user passes a custom
-            # connection
             if isinstance(
                 conn, (sqlalchemy.engine.base.Connection, Connection)
             ) or not (is_pep249_compliant(conn)):

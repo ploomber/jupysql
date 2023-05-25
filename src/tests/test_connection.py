@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 import sql.connection
-from sql.connection import Connection
+from sql.connection import Connection, CustomConnection
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
+import duckdb
 
 
 @pytest.fixture
@@ -266,3 +267,41 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 
     monkeypatch.setattr(conn, "session", None)
     assert conn._get_curr_sqlalchemy_connection_info() is None
+
+
+@pytest.mark.parametrize(
+    "conn, expected, desc",
+    [
+        [duckdb.connect(database=":memory:"), True, None],
+        [
+            CustomConnection(engine=sqlalchemy.create_engine("duckdb://")),
+            True,
+            "duckdb://",
+        ],
+        [
+            Connection(engine=sqlalchemy.create_engine("duckdb://")),
+            False,
+            "duckdb://",
+        ],
+        ["not_a_valid_connection", False, None],
+        [0, False, None],
+        [None, False, None],
+    ],
+    ids=[
+        "duckdb_connection",
+        "custom_connection",
+        "normal_connection",
+        "str",
+        "int",
+        "none_connection",
+    ],
+)
+def test_custom_connection(conn, expected, desc):
+    is_custom = Connection.is_custom_connection(conn)
+    assert is_custom == expected
+
+    if is_custom:
+        if desc:
+            conn.close(desc)
+        else:
+            conn.close()
