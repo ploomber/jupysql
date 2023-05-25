@@ -7,7 +7,7 @@ conda init bash
 conda create --name ploomber-base python=3.10 --yes
 conda activate ploomber-base
 pip install pkgmt
-pkgmt setup
+pkgmt setup --doc
 
 # After the devcontainer comes up, you can just enable the jupysql conda env:
 # conda activate jupysql
