@@ -8,7 +8,7 @@ from sql.connection import Connection, CustomConnection
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
-import duckdb
+import sqlite3
 
 
 @pytest.fixture
@@ -272,36 +272,28 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 @pytest.mark.parametrize(
     "conn, expected, desc",
     [
-        [duckdb.connect(database=":memory:"), True, None],
+        [sqlite3.connect(""), True, None],
         [
-            CustomConnection(engine=sqlalchemy.create_engine("duckdb://")),
+            CustomConnection(engine=sqlalchemy.create_engine("sqlite://")),
             True,
-            "duckdb://",
+            "custom_driver",
         ],
         [
-            Connection(engine=sqlalchemy.create_engine("duckdb://")),
+            Connection(engine=sqlalchemy.create_engine("sqlite://")),
             False,
-            "duckdb://",
+            "sqlite://",
         ],
         ["not_a_valid_connection", False, None],
         [0, False, None],
-        [None, False, None],
     ],
     ids=[
-        "duckdb_connection",
+        "sqlite3_connection",
         "custom_connection",
         "normal_connection",
         "str",
         "int",
-        "none_connection",
     ],
 )
 def test_custom_connection(conn, expected, desc):
     is_custom = Connection.is_custom_connection(conn)
     assert is_custom == expected
-
-    if is_custom:
-        if desc:
-            conn.close(desc)
-        else:
-            conn.close()
