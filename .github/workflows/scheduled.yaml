@@ -19,9 +19,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pkgmt
+          pip install git+https://github.com/mehtamohit013/pkgmt.git@binder
 
       - name: Check for broken links
         run: |
-          pkgmt check-links
+          pkgmt check-links --verbose
 
