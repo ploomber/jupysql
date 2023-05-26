@@ -117,7 +117,7 @@ def is_pep249_compliant(conn):
     pep249_methods = [
         "close",
         "commit",
-        "rollback",
+        # "rollback",
         # "cursor",
         # PEP 249 doesn't require the connection object to have
         # a cursor method strictly
