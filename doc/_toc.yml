@@ -32,6 +32,9 @@ parts:
       - file: integrations/postgres-connect
       - file: integrations/compatibility
       - file: integrations/questdb
+      - file: integrations/oracle
+      - file: integrations/trinodb
+
 
   - caption: API Reference
     chapters:
@@ -50,12 +53,14 @@ parts:
     - file: howto/syntax-highlighting
     - file: howto/csv
     - file: howto/autocompletion
+    - file: howto/format-sql
 
   - caption: Tutorials
     chapters:
     - file: tutorials/duckdb-github
     - file: tutorials/etl
     - file: tutorials/excel
+    - file: tutorials/product-analytics
 
   - caption: Community
     chapters:
