@@ -75,7 +75,7 @@ new_filename = "yellow_tripdata_2021.parquet"
 if not Path(new_filename).is_file():
     urlretrieve(url, new_filename)
     # Rename the downloaded file to remove the month ("-" interferes with the SQL query)
-    os.rename(new_filename, new_filename.replace("-01", ""))  
+    os.rename(new_filename, new_filename.replace("-01", ""))
 ```
 
 ```{code-cell} ipython3
@@ -105,6 +105,7 @@ To save the profile of the `penguins.csv` data as an HTML file:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
+
 %sqlcmd profile --table "penguins.csv" --output penguins-report.html
 ```
 
@@ -118,6 +119,7 @@ To save the profile of the `yellow_tripdata_2021.parquet` data as an HTML file:
 
 ```{code-cell} ipython3
 :tags: [hide-output]
+
 %sqlcmd profile --table "yellow_tripdata_2021.parquet" --output taxi-report.html
 ```
 
