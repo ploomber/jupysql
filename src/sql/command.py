@@ -25,7 +25,7 @@ class SQLCommand:
 
         self.args = parse.magic_args(magic.execute, line)
         # self.args.line (everything that appears after %sql/%%sql in the first line)
-        # is splited in tokens (delimited by spaces), this checks if we have one arg
+        # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
 
         is_custom_connection_ = (
@@ -52,6 +52,7 @@ class SQLCommand:
             add_alias = True
         else:
             add_alias = False
+
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:
@@ -97,6 +98,11 @@ class SQLCommand:
     def result_var(self):
         """Returns the result_var"""
         return self.parsed["result_var"]
+
+    @property
+    def return_result_var(self):
+        """Returns the return_result_var"""
+        return self.parsed["return_result_var"]
 
     def _var_expand(self, sql, user_ns, magic):
         return Template(sql).render(user_ns)

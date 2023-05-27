@@ -6,7 +6,7 @@ on:
       - master
       - 'dev/**'
   pull_request:
-
+  workflow_call:
 
 jobs:
   database-live-integration-test:
@@ -44,6 +44,7 @@ jobs:
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
           SF_DATABASE: ${{ secrets.SF_DATABASE }}
-        run:
+        run: |
           # Run the integration test with live option
+          python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
           pytest src/tests/integration --verbose --live

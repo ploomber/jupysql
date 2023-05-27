@@ -7,6 +7,7 @@ import pytest
 
 import warnings
 
+from IPython.core.error import UsageError
 from sql.connection import Connection
 from sql.run import (
     run,
@@ -20,9 +21,9 @@ from sql.run import (
 
 @pytest.fixture
 def mock_conns():
-    Connection.name = str()
-    Connection.dialect = "postgres"
-    return Connection
+    conn = Connection(Mock())
+    conn.session.execution_options.side_effect = ValueError
+    return conn
 
 
 @pytest.fixture
@@ -88,15 +89,20 @@ def test_is_postgres_or_redshift(dialect):
 
 
 def test_handle_postgres_special(mock_conns):
-    with pytest.raises(ImportError):
+    with pytest.raises(UsageError) as excinfo:
         handle_postgres_special(mock_conns, "\\")
+
+    assert "pgspecial not installed" in str(excinfo.value)
 
 
 def test_set_autocommit(mock_conns, mock_config, caplog):
     caplog.set_level(logging.DEBUG)
+
     output = set_autocommit(mock_conns, mock_config)
+
     with warnings.catch_warnings():
         warnings.simplefilter("error")
+
     assert "The database driver doesn't support such " in caplog.records[0].msg
     assert output is True
 
@@ -124,8 +130,10 @@ def test_select_df_type_is_polars(monkeypatch, config_polars, mock_resultset):
 
 
 def test_sql_starts_with_begin(mock_conns, mock_config):
-    with pytest.raises(ValueError, match="does not support transactions"):
+    with pytest.raises(UsageError, match="does not support transactions") as excinfo:
         run(mock_conns, "BEGIN", mock_config)
+
+    assert excinfo.value.error_type == "RuntimeError"
 
 
 def test_sql_is_empty(mock_conns, mock_config):

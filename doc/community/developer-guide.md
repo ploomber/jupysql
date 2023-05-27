@@ -39,14 +39,18 @@ So in most circumstances, we only display an error without a traceback. For exam
 %sqlplot
 ```
 
-To implement such behavior, you can use any of the functions defined in `sql.exceptions`, or implement your own. For example, we have an `ArgumentError` that can be raised when users pass incorrect arguments:
+To implement such behavior, you can use any of the functions defined in `sql.exceptions`, or implement your own. For example, we have a `UsageError` that can be raised when users pass incorrect arguments:
 
 ```{code-cell} ipython3
 :tags: [raises-exception]
 
-from sql.exceptions import ArgumentError
+from sql.exceptions import UsageError
 
-raise ArgumentError("something bad happened")
+raise UsageError("something bad happened")
+```
+
+```{important}
+These errors that hide the traceback should only be used in the context of a magic. For example, in our ggplot API (Python-based), we do not hide tracebacks as users might need them to debug their code
 ```
 
 +++ {"user_expressions": []}
@@ -54,6 +58,16 @@ raise ArgumentError("something bad happened")
 ### Unit testing custom errors
 
 The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples.
+
++++
+
+### Handling common errors
+
+Currently, these common errors are handled by providing more meaningful error messages:
+
+* Syntax error in SQL query - The SQL query is parsed using `sqlglot` and possible syntax issues or query suggestions are provided to the user. This raises a `UsageError` with the message.
+* Missing password when connecting to PostgreSQL - Displays guide on DB connections
+* Invalid connection strings when connecting to DuckDB.
 
 +++
 
@@ -210,7 +224,7 @@ pkgmt setup
 # activate environment
 conda activate jupysql
 
-# install depdencies
+# install dependencies
 pip install -e '.[integration]'
 ```
 
@@ -223,6 +237,14 @@ the required Docker images):
 
 ```sh
 pytest src/tests/integration
+```
+
+```{important}
+If you're using **Apple M chips**, the docker container on Oracle Database might fail since it's only supporting to x86_64 CPU.
+
+You will need to install [colima](https://github.com/abiosoft/colima) then run `colima start --cpu 4 --memory 4 --disk 30 --arch x86_64` before running the integration testing. [See more](https://hub.docker.com/r/gvenzl/oracle-xe)
+
+Send us a [message on Slack](https://ploomber.io/community) if any issue happens.
 ```
 
 ```{important}
@@ -240,3 +262,108 @@ pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
 
 Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
+## General SQL Clause for Multiple Database Dialects
+
+### Context
+
+As our codebase is expanding, we have noticed that we need to write SQL queries for different database dialects such as MySQL, PostgreSQL, SQLite, and more. Writing and maintaining separate queries for each database can be time-consuming and error-prone.
+
+To address this issue, we can use `sqlglot` to create a construct that can be compiled across multiple SQL dialects. This clause will allow us to write a single SQL query that can be translated to different database dialects, then use it for calculating the metadata (e.g. metadata used by boxplot)
+
+In this section, we'll explain how to build generic SQL constructs and provide examples of how it can be used in our codebase. We will also include instructions on how to add support for additional database dialects.
+
+### Approach 1 - Provide the general SQL Clause
+
+We can use [SQLGlot](https://sqlglot.com/sqlglot.html) to build the general sql expressions.
+
+Then transpile to the sql which is supported by current connected dialect.
+
+Our `sql.connection.Connection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
+
+#### Example
+
+```{code-cell} ipython3
+# Prepare connection
+from sqlglot import select, condition
+from sql import connection
+from sqlalchemy import create_engine
+
+conn = connection.Connection(engine=create_engine(url="sqlite://"))
+```
+
+```{code-cell} ipython3
+# Prepare SQL Clause
+where = condition("x=1").and_("y=1")
+general_sql = select("*").from_("y").where(where).sql()
+
+print("General SQL Clause: ")
+print(f"{general_sql}\n")
+```
+
+```{code-cell} ipython3
+# Result
+print("Transpiled result: ")
+conn._transpile_query(general_sql)
+```
+
+### Approach 2 - Provide SQL Clause based on specific database 
+
+Sometimes the SQL Clause might be complex, we can also write the SQL Clause based on one specific database and transpile it.
+
+For example, the `TO_TIMESTAMP` keyword is only defined in duckdb, but we want to also apply this SQL clause to other database.
+
+We may provide `sqlglot.parse_one({source_sql_clause}, read={source_database_dialect}).sql()` as input sql to `_transpile_query()`
+
+#### When current connection is via duckdb
+
+##### Prepare connection
+
+```{code-cell} ipython3
+from sql import connection
+from sqlalchemy import create_engine
+import sqlglot
+
+conn = connection.Connection(engine=create_engine(url="duckdb://"))
+```
+
+##### Prepare SQL clause based on duckdb syntax
+
+```{code-cell} ipython3
+input_sql = sqlglot.parse_one("SELECT TO_TIMESTAMP(1618088028295)", read="duckdb").sql()
+```
+
+##### Transpiled Result
+
+```{code-cell} ipython3
+conn._transpile_query(input_sql)
+```
+
+#### When current connection is via sqlite
+
+
+##### Prepare connection
+
+```{code-cell} ipython3
+from sql import connection
+from sqlalchemy import create_engine
+
+conn = connection.Connection(engine=create_engine(url="sqlite://"))
+```
+
+##### Prepare SQL clause based on sqlite
+
+```{code-cell} ipython3
+input_sql = sqlglot.parse_one("SELECT TO_TIMESTAMP(1618088028295)", read="duckdb").sql()
+```
+
+##### Transpiled Result
+
+```{code-cell} ipython3
+conn._transpile_query(input_sql)
+```
+
+As you can see, output results are different
+
+From duckdb dialect: `'SELECT TO_TIMESTAMP(1618088028295)'`
+
+From sqlite dialect: `'SELECT UNIX_TO_TIME(1618088028295)'`

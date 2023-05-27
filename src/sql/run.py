@@ -11,11 +11,12 @@ import prettytable
 import sqlalchemy
 import sqlparse
 from sql.connection import Connection
+from sql import exceptions
 from .column_guesser import ColumnGuesserMixin
 
 try:
     from pgspecial.main import PGSpecial
-except ImportError:
+except ModuleNotFoundError:
     PGSpecial = None
 from sqlalchemy.orm import Session
 
@@ -23,6 +24,8 @@ from sql.telemetry import telemetry
 import logging
 import warnings
 from collections.abc import Iterable
+
+DEFAULT_DISPLAYLIMIT_VALUE = 10
 
 
 def unduplicate_field_names(field_names):
@@ -90,7 +93,7 @@ def _nonbreaking_spaces(match_obj):
     Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
 
     Call with a ``re`` match object.  Retain group 1, replace group 2
-    with nonbreaking speaces.
+    with nonbreaking spaces.
     """
     spaces = "&nbsp;" * len(match_obj.group(2))
     return "%s%s" % (match_obj.group(1), spaces)
@@ -99,7 +102,7 @@ def _nonbreaking_spaces(match_obj):
 _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
 
-class ResultSet(list, ColumnGuesserMixin):
+class ResultSet(ColumnGuesserMixin):
     """
     Results of a SQL query.
 
@@ -109,19 +112,21 @@ class ResultSet(list, ColumnGuesserMixin):
     def __init__(self, sqlaproxy, config):
         self.config = config
         self.keys = {}
+        self._results = []
 
-        is_sql_alchemy_results = not hasattr(sqlaproxy, "description")
+        # https://peps.python.org/pep-0249/#description
+        is_dbapi_results = hasattr(sqlaproxy, "description")
 
-        list.__init__(self, [])
         self.pretty = None
 
-        if is_sql_alchemy_results:
-            should_try_fetch_results = sqlaproxy.returns_rows
-        else:
+        if is_dbapi_results:
             should_try_fetch_results = True
+        else:
+            should_try_fetch_results = sqlaproxy.returns_rows
 
         if should_try_fetch_results:
-            if is_sql_alchemy_results:
+            # sql alchemy results
+            if not is_dbapi_results:
                 self.keys = sqlaproxy.keys()
             elif isinstance(sqlaproxy.description, Iterable):
                 self.keys = [i[0] for i in sqlaproxy.description]
@@ -130,12 +135,14 @@ class ResultSet(list, ColumnGuesserMixin):
 
             if len(self.keys) > 0:
                 if isinstance(config.autolimit, int) and config.autolimit > 0:
-                    list.__init__(self, sqlaproxy.fetchmany(size=config.autolimit))
+                    self._results = sqlaproxy.fetchmany(size=config.autolimit)
                 else:
-                    list.__init__(self, sqlaproxy.fetchall())
+                    self._results = sqlaproxy.fetchall()
+
                 self.field_names = unduplicate_field_names(self.keys)
 
                 _style = None
+
                 if isinstance(config.style, str):
                     _style = prettytable.__dict__[config.style.upper()]
 
@@ -149,19 +156,38 @@ class ResultSet(list, ColumnGuesserMixin):
             # to create clickable links
             result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.config.displaylimit and len(self) > self.config.displaylimit:
+            if len(self) > self.pretty.row_count:
                 HTML = (
                     '%s\n<span style="font-style:italic;text-align:center;">'
                     "%d rows, truncated to displaylimit of %d</span>"
+                    "<br>"
+                    '<span style="font-style:italic;text-align:center;">'
+                    "If you want to see more, please visit "
+                    '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
+                    " configuration</span>"
                 )
-                result = HTML % (result, len(self), self.config.displaylimit)
+                result = HTML % (result, len(self), self.pretty.row_count)
             return result
         else:
             return None
 
+    def __len__(self):
+        return len(self._results)
+
+    def __iter__(self):
+        for result in self._results:
+            yield result
+
     def __str__(self, *arg, **kwarg):
-        self.pretty.add_rows(self)
+        if self.pretty:
+            self.pretty.add_rows(self)
         return str(self.pretty or "")
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, another: object) -> bool:
+        return self._results == another
 
     def __getitem__(self, key):
         """
@@ -169,7 +195,7 @@ class ResultSet(list, ColumnGuesserMixin):
         or by string (value of leftmost column)
         """
         try:
-            return list.__getitem__(self, key)
+            return self._results[key]
         except TypeError:
             result = [row for row in self if row[0] == key]
             if not result:
@@ -229,7 +255,7 @@ class ResultSet(list, ColumnGuesserMixin):
                       from each other in pie labels
         title: Plot title, defaults to name of value column
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.pie``.
         """
         self.guess_pie_columns(xlabel_sep=key_word_sep)
@@ -257,7 +283,7 @@ class ResultSet(list, ColumnGuesserMixin):
         ----------
         title: Plot title, defaults to names of Y value columns
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.plot``.
         """
         import matplotlib.pylab as plt
@@ -298,7 +324,7 @@ class ResultSet(list, ColumnGuesserMixin):
         key_word_sep: string used to separate column values
                       from each other in labels
 
-        Any additional keyword arguments will be passsed
+        Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.bar``.
         """
         import matplotlib.pylab as plt
@@ -426,7 +452,8 @@ def is_pytds(dialect):
 def handle_postgres_special(conn, statement):
     """Execute a PostgreSQL special statement using PGSpecial module."""
     if not PGSpecial:
-        raise ImportError("pgspecial not installed")
+        raise exceptions.MissingPackageError("pgspecial not installed")
+
     pgspecial = PGSpecial()
     _, cur, headers, _ = pgspecial.execute(conn.session.connection.cursor(), statement)[
         0
@@ -471,6 +498,23 @@ def select_df_type(resultset, config):
 
 
 def run(conn, sql, config):
+    """Run a SQL query with the given connection
+
+    Parameters
+    ----------
+    conn : sql.connection.Connection
+        The connection to use
+
+    sql : str
+        SQL query to execution
+
+    config
+        Configuration object
+    """
+    info = conn._get_curr_sqlalchemy_connection_info()
+
+    duckdb_autopandas = info and info.get("dialect") == "duckdb" and config.autopandas
+
     if not sql.strip():
         # returning only when sql is empty string
         return "Connected: %s" % conn.name
@@ -478,29 +522,45 @@ def run(conn, sql, config):
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
         manual_commit = False
+
+        # attempting to run a transaction
         if first_word == "begin":
-            raise ValueError("ipython_sql does not support transactions")
+            raise exceptions.RuntimeError("JupySQL does not support transactions")
+
+        # postgres metacommand
         if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
+
+        # regular query
         else:
-            txt = sqlalchemy.sql.text(statement)
             manual_commit = set_autocommit(conn, config)
-
             is_custom_connection = Connection.is_custom_connection(conn)
-            if is_custom_connection:
-                txt_ = str(txt)
-            else:
-                txt_ = txt
-            # stringify txt to avoid TypeError:
-            # Boolean value of this clause is not defined
-            result = conn.session.execute(txt_)
-        _commit(conn=conn, config=config, manual_commit=manual_commit)
-        if result and config.feedback:
-            if hasattr(result, "rowcount"):
-                print(interpret_rowcount(result.rowcount))
 
-    resultset = ResultSet(result, config)
-    return select_df_type(resultset, config)
+            # if regular sqlalchemy, pass a text object
+            if not is_custom_connection:
+                statement = sqlalchemy.sql.text(statement)
+
+            if duckdb_autopandas:
+                conn = conn.engine.raw_connection()
+                cursor = conn.cursor()
+                cursor.execute(str(statement))
+
+            else:
+                result = conn.session.execute(statement)
+                _commit(conn=conn, config=config, manual_commit=manual_commit)
+
+                if result and config.feedback:
+                    if hasattr(result, "rowcount"):
+                        print(interpret_rowcount(result.rowcount))
+
+    # bypass ResultSet and use duckdb's native method to return a pandas data frame
+    if duckdb_autopandas:
+        df = cursor.df()
+        conn.close()
+        return df
+    else:
+        resultset = ResultSet(result, config)
+        return select_df_type(resultset, config)
 
 
 def raw_run(conn, sql):
@@ -510,7 +570,7 @@ def raw_run(conn, sql):
 class PrettyTable(prettytable.PrettyTable):
     def __init__(self, *args, **kwargs):
         self.row_count = 0
-        self.displaylimit = None
+        self.displaylimit = DEFAULT_DISPLAYLIMIT_VALUE
         return super(PrettyTable, self).__init__(*args, **kwargs)
 
     def add_rows(self, data):
@@ -519,7 +579,7 @@ class PrettyTable(prettytable.PrettyTable):
         self.clear_rows()
         self.displaylimit = data.config.displaylimit
         if self.displaylimit == 0:
-            self.displaylimit = None  # TODO: remove this to make 0 really 0
+            self.displaylimit = None
         if self.displaylimit in (None, 0):
             self.row_count = len(data)
         else:

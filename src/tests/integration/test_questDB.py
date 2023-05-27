@@ -8,6 +8,7 @@ import requests
 from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 from sql.connection import CustomConnection, CustomSession
+from IPython.core.error import UsageError
 
 """
 This test class includes all QuestDB-related tests and specifically focuses
@@ -94,7 +95,7 @@ def custom_database_ready(
 
         time.sleep(poll_freq)
 
-    # print all the errors so we know what's goin on since failing to connect might be
+    # print all the errors so we know what's going on since failing to connect might be
     # to some misconfiguration error
     errors_ = "\n".join(errors)
     print(f"ERRORS: {errors_}")
@@ -130,7 +131,7 @@ def questdb_container(is_bypass_init=False):
 @pytest.fixture
 def ip_questdb(diamonds_data, penguins_data, ip_empty):
     """
-    Initalizes questdb database container and loads it with data
+    Initializes questdb database container and loads it with data
     """
     with questdb_container():
         ip_empty.run_cell(
@@ -529,7 +530,7 @@ def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
     out = ip_questdb.run_cell(query)
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, AttributeError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
 
@@ -553,9 +554,10 @@ def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
 def test_ggplot_boxplot_not_supported_error(
     ip_questdb, penguins_no_nulls_questdb, penguins_data, func, expected_error_message
 ):
-    with pytest.raises(AttributeError) as err:
+    with pytest.raises(UsageError) as err:
         func()
 
+    assert err.value.error_type == "RuntimeError"
     assert expected_error_message in str(err)
 
 
@@ -579,7 +581,7 @@ def test_sqlplot_not_supported_error(
     ip_questdb.run_cell(query)
     out = ip_questdb.run_cell(query)
     error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, AttributeError)
+    assert isinstance(out.error_in_exec, UsageError)
     assert str(expected_error_message).lower() in error_message.lower()
 
 

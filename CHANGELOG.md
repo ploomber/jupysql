@@ -1,11 +1,38 @@
 # CHANGELOG
 
-## 0.7.2dev
-* [Feature] Support for DB API 2.0 drivers (#350)
-* [Feature] Improve boxplot performance (#152)
-* [Fix] Modifies some errors so only the error message is displayed (and traceback is hidden) (#407)
-* [Doc] Add QuestDB tutorial (#350)
-* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces (#409)
+## 0.7.6dev
+
+* [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
+* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)
+
+## 0.7.5 (2023-05-24)
+
+* [Feature] Using native DuckDB `.df()` method when using `autopandas`
+* [Feature] Better error messages when function used in plotting API unsupported by DB driver ([#159](https://github.com/ploomber/jupysql/issues/159))
+* [Feature] Detailed error messages when syntax error in SQL query, postgres connection password missing or inaccessible, invalid DuckDB connection string ([#229](https://github.com/ploomber/jupysql/issues/229))
+* [Fix] Fix the default value of %config SqlMagic.displaylimit to 10 ([#462](https://github.com/ploomber/jupysql/issues/462))
+* [Doc] documenting `%sqlcmd tables`/`%sqlcmd columns`
+
+## 0.7.4 (2023-04-28)
+
+No changes
+
+## 0.7.3 (2023-04-28)
+
+Never deployed due to a CI error
+
+* [Fix] Fixing ipython version to 8.12.0 on python 3.8
+* [Fix] Fix `--alias` when passing an existing engine
+* [Doc] Tutorial on querying excel files with pandas and jupysql ([#423](https://github.com/ploomber/jupysql/pull/423))
+
+## 0.7.2 (2023-04-25)
+
+* [Feature] Support for DB API 2.0 drivers ([#350](https://github.com/ploomber/jupysql/issues/350))
+* [Feature] Improve boxplot performance ([#152](https://github.com/ploomber/jupysql/issues/152))
+* [Feature] Add sticky first column styling to sqlcmd profile command
+* [Fix] Updates errors so only the error message is displayed (and traceback is hidden) ([#407](https://github.com/ploomber/jupysql/issues/407))
+* [Fix] Fixes `%sqlcmd plot` when `--table` or `--column` have spaces ([#409](https://github.com/ploomber/jupysql/issues/409))
+* [Doc] Add QuestDB tutorial ([#350](https://github.com/ploomber/jupysql/issues/350))
 
 ## 0.7.1 (2023-04-19)
 

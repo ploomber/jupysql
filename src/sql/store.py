@@ -3,9 +3,9 @@ from collections.abc import MutableMapping
 from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
 import sql.connection
-from IPython.core.error import UsageError
-import warnings
 import difflib
+
+from sql import exceptions
 
 
 class SQLStore(MutableMapping):
@@ -43,15 +43,15 @@ class SQLStore(MutableMapping):
 
     def __getitem__(self, key) -> str:
         if not self._data:
-            raise UsageError("No saved SQL")
+            raise exceptions.UsageError("No saved SQL")
         if key not in self._data:
             matches = difflib.get_close_matches(key, self._data)
             error = f'"{key}" is not a valid snippet identifier.'
             if matches:
-                raise UsageError(error + f' Did you mean "{matches[0]}"?')
+                raise exceptions.UsageError(error + f' Did you mean "{matches[0]}"?')
             else:
                 valid = ", ".join(f'"{key}"' for key in self._data.keys())
-                raise UsageError(error + f" Valid identifiers are {valid}.")
+                raise exceptions.UsageError(error + f" Valid identifiers are {valid}.")
         return self._data[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -71,12 +71,14 @@ class SQLStore(MutableMapping):
     @modify_exceptions
     def store(self, key, query, with_=None):
         if "-" in key:
-            raise UsageError(
-                "Using hyphens in save argument isn't allowed."
-                " Please use dashes(-) instead"
+            raise exceptions.UsageError(
+                "Using hyphens (-) in save argument isn't allowed."
+                " Please use underscores (_) instead"
             )
         if with_ and key in with_:
-            raise ValueError(f"Script name ({key!r}) cannot appear in with_ argument")
+            raise exceptions.UsageError(
+                f"Script name ({key!r}) cannot appear in with_ argument"
+            )
 
         self._data[key] = SQLQuery(self, query, with_)
 
@@ -90,12 +92,11 @@ class SQLQuery:
         self._with_ = with_ or []
 
         if any("-" in x for x in self._with_):
-            warnings.warn(
-                "Using hyphens will be deprecated soon, "
-                "please use "
+            raise exceptions.UsageError(
+                "Using hyphens is not allowed. "
+                "Please use "
                 + ", ".join(self._with_).replace("-", "_")
                 + " instead for the with argument.",
-                FutureWarning,
             )
 
     def __str__(self) -> str:

@@ -3,9 +3,11 @@ from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
 from sql.connection import Connection
 from sql.telemetry import telemetry
+from sql import exceptions
 import sql.run
 import math
 from sql import util
+from IPython.core.display import HTML
 
 
 def _get_inspector(conn):
@@ -13,7 +15,7 @@ def _get_inspector(conn):
         return inspect(conn)
 
     if not Connection.current:
-        raise RuntimeError("No active connection")
+        raise exceptions.RuntimeError("No active connection")
     else:
         return inspect(Connection.current.session)
 
@@ -283,7 +285,24 @@ class TableDescription(DatabaseInspection):
 
             self._table.add_row(values)
 
-        self._table_html = self._table.get_html_string()
+        # Inject css to html to make first column sticky
+        sticky_column_css = """<style>
+ #profile-table td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: var(--jp-cell-editor-background);
+}
+ #profile-table thead tr th:first-child {
+  position: sticky;
+  left: 0;
+  background-color: var(--jp-cell-editor-background);
+}
+            </style>"""
+        self._table_html = HTML(
+            sticky_column_css
+            + self._table.get_html_string(attributes={"id": "profile-table"})
+        ).__html__()
+
         self._table_txt = self._table.get_string()
 
 

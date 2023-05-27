@@ -17,7 +17,9 @@ with open("src/sql/__init__.py", "rb") as f:
 
 install_requires = [
     "prettytable",
-    "ipython>=1.0",
+    # IPython dropped support for Python 3.8
+    "ipython<=8.12.0; python_version <= '3.8'",
+    "ipython",
     "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
@@ -37,7 +39,7 @@ DEV = [
     "pkgmt",
     "twine",
     # tests
-    "duckdb",
+    "duckdb<0.8.0",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
@@ -56,6 +58,7 @@ INTEGRATION = [
     "pgspecial==2.0.1",
     "pyodbc",
     "snowflake-sqlalchemy",
+    "oracledb",
 ]
 
 setup(

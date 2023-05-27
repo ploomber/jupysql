@@ -3,16 +3,19 @@ from difflib import get_close_matches
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
+
 from sql.store import store
 from sql.telemetry import telemetry
+from sql import exceptions
+from sql.error_message import detail
+from ploomber_core.exceptions import modify_exceptions
 
-PLOOMBER_SUPPORT_LINK_STR = (
-    "For technical support: https://ploomber.io/community"
-    "\nDocumentation: https://jupysql.ploomber.io/en/latest/connecting.html"
+PLOOMBER_DOCS_LINK_STR = (
+    "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
 )
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
@@ -47,6 +50,19 @@ MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
 }
 
 DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {"postgresql": "postgres", "mssql": "tsql"}
+
+# All the DBs and their respective documentation links
+DB_DOCS_LINKS = {
+    "duckdb": "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html",
+    "mysql": "https://jupysql.ploomber.io/en/latest/integrations/mysql.html",
+    "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
+    "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
+    "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
+    "postgresql": (
+        "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
+    ),
+    "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
+}
 
 
 def extract_module_name_from_ModuleNotFoundError(e):
@@ -122,6 +138,29 @@ class Connection:
     # all connections
     connections = {}
 
+    def __init__(self, engine, alias=None):
+        self.url = engine.url
+        self.name = self.assign_name(engine)
+        self.dialect = self.url.get_dialect()
+        self.engine = engine
+
+        if IS_SQLALCHEMY_ONE:
+            self.metadata = sqlalchemy.MetaData(bind=engine)
+
+        url = (
+            repr(sqlalchemy.MetaData(bind=engine).bind.url)
+            if IS_SQLALCHEMY_ONE
+            else repr(engine.url)
+        )
+
+        self.session = self._create_session(engine, url)
+
+        self.connections[alias or url] = self
+
+        self.connect_args = None
+        self.alias = alias
+        Connection.current = self
+
     @classmethod
     def _suggest_fix_no_module_found(module_name):
         DEFAULT_PREFIX = "\n\n"
@@ -133,26 +172,53 @@ class Connection:
         return "\n\n".join(options)
 
     @classmethod
+    @modify_exceptions
+    def _create_session(cls, engine, connect_str):
+        try:
+            session = engine.connect()
+            return session
+        except OperationalError as e:
+            detailed_msg = detail(e)
+            if detailed_msg is not None:
+                raise exceptions.UsageError(detailed_msg)
+            else:
+                print(e)
+        except Exception as e:
+            raise cls._error_invalid_connection_info(e, connect_str) from e
+
+    @classmethod
     def _suggest_fix(cls, env_var, connect_str=None):
         """
         Returns an error message that we can display to the user
         to tell them how to pass the connection string
         """
         DEFAULT_PREFIX = "\n\n"
+        prefix = ""
 
         if connect_str:
             matches = get_close_matches(connect_str, list(cls.connections), n=1)
+            matches_db = get_close_matches(
+                connect_str.lower(), list(DB_DOCS_LINKS.keys()), cutoff=0.3, n=1
+            )
 
             if matches:
-                prefix = (
+                prefix = prefix + (
                     "\n\nPerhaps you meant to use the existing "
-                    f"connection: %sql {matches[0]!r}?\n\n"
+                    f"connection: %sql {matches[0]!r}?"
                 )
 
-            else:
+            if matches_db:
+                prefix = prefix + (
+                    f"\n\nPerhaps you meant to use the {matches_db[0]!r} db \n"
+                    f"To find more information regarding connection: "
+                    f"{DB_DOCS_LINKS[matches_db[0]]}\n\n"
+                )
+
+            if not matches and not matches_db:
                 prefix = DEFAULT_PREFIX
         else:
             matches = None
+            matches_db = None
             prefix = DEFAULT_PREFIX
 
         connection_string = (
@@ -178,47 +244,25 @@ class Connection:
         if len(options) >= 3:
             options.insert(-1, "OR")
 
-        options.append(PLOOMBER_SUPPORT_LINK_STR)
+        options.append(PLOOMBER_DOCS_LINK_STR)
 
         return "\n\n".join(options)
 
     @classmethod
     def _error_no_connection(cls):
         """Error when there isn't any connection"""
-        return UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err = UsageError("No active connection." + cls._suggest_fix(env_var=True))
+        err.modify_exception = True
+        return err
 
     @classmethod
     def _error_invalid_connection_info(cls, e, connect_str):
-        return UsageError(
+        err = UsageError(
             "An error happened while creating the connection: "
             f"{e}.{cls._suggest_fix(env_var=False, connect_str=connect_str)}"
         )
-
-    @classmethod
-    def _error_module_not_found(cls, e):
-        return ModuleNotFoundError("test")
-
-    def __init__(self, engine, alias=None):
-        self.url = engine.url
-        self.name = self.assign_name(engine)
-        self.dialect = self.url.get_dialect()
-        self.session = engine.connect()
-
-        if IS_SQLALCHEMY_ONE:
-            self.metadata = sqlalchemy.MetaData(bind=engine)
-
-        self.connections[
-            alias
-            or (
-                repr(sqlalchemy.MetaData(bind=engine).bind.url)
-                if IS_SQLALCHEMY_ONE
-                else repr(engine.url)
-            )
-        ] = self
-
-        self.connect_args = None
-        self.alias = alias
-        Connection.current = self
+        err.modify_exception = True
+        return err
 
     @classmethod
     def from_connect_str(
@@ -241,12 +285,12 @@ class Connection:
                 )
         except (ModuleNotFoundError, NoSuchModuleError) as e:
             suggestion_str = get_missing_package_suggestion_str(e)
-            raise UsageError(
+            raise exceptions.MissingPackageError(
                 "\n\n".join(
                     [
                         str(e),
                         suggestion_str,
-                        PLOOMBER_SUPPORT_LINK_STR,
+                        PLOOMBER_DOCS_LINK_STR,
                     ]
                 )
             ) from e
@@ -272,7 +316,7 @@ class Connection:
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
-                cls.current = Connection(descriptor)
+                cls.current = Connection(descriptor, alias=alias)
             elif is_custom_connection_:
                 cls.current = CustomConnection(descriptor, alias=alias)
             else:
@@ -349,9 +393,9 @@ class Connection:
                 descriptor.lower()
             )
         if not conn:
-            raise Exception(
+            raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
-                % str(cls.connections.keys())
+                % str(list(cls.connections.keys()))
             )
 
         if descriptor in cls.connections:
@@ -370,7 +414,7 @@ class Connection:
 
         if conn is None:
             if not Connection.current:
-                raise RuntimeError("No active connection")
+                raise exceptions.RuntimeError("No active connection")
             else:
                 conn = Connection.current.session
 

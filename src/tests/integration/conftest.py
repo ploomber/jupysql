@@ -1,9 +1,8 @@
 import shutil
 import pandas as pd
 import pytest
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, Table, create_engine
 from sql import _testing
-from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
 
@@ -31,7 +30,7 @@ def get_database_config_helper():
 
 
 """
-Create the temporary folder to keep some static database storage files & destory later
+Create the temporary folder to keep some static database storage files & destroy later
 """
 
 
@@ -40,7 +39,7 @@ def run_around_tests(tmpdir_factory):
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp(_testing.DatabaseConfigHelper.get_tmp_dir())
     yield my_tmpdir
-    # Destory tmp folder
+    # Destroy tmp folder
     shutil.rmtree(str(my_tmpdir))
 
 
@@ -55,12 +54,8 @@ def test_table_name_dict():
 
 
 def drop_table(engine, table_name):
-    Base = declarative_base()
-    metadata = MetaData()
-    metadata.reflect(bind=engine)
-    table = metadata.tables[table_name]
-    if table is not None:
-        Base.metadata.drop_all(engine, [table], checkfirst=True)
+    tbl = Table(table_name, MetaData(), autoload_with=engine)
+    tbl.drop(engine, checkfirst=False)
 
 
 def load_taxi_data(engine, table_name, index=True):
@@ -131,10 +126,21 @@ def ip_with_postgreSQL(ip_empty, setup_postgreSQL):
     ip_empty.run_cell("%sql -x " + alias)
 
 
+@pytest.fixture
+def postgreSQL_config_incorrect_pwd(ip_empty, setup_postgreSQL):
+    configKey = "postgreSQL"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+    url = _testing.DatabaseConfigHelper.get_database_url(configKey)
+    url = url.replace(":ploomber_app_password", "")
+    return alias, url
+
+
 @pytest.fixture(scope="session")
 def setup_mySQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mysql():
-        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("mySQL"))
+        engine = create_engine(
+            _testing.DatabaseConfigHelper.get_database_url("mySQL"),
+        )
         # Load pre-defined datasets
         load_generic_testing_data(engine, test_table_name_dict)
         yield engine
@@ -285,6 +291,34 @@ def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
 @pytest.fixture
 def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
     configKey = "Snowflake"
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    # Select database engine
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + config["alias"]
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + config["alias"])
+
+
+@pytest.fixture(scope="session")
+def setup_oracle(test_table_name_dict, skip_on_live_mode):
+    with _testing.oracle():
+        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("oracle"))
+        engine.connect()
+        # Load pre-defined datasets
+        load_generic_testing_data(engine, test_table_name_dict, index=False)
+        yield engine
+        tear_down_generic_testing_data(engine, test_table_name_dict)
+        engine.dispose()
+
+
+@pytest.fixture
+def ip_with_oracle(ip_empty, setup_oracle, pytestconfig):
+    configKey = "oracle"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine
     ip_empty.run_cell(
