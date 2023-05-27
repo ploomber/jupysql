@@ -8,6 +8,8 @@ from IPython.display import display
 class Table:
     """Represents a table"""
 
+    FOOTER = ""
+
     def __init__(self, headers, rows) -> None:
         self._headers = headers
         self._rows = rows
@@ -21,10 +23,36 @@ class Table:
         self._table_txt = self._table.get_string()
 
     def __repr__(self) -> str:
-        return self._table_txt
+        return self._table_txt + "\n" + self.FOOTER
 
     def _repr_html_(self) -> str:
-        return self._table_html
+        return self._table_html + "\n" + self.FOOTER
+
+
+class ConnectionsTable(Table):
+    FOOTER = "Active connections"
+
+    def __init__(self, headers, rows_maps) -> None:
+        self._rows_maps = rows_maps
+
+        def get_values(d):
+            d = d.copy()
+            del d["connection"]
+            del d["key"]
+            return list(d.values())
+
+        rows = [get_values(r) for r in rows_maps]
+        super().__init__(headers=headers, rows=rows)
+
+    def __getitem__(self, key: str):
+        """
+        This method is provided for backwards compatibility. Before
+        creating ConnectionsTable, `%sql --connections` returned a dictionary,
+        hence users could retrieve connections using __getitem__
+        """
+        for row in self._rows_maps:
+            if row["key"] == key:
+                return row["connection"]
 
 
 class Message:

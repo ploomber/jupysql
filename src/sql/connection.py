@@ -360,7 +360,7 @@ class Connection:
     @classmethod
     def _get_connections(cls):
         """
-        Return a list of dictionaries with url (str), current (bool), and alias (str)
+        Return a list of dictionaries
         """
         connections = []
 
@@ -377,8 +377,10 @@ class Connection:
             connections.append(
                 {
                     "current": current,
+                    "key": key,
                     "url": str(engine_url),
                     "alias": conn.alias,
+                    "connection": conn,
                 }
             )
 
@@ -404,9 +406,9 @@ class Connection:
             d["alias"] = d["alias"] if d["alias"] else ""
             return d
 
-        return display.Table(
+        return display.ConnectionsTable(
             headers=["current", "url", "alias"],
-            rows=[list(map_values(c).values()) for c in connections],
+            rows_maps=[map_values(c) for c in connections],
         )
 
     @classmethod
