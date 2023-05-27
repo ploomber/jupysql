@@ -32,8 +32,10 @@ jobs:
 
       - name: Lint
         run: |
-          python -m pip install --upgrade pip pkgmt
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pkgmt codespell
           pkgmt lint
+          codespell
 
 
       - name: Install dependencies
@@ -70,10 +72,8 @@ jobs:
 
       - name: Lint
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade pkgmt codespell
+          python -m pip install --upgrade pip pkgmt
           pkgmt lint
-          codespell
 
       - name: Install dependencies
         run: |
