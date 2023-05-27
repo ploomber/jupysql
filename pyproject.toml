@@ -20,3 +20,6 @@ flake8 = [
     # binary operator since they are conflicting 
     "--ignore=F821, W503, W504",
 ]
+
+[tool.codespell]
+skip = '.git,_build,build,*.drawio'
