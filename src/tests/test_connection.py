@@ -32,7 +32,10 @@ def mock_postgres(monkeypatch, cleanup):
 def test_password_isnt_displayed(mock_postgres):
     Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
 
-    assert "topsecret" not in Connection.connection_list()
+    table = Connection.connections_table()
+
+    assert "topsecret" not in str(table)
+    assert "topsecret" not in table._repr_html_()
 
 
 def test_connection_name(mock_postgres):
@@ -266,3 +269,30 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 
     monkeypatch.setattr(conn, "session", None)
     assert conn._get_curr_sqlalchemy_connection_info() is None
+
+
+def test_get_connections():
+    Connection(engine=create_engine("sqlite://"))
+    Connection(engine=create_engine("duckdb://"))
+
+    assert Connection._get_connections() == [
+        {"url": "duckdb://", "current": True, "alias": None},
+        {"url": "sqlite://", "current": False, "alias": None},
+    ]
+
+
+def test_display_current_connection(capsys):
+    Connection(engine=create_engine("duckdb://"))
+    Connection.display_current_connection()
+
+    captured = capsys.readouterr()
+    assert captured.out == "Running query in 'duckdb://'\n"
+
+
+def test_connections_table():
+    Connection(engine=create_engine("sqlite://"))
+    Connection(engine=create_engine("duckdb://"))
+
+    connections = Connection.connections_table()
+    assert connections._headers == ["current", "url", "alias"]
+    assert connections._rows == [["*", "duckdb://", ""], ["", "sqlite://", ""]]

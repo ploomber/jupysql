@@ -335,7 +335,7 @@ class SqlMagic(Magics, Configurable):
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections
+            return sql.connection.Connection.connections_table()
         elif args.close:
             return sql.connection.Connection.close(args.close)
 

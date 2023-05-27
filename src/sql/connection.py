@@ -10,7 +10,7 @@ import sqlglot
 
 from sql.store import store
 from sql.telemetry import telemetry
-from sql import exceptions
+from sql import exceptions, display
 from sql.error_message import detail
 from ploomber_core.exceptions import modify_exceptions
 
@@ -339,8 +339,7 @@ class Connection:
         else:
             if cls.connections:
                 if displaycon:
-                    # display list of connections
-                    print(cls.connection_list())
+                    cls.display_current_connection()
             elif os.getenv("DATABASE_URL"):
                 cls.current = Connection.from_connect_str(
                     connect_str=os.getenv("DATABASE_URL"),
@@ -359,9 +358,11 @@ class Connection:
         return name
 
     @classmethod
-    def connection_list(cls):
-        """Returns the list of connections, appending '*' to the current one"""
-        result = []
+    def _get_connections(cls):
+        """
+        Return a list of dictionaries with url (str), current (bool), and alias (str)
+        """
+        connections = []
 
         for key in sorted(cls.connections):
             conn = cls.connections[key]
@@ -371,18 +372,42 @@ class Connection:
             else:
                 engine_url = conn.metadata.bind.url if IS_SQLALCHEMY_ONE else conn.url
 
-            prefix = "* " if conn == cls.current else "  "
+            current = conn == cls.current
 
-            if conn.alias:
-                repr_ = f"{prefix} ({conn.alias}) {engine_url!r}"
-            else:
-                repr_ = f"{prefix} {engine_url!r}"
+            connections.append(
+                {
+                    "current": current,
+                    "url": str(engine_url),
+                    "alias": conn.alias,
+                }
+            )
 
-            result.append([repr_])
+        return connections
 
-        from sql.display import Table
+    @classmethod
+    def display_current_connection(cls):
+        for conn in cls._get_connections():
+            if conn["current"]:
+                alias = conn.get("alias")
+                if alias:
+                    display.message(f"Running query in {alias!r}")
+                else:
+                    display.message(f"Running query in {conn['url']!r}")
 
-        return Table(headers=["Connection name"], rows=result)
+    @classmethod
+    def connections_table(cls):
+        """Returns the current connections as a table"""
+        connections = cls._get_connections()
+
+        def map_values(d):
+            d["current"] = "*" if d["current"] else ""
+            d["alias"] = d["alias"] if d["alias"] else ""
+            return d
+
+        return display.Table(
+            headers=["current", "url", "alias"],
+            rows=[list(map_values(c).values()) for c in connections],
+        )
 
     @classmethod
     def close(cls, descriptor):
