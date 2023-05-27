@@ -8,7 +8,7 @@ from IPython.display import display
 class Table:
     """Represents a table"""
 
-    FOOTER = ""
+    TITLE = ""
 
     def __init__(self, headers, rows) -> None:
         self._headers = headers
@@ -23,14 +23,14 @@ class Table:
         self._table_txt = self._table.get_string()
 
     def __repr__(self) -> str:
-        return self._table_txt + "\n" + self.FOOTER
+        return self.TITLE + "\n" + self._table_txt
 
     def _repr_html_(self) -> str:
-        return self._table_html + "\n" + self.FOOTER
+        return self.TITLE + "\n" + self._table_html
 
 
 class ConnectionsTable(Table):
-    FOOTER = "Active connections"
+    TITLE = "Active connections:"
 
     def __init__(self, headers, rows_maps) -> None:
         self._rows_maps = rows_maps
@@ -48,7 +48,8 @@ class ConnectionsTable(Table):
         """
         This method is provided for backwards compatibility. Before
         creating ConnectionsTable, `%sql --connections` returned a dictionary,
-        hence users could retrieve connections using __getitem__
+        hence users could retrieve connections using __getitem__. Note that this
+        was undocumented so we might decide to remove it in the future.
         """
         for row in self._rows_maps:
             if row["key"] == key:

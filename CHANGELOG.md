@@ -4,6 +4,7 @@
 
 * [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
 * [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)
+* [Doc] Hiding connection string when passing `--alias` when opening a connection
 
 ## 0.7.5 (2023-05-24)
 
