@@ -55,6 +55,10 @@ class ConnectionsTable(Table):
             if row["key"] == key:
                 return row["connection"]
 
+    def __len__(self):
+        """Also provided for backwards compatibility"""
+        return len(self._rows_maps)
+
 
 class Message:
     """Message for the user"""
