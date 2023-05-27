@@ -23,6 +23,22 @@ Before continuing, ensure you have a working [development environment.](https://
 
 +++
 
+## Displaying messages
+
+You can use `message` (contextual information) and `message_success` (successful operations) to show feedback to the user. Here's an example:
+
+```{code-cell} ipython3
+from sql.display import message, message_success
+```
+
+```{code-cell} ipython3
+message("Some information")
+```
+
+```{code-cell} ipython3
+message_success("Some operation finished successfully!")
+```
+
 ## Throwing errors
 
 When writing Python libraries, we often throw errors (and display error tracebacks) to let users know that something went wrong. However, JupySQL is an abstraction for executing SQL queries; hence, Python tracebacks a useless to end-users since they expose JupySQL's internals.
