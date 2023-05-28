@@ -1,7 +1,12 @@
 # CHANGELOG
 
 ## 0.7.6dev
-* [Fix] Fix error when checking if custom connection was PEP 249 Compliant 
+
+* [Fix] Fix error when checking if custom connection was PEP 249 Compliant (#517)
+* [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
+* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)
+
+
 ## 0.7.5 (2023-05-24)
 
 * [Feature] Using native DuckDB `.df()` method when using `autopandas`

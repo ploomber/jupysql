@@ -30,7 +30,7 @@ def get_database_config_helper():
 
 
 """
-Create the temporary folder to keep some static database storage files & destory later
+Create the temporary folder to keep some static database storage files & destroy later
 """
 
 
@@ -39,7 +39,7 @@ def run_around_tests(tmpdir_factory):
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp(_testing.DatabaseConfigHelper.get_tmp_dir())
     yield my_tmpdir
-    # Destory tmp folder
+    # Destroy tmp folder
     shutil.rmtree(str(my_tmpdir))
 
 
@@ -291,6 +291,34 @@ def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
 @pytest.fixture
 def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
     configKey = "Snowflake"
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    # Select database engine
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + config["alias"]
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + config["alias"])
+
+
+@pytest.fixture(scope="session")
+def setup_oracle(test_table_name_dict, skip_on_live_mode):
+    with _testing.oracle():
+        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("oracle"))
+        engine.connect()
+        # Load pre-defined datasets
+        load_generic_testing_data(engine, test_table_name_dict, index=False)
+        yield engine
+        tear_down_generic_testing_data(engine, test_table_name_dict)
+        engine.dispose()
+
+
+@pytest.fixture
+def ip_with_oracle(ip_empty, setup_oracle, pytestconfig):
+    configKey = "oracle"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine
     ip_empty.run_cell(

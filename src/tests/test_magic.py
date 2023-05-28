@@ -111,6 +111,36 @@ def test_result_var_multiline_shovel(ip):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
 
 
+def test_return_result_var(ip, capsys):
+    # Assert that no result is returned when using regular result var syntax <<
+    result = ip.run_cell_magic(
+        "sql",
+        "",
+        """
+        sqlite://
+        x <<
+        SELECT last_name FROM author;
+        """,
+    )
+    var = ip.user_global_ns["x"]
+    assert "Shakespeare" in str(var) and "Brecht" in str(var)
+    assert result is None
+
+    # Assert that correct result is returned when using return result var syntax = <<
+    result = ip.run_cell_magic(
+        "sql",
+        "",
+        """
+        sqlite://
+        x= <<
+        SELECT last_name FROM author;
+        """,
+    )
+    var = ip.user_global_ns["x"]
+    assert "Shakespeare" in str(var) and "Brecht" in str(var)
+    assert result.dict() == {"last_name": ("Shakespeare", "Brecht")}
+
+
 def test_access_results_by_keys(ip):
     assert runsql(ip, "SELECT * FROM author;")["William"] == (
         "William",
@@ -199,6 +229,219 @@ def test_persist_non_frame_raises(ip):
 def test_persist_bare(ip):
     result = ip.run_cell("%sql --persist sqlite://")
     assert result.error_in_exec
+
+
+def get_table_rows_as_dataframe(ip, table, name=None):
+    """The function will generate the pandas dataframe in the namespace
+    by querying the data by given table name"""
+    if name:
+        saved_df_name = name
+    else:
+        saved_df_name = f"df_{table}"
+    ip.run_cell(f"results = %sql SELECT * FROM {table} LIMIT 1;")
+    ip.run_cell(f"{saved_df_name} = results.DataFrame()")
+    return saved_df_name
+
+
+@pytest.mark.parametrize(
+    "test_table, expected_result",
+    [
+        ("test", [(0, 1, "foo")]),
+        ("author", [(0, "William", "Shakespeare", 1616)]),
+        (
+            "website",
+            [
+                (
+                    0,
+                    "Bertold Brecht",
+                    "https://en.wikipedia.org/wiki/Bertolt_Brecht",
+                    1954,
+                )
+            ],
+        ),
+        ("number_table", [(0, 4, -2)]),
+    ],
+)
+def test_persist_replace_abbr_no_override(ip, test_table, expected_result):
+    saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
+    ip.run_cell(f"%sql -P sqlite:// {saved_df_name}")
+    out = ip.run_cell(f"%sql SELECT * FROM {saved_df_name}")
+    assert out.result == expected_result
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "test_table, expected_result",
+    [
+        ("test", [(0, 1, "foo")]),
+        ("author", [(0, "William", "Shakespeare", 1616)]),
+        (
+            "website",
+            [
+                (
+                    0,
+                    "Bertold Brecht",
+                    "https://en.wikipedia.org/wiki/Bertolt_Brecht",
+                    1954,
+                )
+            ],
+        ),
+        ("number_table", [(0, 4, -2)]),
+    ],
+)
+def test_persist_replace_no_override(ip, test_table, expected_result):
+    saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
+    ip.run_cell(f"%sql --persist-replace sqlite:// {saved_df_name}")
+    out = ip.run_cell(f"%sql SELECT * FROM {saved_df_name}")
+    assert out.result == expected_result
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "first_test_table, second_test_table, expected_result",
+    [
+        ("test", "author", [(0, "William", "Shakespeare", 1616)]),
+        ("author", "test", [(0, 1, "foo")]),
+        ("test", "number_table", [(0, 4, -2)]),
+        ("number_table", "test", [(0, 1, "foo")]),
+    ],
+)
+def test_persist_replace_override(
+    ip, first_test_table, second_test_table, expected_result
+):
+    saved_df_name = "dummy_df_name"
+    table_df = get_table_rows_as_dataframe(
+        ip, table=first_test_table, name=saved_df_name
+    )
+    ip.run_cell(f"%sql --persist sqlite:// {table_df}")
+    table_df = get_table_rows_as_dataframe(
+        ip, table=second_test_table, name=saved_df_name
+    )
+    # To test the second --persist-replace executes successfully
+    persist_replace_out = ip.run_cell(f"%sql --persist-replace sqlite:// {table_df}")
+    assert persist_replace_out.error_in_exec is None
+
+    # To test the persisted data is from --persist
+    out = ip.run_cell(f"%sql SELECT * FROM {table_df}")
+    assert out.result == expected_result
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "first_test_table, second_test_table, expected_result",
+    [
+        ("test", "author", [(0, 1, "foo")]),
+        ("author", "test", [(0, "William", "Shakespeare", 1616)]),
+        ("test", "number_table", [(0, 1, "foo")]),
+        ("number_table", "test", [(0, 4, -2)]),
+    ],
+)
+def test_persist_replace_override_reverted_order(
+    ip, first_test_table, second_test_table, expected_result
+):
+    saved_df_name = "dummy_df_name"
+    table_df = get_table_rows_as_dataframe(
+        ip, table=first_test_table, name=saved_df_name
+    )
+    ip.run_cell(f"%sql --persist-replace sqlite:// {table_df}")
+    table_df = get_table_rows_as_dataframe(
+        ip, table=second_test_table, name=saved_df_name
+    )
+    persist_out = ip.run_cell(f"%sql --persist sqlite:// {table_df}")
+
+    # To test the second --persist executes not successfully
+    assert (
+        f"Table '{saved_df_name}' already exists. Consider using \
+--persist-replace to drop the table before persisting the data frame"
+        in str(persist_out.error_in_exec)
+    )
+
+    out = ip.run_cell(f"%sql SELECT * FROM {table_df}")
+    # To test the persisted data is from --persist-replace
+    assert out.result == expected_result
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "test_table", [("test"), ("author"), ("website"), ("number_table")]
+)
+def test_persist_and_append_use_together(ip, test_table):
+    # Test error message when use --persist and --append together
+    saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
+    out = ip.run_cell(f"%sql --persist-replace --append sqlite:// {saved_df_name}")
+
+    assert """You cannot simultaneously persist and append data to a dataframe;
+                  please choose to utilize either one or the other.""" in str(
+        out.error_in_exec
+    )
+    assert (out.error_in_exec.error_type) == "UsageError"
+
+
+@pytest.mark.parametrize(
+    "test_table, expected_result",
+    [
+        ("test", [(0, 1, "foo")]),
+        ("author", [(0, "William", "Shakespeare", 1616)]),
+        (
+            "website",
+            [
+                (
+                    0,
+                    "Bertold Brecht",
+                    "https://en.wikipedia.org/wiki/Bertolt_Brecht",
+                    1954,
+                )
+            ],
+        ),
+        ("number_table", [(0, 4, -2)]),
+    ],
+)
+def test_persist_and_persist_replace_use_together(
+    ip, capsys, test_table, expected_result
+):
+    # Test error message when use --persist and --persist-replace together
+    saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
+    # check UserWarning is raised
+    with pytest.warns(UserWarning) as w:
+        ip.run_cell(f"%sql --persist --persist-replace sqlite:// {saved_df_name}")
+
+    # check that the message matches
+    assert w[0].message.args[0] == "Please use either --persist or --persist-replace"
+
+    # Test persist-replace is used
+    execute_out = ip.run_cell(f"%sql SELECT * FROM {saved_df_name}")
+    assert execute_out.result == expected_result
+    assert execute_out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "first_test_table, second_test_table, expected_result",
+    [
+        ("test", "author", [(0, "William", "Shakespeare", 1616)]),
+        ("author", "test", [(0, 1, "foo")]),
+        ("test", "number_table", [(0, 4, -2)]),
+        ("number_table", "test", [(0, 1, "foo")]),
+    ],
+)
+def test_persist_replace_twice(
+    ip, first_test_table, second_test_table, expected_result
+):
+    saved_df_name = "dummy_df_name"
+
+    table_df = get_table_rows_as_dataframe(
+        ip, table=first_test_table, name=saved_df_name
+    )
+    ip.run_cell(f"%sql --persist-replace sqlite:// {table_df}")
+
+    table_df = get_table_rows_as_dataframe(
+        ip, table=second_test_table, name=saved_df_name
+    )
+    ip.run_cell(f"%sql --persist-replace sqlite:// {table_df}")
+
+    out = ip.run_cell(f"%sql SELECT * FROM {table_df}")
+    # To test the persisted data is from --persist-replace
+    assert out.result == expected_result
+    assert out.error_in_exec is None
 
 
 def test_connection_args_enforce_json(ip):
@@ -708,7 +951,7 @@ def test_pass_existing_engine(ip, tmp_empty):
     assert result == [(10, "foo"), (20, "bar")]
 
 
-# theres some weird shared state with this one, moving it to the end
+# there's some weird shared state with this one, moving it to the end
 def test_autolimit(ip):
     # test table has two rows
     ip.run_line_magic("config", "SqlMagic.autolimit = 0")
@@ -801,6 +1044,9 @@ An error happened while creating the connection: connect(): incompatible functio
     1. (database: str = ':memory:', read_only: bool = False, config: dict = None) -> duckdb.DuckDBPyConnection
 
 Invoked with: kwargs: host='invalid_db'.
+
+Perhaps you meant to use the 'duckdb' db 
+To find more information regarding connection: https://jupysql.ploomber.io/en/latest/integrations/duckdb.html
 
 To fix it:
 
