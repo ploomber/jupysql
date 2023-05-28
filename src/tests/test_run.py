@@ -150,9 +150,17 @@ def test_run(monkeypatch, mock_conns, mock_resultset, config_pandas):
     assert isinstance(output, type(mock_resultset.DataFrame()))
 
 
-def test_display_affected_rowcount():
-    assert display_affected_rowcount(-1) == "Done."
-    assert display_affected_rowcount(1) == "%d rows affected." % 1
+@pytest.mark.parametrize(
+    "n, message",
+    [
+        [1, "1 rows affected.\n"],
+        [0, ""],
+    ],
+)
+def test_display_affected_rowcount(capsys, n, message):
+    display_affected_rowcount(n)
+    captured = capsys.readouterr()
+    assert captured.out == message
 
 
 def test_commit_is_called(

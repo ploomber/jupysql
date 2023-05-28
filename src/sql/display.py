@@ -33,15 +33,17 @@ class ConnectionsTable(Table):
     TITLE = "Active connections:"
 
     def __init__(self, headers, rows_maps) -> None:
-        self._rows_maps = rows_maps
-
         def get_values(d):
-            d = d.copy()
-            del d["connection"]
-            del d["key"]
+            d = {k: v for k, v in d.items() if k not in {"connection", "key"}}
             return list(d.values())
 
         rows = [get_values(r) for r in rows_maps]
+
+        self._mapping = {}
+
+        for row in rows_maps:
+            self._mapping[row["key"]] = row["connection"]
+
         super().__init__(headers=headers, rows=rows)
 
     def __getitem__(self, key: str):
@@ -51,13 +53,16 @@ class ConnectionsTable(Table):
         hence users could retrieve connections using __getitem__. Note that this
         was undocumented so we might decide to remove it in the future.
         """
-        for row in self._rows_maps:
-            if row["key"] == key:
-                return row["connection"]
+        return self._mapping[key]
+
+    def __iter__(self):
+        """Also provided for backwards compatibility"""
+        for key in self._mapping:
+            yield key
 
     def __len__(self):
         """Also provided for backwards compatibility"""
-        return len(self._rows_maps)
+        return len(self._mapping)
 
 
 class Message:
