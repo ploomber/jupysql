@@ -147,15 +147,15 @@ class Connection:
         if IS_SQLALCHEMY_ONE:
             self.metadata = sqlalchemy.MetaData(bind=engine)
 
-        url = (
+        self.url = (
             repr(sqlalchemy.MetaData(bind=engine).bind.url)
             if IS_SQLALCHEMY_ONE
             else repr(engine.url)
         )
 
-        self.session = self._create_session(engine, url)
+        self.session = self._create_session(engine, self.url)
 
-        self.connections[alias or url] = self
+        self.connections[alias or self.url] = self
 
         self.connect_args = None
         self.alias = alias
@@ -378,7 +378,7 @@ class Connection:
                 {
                     "current": current,
                     "key": key,
-                    "url": str(engine_url),
+                    "url": conn.url,
                     "alias": conn.alias,
                     "connection": conn,
                 }
