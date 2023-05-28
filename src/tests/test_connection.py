@@ -272,8 +272,10 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
 class dummy_connection:
     def __init__(self):
         self.engine_name = "dummy_engine"
+
     def close(self):
         pass
+
 
 @pytest.mark.parametrize(
     "conn, expected",
