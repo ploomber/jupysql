@@ -269,6 +269,12 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
     assert conn._get_curr_sqlalchemy_connection_info() is None
 
 
+class dummy_connection:
+    def __init__(self):
+        self.engine_name = "dummy_engine"
+    def close(self):
+        pass
+
 @pytest.mark.parametrize(
     "conn, expected",
     [
@@ -281,6 +287,7 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
             Connection(engine=sqlalchemy.create_engine("sqlite://")),
             False,
         ],
+        [dummy_connection(), False],
         ["not_a_valid_connection", False],
         [0, False],
     ],
@@ -288,6 +295,7 @@ def test_no_current_connection_and_get_info(monkeypatch, mock_database):
         "sqlite3_connection",
         "custom_connection",
         "normal_connection",
+        "dummy_connection",
         "str",
         "int",
     ],
