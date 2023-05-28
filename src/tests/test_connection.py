@@ -276,8 +276,20 @@ def test_get_connections():
     Connection(engine=create_engine("duckdb://"))
 
     assert Connection._get_connections() == [
-        {"url": "duckdb://", "current": True, "alias": None},
-        {"url": "sqlite://", "current": False, "alias": None},
+        {
+            "url": "duckdb://",
+            "current": True,
+            "alias": None,
+            "key": "duckdb://",
+            "connection": ANY,
+        },
+        {
+            "url": "sqlite://",
+            "current": False,
+            "alias": None,
+            "key": "sqlite://",
+            "connection": ANY,
+        },
     ]
 
 
