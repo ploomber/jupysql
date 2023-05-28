@@ -308,3 +308,14 @@ def test_connections_table():
     connections = Connection.connections_table()
     assert connections._headers == ["current", "url", "alias"]
     assert connections._rows == [["*", "duckdb://", ""], ["", "sqlite://", ""]]
+
+
+def test_properties(mock_postgres):
+    conn = Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+
+    assert "topsecret" not in conn.url
+    assert "***" in conn.url
+    assert conn.name == "user@db"
+    assert isinstance(conn.engine, Engine)
+    assert conn.dialect
+    assert conn.session

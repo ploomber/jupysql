@@ -130,6 +130,30 @@ class Connection:
     ----------
     engine: sqlalchemy.engine.Engine
         The SQLAlchemy engine to use
+
+    Attributes
+    ----------
+    alias : str or None
+        The alias passed in the constructor
+
+    engine : sqlalchemy.engine.Engine
+        The SQLAlchemy engine passed to the constructor
+
+    name : str
+        A name to identify the connection: {user}@{database_name}
+
+    metadata : Metadata or None
+        An SQLAlchemy Metadata object (if using SQLAlchemy 2, this is None),
+        used to retrieve connection information
+
+    url : str
+        An obfuscated connection string (password hidden)
+
+    dialect : sqlalchemy dialect
+        A SQLAlchemy dialect object
+
+    session : sqlalchemy session
+        A SQLAlchemy session object
     """
 
     # the active connection
@@ -139,13 +163,14 @@ class Connection:
     connections = {}
 
     def __init__(self, engine, alias=None):
-        self.url = engine.url
-        self.name = self.assign_name(engine)
-        self.dialect = self.url.get_dialect()
+        self.alias = alias
         self.engine = engine
+        self.name = self.assign_name(engine)
 
         if IS_SQLALCHEMY_ONE:
             self.metadata = sqlalchemy.MetaData(bind=engine)
+        else:
+            self.metadata = None
 
         self.url = (
             repr(sqlalchemy.MetaData(bind=engine).bind.url)
@@ -153,12 +178,11 @@ class Connection:
             else repr(engine.url)
         )
 
+        self.dialect = self.engine.url.get_dialect()
         self.session = self._create_session(engine, self.url)
 
         self.connections[alias or self.url] = self
-
         self.connect_args = None
-        self.alias = alias
         Connection.current = self
 
     @classmethod
