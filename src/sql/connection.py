@@ -391,11 +391,6 @@ class Connection:
         for key in sorted(cls.connections):
             conn = cls.connections[key]
 
-            if cls.is_custom_connection(conn):
-                engine_url = conn.url
-            else:
-                engine_url = conn.metadata.bind.url if IS_SQLALCHEMY_ONE else conn.url
-
             current = conn == cls.current
 
             connections.append(
