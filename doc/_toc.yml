@@ -9,9 +9,9 @@ parts:
     - file: intro
     - file: connecting
     - file: plot
-    - file: csv
     - file: compose
     - file: user-guide/tables-columns
+    - file: user-guide/testing-columns
     - file: plot-legacy
     - file: user-guide/template
     - file: user-guide/interactive
@@ -22,14 +22,20 @@ parts:
 
   - caption: Integrations
     chapters:
-    - file: integrations/duckdb
-    - file: integrations/pandas
-    - file: integrations/polars
-    - file: integrations/mysql
-    - file: integrations/mssql
-    - file: integrations/mariadb
-    - file: integrations/clickhouse
-    - file: integrations/mindsdb
+      - file: integrations/duckdb
+      - file: integrations/pandas
+      - file: integrations/polars
+      - file: integrations/mysql
+      - file: integrations/mssql
+      - file: integrations/mariadb
+      - file: integrations/clickhouse
+      - file: integrations/mindsdb
+      - file: integrations/postgres-connect
+      - file: integrations/compatibility
+      - file: integrations/questdb
+      - file: integrations/oracle
+      - file: integrations/trinodb
+
 
   - caption: API Reference
     chapters:
@@ -38,19 +44,25 @@ parts:
     - file: api/magic-render
     - file: api/configuration
     - file: api/python
+    - file: api/magic-tables-columns
 
   - caption: How-To
     chapters:
     - file: howto
     - file: howto/postgres-install
-    - file: howto/postgres-connect
     - file: howto/json
     - file: howto/syntax-highlighting
-    - file: howto/benchmarking-time
+    - file: howto/csv
+    - file: howto/autocompletion
+    - file: howto/format-sql
 
   - caption: Tutorials
     chapters:
     - file: tutorials/duckdb-github
+    - file: tutorials/etl
+    - file: tutorials/excel
+    - file: tutorials/product-analytics
+
   - caption: Community
     chapters:
     - file: community/vs
