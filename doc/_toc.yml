@@ -17,6 +17,7 @@ parts:
     - file: user-guide/interactive
     - file: user-guide/data-profiling
     - file: user-guide/ggplot
+    - file: user-guide/table_explorer
     - file: user-guide/FAQ
 
   - caption: Integrations
@@ -44,6 +45,7 @@ parts:
     - file: api/configuration
     - file: api/python
     - file: api/magic-tables-columns
+    - file: api/magic-profile
 
   - caption: How-To
     chapters:
