@@ -25,6 +25,10 @@ Before continuing, ensure you have a working [development environment.](https://
 
 ## Displaying messages
 
+```{important}
+Use the `sql.display` module instead of `print` for showing feedback to the user.
+```
+
 You can use `message` (contextual information) and `message_success` (successful operations) to show feedback to the user. Here's an example:
 
 ```{code-cell} ipython3
@@ -38,6 +42,7 @@ message("Some information")
 ```{code-cell} ipython3
 message_success("Some operation finished successfully!")
 ```
+
 
 ## Throwing errors
 
