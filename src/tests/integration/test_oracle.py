@@ -76,6 +76,10 @@ def test_sqlplot_histogram(ip_with_oracle, cell, request, test_table_name_dict):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
+@pytest.mark.xfail(
+    reason="Known table parameter issue with oracledb, \
+                   addressing in #506"
+)
 @pytest.mark.parametrize(
     "cell",
     [
