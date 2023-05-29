@@ -14,6 +14,11 @@ parts:
     - file: user-guide/tables-columns
     - file: plot-legacy
     - file: user-guide/template
+    - file: user-guide/interactive
+    - file: user-guide/data-profiling
+    - file: user-guide/ggplot
+    - file: user-guide/table_explorer
+    - file: user-guide/FAQ
 
   - caption: Integrations
     chapters:
@@ -41,6 +46,7 @@ parts:
     - file: howto/postgres-connect
     - file: howto/json
     - file: howto/syntax-highlighting
+    - file: howto/benchmarking-time
 
   - caption: Tutorials
     chapters:
