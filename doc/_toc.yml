@@ -6,18 +6,18 @@ root: quick-start
 parts:
   - caption: User Guide
     chapters:
-    - file: intro
-    - file: connecting
-    - file: plot
-    - file: compose
-    - file: user-guide/tables-columns
-    - file: user-guide/testing-columns
-    - file: plot-legacy
-    - file: user-guide/template
-    - file: user-guide/interactive
-    - file: user-guide/data-profiling
-    - file: user-guide/ggplot
-    - file: user-guide/FAQ
+      - file: intro
+      - file: connecting
+      - file: plot
+      - file: compose
+      - file: user-guide/tables-columns
+      - file: user-guide/testing-columns
+      - file: plot-legacy
+      - file: user-guide/template
+      - file: user-guide/interactive
+      - file: user-guide/data-profiling
+      - file: user-guide/ggplot
+      - file: user-guide/FAQ
 
   - caption: Integrations
     chapters:
@@ -35,38 +35,38 @@ parts:
       - file: integrations/oracle
       - file: integrations/trinodb
 
-
   - caption: API Reference
     chapters:
-    - file: api/magic-sql
-    - file: api/magic-plot
-    - file: api/magic-render
-    - file: api/configuration
-    - file: api/python
-    - file: api/magic-tables-columns
+      - file: api/magic-sql
+      - file: api/magic-plot
+      - file: api/magic-render
+      - file: api/configuration
+      - file: api/python
+      - file: api/magic-tables-columns
 
   - caption: How-To
     chapters:
-    - file: howto
-    - file: howto/postgres-install
-    - file: howto/json
-    - file: howto/syntax-highlighting
-    - file: howto/csv
-    - file: howto/autocompletion
-    - file: howto/format-sql
+      - file: howto
+      - file: howto/postgres-install
+      - file: howto/json
+      - file: howto/syntax-highlighting
+      - file: howto/csv
+      - file: howto/autocompletion
+      - file: howto/format-sql
+      - file: howto/benchmarking-time
 
   - caption: Tutorials
     chapters:
-    - file: tutorials/duckdb-github
-    - file: tutorials/etl
-    - file: tutorials/excel
-    - file: tutorials/product-analytics
+      - file: tutorials/duckdb-github
+      - file: tutorials/etl
+      - file: tutorials/excel
+      - file: tutorials/product-analytics
 
   - caption: Community
     chapters:
-    - file: community/vs
-    - file: community/coc
-    - file: community/support
-    - file: community/projects
-    - file: community/credits
-    - file: community/developer-guide
+      - file: community/vs
+      - file: community/coc
+      - file: community/support
+      - file: community/projects
+      - file: community/credits
+      - file: community/developer-guide
