@@ -1,16 +1,19 @@
 # CHANGELOG
 
-## 0.7.6dev
-* [Feature] Add `%sqlcmd explore` to explore tables interactively (#330)
+## 0.7.7dev
 
-* [Fix] Fix error when checking if custom connection was PEP 249 Compliant (#517)
-* [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
-* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames (#440)
 * [Doc] Hiding connection string when passing `--alias` when opening a connection (#432)
 * [Doc] Fix `api/magic-sql.md` since it incorrectly stated that listing functions was `--list`, but it's `--connections` (#432)
 * [Feature] Clearer message display when executing queries, listing connections and persisting data frames (#432)
 * [Feature] `%sql --connections` now displays an HTML table in Jupyter and a text-based table in the terminal
 
+## 0.7.6 (2023-05-29)
+
+* [Feature] Add `%sqlcmd explore` to explore tables interactively ([#330](https://github.com/ploomber/jupysql/issues/330))
+* [Feature] Support for printing capture variables using `=<<` syntax (by [@jorisroovers](https://github.com/jorisroovers))
+* [Feature] Adds `--persist-replace` argument to replace existing tables when persisting data frames ([#440](https://github.com/ploomber/jupysql/issues/440))
+* [Fix] Fix error when checking if custom connection was PEP 249 Compliant ([#517](https://github.com/ploomber/jupysql/issues/517))
+* [Doc] documenting how to manage connections with `Connection` object ([#282](https://github.com/ploomber/jupysql/issues/282))
 
 ## 0.7.5 (2023-05-24)
 
