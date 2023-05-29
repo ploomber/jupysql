@@ -39,3 +39,7 @@ notebook settings
 # Note the time taken to run each cell!
 
 ![syntax](../static/benchmarking-time_2.png)
+
+# This extension can be used for benchmarking tasks
+
+![syntax](../static/benchmarking-time_3.png)
