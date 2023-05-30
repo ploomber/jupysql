@@ -201,7 +201,7 @@ class Connection:
             else repr(engine.url)
         )
 
-        self.dialect = self.engine.url.get_dialect()
+        self.dialect = engine.url.get_dialect()
         self.session = self._create_session(engine, self.url)
 
         self.connections[alias or self.url] = self
