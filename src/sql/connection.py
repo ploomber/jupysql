@@ -581,10 +581,6 @@ class Connection:
         return self.session.execute(query)
 
 
-# Register the close_all_connections function, to be called when the program terminates
-atexit.register(Connection.close_all_connections)
-
-
 class CustomSession(sqlalchemy.engine.base.Connection):
     """
     Custom sql alchemy session
@@ -632,3 +628,7 @@ class CustomConnection(Connection):
         self.connect_args = None
         self.alias = alias
         Connection.current = self
+
+
+# Register the close_all_connections function, to be called when the program terminates
+atexit.register(Connection.close_all_connections)
