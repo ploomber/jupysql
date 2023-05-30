@@ -180,7 +180,7 @@ Shortcut: `%sqlplot bar`
 Bar plot does not support NULL values, so we automatically remove them, when plotting.
 
 ```{code-cell} ipython3
-%sqlplot bar --table penguins.csv --column species --with no_nulls
+%sqlplot bar --table penguins.csv --column species 
 ```
 
 You can additionally pass two columns to bar plot i.e. `x` and `height` columns.
