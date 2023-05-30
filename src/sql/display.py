@@ -1,6 +1,8 @@
 """
 A module to display confirmation messages and contextual information to the user
 """
+import html
+
 from prettytable import PrettyTable
 from IPython.display import display
 
@@ -70,10 +72,11 @@ class Message:
 
     def __init__(self, message, style=None) -> None:
         self._message = message
+        self._message_html = html.escape(message)
         self._style = "" or style
 
     def _repr_html_(self):
-        return f'<span style="{self._style}">{self._message}</span>'
+        return f'<span style="{self._style}">{self._message_html}</span>'
 
     def __repr__(self) -> str:
         return self._message

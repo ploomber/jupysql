@@ -1,7 +1,3 @@
-# a but confusing if it's one or two rows
-# open issue: warn users if they're using duckdb and trying to persist a data frame
-
-
 def test_connection_string_displayed(ip_empty, capsys):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql show tables")
