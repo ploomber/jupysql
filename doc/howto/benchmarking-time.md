@@ -21,7 +21,7 @@ myst:
 To record the time taken to run each cell
 in JupyterLab, we suggest using `jupyterlab-execute-time` 
 
-# Install jupyterlab-execute-time
+## Installation
 
 ```sh
 pip install jupyterlab_execute_time
