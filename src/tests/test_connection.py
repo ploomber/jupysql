@@ -305,3 +305,31 @@ class dummy_connection:
 def test_custom_connection(conn, expected):
     is_custom = Connection.is_custom_connection(conn)
     assert is_custom == expected
+
+def test_close_all_connections(cleanup):
+    """
+    Test that the close_all_connections() function closes all connections
+    in the Connection.connections dictionary
+    """
+    # Create three mock connections
+    connection1 = Mock()
+    connection2 = Mock()
+    connection3 = Mock()
+
+    # Add the connections to the Connection.connections dictionary
+    Connection.connections = {
+        'connection1': connection1,
+        'connection2': connection2,
+        'connection3': connection3
+    }
+
+    # Call the close_all_connections() function
+    Connection.close_all_connections()
+
+    # Check that the close() method was called on all connections
+    connection1.close.assert_called_once()
+    connection2.close.assert_called_once()
+    connection3.close.assert_called_once()
+
+    # Check that the connections dictionary is empty after closing
+    assert Connection.connections == {}

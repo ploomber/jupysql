@@ -435,7 +435,9 @@ class Connection:
         and closes each connection's session.
         """
         for conn in cls.connections.values():
-            conn.session.close()
+            conn.close()
+        # Clear the connections dictionary
+        cls.connections = {}
 
     def is_custom_connection(conn=None) -> bool:
         """
