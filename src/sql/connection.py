@@ -14,6 +14,8 @@ from sql import exceptions
 from sql.error_message import detail
 from ploomber_core.exceptions import modify_exceptions
 
+import atexit
+
 PLOOMBER_DOCS_LINK_STR = (
     "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
 )
@@ -58,7 +60,7 @@ DB_DOCS_LINKS = {
     "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
     "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
     "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
-    "postgresql": (
+    "postgressql": (
         "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
     ),
     "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
@@ -121,29 +123,6 @@ def rough_dict_get(dct, sought, default=None):
         if not any(s.lower() not in key.lower() for s in sought):
             return val
     return default
-
-
-def is_pep249_compliant(conn):
-    """
-    Checks if given connection object complies with PEP 249
-    """
-    pep249_methods = [
-        "close",
-        "commit",
-        # "rollback",
-        # "cursor",
-        # PEP 249 doesn't require the connection object to have
-        # a cursor method strictly
-        # ref: https://peps.python.org/pep-0249/#id52
-    ]
-
-    for method_name in pep249_methods:
-        # Checking whether the connection object has the method
-        # and if it is callable
-        if not hasattr(conn, method_name) or not callable(getattr(conn, method_name)):
-            return False
-
-    return True
 
 
 class Connection:
@@ -426,6 +405,16 @@ class Connection:
             )
             conn.session.close()
 
+    @classmethod
+    def close_all_connections(cls):
+        """
+        Closes all active connections automatically when the program terminates.
+        This method iterates over all active connections in the `connections` dictionary
+        and closes each connection's session.
+        """
+        for conn in cls.connections.values():
+            conn.session.close()
+
     def is_custom_connection(conn=None) -> bool:
         """
         Checks if given connection is custom
@@ -441,9 +430,14 @@ class Connection:
         if isinstance(conn, (CustomConnection, CustomSession)):
             is_custom_connection_ = True
         else:
-            if isinstance(
-                conn, (sqlalchemy.engine.base.Connection, Connection)
-            ) or not (is_pep249_compliant(conn)):
+            # TODO: Better check when user passes a custom
+            # connection
+            if (
+                isinstance(
+                    conn, (sqlalchemy.engine.base.Connection, Connection, str, bool)
+                )
+                or conn.__class__.__name__ == "DataFrame"
+            ):
                 is_custom_connection_ = False
             else:
                 is_custom_connection_ = True
@@ -585,6 +579,10 @@ class Connection:
         """
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
+
+
+# Register the close_all_connections function, to be called when the program terminates
+atexit.register(Connection.close_all_connections)
 
 
 class CustomSession(sqlalchemy.engine.base.Connection):
