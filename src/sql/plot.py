@@ -695,6 +695,9 @@ def bar(
 
     column : str
         Column(s) to plot
+        
+    show_num: bool
+        Show numbers on top of plot
 
     orient : str, default='v'
         Orientation of the plot. 'v' for vertical and 'h' for horizontal
@@ -705,16 +708,12 @@ def bar(
     Notes
     -----
 
-    .. versionadded:: 0.7.5
+    .. versionadded:: 0.7.6
 
     Returns
     -------
     ax : matplotlib.Axes
         Generated plot
-
-    Examples
-    --------
-    .. plot:: ../examples/plot_bar.py
 
     """
 
@@ -792,7 +791,7 @@ def bar(
 
 @modify_exceptions
 def _pie(table, column, with_=None, conn=None):
-    """get x and height for bar plot"""
+    """get x and height for pie chart"""
     if not conn:
         conn = sql.connection.Connection.current
     use_backticks = conn.is_use_backtick_template()
@@ -868,6 +867,9 @@ def pie(
 
     column : str
         Column(s) to plot
+        
+    show_num: bool
+        Show numbers on top of plot
 
     conn : connection, default=None
         Database connection. If None, it uses the current connection
@@ -875,17 +877,12 @@ def pie(
     Notes
     -----
 
-    .. versionadded:: 0.7.5
+    .. versionadded:: 0.7.6
 
     Returns
     -------
     ax : matplotlib.Axes
         Generated plot
-
-    Examples
-    --------
-    .. plot:: ../examples/plot_pie.py
-
     """
 
     if not conn:
