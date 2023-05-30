@@ -597,8 +597,10 @@ class Connection:
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
 
+
 # Register the close_all_connections function, to be called when the program terminates
 atexit.register(Connection.close_all_connections)
+
 
 class CustomSession(sqlalchemy.engine.base.Connection):
     """
