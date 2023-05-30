@@ -695,7 +695,7 @@ def bar(
 
     column : str
         Column(s) to plot
-        
+
     show_num: bool
         Show numbers on top of plot
 
@@ -867,7 +867,7 @@ def pie(
 
     column : str
         Column(s) to plot
-        
+
     show_num: bool
         Show numbers on top of plot
 
