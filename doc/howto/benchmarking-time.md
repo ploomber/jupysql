@@ -38,7 +38,7 @@ notebook settings
 
 ![syntax](../static/benchmarking-time_1.png)
 
-### Sample notebooks
+### Sample notebook
 
 ![syntax](../static/benchmarking-time_2.png)
 
