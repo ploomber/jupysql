@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 0.7.7dev
-* [Doc] Added Howto documentation for enabling JupyterLab cell run-time display ([#448](https://github.com/ploomber/jupysql/issues/448))
+* [Doc] Added Howto documentation for enabling JupyterLab cell runtime display ([#448](https://github.com/ploomber/jupysql/issues/448))
   
 ## 0.7.6 (2023-05-29)
 
