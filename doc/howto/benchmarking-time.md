@@ -27,19 +27,22 @@ in JupyterLab, we suggest using `jupyterlab-execute-time`
 pip install jupyterlab_execute_time
 ```
 
-# Enable Record metadata Settings
+## Usage
 This plugin displays the metadata collected by the 
 JupyterLab notebook, to ensure that the time is collected
 as part of the metadata, enable the record-time feature in 
 notebook settings
 `Settings -> Notebook -> Recording timing`
 
+### Change notebook settings
+
 ![syntax](../static/benchmarking-time_1.png)
 
-# Note the time taken to run each cell!
+### Sample notebooks
 
 ![syntax](../static/benchmarking-time_2.png)
 
-# This extension can be used for benchmarking tasks
+Each executed cell shows the last executed time 
+and the runtime 
 
 ![syntax](../static/benchmarking-time_3.png)
