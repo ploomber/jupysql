@@ -17,7 +17,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Benchmarking run-time in JupyterLab
+# Benchmarking runtime
 To record the time taken to run each cell
 in JupyterLab, we suggest using `jupyterlab-execute-time` 
 
