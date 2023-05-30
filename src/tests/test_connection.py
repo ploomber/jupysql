@@ -306,6 +306,7 @@ def test_custom_connection(conn, expected):
     is_custom = Connection.is_custom_connection(conn)
     assert is_custom == expected
 
+
 def test_close_all_connections(cleanup):
     """
     Test that the close_all_connections() function closes all connections
@@ -318,9 +319,9 @@ def test_close_all_connections(cleanup):
 
     # Add the connections to the Connection.connections dictionary
     Connection.connections = {
-        'connection1': connection1,
-        'connection2': connection2,
-        'connection3': connection3
+        "connection1": connection1,
+        "connection2": connection2,
+        "connection3": connection3,
     }
 
     # Call the close_all_connections() function
