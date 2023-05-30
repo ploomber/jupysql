@@ -60,7 +60,7 @@ DB_DOCS_LINKS = {
     "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
     "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
     "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
-    "postgressql": (
+    "postgresql": (
         "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
     ),
     "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
@@ -581,6 +581,10 @@ class Connection:
         return self.session.execute(query)
 
 
+# Register the close_all_connections function, to be called when the program terminates
+atexit.register(Connection.close_all_connections)
+
+
 class CustomSession(sqlalchemy.engine.base.Connection):
     """
     Custom sql alchemy session
@@ -628,7 +632,3 @@ class CustomConnection(Connection):
         self.connect_args = None
         self.alias = alias
         Connection.current = self
-
-
-# Register the close_all_connections function, to be called when the program terminates
-atexit.register(Connection.close_all_connections)
