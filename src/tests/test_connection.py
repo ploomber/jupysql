@@ -3,6 +3,8 @@ from unittest.mock import ANY, Mock, patch
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import ResourceClosedError
+
 import sql.connection
 from sql.connection import Connection, CustomConnection
 from IPython.core.error import UsageError
@@ -358,3 +360,20 @@ class dummy_connection:
 def test_custom_connection(conn, expected):
     is_custom = Connection.is_custom_connection(conn)
     assert is_custom == expected
+
+
+def test_close_all(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql sqlite://")
+
+    connections_copy = Connection.connections.copy()
+
+    Connection.close_all()
+
+    with pytest.raises(ResourceClosedError):
+        connections_copy["sqlite://"].execute("").fetchall()
+
+    with pytest.raises(ResourceClosedError):
+        connections_copy["duckdb://"].execute("").fetchall()
+
+    assert not Connection.connections

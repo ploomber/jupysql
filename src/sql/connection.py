@@ -475,6 +475,15 @@ class Connection:
             )
             conn.session.close()
 
+    @classmethod
+    def close_all(cls):
+        """Close all active connections"""
+        connections = Connection.connections.copy()
+        for key, conn in connections.items():
+            conn.close(key)
+
+        cls.connections = {}
+
     def is_custom_connection(conn=None) -> bool:
         """
         Checks if given connection is custom

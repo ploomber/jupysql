@@ -6,7 +6,7 @@ from IPython.display import display
 
 
 class Table:
-    """Represents a table"""
+    """Provides a txt and html representation of tabular data"""
 
     TITLE = ""
 
