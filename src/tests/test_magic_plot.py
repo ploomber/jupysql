@@ -247,15 +247,18 @@ x
         )
     ip.run_cell("%sql duckdb://")
 
+
 @_cleanup_cm()
 @image_comparison(baseline_images=["bar_one_col"], extensions=["png"], remove_text=True)
 def test_bar_one_col(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x")
 
+
 @_cleanup_cm()
 @image_comparison(baseline_images=["bar_one_col"], extensions=["png"], remove_text=True)
 def test_bar_one_col_null(load_data_one_col_null, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x")
+
 
 @_cleanup_cm()
 @image_comparison(
@@ -291,6 +294,7 @@ def test_bar_two_col(load_data_two_col, ip):
 @image_comparison(baseline_images=["pie_one_col"], extensions=["png"], remove_text=True)
 def test_pie_one_col(load_data_one_col, ip):
     ip.run_cell("%sqlplot pie -t data_one.csv -c x")
+
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["pie_one_col"], extensions=["png"], remove_text=True)
