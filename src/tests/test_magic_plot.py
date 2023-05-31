@@ -255,7 +255,9 @@ def test_bar_one_col(load_data_one_col, ip):
 
 
 @_cleanup_cm()
-@image_comparison(baseline_images=["bar_one_col_null"], extensions=["png"], remove_text=True)
+@image_comparison(
+    baseline_images=["bar_one_col_null"], extensions=["png"], remove_text=True
+)
 def test_bar_one_col_null(load_data_one_col_null, ip):
     ip.run_cell("%sqlplot bar -t data_one_null.csv -c x")
 
@@ -297,7 +299,9 @@ def test_pie_one_col(load_data_one_col, ip):
 
 
 @_cleanup_cm()
-@image_comparison(baseline_images=["pie_one_col_null"], extensions=["png"], remove_text=True)
+@image_comparison(
+    baseline_images=["pie_one_col_null"], extensions=["png"], remove_text=True
+)
 def test_pie_one_col_null(load_data_one_col_null, ip):
     ip.run_cell("%sqlplot pie -t data_one_null.csv -c x")
 
