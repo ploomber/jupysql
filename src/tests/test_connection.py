@@ -1,6 +1,7 @@
 import sys
 from unittest.mock import ANY, Mock, patch
 import pytest
+from sqlalchemy.exc import ResourceClosedError
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
