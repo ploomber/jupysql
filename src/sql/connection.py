@@ -427,18 +427,6 @@ class Connection:
             )
             conn.session.close()
 
-    @classmethod
-    def close_all_connections(cls):
-        """
-        Closes all active connections automatically when the program terminates.
-        This method iterates over all active connections in the `connections` dictionary
-        and closes each connection's session.
-        """
-        for conn in cls.connections.values():
-            conn.close()
-        # Clear the connections dictionary
-        cls.connections = {}
-
     def is_custom_connection(conn=None) -> bool:
         """
         Checks if given connection is custom
@@ -599,9 +587,18 @@ class Connection:
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
 
+    @classmethod
+    def close_all(cls):
+        """Close all active connections"""
+        connections = Connection.connections.copy()
+        for key, conn in connections.items():
+            conn.close(key)
+
+        cls.connections = {}
+
 
 # Register the close_all_connections function, to be called when the program terminates
-atexit.register(Connection.close_all_connections)
+atexit.register(Connection.close_all)
 
 
 class CustomSession(sqlalchemy.engine.base.Connection):

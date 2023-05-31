@@ -1,6 +1,7 @@
 import sys
 from unittest.mock import ANY, Mock, patch
 import pytest
+from sqlalchemy.exc import ResourceClosedError
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 import sql.connection
@@ -307,30 +308,18 @@ def test_custom_connection(conn, expected):
     assert is_custom == expected
 
 
-def test_close_all_connections(cleanup):
-    """
-    Test that the close_all_connections() function closes all connections
-    in the Connection.connections dictionary
-    """
-    # Create three mock connections
-    connection1 = Mock()
-    connection2 = Mock()
-    connection3 = Mock()
+def test_close_all(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql sqlite://")
 
-    # Add the connections to the Connection.connections dictionary
-    Connection.connections = {
-        "connection1": connection1,
-        "connection2": connection2,
-        "connection3": connection3,
-    }
+    connections_copy = Connection.connections.copy()
 
-    # Call the close_all_connections() function
-    Connection.close_all_connections()
+    Connection.close_all()
 
-    # Check that the close() method was called on all connections
-    connection1.close.assert_called_once()
-    connection2.close.assert_called_once()
-    connection3.close.assert_called_once()
+    with pytest.raises(ResourceClosedError):
+        connections_copy["sqlite://"].execute("").fetchall()
 
-    # Check that the connections dictionary is empty after closing
-    assert Connection.connections == {}
+    with pytest.raises(ResourceClosedError):
+        connections_copy["duckdb://"].execute("").fetchall()
+
+    assert not Connection.connections
