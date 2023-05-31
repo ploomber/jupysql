@@ -1,5 +1,6 @@
 import os
 from difflib import get_close_matches
+import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -643,6 +644,9 @@ class Connection:
         """
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
+
+
+atexit.register(Connection.close_all)
 
 
 class CustomSession(sqlalchemy.engine.base.Connection):
