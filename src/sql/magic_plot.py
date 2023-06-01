@@ -105,23 +105,21 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"bar"}:
-            util.is_table_exists(table, with_=cmd.args.with_)
-
+            with_ = self._check_table_exists(table)
             return plot.bar(
                 table=table,
                 column=column,
-                with_=cmd.args.with_,
+                with_=with_,
                 orient=cmd.args.orient,
                 show_num=cmd.args.show_numbers,
                 conn=None,
             )
         elif cmd.args.line[0] in {"pie"}:
-            util.is_table_exists(table, with_=cmd.args.with_)
-
+            with_ = self._check_table_exists(table)
             return plot.pie(
                 table=table,
                 column=column,
-                with_=cmd.args.with_,
+                with_=with_,
                 show_num=cmd.args.show_numbers,
                 conn=None,
             )
