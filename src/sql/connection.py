@@ -477,11 +477,14 @@ class Connection:
             conn.session.close()
 
     @classmethod
-    def close_all(cls):
+    def close_all(cls, verbose=False):
         """Close all active connections"""
         connections = Connection.connections.copy()
         for key, conn in connections.items():
             conn.close(key)
+
+            if verbose:
+                print(f"Closing {key}")
 
         cls.connections = {}
 
@@ -646,7 +649,7 @@ class Connection:
         return self.session.execute(query)
 
 
-atexit.register(Connection.close_all)
+atexit.register(Connection.close_all, verbose=True)
 
 
 class CustomSession(sqlalchemy.engine.base.Connection):
