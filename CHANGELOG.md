@@ -3,6 +3,7 @@
 ## 0.7.8dev
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie`
+* [Feature] Removed psutil and is_jupyterlab_session function. Require all users to install jupysql-plugin ([#541](https://github.com/ploomber/jupysql/issues/541))
 
 ## 0.7.7 (2023-05-31)
 
