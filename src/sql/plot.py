@@ -503,9 +503,13 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
-    #Filter query 2 logic based on filter query 1 
+    # Filter query 2 logic based on filter query 1
     filter_query_1 = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
-    filter_query_2 = f'WHERE "{column}" IS NOT NULL' if not filter_query_1 else f'AND "{column}" IS NOT NULL'
+    filter_query_2 = (
+        f'WHERE "{column}" IS NOT NULL'
+        if not filter_query_1
+        else f'AND "{column}" IS NOT NULL'
+    )
     bin_size = None
 
     if _are_numeric_values(min_, max_):
@@ -533,7 +537,11 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template = Template(template_)
 
         query = template.render(
-            table=table, column=column, bin_size=bin_size,  filter_query_1=filter_query_1,filter_query_2=filter_query_2
+            table=table,
+            column=column,
+            bin_size=bin_size,
+            filter_query_1=filter_query_1,
+            filter_query_2=filter_query_2,
         )
     else:
         template_ = """
@@ -550,15 +558,16 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         template = Template(template_)
 
-        query = template.render(table=table, column=column, filter_query_1=filter_query_1,filter_query_2=filter_query_2
+        query = template.render(
+            table=table,
+            column=column,
+            filter_query_1=filter_query_1,
+            filter_query_2=filter_query_2,
         )
 
     data = conn.execute(query, with_).fetchall()
 
     bin_, height = zip(*data)
-
-    # if bin_[0] is None:
-    #     raise ValueError("Data contains NULLs")
 
     return bin_, height, bin_size
 
@@ -585,10 +594,14 @@ def _histogram_stacked(
         cases.append(case)
 
     cases = " ".join(cases)
-    
-    #Filter query 2 logic based on filter query 1 
+
+    # Filter query 2 logic based on filter query 1
     filter_query_1 = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
-    filter_query_2 = f'WHERE "{column}" IS NOT NULL' if not filter_query_1 else f'AND "{column}" IS NOT NULL'
+    filter_query_2 = (
+        f'WHERE "{column}" IS NOT NULL'
+        if not filter_query_1
+        else f'AND "{column}" IS NOT NULL'
+    )
 
     template = Template(
         """
