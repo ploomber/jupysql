@@ -3,6 +3,7 @@
 ## 0.7.8dev
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie`
+* [Feature] Modified `histogram` command to support data with NULL values
 
 ## 0.7.7 (2023-05-31)
 
