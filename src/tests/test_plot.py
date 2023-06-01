@@ -113,19 +113,16 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_",
     [
         [
             "%sqlplot histogram --table data.csv --column age --table data.csv",
             None,
-            "Data contains NULLs",
         ]
     ],
 )
 # Test internal plot function e.g.
-def test_internal_histogram_null_support(
-    tmp_empty, ip, cell, error_type, error_message
-):
+def test_internal_histogram_null_support(tmp_empty, ip, cell, error_):
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,\nDan,33\nDan,\nDan,33\nDan,33"
     )
@@ -137,4 +134,4 @@ FROM data.csv
 """
     )
     out = ip.run_cell(cell)
-    assert out.error_in_exec is None
+    assert out.error_in_exec is error_
