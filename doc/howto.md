@@ -389,3 +389,21 @@ import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 ```
+
+## Hide connection string
+
+If you want to hide the connection string, pass an alias
+
+```{code-cell} ipython3
+%sql --close duckdb://
+```
+
+```{code-cell} ipython3
+%sql duckdb:// --alias myconnection
+```
+
+The alias will be displayed instead of the connection string:
+
+```{code-cell} ipython3
+%sql SELECT * FROM 'penguins.csv' LIMIT 3
+```
