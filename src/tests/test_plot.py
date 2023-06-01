@@ -117,14 +117,14 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
     [
         [
             "%sqlplot histogram --table data.csv --column age --table data.csv",
-            ValueError,
+            None,
             "Data contains NULLs",
         ]
     ],
 )
 # Test internal plot function e.g.
-def test_internal_histogram_exception(tmp_empty, ip, cell, error_type, error_message):
-    Path("data.csv").write_text("name,age\nDan,33\nBob,19\nSheri,")
+def test_internal_histogram_null_support(tmp_empty, ip, cell, error_type, error_message):
+    Path("data.csv").write_text("name,age\nDan,33\nBob,19\nSheri,\nDan,33\nDan,\nDan,33\nDan,33")
     ip.run_cell("%sql duckdb://")
     ip.run_cell(
         """%%sql --save test_dataset --no-execute
@@ -133,5 +133,5 @@ FROM data.csv
 """
     )
     out = ip.run_cell(cell)
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(error_message).lower() in str(out.error_in_exec).lower()
+    assert out.error_in_exec is None
+    

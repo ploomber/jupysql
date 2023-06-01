@@ -362,6 +362,8 @@ def histogram(
         Function returns a ``matplotlib.Axes`` object.
 
     .. versionadded:: 0.4.4
+        Added support for NULL values, additional filter query with new logic.
+        Skips the rows with NULL in the column, does not raise ValueError
 
     Returns
     -------
@@ -501,8 +503,9 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
-    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
-
+    #Filter query 2 logic based on filter query 1 
+    filter_query_1 = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+    filter_query_2 = f'WHERE "{column}" IS NOT NULL' if not filter_query_1 else f'AND "{column}" IS NOT NULL'
     bin_size = None
 
     if _are_numeric_values(min_, max_):
@@ -519,7 +522,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             floor("{{column}}"/{{bin_size}})*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
-            {{filter_query}}
+            {{filter_query_1}} {{filter_query_2}}
             group by bin
             order by bin;
             """
@@ -530,14 +533,14 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template = Template(template_)
 
         query = template.render(
-            table=table, column=column, bin_size=bin_size, filter_query=filter_query
+            table=table, column=column, bin_size=bin_size,  filter_query_1=filter_query_1,filter_query_2=filter_query_2
         )
     else:
         template_ = """
         select
             "{{column}}" as col, count ({{column}})
         from "{{table}}"
-        {{filter_query}}
+        {{filter_query_1}} {{filter_query_2}}
         group by col
         order by col;
         """
@@ -547,14 +550,15 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         template = Template(template_)
 
-        query = template.render(table=table, column=column, filter_query=filter_query)
+        query = template.render(table=table, column=column, filter_query_1=filter_query_1,filter_query_2=filter_query_2
+        )
 
     data = conn.execute(query, with_).fetchall()
 
     bin_, height = zip(*data)
 
-    if bin_[0] is None:
-        raise ValueError("Data contains NULLs")
+    # if bin_[0] is None:
+    #     raise ValueError("Data contains NULLs")
 
     return bin_, height, bin_size
 
@@ -581,15 +585,17 @@ def _histogram_stacked(
         cases.append(case)
 
     cases = " ".join(cases)
-
-    filter_query = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+    
+    #Filter query 2 logic based on filter query 1 
+    filter_query_1 = f"WHERE {facet['key']} == '{facet['value']}'" if facet else ""
+    filter_query_2 = f'WHERE "{column}" IS NOT NULL' if not filter_query_1 else f'AND "{column}" IS NOT NULL'
 
     template = Template(
         """
         SELECT {{category}},
         {{cases}}
         FROM "{{table}}"
-        {{filter_query}}
+        {{filter_query_1}} {{filter_query_2}}
         GROUP BY {{category}};
         """
     )
@@ -598,7 +604,8 @@ def _histogram_stacked(
         column=column,
         bin_size=bin_size,
         category=category,
-        filter_query=filter_query,
+        filter_query_1=filter_query_1,
+        filter_query_2=filter_query_2,
         cases=cases,
     )
 
