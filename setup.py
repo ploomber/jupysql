@@ -49,7 +49,7 @@ DEV = [
     "ipywidgets",
     # for running tests for %sqlcmd explore --table
     "js2py",
-    "jupysql-plugin"
+    "jupysql-plugin",
 ]
 
 # dependencies for running integration tests
