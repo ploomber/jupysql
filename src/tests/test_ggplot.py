@@ -93,6 +93,23 @@ sex IS NOT NULL
     ).result
 
 
+@pytest.fixture
+def penguins_with_nulls(ip, penguins_data):
+    ip.run_cell(
+        """
+        %sql duckdb://
+        """
+    )
+
+    ip.run_cell(
+        f"""
+%%sql --save with_nulls --no-execute
+SELECT *
+FROM "{penguins_data}"
+    """
+    ).result
+
+
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
 def test_ggplot_geom_boxplot(yellow_trip_data):
@@ -406,6 +423,20 @@ def test_facet_wrap_stacked_histogram_cmap(diamonds_data):
         ggplot(diamonds_data, aes(x=["price"]))
         + geom_histogram(bins=10, fill="color", cmap="plasma")
         + facet_wrap("cut")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["test_facet_wrap_default_with_nulls"],
+    extensions=["png"],
+    remove_text=False,
+)
+def test_facet_wrap_default_with_nulls(penguins_with_nulls):
+    (
+        ggplot(table="with_nulls", with_="with_nulls", mapping=aes(x=["bill_depth_mm"]))
+        + geom_histogram(bins=10)
+        + facet_wrap("sex")
     )
 
 

@@ -3,7 +3,7 @@
 ## 0.7.9dev
 
 
-* [Feature] Modified `histogram` command to support data with NULL values ([#176](https://github.com/ploomber/jupysql/issues/176))
+* [Feature] Modified `histogram` command to support data with NULL values ([#176])
 * [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
 * [Feature] Close all connections when Python shuts down (#563)
 

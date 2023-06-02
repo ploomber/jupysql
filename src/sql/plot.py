@@ -361,7 +361,7 @@ def histogram(
         Added plot title and axis labels. Allowing to pass lists in ``column``.
         Function returns a ``matplotlib.Axes`` object.
 
-    .. versionadded:: 0.4.4
+    .. versionchanged:: 0.7.9
         Added support for NULL values, additional filter query with new logic.
         Skips the rows with NULL in the column, does not raise ValueError
 
@@ -510,6 +510,8 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         if not filter_query_1
         else f'AND "{column}" IS NOT NULL'
     )
+
+    filter_queries = [filter_query_1, filter_query_2]
     bin_size = None
 
     if _are_numeric_values(min_, max_):
@@ -526,7 +528,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             floor("{{column}}"/{{bin_size}})*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
-            {{filter_query_1}} {{filter_query_2}}
+            {{filter_queries[0]}} {{filter_queries[1]}}
             group by bin
             order by bin;
             """
@@ -537,18 +539,14 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template = Template(template_)
 
         query = template.render(
-            table=table,
-            column=column,
-            bin_size=bin_size,
-            filter_query_1=filter_query_1,
-            filter_query_2=filter_query_2,
+            table=table, column=column, bin_size=bin_size, filter_queries=filter_queries
         )
     else:
         template_ = """
         select
             "{{column}}" as col, count ({{column}})
         from "{{table}}"
-        {{filter_query_1}} {{filter_query_2}}
+        {{filter_queries[0]}} {{filter_queries[1]}}
         group by col
         order by col;
         """
@@ -559,10 +557,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template = Template(template_)
 
         query = template.render(
-            table=table,
-            column=column,
-            filter_query_1=filter_query_1,
-            filter_query_2=filter_query_2,
+            table=table, column=column, filter_queries=filter_queries
         )
 
     data = conn.execute(query, with_).fetchall()
@@ -603,12 +598,14 @@ def _histogram_stacked(
         else f'AND "{column}" IS NOT NULL'
     )
 
+    filter_queries = [filter_query_1, filter_query_2]
+
     template = Template(
         """
         SELECT {{category}},
         {{cases}}
         FROM "{{table}}"
-        {{filter_query_1}} {{filter_query_2}}
+        {{filter_queries[0]}} {{filter_queries[1]}}
         GROUP BY {{category}};
         """
     )
@@ -617,8 +614,7 @@ def _histogram_stacked(
         column=column,
         bin_size=bin_size,
         category=category,
-        filter_query_1=filter_query_1,
-        filter_query_2=filter_query_2,
+        filter_queries=filter_queries,
         cases=cases,
     )
 

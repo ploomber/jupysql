@@ -126,28 +126,29 @@ Shortcut: `%sqlplot hist`
 
 +++
 
-Histogram supports NULL values, by skipping them:
+Histogram supports NULL values by skipping them. Now we can
+generate histograms without explicitle removing NULL entries.
 
 ```{code-cell} ipython3
-%%sql --save with_nulls --no-execute
+%%sql --save data_with_nulls --no-execute
 SELECT *
 FROM penguins.csv
 ```
 
 ```{code-cell} ipython3
-%sqlplot histogram --table with_nulls --column body_mass_g --with with_nulls
+%sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls
 ```
 
 ### Number of bins
 
 ```{code-cell} ipython3
-%sqlplot histogram --table with_nulls --column body_mass_g --with with_nulls --bins 100
+%sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls --bins 100
 ```
 
 ### Multiple columns
 
 ```{code-cell} ipython3
-%sqlplot histogram --table with_nulls --column bill_length_mm bill_depth_mm --with with_nulls
+%sqlplot histogram --table data_with_nulls --column bill_length_mm bill_depth_mm --with data_with_nulls
 ```
 
 ## Customize plot
@@ -155,7 +156,7 @@ FROM penguins.csv
 `%sqlplot` returns a `matplotlib.Axes` object.
 
 ```{code-cell} ipython3
-ax = %sqlplot histogram --table with_nulls --column body_mass_g --with with_nulls
+ax = %sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls
 ax.set_title("Body mass (grams)")
 _ = ax.grid()
 ```
