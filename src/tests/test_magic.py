@@ -462,13 +462,6 @@ def test_connection_args_single_quotes(ip):
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
-def test_connection_args_double_quotes(ip):
-    ip.run_cell('%sql --connection_arguments "{\\"timeout\\": 10}" sqlite:///:memory:')
-    result = ip.run_cell("%sql --connections")
-    assert "timeout" in result.result["sqlite:///:memory:"].connect_args
-
-
 # TODO: support
 # @with_setup(_setup_author, _teardown_author)
 # def test_persist_with_connection_info():
@@ -1162,10 +1155,16 @@ def test_save_with_number_table(
 
 
 def test_save_with_non_existing_with(ip):
-    out = ip.run_cell(
-        "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
+    with pytest.warns(FutureWarning) as record:
+        ip.run_cell(
+            "%sql --with non_existing_sub_query " "SELECT * FROM non_existing_sub_query"
+        )
+    assert len(record) == 1
+    assert (
+        "CTE dependencies are now automatically inferred, you can omit the "
+        "--with arguments. Using --with will raise an exception in the next "
+        "major release so please remove it." in record[0].message.args[0]
     )
-    assert isinstance(out.error_in_exec, UsageError)
 
 
 def test_save_with_non_existing_table(ip, capsys):

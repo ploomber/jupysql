@@ -18,20 +18,24 @@ from IPython.core.magic_arguments import argument, magic_arguments, parse_argstr
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
 
 import warnings
+from difflib import get_close_matches
 import sql.connection
 import sql.parse
 import sql.run
-from sql import exceptions
+from sql import display, exceptions
 from sql.store import store
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
+from sql import query_util
+from sql.util import get_suggestions_message, show_deprecation_warning
 from ploomber_core.dependencies import check_installed
 
 from sql.error_message import detail
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
+
 
 try:
     from pandas.core.frame import DataFrame, Series
@@ -323,6 +327,13 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
+        with_ = self._store.infer_dependencies(command.sql_original, args.save)
+        if with_:
+            command.set_sql_with(with_)
+            print(f"Generating CTE with stored snippets : {', '.join(with_)}")
+        else:
+            with_ = None
+
         # Create the interactive slider
         if args.interact and not is_interactive_mode:
             check_installed(["ipywidgets"], "--interactive argument")
@@ -336,7 +347,7 @@ class SqlMagic(Magics, Configurable):
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections
+            return sql.connection.Connection.connections_table()
         elif args.close:
             return sql.connection.Connection.close(args.close)
 
@@ -374,6 +385,7 @@ class SqlMagic(Magics, Configurable):
             alias=args.alias,
         )
         payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+
         if args.persist_replace and args.append:
             raise exceptions.UsageError(
                 """You cannot simultaneously persist and append data to a dataframe;
@@ -409,6 +421,8 @@ class SqlMagic(Magics, Configurable):
 
         if not command.sql:
             return
+        if args.with_:
+            show_deprecation_warning()
         # store the query if needed
         if args.save:
             if "-" in args.save:
@@ -419,10 +433,10 @@ class SqlMagic(Magics, Configurable):
                     + " instead for the save argument.",
                     FutureWarning,
                 )
-            self._store.store(args.save, command.sql_original, with_=args.with_)
+            self._store.store(args.save, command.sql_original, with_=with_)
 
         if args.no_execute:
-            print("Skipping execution...")
+            display.message("Skipping execution...")
             return
 
         try:
@@ -468,6 +482,19 @@ class SqlMagic(Magics, Configurable):
                 if detailed_msg is not None:
                     err = exceptions.UsageError(detailed_msg)
                     raise err
+                    # TODO: move to error_messages.py
+                    # Added here due to circular dependency issue (#545)
+                elif "no such table" in str(e):
+                    tables = query_util.extract_tables_from_query(command.sql)
+                    for table in tables:
+                        suggestions = get_close_matches(table, list(self._store))
+                        if len(suggestions) > 0:
+                            err_message = f"There is no table with name {table!r}."
+                            suggestions_message = get_suggestions_message(suggestions)
+                            raise exceptions.TableNotFoundError(
+                                f"{err_message}{suggestions_message}"
+                            )
+                    print(e)
                 else:
                     print(e)
             else:
@@ -537,7 +564,7 @@ class SqlMagic(Magics, Configurable):
 --persist-replace to drop the table before persisting the data frame"""
             )
 
-        return "Persisted %s" % table_name
+        display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
 def load_ipython_extension(ip):

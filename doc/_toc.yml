@@ -42,6 +42,7 @@ parts:
     - file: api/magic-sql
     - file: api/magic-plot
     - file: api/magic-render
+    - file: api/magic-snippets
     - file: api/configuration
     - file: api/python
     - file: api/magic-tables-columns
@@ -56,6 +57,7 @@ parts:
     - file: howto/csv
     - file: howto/autocompletion
     - file: howto/format-sql
+    - file: howto/benchmarking-time
 
   - caption: Tutorials
     chapters:

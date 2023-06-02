@@ -19,9 +19,42 @@ myst:
 
 # Developer guide
 
-Before continuing, ensure you have a working [development environment.](https://ploomber-contributing.readthedocs.io/en/latest/contributing/setup.html)
+Before continuing, ensure you have a [working development environment locally](https://ploomber-contributing.readthedocs.io/en/latest/contributing/setup.html) or on [github codespaces](https://github.com/features/codespaces).
+
+## Github Codespace
+
+Github Codespaces allow you to spin up a fully configured dev environment in the cloud in a few minutes. Github provides 60 hours a month of free usage (for a 2-core codespace). While codespaces will automatically pauze after 30 min of idle time, it's a good idea to shut your codespace down entirely via [the management dashboard](https://github.com/codespaces) and to [setup spending limits](https://github.com/settings/billing/spending_limit) to avoid unexpected charges.
+
+![JupySQL github codespace](../static/github-codespace.png)
+You can launch a new github codespace from the green "Code" button on [the JupySQL github repository](https://github.com/ploomber/jupysql). 
+
+Note that setup will take a few minutes to finish after the codespace becomes available (wait for the **postCreateCommand** step to finish).
+![JupySQL github codespace](../static/github-codespace-setup.png)
+
+After the codespace has finished setting up, you can run `conda activate jupysql` to activate the JupySQL Conda environment. 
 
 +++
+
+## Displaying messages
+
+```{important}
+Use the `sql.display` module instead of `print` for showing feedback to the user.
+```
+
+You can use `message` (contextual information) and `message_success` (successful operations) to show feedback to the user. Here's an example:
+
+```{code-cell} ipython3
+from sql.display import message, message_success
+```
+
+```{code-cell} ipython3
+message("Some information")
+```
+
+```{code-cell} ipython3
+message_success("Some operation finished successfully!")
+```
+
 
 ## Throwing errors
 
