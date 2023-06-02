@@ -113,6 +113,7 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
     assert 'No files found that match the pattern "data.csv"' in str(e)
 
 
+# Test internal plot function for data with nulls
 @pytest.mark.parametrize(
     "cell, error_check",
     [
@@ -122,8 +123,6 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
         ]
     ],
 )
-
-# Test internal plot function for data with nulls
 def test_internal_histogram_null_support(tmp_empty, ip, cell, error_check):
     # sheri, mick missing age
     Path("data.csv").write_text(
