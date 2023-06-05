@@ -107,7 +107,7 @@ def penguins_with_nulls(ip, penguins_data):
 SELECT *
 FROM "{penguins_data}"
     """
-    ).result
+    )
 
 
 @_cleanup_cm()

@@ -136,19 +136,19 @@ FROM penguins.csv
 ```
 
 ```{code-cell} ipython3
-%sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls
+%sqlplot histogram --table data_with_nulls --column body_mass_g 
 ```
 
 ### Number of bins
 
 ```{code-cell} ipython3
-%sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls --bins 100
+%sqlplot histogram --table data_with_nulls --column body_mass_g  --bins 100
 ```
 
 ### Multiple columns
 
 ```{code-cell} ipython3
-%sqlplot histogram --table data_with_nulls --column bill_length_mm bill_depth_mm --with data_with_nulls
+%sqlplot histogram --table data_with_nulls --column bill_length_mm bill_depth_mm 
 ```
 
 ## Customize plot
@@ -156,7 +156,7 @@ FROM penguins.csv
 `%sqlplot` returns a `matplotlib.Axes` object.
 
 ```{code-cell} ipython3
-ax = %sqlplot histogram --table data_with_nulls --column body_mass_g --with data_with_nulls
+ax = %sqlplot histogram --table data_with_nulls --column body_mass_g 
 ax.set_title("Body mass (grams)")
 _ = ax.grid()
 ```

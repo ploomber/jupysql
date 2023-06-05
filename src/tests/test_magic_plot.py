@@ -282,7 +282,6 @@ x
 @image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
 def test_hist_one_col_null(load_data_one_col_null, ip):
     out = ip.run_cell("%sqlplot histogram -t data_one_null.csv -c x --bins 2")
-    print(type(out.result))
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
 
 

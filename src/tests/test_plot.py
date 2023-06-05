@@ -114,16 +114,7 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
 
 
 # Test internal plot function for data with nulls
-@pytest.mark.parametrize(
-    "cell, error_check",
-    [
-        [
-            "%sqlplot histogram --table data.csv --column age --table data.csv",
-            None,
-        ]
-    ],
-)
-def test_internal_histogram_null_support(tmp_empty, ip, cell, error_check):
+def test_internal_histogram_null_support(tmp_empty, ip):
     # sheri, mick missing age
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,\nVin,33\nMick,\nJay,33\nSky,33"
@@ -135,22 +126,14 @@ SELECT *
 FROM data.csv
 """
     )
-    out = ip.run_cell(cell)
-    assert out.error_in_exec is error_check
+    out = ip.run_cell(
+        "%sqlplot histogram --table data.csv --column age --table data.csv"
+    )
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
 
 
 # Test internal plot function for data without nulls
-@pytest.mark.parametrize(
-    "cell, error_check",
-    [
-        [
-            "%sqlplot histogram --table data.csv --column age --table data.csv",
-            None,
-        ]
-    ],
-)
-def test_internal_histogram_check(tmp_empty, ip, cell, error_check):
+def test_internal_histogram_check(tmp_empty, ip):
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,45\nVin,33\nMick,38\nJay,33\nSky,33"
     )
@@ -161,6 +144,7 @@ SELECT *
 FROM data.csv
 """
     )
-    out = ip.run_cell(cell)
-    assert out.error_in_exec is error_check
+    out = ip.run_cell(
+        "%sqlplot histogram --table data.csv --column age --table data.csv"
+    )
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
