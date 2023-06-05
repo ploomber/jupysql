@@ -108,6 +108,7 @@ SELECT *
 FROM "{penguins_data}"
     """
     )
+    yield ip
 
 
 @_cleanup_cm()
