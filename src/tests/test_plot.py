@@ -114,7 +114,7 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
 
 
 # Test internal plot function for data with nulls
-def test_internal_histogram_null_support(tmp_empty, ip):
+def test_internal_histogram_with_nulls(tmp_empty, ip):
     # sheri, mick missing age
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,\nVin,33\nMick,\nJay,33\nSky,33"
@@ -133,7 +133,7 @@ FROM data.csv
 
 
 # Test internal plot function for data without nulls
-def test_internal_histogram_check(tmp_empty, ip):
+def test_internal_histogram_no_nulls(tmp_empty, ip):
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,45\nVin,33\nMick,38\nJay,33\nSky,33"
     )

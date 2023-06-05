@@ -62,8 +62,14 @@ def diamonds_data(ip, tmpdir):
 
 
 @pytest.fixture
-def penguins_data(tmpdir):
+def penguins_data(ip, tmpdir):
     file_path_str = str(tmpdir.join("penguins.csv"))
+
+    ip.run_cell(
+        """
+        %sql duckdb://
+        """
+    )
 
     if not Path(file_path_str).is_file():
         urlretrieve(
@@ -91,24 +97,6 @@ WHERE body_mass_g IS NOT NULL and
 sex IS NOT NULL
     """
     ).result
-
-
-@pytest.fixture
-def penguins_with_nulls(ip, penguins_data):
-    ip.run_cell(
-        """
-        %sql duckdb://
-        """
-    )
-
-    ip.run_cell(
-        f"""
-%%sql --save with_nulls --no-execute
-SELECT *
-FROM "{penguins_data}"
-    """
-    )
-    yield ip
 
 
 @_cleanup_cm()
@@ -433,9 +421,9 @@ def test_facet_wrap_stacked_histogram_cmap(diamonds_data):
     extensions=["png"],
     remove_text=False,
 )
-def test_facet_wrap_default_with_nulls(penguins_with_nulls):
+def test_facet_wrap_default_with_nulls(penguins_data):
     (
-        ggplot(table="with_nulls", with_="with_nulls", mapping=aes(x=["bill_depth_mm"]))
+        ggplot(table=penguins_data, mapping=aes(x=["bill_depth_mm"]))
         + geom_histogram(bins=10)
         + facet_wrap("sex")
     )

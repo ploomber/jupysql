@@ -503,15 +503,13 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
-    # Define any filter here, the
+    # Define all relevant filters here
     filter_query_1 = f'"{column}" IS NOT NULL'
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
-    # .. can define more queries
 
-    # add additional filter here
     filter_queries = [filter_query_1, filter_query_2]
-    final_filter = _filter_aggregate(filter_queries)
+    filter_query = _filter_aggregate(filter_queries)
 
     bin_size = None
 
@@ -529,7 +527,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
             floor("{{column}}"/{{bin_size}})*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
-            {{final_filter}}
+            {{filter_query}}
             group by bin
             order by bin;
             """
@@ -540,14 +538,14 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         template = Template(template_)
 
         query = template.render(
-            table=table, column=column, bin_size=bin_size, final_filter=final_filter
+            table=table, column=column, bin_size=bin_size, filter_query=filter_query
         )
     else:
         template_ = """
         select
             "{{column}}" as col, count ({{column}})
         from "{{table}}"
-        {{final_filter}}
+        {{filter_query}}
         group by col
         order by col;
         """
@@ -557,7 +555,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         template = Template(template_)
 
-        query = template.render(table=table, column=column, final_filter=final_filter)
+        query = template.render(table=table, column=column, filter_query=filter_query)
 
     data = conn.execute(query, with_).fetchall()
 
@@ -589,21 +587,20 @@ def _histogram_stacked(
 
     cases = " ".join(cases)
 
-    # Filter queries
     filter_query_1 = f'"{column}" IS NOT NULL'
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
     filter_queries = [filter_query_1, filter_query_2]
 
-    final_filter = _filter_aggregate(filter_queries)
+    filter_query = _filter_aggregate(filter_queries)
 
     template = Template(
         """
         SELECT {{category}},
         {{cases}}
         FROM "{{table}}"
-        {{final_filter}}
+        {{filter_query}}
         GROUP BY {{category}};
         """
     )
@@ -612,7 +609,7 @@ def _histogram_stacked(
         column=column,
         bin_size=bin_size,
         category=category,
-        final_filter=final_filter,
+        filter_query=filter_query,
         cases=cases,
     )
 
@@ -623,8 +620,7 @@ def _histogram_stacked(
 
 @modify_exceptions
 def _filter_aggregate(filter_queries):
-    # Logic to create a final filter
-    # based on the different conditions
+    """Return a single filter query based on multiple queries"""
     final_filter = ""
     for query in filter_queries:
         if query is not None:
