@@ -2,7 +2,7 @@
 
 ## 0.7.9dev
 
-* [Feature] Removed psutil and is_jupyterlab_session function. Require all users to install jupysql-plugin ([#541](https://github.com/ploomber/jupysql/issues/541))
+* [Fix] `psutil` is no longer a dependency for JupySQL ([#541](https://github.com/ploomber/jupysql/issues/541))
 * [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
 * [Feature] Close all connections when Python shuts down (#563)
 
