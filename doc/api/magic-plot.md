@@ -128,6 +128,8 @@ Shortcut: `%sqlplot hist`
 
 Histogram supports NULL values by skipping them. Now we can
 generate histograms without explicitly removing NULL entries.
+```{versionadded} 0.7.9
+```
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g 

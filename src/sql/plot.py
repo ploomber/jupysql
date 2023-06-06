@@ -508,8 +508,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
-    filter_queries = [filter_query_1, filter_query_2]
-    filter_query = _filter_aggregate(filter_queries)
+    filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     bin_size = None
 
@@ -591,9 +590,7 @@ def _histogram_stacked(
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
-    filter_queries = [filter_query_1, filter_query_2]
-
-    filter_query = _filter_aggregate(filter_queries)
+    filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     template = Template(
         """
@@ -619,15 +616,34 @@ def _histogram_stacked(
 
 
 @modify_exceptions
-def _filter_aggregate(filter_queries):
-    """Return a single filter query based on multiple queries"""
+def _filter_aggregate(*filter_queries):
+    """Return a single filter query based on multiple queries.
+
+    Parameters:
+    ----------
+    *filter_queries (str):
+    Variable length argument list of filter queries.
+    Filter query is  string with a filtering condition in SQL
+    (e.g., "age > 25").
+    (e.g., "column is NULL").
+
+    Notes
+    -----
+    .. versionadded:: 0.7.9
+
+    Returns:
+    -----
+    final_filter (str):
+    A string that represents a SQL WHERE clause
+
+    """
     final_filter = ""
-    for query in filter_queries:
+    for idx, query in enumerate(filter_queries):
         if query is not None:
-            if query == filter_queries[0]:
-                final_filter += f"WHERE {query}"
+            if idx == 0:
+                final_filter = f"{final_filter}WHERE {query}"
                 continue
-            final_filter += f" AND {query}"
+            final_filter = f"{final_filter} AND {query}"
     return final_filter
 
 

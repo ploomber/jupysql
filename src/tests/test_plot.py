@@ -113,7 +113,6 @@ def test_summary_stats_missing_file(chinook_db, ip_empty):
     assert 'No files found that match the pattern "data.csv"' in str(e)
 
 
-# Test internal plot function for data with nulls
 def test_internal_histogram_with_nulls(tmp_empty, ip):
     # sheri, mick missing age
     Path("data.csv").write_text(
@@ -132,7 +131,6 @@ FROM data.csv
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
 
 
-# Test internal plot function for data without nulls
 def test_internal_histogram_no_nulls(tmp_empty, ip):
     Path("data.csv").write_text(
         "name,age\nDan,33\nBob,19\nSheri,45\nVin,33\nMick,38\nJay,33\nSky,33"
