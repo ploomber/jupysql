@@ -1,7 +1,7 @@
 
 name: Binder Link
-on: [pull_request_target]
-
+on: 
+  pull_request_target:
 jobs:
   binder:
     runs-on: ubuntu-latest
