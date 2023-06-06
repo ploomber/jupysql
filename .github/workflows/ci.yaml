@@ -52,7 +52,7 @@ jobs:
       - name: Check Doc Modified
         id: check_doc
         run: |
-          python -m pkgmt.fail_if_modified -b origin/master -e doc --debug
+          python -m pkgmt.fail_if_modified -b origin/master -e doc 
         continue-on-error: true
 
       - name: Install dependencies
@@ -82,7 +82,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
