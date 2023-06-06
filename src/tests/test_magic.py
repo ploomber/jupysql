@@ -919,15 +919,17 @@ def test_creator_no_argument_raises(ip):
         ip.run_line_magic("sql", "--creator")
 
 
-def test_creator(monkeypatch, ip_empty, tmp_path):
-    monkeypatch.setenv("DATABASE_URL", "sqlite:///mydatabase.db")
-    db_path = tmp_path / "mydatabase.db"
-    ip_empty.user_global_ns["func"] = lambda: sqlite3.connect(db_path)
+def test_creator(monkeypatch, ip_empty):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///")
+
+    ip_empty.user_global_ns["func"] = lambda: sqlite3.connect("")
     ip_empty.run_line_magic("sql", "--creator func")
 
-    result = ip_empty.run_line_magic("sql", "--connections")
+    result = ip_empty.run_line_magic(
+        "sql", "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
+    )
 
-    assert "sqlite:///mydatabase.db" in result
+    assert isinstance(result, ResultSet)
 
 
 def test_column_names_visible(ip, tmp_empty):

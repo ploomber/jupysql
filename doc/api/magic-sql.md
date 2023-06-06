@@ -143,12 +143,12 @@ import os
 import sqlite3
 
 # Set environment variable $DATABASE_URL
-os.environ["DATABASE_URL"] = "sqlite:///my_database.db"
+os.environ["DATABASE_URL"] = "sqlite:///"
 
 # Define a function that returns a DBAPI connection
-func = lambda: sqlite3.connect("sqlite:///my_database.db")
+creator = lambda: sqlite3.connect("")
 
-%sql --creator func
+%sql --creator creator
 ```
 
 ```{code-cell} ipython3
