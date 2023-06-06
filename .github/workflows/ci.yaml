@@ -41,14 +41,6 @@ jobs:
           pkgmt lint
           codespell
 
-      - name: Git local branches
-        run: |
-          git branch -vv
-      
-      - name: Git remote branches
-        run: |
-          git branch -r -vv
-
       - name: Check Doc Modified
         id: check_doc
         run: |
