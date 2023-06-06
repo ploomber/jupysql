@@ -38,10 +38,18 @@ jobs:
           pkgmt lint
           codespell
 
+      - name: Git local branches
+        run: |
+          git branch -vv
+      
+      - name: Git remote branches
+        run: |
+          git branch -r -vv
+
       - name: Check Doc Modified
         id: check_doc
         run: |
-          python -m pkgmt.fail_if_modified -b origin/master -e doc
+          python -m pkgmt.fail_if_modified -b origin/master -e doc --debug
         continue-on-error: true
 
       - name: Install dependencies
