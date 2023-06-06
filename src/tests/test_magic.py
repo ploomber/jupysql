@@ -1,5 +1,6 @@
 import logging
 import platform
+import sqlite3
 from pathlib import Path
 import os.path
 import re
@@ -912,23 +913,21 @@ def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
 
 
 def test_creator_no_argument_raises(ip):
-    result = ip.run_cell("%sql --creator")
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(
+        UsageError, match="argument -c/--creator: expected one argument"
+    ):
+        ip.run_line_magic("sql", "--creator")
 
 
-@pytest.mark.parametrize(
-    "db",
-    [
-        "sqlite:///test.db",
-        "duckdb://test.db",
-    ],
-)
-def test_creator(ip, db):
-    ip.user_global_ns["my_engine"] = create_engine(db)
-    result = ip.run_cell("%sql --creator my_engine")
-    assert result.error_in_exec is None
-    assert not isinstance(result.error_in_exec, UsageError)
-    assert not isinstance(result.error_in_exec, KeyError)
+def test_creator(monkeypatch, ip_empty, tmp_path):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///mydatabase.db")
+    db_path = tmp_path / "mydatabase.db"
+    ip_empty.user_global_ns["func"] = lambda: sqlite3.connect(db_path)
+    ip_empty.run_line_magic("sql", "--creator func")
+
+    result = ip_empty.run_line_magic("sql", "--connections")
+
+    assert "sqlite:///mydatabase.db" in result
 
 
 def test_column_names_visible(ip, tmp_empty):

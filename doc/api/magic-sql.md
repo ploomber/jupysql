@@ -139,11 +139,16 @@ Or pass an alias (**added in 0.5.2**):
 
 ## Specify creator function
 ```{code-cell} ipython3
-from sqlalchemy import create_engine
+import os
+import sqlite3
 
-engine = create_engine("sqlite:///my_database.db")
+# Set environment variable $DATABASE_URL
+os.environ["DATABASE_URL"] = "sqlite:///my_database.db"
 
-%sql engine
+# Define a function that returns a DBAPI connection
+func = lambda: sqlite3.connect("sqlite:///my_database.db")
+
+%sql --creator func
 ```
 
 ```{code-cell} ipython3
