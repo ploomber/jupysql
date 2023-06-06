@@ -14,7 +14,7 @@ kernelspec:
   name: python3
 myst:
   html_meta:
-    description lang=en: 'Quickstart for JupySQL: a package to run SQL in Jupyter'
+    description lang=en: 'JupySQL: a package to run SQL in Jupyter'
     keywords: jupyter, sql, jupysql
     property=og:locale: en_US
 ---
