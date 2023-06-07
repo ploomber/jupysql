@@ -912,11 +912,11 @@ def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
     assert "second" not in Connection.connections
 
 
-def test_creator_no_argument_raises(ip):
+def test_creator_no_argument_raises(ip_empty):
     with pytest.raises(
         UsageError, match="argument -c/--creator: expected one argument"
     ):
-        ip.run_line_magic("sql", "--creator")
+        ip_empty.run_line_magic("sql", "--creator")
 
 
 def test_creator(monkeypatch, ip_empty):
