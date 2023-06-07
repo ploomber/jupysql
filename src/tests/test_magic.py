@@ -919,12 +919,11 @@ def test_creator_no_argument_raises(ip_empty):
         ip_empty.run_line_magic("sql", "--creator")
 
 
-def creator():
-    return sqlite3.connect("")
-
-
 def test_creator(monkeypatch, ip_empty):
     monkeypatch.setenv("DATABASE_URL", "sqlite:///")
+
+    def creator():
+        return sqlite3.connect("")
 
     ip_empty.user_global_ns["func"] = creator
     ip_empty.run_line_magic("sql", "--creator func")
