@@ -146,7 +146,8 @@ import sqlite3
 os.environ["DATABASE_URL"] = "sqlite:///"
 
 # Define a function that returns a DBAPI connection
-creator = lambda: sqlite3.connect("")
+def creator():
+    return sqlite3.connect("")
 
 %sql --creator creator
 ```
