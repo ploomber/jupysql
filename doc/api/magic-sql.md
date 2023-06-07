@@ -148,12 +148,10 @@ os.environ["DATABASE_URL"] = "sqlite:///"
 # Define a function that returns a DBAPI connection
 def creator():
     return sqlite3.connect("")
-
-%sql --creator creator
 ```
 
 ```{code-cell} ipython3
-%sql --creator engine
+%sql --creator creator
 ```
 
 
