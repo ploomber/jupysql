@@ -27,14 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          ref: master
           fetch-depth: 2
 
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: master
           fetch-depth: 2
-
 
       - name: Git local branch
         run: |
