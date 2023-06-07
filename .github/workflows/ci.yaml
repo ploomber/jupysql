@@ -27,8 +27,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.ref_name }}, origin/master
+          ref: ${{ github.ref_name }}
           fetch-depth: 2
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 2
+
 
       - name: Git local branch
         run: |
