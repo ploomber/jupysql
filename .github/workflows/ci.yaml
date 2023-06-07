@@ -24,16 +24,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Master
         uses: actions/checkout@v2
         with:
           ref: master
-          fetch-depth: 2
+          fetch-depth: 1
 
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 2
+          fetch-depth: 1
 
       - name: Git local branch
         run: |
@@ -88,6 +88,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 1
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
