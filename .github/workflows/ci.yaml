@@ -35,14 +35,6 @@ jobs:
         with:
           fetch-depth: 1000
 
-      - name: Git local branch
-        run: |
-          git branch -vv
-      
-      - name: Git remote branch
-        run: |
-          git branch -vv -r
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
