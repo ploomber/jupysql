@@ -13,35 +13,16 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Master
-        uses: actions/checkout@v2
-        with:
-          ref: master
-          fetch-depth: 1000
 
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 1000
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install pkgmt
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade pkgmt
-        
-      - name: Check Doc Modified
-        id: check_doc
-        run: |
-          python -m pkgmt.fail_if_modified -b origin/master -e doc 
-        continue-on-error: true
-
       - name: Install dependencies
-        if: steps.check_doc.outcome == 'failure'
         run: |
           # Install MSSQL ODBC 18
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
@@ -55,7 +36,6 @@ jobs:
           pip install ".[integration]"
           pip install "sqlalchemy>=2"
       - name: Integration Test
-        if: steps.check_doc.outcome == 'failure'
         run: |
           # Run the integration test by pytest marker
           python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
