@@ -377,12 +377,21 @@ class Connection:
                 # is that we're missing some unit tests
                 # when descriptor is a connection object
                 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
-                cls.current = existing or Connection.from_connect_str(
+                #allows to distinguish between same descriptor with different alias 
+                if existing and existing.alias!=alias:
+                    cls.current = Connection.from_connect_str(
                     connect_str=descriptor,
                     connect_args=connect_args,
                     creator=creator,
                     alias=alias,
                 )
+                else:
+                    cls.current = existing or Connection.from_connect_str(
+                    connect_str=descriptor,
+                    connect_args=connect_args,
+                    creator=creator,
+                    alias=alias,
+                    )
 
         else:
             if cls.connections:
