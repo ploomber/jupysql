@@ -159,6 +159,6 @@ SELECT *
 FROM data.csv
 """
     )
-    cmd = "%sqlplot histogram --table data.csv --column age --density True"
+    cmd = "%sqlplot histogram --table data.csv --column age --density"
     out = ip.run_cell(cmd)
     assert np.isclose(sum(p.get_height() for p in out.result.patches), 1)
