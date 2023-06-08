@@ -10,12 +10,44 @@ on:
   pull_request:
       
 jobs:
+  check_doc:
+    runs-on: ubuntu-latest
+    outputs:
+      check_doc_modified: ${{steps.check_doc_modified.outcome}}
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 1000
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1000
+
+      - name: Set up Python 
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Check Doc Modified
+        id: check_doc_modified
+        run: |
+          python -m pkgmt.fail_if_modified -b origin/master -e doc 
+        continue-on-error: true
+      
   integration-test-live:
+    needs: [check_doc]
+    if: needs.check_doc.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db-live.yaml
     secrets: inherit
   integration-test-non-live:
+    needs: [check_doc]
+    if: needs.check_doc.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db.yaml
   test:
+    needs: [check_doc]
+    if: needs.check_doc.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10', '3.11']
@@ -72,6 +104,8 @@ jobs:
           pytest --durations-min=5 --ignore=src/tests/integration
 
   test-sqlalchemy-v1:
+    needs: [check_doc]
+    if: needs.check_doc.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: ['3.11']
