@@ -9,6 +9,7 @@
 * [Feature] Close all connections when Python shuts down (#563)
 * [Doc] Added bar and pie examples in the plotting section (#564)
 * [Doc] Added more details to the SQL parametrization user guide. (#288)
+* [Feature] Added `density` as an argument to the `histogram` command (by @avyfain)
 
 ## 0.7.8 (2023-06-01)
 

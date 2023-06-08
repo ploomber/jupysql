@@ -146,3 +146,19 @@ FROM data.csv
         "%sqlplot histogram --table data.csv --column age --table data.csv"
     )
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
+
+
+def test_histogram_density(tmp_empty, ip):
+    Path("data.csv").write_text(
+        "name,age\nDan,33\nBob,19\nSheri,45\nVin,33\nMick,38\nJay,33\nSky,33"
+    )
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell(
+        """%%sql --save test_dataset --no-execute
+SELECT *
+FROM data.csv
+"""
+    )
+    cmd = "%sqlplot histogram --table data.csv --column age --density True"
+    out = ip.run_cell(cmd)
+    assert np.isclose(sum(p.get_height() for p in out.result.patches), 1)

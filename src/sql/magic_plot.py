@@ -39,6 +39,13 @@ class SqlPlotMagic(Magics, Configurable):
         help="Histogram bins",
     )
     @argument(
+        "-d",
+        "--density",
+        type=bool,
+        default=False,
+        help="Plot histogram as a density curve",
+    )
+    @argument(
         "-o",
         "--orient",
         type=str,
@@ -103,6 +110,7 @@ class SqlPlotMagic(Magics, Configurable):
                 bins=cmd.args.bins,
                 with_=with_,
                 conn=None,
+                density=cmd.args.density,
             )
         elif cmd.args.line[0] in {"bar"}:
             with_ = self._check_table_exists(table)

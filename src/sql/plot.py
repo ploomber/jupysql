@@ -338,6 +338,7 @@ def histogram(
     edgecolor=None,
     ax=None,
     facet=None,
+    density=False,
 ):
     """Plot histogram
 
@@ -354,6 +355,12 @@ def histogram(
 
     conn : connection, default=None
         Database connection. If None, it uses the current connection
+
+    density : bool, default=False
+        If True, draw and return a probability density: each bin will display the
+        bin's raw count divided by the total number of counts and the bin width
+        `(density = counts / (sum(counts) * np.diff(bins)))`, so that the area
+        under the histogram integrates to 1 `(np.sum(density * np.diff(bins)) == 1)`.
 
     Notes
     -----
@@ -397,7 +404,9 @@ def histogram(
         if column is None or len(column) == 0:
             raise ValueError("Column name has not been specified")
 
-        bin_, height, bin_size = _histogram(table, column, bins, with_=with_, conn=conn)
+        bin_, height, bin_size = _histogram(
+            table, column, bins, with_=with_, conn=conn, density=density
+        )
         width = _get_bar_width(ax, bin_)
         data = _histogram_stacked(
             table, column, category, bin_, bin_size, with_=with_, conn=conn, facet=facet
@@ -442,7 +451,7 @@ def histogram(
         ax.legend()
     elif isinstance(column, str):
         bin_, height, _ = _histogram(
-            table, column, bins, with_=with_, conn=conn, facet=facet
+            table, column, bins, with_=with_, conn=conn, facet=facet, density=density
         )
         width = _get_bar_width(ax, bin_)
 
@@ -461,7 +470,7 @@ def histogram(
     else:
         for i, col in enumerate(column):
             bin_, height, _ = _histogram(
-                table, col, bins, with_=with_, conn=conn, facet=facet
+                table, col, bins, with_=with_, conn=conn, facet=facet, density=density
             )
             width = _get_bar_width(ax, bin_)
 
@@ -494,7 +503,7 @@ def histogram(
 
 
 @modify_exceptions
-def _histogram(table, column, bins, with_=None, conn=None, facet=None):
+def _histogram(table, column, bins, with_=None, conn=None, facet=None, density=False):
     """Compute bins and heights"""
     if not conn:
         conn = sql.connection.Connection.current
@@ -557,6 +566,9 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         query = template.render(table=table, column=column, filter_query=filter_query)
 
     data = conn.execute(query, with_).fetchall()
+    if density:
+        total_count = sum(x[1] for x in data)
+        data = [(bin_, height / total_count) for bin_, height in data]
 
     bin_, height = zip(*data)
 
