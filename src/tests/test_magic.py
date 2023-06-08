@@ -1,5 +1,6 @@
 import logging
 import platform
+import sqlite3
 from pathlib import Path
 import os.path
 import re
@@ -185,6 +186,25 @@ def test_persist_no_index(ip):
     ip.run_cell("%sql --persist sqlite:// results_no_index --no-index")
     persisted = runsql(ip, "SELECT * FROM results_no_index")
     assert persisted == [(1, "foo"), (2, "bar")]
+
+
+@pytest.mark.parametrize(
+    "sql_statement, expected_error",
+    [
+        ("%%sql --stuff\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql --unknown\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql --invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql -invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql \n SELECT * FROM test", None),
+        ("%sql select * FROM penguins.csv --some", None),
+        ("%%sql --persist '--some' \n SELECT * FROM test", "not a valid identifier"),
+    ],
+)
+def test_unrecognized_arguments_cell_magic(ip, sql_statement, expected_error):
+    result = ip.run_cell(sql_statement)
+    assert (result.error_in_exec is not None) == (expected_error is not None)
+    if expected_error:
+        assert expected_error in str(result.error_in_exec)
 
 
 def test_persist_invalid_identifier(ip):
@@ -909,6 +929,29 @@ def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
     assert "sqlite:///second.db" not in Connection.connections
     assert "first" not in Connection.connections
     assert "second" not in Connection.connections
+
+
+def test_creator_no_argument_raises(ip_empty):
+    with pytest.raises(
+        UsageError, match="argument -c/--creator: expected one argument"
+    ):
+        ip_empty.run_line_magic("sql", "--creator")
+
+
+def test_creator(monkeypatch, ip_empty):
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///")
+
+    def creator():
+        return sqlite3.connect("")
+
+    ip_empty.user_global_ns["func"] = creator
+    ip_empty.run_line_magic("sql", "--creator func")
+
+    result = ip_empty.run_line_magic(
+        "sql", "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
+    )
+
+    assert isinstance(result, ResultSet)
 
 
 def test_column_names_visible(ip, tmp_empty):

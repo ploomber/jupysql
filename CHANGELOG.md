@@ -2,8 +2,16 @@
 
 ## 0.7.9dev
 
+* [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar (#540)
+* [Feature] Modified `histogram` command to support data with NULL values (#176)
+* [Fix] `psutil` is no longer a dependency for JupySQL ([#541](https://github.com/ploomber/jupysql/issues/541))
 * [Feature] Automated dependency inference when creating CTEs. `--with` is now deprecated and will display a warning. (#166)
 * [Feature] Close all connections when Python shuts down (#563)
+* [Doc] Added bar and pie examples in the plotting section (#564)
+* [Doc] Added more details to the SQL parametrization user guide. (#288)
+* [Doc] Snowflake integration guide (#384)
+* [Doc] User guide on using JupySQL in `.py` scripts (#449)
+* [Fix] Validating arguments passed to `%%sql` (#561)
 
 ## 0.7.8 (2023-06-01)
 

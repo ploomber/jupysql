@@ -18,6 +18,7 @@ parts:
     - file: user-guide/data-profiling
     - file: user-guide/ggplot
     - file: user-guide/table_explorer
+    - file: user-guide/py-scripts
     - file: user-guide/FAQ
 
   - caption: Integrations
@@ -28,6 +29,7 @@ parts:
       - file: integrations/mysql
       - file: integrations/mssql
       - file: integrations/mariadb
+      - file: integrations/snowflake
       - file: integrations/clickhouse
       - file: integrations/mindsdb
       - file: integrations/postgres-connect
@@ -56,6 +58,7 @@ parts:
     - file: howto/syntax-highlighting
     - file: howto/csv
     - file: howto/autocompletion
+    - file: howto/ggplot-interact
     - file: howto/format-sql
     - file: howto/benchmarking-time
 

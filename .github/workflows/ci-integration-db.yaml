@@ -1,3 +1,6 @@
+# CI - DB Integration - Local is designed to run integration testing against to databases hosted by docker containers
+# Target database: PostgreSQL, MySQL, MariaDB, SQLite, DuckDB, MSSQL, Oracle Database
+# Sqlalchemy version: 2+
 name: CI - DB Integration - Local
 on:
   workflow_call:
@@ -10,7 +13,9 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
