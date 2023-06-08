@@ -12,6 +12,8 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ✅
 - Plotting with `%%sqlplot histogram` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
 - Plotting with `ggplot` API ✅
 - Profiling tables with `%sqlcmd profile` ✅
 - Listing tables with `%sqlcmd tables` ✅
@@ -36,20 +38,20 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 
 ## PostgreSQL
 
-**Almost full compatibility**
+**Full compatibility**
 
 - Running queries with `%%sql` ✅
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ✅
 - Plotting with `%%sqlplot histogram` ✅
-- Plotting with `ggplot` API ❓
-- Profiling tables with `%sqlcmd profile` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
+- Plotting with `ggplot` API ✅
+- Profiling tables with `%sqlcmd profile` ❌
 - Listing tables with `%sqlcmd tables` ✅
 - Listing columns with `%sqlcmd columns` ✅
 - Parametrized SQL queries via `{{parameter}}` ✅
-- Interactive SQL queries via `--interact` ✅
-
-
+- Interactive SQL queries via `--interact` ✅ (partial support)
 
 ## MariaDB / MySQL
 
@@ -59,12 +61,14 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ❌
 - Plotting with `%%sqlplot histogram` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
 - Plotting with `ggplot` API ✅ (partial support)
-- Profiling tables with `%sqlcmd profile` ✅
+- Profiling tables with `%sqlcmd profile` ❌
 - Listing tables with `%sqlcmd tables` ✅
 - Listing columns with `%sqlcmd columns` ✅
 - Parametrized SQL queries via `{{parameter}}` ✅
-- Interactive SQL queries via `--interact` ✅
+- Interactive SQL queries via `--interact` ✅ (partial support)
 
 ## SQL Server
 
@@ -72,6 +76,8 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ❌
 - Plotting with `%%sqlplot histogram` ❌
+- Plotting with `%%sqlplot bar` ❌
+- Plotting with `%%sqlplot pie` ❌
 - Plotting with `ggplot` API ❌
 - Profiling tables with `%sqlcmd profile` ✅
 - Listing tables with `%sqlcmd tables` ✅
@@ -85,9 +91,56 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ❌
 - Plotting with `%%sqlplot histogram` ❌
+- Plotting with `%%sqlplot bar` ❌
+- Plotting with `%%sqlplot pie` ❌
 - Plotting with `ggplot` API ❌
 - Profiling tables with `%sqlcmd profile` ❌
 - Listing tables with `%sqlcmd tables` ✅
 - Listing columns with `%sqlcmd columns` ✅
 - Parametrized SQL queries via `{{parameter}}` ✅
 - Interactive SQL queries via `--interact` ✅
+
+## QuestDB
+
+- Running queries with `%%sql` ✅
+- CTEs with `%%sql --save NAME` ❓
+- Plotting with `%%sqlplot boxplot` ❌
+- Plotting with `%%sqlplot histogram` ❌
+- Plotting with `%%sqlplot bar` ❌
+- Plotting with `%%sqlplot pie` ❌
+- Plotting with `ggplot` API ❌
+- Profiling tables with `%sqlcmd profile` ❌
+- Listing tables with `%sqlcmd tables` ✅
+- Listing columns with `%sqlcmd columns` ✅
+- Parametrized SQL queries via `{{parameter}}` ✅
+- Interactive SQL queries via `--interact` ✅
+
+## ClickHouse
+
+- Running queries with `%%sql` ✅
+- CTEs with `%%sql --save NAME` ❓
+- Plotting with `%%sqlplot boxplot` ❌
+- Plotting with `%%sqlplot histogram` ❌
+- Plotting with `%%sqlplot bar` ❌
+- Plotting with `%%sqlplot pie` ❌
+- Plotting with `ggplot` API ❌
+- Profiling tables with `%sqlcmd profile` ❌
+- Listing tables with `%sqlcmd tables` ✅
+- Listing columns with `%sqlcmd columns` ✅
+- Parametrized SQL queries via `{{parameter}}` ✅
+- Interactive SQL queries via `--interact` ✅
+
+## TrinoDB
+
+- Running queries with `%%sql` ✅
+- CTEs with `%%sql --save NAME` ✅
+- Plotting with `%%sqlplot boxplot` ❌
+- Plotting with `%%sqlplot histogram` ❌
+- Plotting with `%%sqlplot bar` ❌
+- Plotting with `%%sqlplot pie` ❌
+- Plotting with `ggplot` API ❌
+- Profiling tables with `%sqlcmd profile` ✅
+- Listing tables with `%sqlcmd tables` ✅
+- Listing columns with `%sqlcmd columns` ✅
+- Parametrized SQL queries via `{{parameter}}` ✅
+- Interactive SQL queries via `--interact` ✅ (partial support)
