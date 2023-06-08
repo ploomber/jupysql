@@ -41,7 +41,6 @@ class SqlPlotMagic(Magics, Configurable):
     @argument(
         "-d",
         "--density",
-        type=bool,
         action="store_true",
         help="Plot histogram as a density curve",
     )
