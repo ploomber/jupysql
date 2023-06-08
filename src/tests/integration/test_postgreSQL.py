@@ -12,6 +12,7 @@ from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 from sql.connection import CustomConnection, CustomSession
 from IPython.core.error import UsageError
 
+
 def test_meta_cmd_display(ip_with_postgreSQL, test_table_name_dict):
     out = ip_with_postgreSQL.run_cell("%sql \d")  # noqa: W605
     assert len(out.result) > 0
@@ -44,6 +45,7 @@ def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
         "If you need help solving this issue, "
         "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
     )
+
 
 def test_query_count(ip_with_postgreSQL, test_table_name_dict):
     # PostgreSQL doesn't have LIMIT
@@ -152,6 +154,7 @@ def test_sqlplot_boxplot(ip_with_postgreSQL, cell):
     out = ip_with_postgreSQL.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
 
 def test_unsupported_function(ip_with_postgreSQL, test_table_name_dict):
     # clean current Axes
