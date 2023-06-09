@@ -10,7 +10,7 @@ on:
   pull_request:
       
 jobs:
-  check_doc:
+  preliminary:
     runs-on: ubuntu-latest
     outputs:
       check_doc_modified: ${{steps.check_doc_modified.outcome}}
@@ -41,19 +41,29 @@ jobs:
         run: |
           python -m pkgmt.fail_if_modified -b origin/master -e doc 
         continue-on-error: true
+
+      - name: Check Changelog Modified
+        env:
+          labels: ${{ github.event.pull_request.labels.*.name }}
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
+        id: check_changelog_modified
+        run: |
+          echo $labels;
+        continue-on-error: true
+
       
   integration-test-live:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db-live.yaml
     secrets: inherit
   integration-test-non-live:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     uses: ./.github/workflows/ci-integration-db.yaml
   test:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10', '3.11']
@@ -95,8 +105,8 @@ jobs:
           pytest --durations-min=5 --ignore=src/tests/integration
 
   test-sqlalchemy-v1:
-    needs: [check_doc]
-    if: needs.check_doc.outputs.check_doc_modified == 'failure'
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
     strategy:
       matrix:
         python-version: ['3.11']
