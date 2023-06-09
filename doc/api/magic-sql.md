@@ -208,7 +208,7 @@ my_data = pd.DataFrame({"x": range(3, 6), "y": range(3, 6)})
 %sql SELECT * FROM my_data
 ```
 
-## Presist replace to table
+## Persist replace to table
 
 ```{code-cell} ipython3
 my_data = pd.DataFrame({"x": range(3), "y": range(3)})
