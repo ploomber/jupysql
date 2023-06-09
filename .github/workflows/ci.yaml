@@ -35,8 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # pip install pkgmt
-          pip install git+https://github.com/mehtamohit013/pkgmt.git@modi
+          pip install pkgmt
 
       - name: Check Doc Modified
         id: check_doc_modified
@@ -50,7 +49,6 @@ jobs:
         id: check_changelog_modified
         run: |
           # Check if the array contains "no-changelog"
-          # Check Changelog
           if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
             echo "PR contains no-changelog label"
           else
