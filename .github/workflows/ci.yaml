@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       check_doc_modified: ${{steps.check_doc_modified.outcome}}
+      check_changelog_modified: ${{steps.check_changelog_modified.outcome}}
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -45,11 +46,16 @@ jobs:
       - name: Check Changelog Modified
         env:
           labels_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
-        # if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
         id: check_changelog_modified
         run: |
-          echo $labels_JSON;
-          python -m pkgmt.fail_if_modified -b origin/master -e CHANGELOG.md
+          # Check if the array contains "A"
+          if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
+            echo "PR contains no-changelog label"
+          else
+            echo "PR does not contain no-changelog label";
+            echo "Checking if changelog is modified";
+            python -m pkgmt.fail_if_modified -b origin/master -e CHANGELOG.md
+          fi
         continue-on-error: true
 
       
