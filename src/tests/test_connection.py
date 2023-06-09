@@ -377,3 +377,16 @@ def test_close_all(ip_empty):
         connections_copy["duckdb://"].execute("").fetchall()
 
     assert not Connection.connections
+
+
+def test_new_connection_with_alias(ip_empty):
+    """Test if a new connection with the same url but a
+    different alias is registered
+    """
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql duckdb:// --alias duck1")
+    table = ip_empty.run_cell("sql --connections").result
+    connection = table["duck1"]
+    assert connection
+    assert connection.url == "duckdb://"
+    assert connection == connection.current
