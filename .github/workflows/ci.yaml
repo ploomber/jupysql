@@ -50,6 +50,7 @@ jobs:
         id: check_changelog_modified
         run: |
           # Check if the array contains "no-changelog"
+          # Check Changelog
           if echo "$labels_JSON" | jq '. | contains(["no-changelog"])' | grep -q true; then
             echo "PR contains no-changelog label"
           else
