@@ -49,6 +49,7 @@ jobs:
         id: check_changelog_modified
         run: |
           echo $labels_JSON;
+          python -m pkgmt.fail_if_modified -b origin/master -e CHANGELOG.md
         continue-on-error: true
 
       
