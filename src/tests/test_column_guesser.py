@@ -21,6 +21,7 @@ sql_env = SqlEnv("sqlite://")
 def tbl():
     sqlmagic = SqlMagic(shell=ip)
     ip.register_magics(sqlmagic)
+    print(ip)
     creator = """
         DROP TABLE IF EXISTS manycoltbl;
         CREATE TABLE manycoltbl
