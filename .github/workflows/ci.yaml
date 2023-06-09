@@ -45,7 +45,7 @@ jobs:
       - name: Check Changelog Modified
         env:
           labels_JSON: ${{ toJSON(github.event.pull_request.labels) }}
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
+        # if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
         id: check_changelog_modified
         run: |
           echo $labels_JSON;
