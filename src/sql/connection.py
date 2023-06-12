@@ -376,19 +376,12 @@ class Connection:
                 # when descriptor is a connection object
                 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
                 # if same alias found
-                if existing and existing.alias == alias:
-                    cls.current = existing
-                # if just switching connections
-                elif existing and alias is None:
-                    cls.current = existing
-                # if new alias connection
-                elif existing is None or existing.alias != alias:
-                    cls.current = Connection.from_connect_str(
-                        connect_str=descriptor,
-                        connect_args=connect_args,
-                        creator=creator,
-                        alias=alias,
-                    )
+                cls.current = existing or Connection.from_connect_str(
+                    connect_str=descriptor,
+                    connect_args=connect_args,
+                    creator=creator,
+                    alias=alias,
+                )
 
         else:
             if cls.connections:
