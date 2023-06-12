@@ -12,6 +12,7 @@
 * [Doc] Snowflake integration guide (#384)
 * [Doc] User guide on using JupySQL in `.py` scripts (#449)
 * [Fix] Validating arguments passed to `%%sql` (#561)
+* [Feature] Test
 
 ## 0.7.8 (2023-06-01)
 
