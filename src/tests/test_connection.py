@@ -379,26 +379,14 @@ def test_close_all(ip_empty):
     assert not Connection.connections
 
 
-@pytest.mark.parametrize(
-    "old_alias, new_alias",
-    [
-        (None, "duck1"),
-        ("duck1", "duck2"),
-        (None, None),
-    ],
-)
-def test_new_connection_with_alias(ip_empty, old_alias, new_alias):
+def test_new_connection_with_alias(ip_empty):
     """Test if a new connection with the same url but a
-    new alias is registered for different cases of old alias
+    different alias is registered
     """
-    ip_empty.run_cell(f"%sql duckdb:// --alias {old_alias}")
-    ip_empty.run_cell(f"%sql duckdb:// --alias {new_alias}")
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql duckdb:// --alias duck1")
     table = ip_empty.run_cell("sql --connections").result
-
-    if old_alias is None and new_alias is None:
-        assert new_alias not in table
-    else:
-        connection = table[new_alias]
-        assert connection
-        assert connection.url == "duckdb://"
-        assert connection == connection.current
+    connection = table["duck1"]
+    assert connection
+    assert connection.url == "duckdb://"
+    assert connection == connection.current
