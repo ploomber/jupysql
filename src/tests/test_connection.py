@@ -377,5 +377,3 @@ def test_close_all(ip_empty):
         connections_copy["duckdb://"].execute("").fetchall()
 
     assert not Connection.connections
-
-
