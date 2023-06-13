@@ -26,7 +26,7 @@ class SqlPlotMagic(Magics, Configurable):
 
     @line_magic("sqlplot")
     @magic_arguments()
-    @argument("line", default="", nargs="*", type=str, help="Plot name")
+    @argument("line", type=str, help="Plot name")
     @argument("-t", "--table", type=str, help="Table to use", required=True)
     @argument(
         "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
