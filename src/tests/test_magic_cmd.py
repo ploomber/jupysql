@@ -1,5 +1,5 @@
 import sys
-
+import math
 import pytest
 from IPython.core.error import UsageError
 from pathlib import Path
@@ -168,12 +168,69 @@ def test_table_profile(ip, tmp_empty):
 
     expected = {
         "count": [8, 8, 8, 8],
-        "mean": [12.2165, "6.875e-01", 88.75, 0.0],
-        "min": [10.532, 0.1, 82, ""],
-        "max": [14.44, 2.48, 98, "c"],
+        "mean": ["12.2165", "0.6875", "88.7500", math.nan],
+        "min": [10.532, 0.1, 82, math.nan],
+        "max": [14.44, 2.48, 98, math.nan],
         "unique": [8, 7, 8, 5],
-        "freq": [1, 2, 1, 4],
-        "top": [14.44, 0.2, 98, "a"],
+        "freq": [math.nan, math.nan, math.nan, 4],
+        "top": [math.nan, math.nan, math.nan, "a"],
+    }
+
+    out = ip.run_cell("%sqlcmd profile -t numbers").result
+
+    stats_table = out._table
+
+    assert len(stats_table.rows) == len(expected)
+
+    for row in stats_table:
+        criteria = row.get_string(fields=[" "], border=False).strip()
+
+        rating = row.get_string(fields=["rating"], border=False, header=False).strip()
+
+        price = row.get_string(fields=["price"], border=False, header=False).strip()
+
+        number = row.get_string(fields=["number"], border=False, header=False).strip()
+
+        word = row.get_string(fields=["word"], border=False, header=False).strip()
+
+        assert criteria in expected
+        assert rating == str(expected[criteria][0])
+        assert price == str(expected[criteria][1])
+        assert number == str(expected[criteria][2])
+        assert word == str(expected[criteria][3])
+
+    # Test sticky column style was injected
+    assert "position: sticky;" in out._table_html
+
+
+def test_table_profile_with_stdev(ip, tmp_empty):
+    ip.run_cell(
+        """
+    %%sql duckdb://
+    CREATE TABLE numbers (rating float, price float, number int, word varchar(50));
+    INSERT INTO numbers VALUES (14.44, 2.48, 82, 'a');
+    INSERT INTO numbers VALUES (13.13, 1.50, 93, 'b');
+    INSERT INTO numbers VALUES (12.59, 0.20, 98, 'a');
+    INSERT INTO numbers VALUES (11.54, 0.41, 89, 'a');
+    INSERT INTO numbers VALUES (10.532, 0.1, 88, 'c');
+    INSERT INTO numbers VALUES (11.5, 0.2, 84, '   ');
+    INSERT INTO numbers VALUES (11.1, 0.3, 90, 'a');
+    INSERT INTO numbers VALUES (12.9, 0.31, 86, '');
+    """
+    )
+
+    expected = {
+        "count": [8, 8, 8, 8],
+        "mean": ["12.2165", "0.6875", "88.7500", math.nan],
+        "min": [10.532, 0.1, 82, math.nan],
+        "max": [14.44, 2.48, 98, math.nan],
+        "unique": [8, 7, 8, 5],
+        "freq": [math.nan, math.nan, math.nan, 4],
+        "top": [math.nan, math.nan, math.nan, "a"],
+        "std": ["1.1958", "0.7956", "4.7631", math.nan],
+        "25%": ["11.1000", "0.2000", "84.0000", math.nan],
+        "50%": ["11.5400", "0.3000", "88.0000", math.nan],
+        "75%": ["12.9000", "0.4100", "90.0000", math.nan],
     }
 
     out = ip.run_cell("%sqlcmd profile -t numbers").result
@@ -227,14 +284,14 @@ def test_table_schema_profile(ip, tmp_empty):
     )
 
     expected = {
-        "count": [3],
-        "mean": [22.0],
-        "min": [11.0],
-        "max": [33.0],
-        "std": [11.0],
-        "unique": [3],
-        "freq": [1],
-        "top": [33.0],
+        "count": ["3"],
+        "mean": ["22.0000"],
+        "min": ["11.0"],
+        "max": ["33.0"],
+        "std": ["11.0000"],
+        "unique": ["3"],
+        "freq": [math.nan],
+        "top": [math.nan],
     }
 
     out = ip.run_cell("%sqlcmd profile -t t --schema b_schema").result

@@ -242,8 +242,8 @@ class TableDescription(DatabaseInspection):
                 ).fetchall()
 
                 if is_numeric:
-                    table_stats[column]["min"] = result_value_values[0][0]
-                    table_stats[column]["max"] = result_value_values[0][1]
+                    table_stats[column]["min"] = round(result_value_values[0][0], 4)
+                    table_stats[column]["max"] = round(result_value_values[0][1], 4)
                 else:
                     table_stats[column]["min"] = math.nan
                     table_stats[column]["max"] = math.nan
@@ -360,7 +360,7 @@ class TableDescription(DatabaseInspection):
                         value = table_stats[column][row]
                     else:
                         value = ""
-                    value = util.convert_to_scientific(value)
+                    # value = util.convert_to_scientific(value)
                     values.append(value)
 
                 self._table.add_row(values)
