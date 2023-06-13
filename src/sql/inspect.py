@@ -77,6 +77,41 @@ def _get_row_with_most_keys(rows):
     return list(rows[max_idx])
 
 
+def _is_numeric(value):
+    """Check if a column has numeric and not categorical datatype"""
+    try:
+        float(value)  # Try to convert the value to float
+        return True
+    except ValueError:
+        return False
+
+
+def _check_wrong_datatype(column, value):
+    """Check if a column contains numerical data stored as `str`"""
+    try:
+        if isinstance(value, str) and _is_numeric(value):
+            print(f"Column {column}: Datatype int stored as a string")
+            return True
+        return False
+    except ValueError:
+        pass
+
+
+def _generate_column_styles(
+    column_indices, background_color="#FF0000", text_color="white"
+):
+    """Change the background-color of all columns with data-type mismatch"""
+    styles = ""
+    for index in column_indices:
+        styles += f"""
+        #profile-table td:nth-child({index + 1}) {{
+            background-color: {background_color};
+            color: {text_color};
+        }}
+        """
+    return f"<style>{styles}</style>"
+
+
 @modify_exceptions
 class Columns(DatabaseInspection):
     """
@@ -149,10 +184,29 @@ class TableDescription(DatabaseInspection):
 
         table_stats = dict({})
         columns_to_include_in_report = set()
+        columns_with_styles = []
 
-        for column in columns:
+        for i, column in enumerate(columns):
             table_stats[column] = dict()
 
+            # check the datatype of a column
+            try:
+                result = sql.run.raw_run(
+                    Connection.current, f"""SELECT {column} FROM {table_name} LIMIT 1"""
+                ).fetchone()
+
+                value = result[0]
+                if isinstance(value, (int, float)) or (
+                    isinstance(value, str) and _is_numeric(value)
+                ):
+                    is_numeric = True
+                else:
+                    is_numeric = False
+            except Exception:
+                is_numeric = True
+
+            if _check_wrong_datatype(column, value):
+                columns_with_styles.append(i + 1)
             # Note: index is reserved word in sqlite
             try:
                 result_col_freq_values = sql.run.raw_run(
@@ -162,8 +216,12 @@ class TableDescription(DatabaseInspection):
                     GROUP BY top ORDER BY frequency Desc""",
                 ).fetchall()
 
-                table_stats[column]["freq"] = result_col_freq_values[0][1]
-                table_stats[column]["top"] = result_col_freq_values[0][0]
+                if is_numeric is False:
+                    table_stats[column]["freq"] = result_col_freq_values[0][1]
+                    table_stats[column]["top"] = result_col_freq_values[0][0]
+                else:
+                    table_stats[column]["freq"] = math.nan
+                    table_stats[column]["top"] = math.nan
 
                 columns_to_include_in_report.update(["freq", "top"])
 
@@ -183,8 +241,12 @@ class TableDescription(DatabaseInspection):
                     """,
                 ).fetchall()
 
-                table_stats[column]["min"] = result_value_values[0][0]
-                table_stats[column]["max"] = result_value_values[0][1]
+                if is_numeric:
+                    table_stats[column]["min"] = result_value_values[0][0]
+                    table_stats[column]["max"] = result_value_values[0][1]
+                else:
+                    table_stats[column]["min"] = math.nan
+                    table_stats[column]["max"] = math.nan
                 table_stats[column]["count"] = result_value_values[0][2]
 
                 columns_to_include_in_report.update(["count", "min", "max"])
@@ -204,9 +266,7 @@ class TableDescription(DatabaseInspection):
                     """,
                 ).fetchall()
                 table_stats[column]["unique"] = result_value_values[0][0]
-
                 columns_to_include_in_report.update(["unique"])
-
             except Exception:
                 pass
 
@@ -220,7 +280,12 @@ class TableDescription(DatabaseInspection):
                                 """,
                 ).fetchall()
 
-                table_stats[column]["mean"] = float(results_avg[0][0])
+                if is_numeric:
+                    table_stats[column]["mean"] = format(
+                        float(results_avg[0][0]), ".4f"
+                    )
+                else:
+                    table_stats[column]["mean"] = math.nan
                 columns_to_include_in_report.update(["mean"])
 
             except Exception:
@@ -248,8 +313,10 @@ class TableDescription(DatabaseInspection):
 
                 for i, key in enumerate(special_numeric_keys):
                     # r_key = f'key_{key.replace("%", "")}'
-                    table_stats[column][key] = float(result[0][i])
-
+                    if is_numeric:
+                        table_stats[column][key] = format(float(result[0][i]), ".4f")
+                    else:
+                        table_stats[column][key] = math.nan
                 columns_to_include_in_report.update(special_numeric_keys)
 
             except TypeError:
@@ -271,35 +338,52 @@ class TableDescription(DatabaseInspection):
         self._table = PrettyTable()
         self._table.field_names = [" "] + list(table_stats.keys())
 
-        rows = list(columns_to_include_in_report)
-        rows.sort(reverse=True)
-        for row in rows:
-            values = [row]
-            for column in table_stats:
-                if row in table_stats[column]:
-                    value = table_stats[column][row]
-                else:
-                    value = ""
-                value = util.convert_to_scientific(value)
-                values.append(value)
+        custom_order = [
+            "count",
+            "unique",
+            "top",
+            "freq",
+            "mean",
+            "std",
+            "min",
+            "25%",
+            "50%",
+            "75%",
+            "max",
+        ]
 
-            self._table.add_row(values)
+        for row in custom_order:
+            if row.lower() in [r.lower() for r in columns_to_include_in_report]:
+                values = [row]
+                for column in table_stats:
+                    if row in table_stats[column]:
+                        value = table_stats[column][row]
+                    else:
+                        value = ""
+                    value = util.convert_to_scientific(value)
+                    values.append(value)
 
+                self._table.add_row(values)
+
+        column_styles = _generate_column_styles(columns_with_styles)
         # Inject css to html to make first column sticky
         sticky_column_css = """<style>
  #profile-table td:first-child {
   position: sticky;
   left: 0;
   background-color: var(--jp-cell-editor-background);
+  font-weight: bold;
 }
  #profile-table thead tr th:first-child {
   position: sticky;
   left: 0;
   background-color: var(--jp-cell-editor-background);
+  font-weight: bold; /* Adding bold text */
 }
             </style>"""
         self._table_html = HTML(
             sticky_column_css
+            + column_styles
             + self._table.get_html_string(attributes={"id": "profile-table"})
         ).__html__()
 
