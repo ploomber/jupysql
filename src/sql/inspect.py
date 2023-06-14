@@ -117,7 +117,7 @@ def _generate_message(column_indices, columns):
     for c in column_indices:
         col = columns[c - 1]
         message += f"`{col}`"
-    message += " have a datatype mismatch -> numeric values stores as a string."
+    message += " have a datatype mismatch -> numeric values stored as a string."
     message += "<br> Cannot calculate mean/min/max/std/percentiles"
     return message
 
