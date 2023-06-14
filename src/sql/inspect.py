@@ -112,7 +112,7 @@ def _generate_column_styles(
 
 
 def _generate_message(column_indices, columns):
-    """Genereate a message indicating all columns with a datatype mismatch"""
+    """Generate a message indicating all columns with a datatype mismatch"""
     message = "Columns "
     for c in column_indices:
         col = columns[c - 1]
