@@ -68,7 +68,7 @@ databaseConfig = {
         "alias": "mariaDBTest",
         "docker_ct": {
             "name": "mariadb",
-            "image": "mariadb:10.4.30",
+            "image": "mariadb",
             "ports": {3306: 3306},
         },
         "query": {},
