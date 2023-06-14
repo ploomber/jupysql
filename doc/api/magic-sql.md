@@ -38,7 +38,7 @@ myst:
     Like ``--persist``, but appends to the table if it already exists ([example](#append-to-table))
 
 ``--persist-replace``
-    Like ``--persist``, but it will drop the existing table before inserting the new table ([example](#replace-table))
+    Like ``--persist``, but it will drop the existing table before inserting the new table ([example](#persist-replace-to-table))
 
 ``-a`` / ``--connection_arguments <"{connection arguments}">``
     Specify dictionary of connection arguments to pass to SQL driver
