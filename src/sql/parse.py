@@ -54,7 +54,12 @@ def parse(cell, config):
             return result
         cell = pieces[1]
 
-    pieces = cell.split(None, 2)
+    char_pointer = cell.find("<<")
+    pieces = [
+        cell[:char_pointer].replace(" ", ""),
+        cell[char_pointer : char_pointer + 2],
+        cell[char_pointer + 2 :].strip(),
+    ]
     if len(pieces) > 1 and pieces[1] == "<<":
         if pieces[0].endswith("="):
             result["result_var"] = pieces[0][:-1]

@@ -114,6 +114,42 @@ def test_parse_connect_shovel_over_newlines():
     }
 
 
+def test_parse_connect_plus_shovel_with_space():
+    assert parse("sqlite:// dest  <<  SELECT * FROM work", empty_config) == {
+        "connection": "sqlite://",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": False,
+    }
+
+
+def test_parse_connect_plus_shovel_with_no_space():
+    assert parse("sqlite:// dest<<SELECT * FROM work", empty_config) == {
+        "connection": "sqlite://",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": False,
+    }
+
+
+def test_parse_connect_plus_shovel_with_equal():
+    assert parse("sqlite:// dest=<<SELECT * FROM work", empty_config) == {
+        "connection": "sqlite://",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": True,
+    }
+
+
+def test_parse_connect_plus_shovel_with_equal_and_spaces():
+    assert parse("sqlite:// dest  =         <<SELECT * FROM work", empty_config) == {
+        "connection": "sqlite://",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": True,
+    }
+
+
 class DummyConfig:
     dsn_filename = Path("src/tests/test_dsn_config.ini")
 

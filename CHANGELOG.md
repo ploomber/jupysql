@@ -14,6 +14,7 @@
 * [Doc] User guide on using JupySQL in `.py` scripts (#449)
 * [Fix] Validating arguments passed to `%%sql` (#561)
 * [Doc] Document --persist-replace in API section (#539)
+* [Fix] Improved << parsing logic (#610)
 
 ## 0.7.8 (2023-06-01)
 
