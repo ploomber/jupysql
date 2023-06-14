@@ -90,7 +90,6 @@ def _check_wrong_datatype(column, value):
     """Check if a column contains numerical data stored as `str`"""
     try:
         if isinstance(value, str) and _is_numeric(value):
-            print(f"Column {column}: Datatype int stored as a string")
             return True
         return False
     except ValueError:
@@ -98,7 +97,7 @@ def _check_wrong_datatype(column, value):
 
 
 def _generate_column_styles(
-    column_indices, background_color="#FF0000", text_color="white"
+    column_indices, background_color="#FFFF00", text_color="black"
 ):
     """Change the background-color of all columns with data-type mismatch"""
     styles = ""
@@ -110,6 +109,16 @@ def _generate_column_styles(
         }}
         """
     return f"<style>{styles}</style>"
+
+def _generate_message(column_indices, columns):
+    """Genereate a message indicating all columns with a datatype mismatch"""
+    message = "Columns "
+    for c in column_indices:
+        col = columns[c-1]
+        message += f"`{col}`"
+    message += f" have a datatype mismatch -> numeric values stores as a string. <br> Cannot calculate mean/min/max/std/percentiles"
+    return message
+
 
 
 @modify_exceptions
@@ -366,6 +375,11 @@ class TableDescription(DatabaseInspection):
                 self._table.add_row(values)
 
         column_styles = _generate_column_styles(columns_with_styles)
+        
+        message_content = _generate_message(columns_with_styles, list(columns))
+        
+        message_html = f"""<div style='  position: sticky;left: 0;padding: 10px; font-size: 12px; color: #FFA500;'>{message_content}</div>"""
+
         # Inject css to html to make first column sticky
         sticky_column_css = """<style>
  #profile-table td:first-child {
@@ -385,9 +399,11 @@ class TableDescription(DatabaseInspection):
             sticky_column_css
             + column_styles
             + self._table.get_html_string(attributes={"id": "profile-table"})
+            + message_html
         ).__html__()
 
         self._table_txt = self._table.get_string()
+
 
 
 @telemetry.log_call()
