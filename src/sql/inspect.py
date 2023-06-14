@@ -195,6 +195,7 @@ class TableDescription(DatabaseInspection):
         table_stats = dict({})
         columns_to_include_in_report = set()
         columns_with_styles = []
+        message_check = False
 
         for i, column in enumerate(columns):
             table_stats[column] = dict()
@@ -217,6 +218,7 @@ class TableDescription(DatabaseInspection):
 
             if _check_wrong_datatype(column, value):
                 columns_with_styles.append(i + 1)
+                message_check = True
             # Note: index is reserved word in sqlite
             try:
                 result_col_freq_values = sql.run.raw_run(
@@ -377,7 +379,10 @@ class TableDescription(DatabaseInspection):
 
         column_styles = _generate_column_styles(columns_with_styles)
 
-        message_content = _generate_message(columns_with_styles, list(columns))
+        if message_check:
+            message_content = _generate_message(columns_with_styles, list(columns))
+        else:
+            message_content = ""
 
         message_html = (
             f"<div style='position: sticky; left: 0; padding: 10px; "
