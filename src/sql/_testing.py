@@ -64,12 +64,12 @@ databaseConfig = {
         "root_password": "ploomber_app_root_password",
         "database": "db",
         "host": "localhost",
-        "port": "3306",
+        "port": "33309",
         "alias": "mariaDBTest",
         "docker_ct": {
             "name": "mariadb",
-            "image": "mariadb",
-            "ports": {3306: 3306},
+            "image": "mariadb:10.4.30",
+            "ports": {3306: 33309},
         },
         "query": {},
     },
@@ -381,7 +381,7 @@ def oracle(is_bypass_init=False):
 
 def main():
     print("Starting test containers...")
-    with oracle():
+    with postgres(), mysql(), mariadb(), mssql(), oracle():
         print("Press CTRL+C to exit")
         try:
             while True:
