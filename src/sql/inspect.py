@@ -110,15 +110,16 @@ def _generate_column_styles(
         """
     return f"<style>{styles}</style>"
 
+
 def _generate_message(column_indices, columns):
     """Genereate a message indicating all columns with a datatype mismatch"""
     message = "Columns "
     for c in column_indices:
-        col = columns[c-1]
+        col = columns[c - 1]
         message += f"`{col}`"
-    message += f" have a datatype mismatch -> numeric values stores as a string. <br> Cannot calculate mean/min/max/std/percentiles"
+    message += " have a datatype mismatch -> numeric values stores as a string."
+    message += "<br> Cannot calculate mean/min/max/std/percentiles"
     return message
-
 
 
 @modify_exceptions
@@ -375,10 +376,13 @@ class TableDescription(DatabaseInspection):
                 self._table.add_row(values)
 
         column_styles = _generate_column_styles(columns_with_styles)
-        
+
         message_content = _generate_message(columns_with_styles, list(columns))
-        
-        message_html = f"""<div style='  position: sticky;left: 0;padding: 10px; font-size: 12px; color: #FFA500;'>{message_content}</div>"""
+
+        message_html = (
+            f"<div style='position: sticky; left: 0; padding: 10px; "
+            f"font-size: 12px; color: #FFA500;'>{message_content}</div>"
+        )
 
         # Inject css to html to make first column sticky
         sticky_column_css = """<style>
@@ -403,7 +407,6 @@ class TableDescription(DatabaseInspection):
         ).__html__()
 
         self._table_txt = self._table.get_string()
-
 
 
 @telemetry.log_call()
