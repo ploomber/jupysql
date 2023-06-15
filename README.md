@@ -1,3 +1,4 @@
+test
 # JupySQL
 ![CI](https://github.com/ploomber/jupysql/workflows/CI/badge.svg)
 ![CI Integration Tests](https://github.com/ploomber/jupysql/workflows/CI%20-%20DB%20Integration/badge.svg)
