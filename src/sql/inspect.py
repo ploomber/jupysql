@@ -414,8 +414,12 @@ class TableDescription(DatabaseInspection):
 
         if message_check:
             message_content = _generate_message(columns_with_styles, list(columns))
+            warning_background = "#FFFFCC"
+            warning_title = "Warning: "
         else:
             message_content = ""
+            warning_background = "white"
+            warning_title = ""
 
         database = Connection.current.url
         if "duckdb" in database:
@@ -434,8 +438,8 @@ class TableDescription(DatabaseInspection):
 
         message_html = (
             f"<div style='position: sticky; left: 0; padding: 10px; "
-            f"font-size: 12px; color: black; background-color: #FFFFCC;'>"
-            f"<strong>Warning:</strong> {message_content}"
+            f"font-size: 12px; color: black; background-color: {warning_background};'>"
+            f"<strong>{warning_title}</strong> {message_content}"
             "</div>"
         )
 
