@@ -2,7 +2,7 @@
 
 ## 0.7.9dev
 
-* [Feature] Modified `TableDescription` class to improve table profiling (#459)
+* [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  (#532)
 * [Fix] Added bottom-padding to the buttons in table explorer. Now they are not hidden by the scrollbar (#540)
 * [Feature] Modified `histogram` command to support data with NULL values (#176)

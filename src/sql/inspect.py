@@ -86,7 +86,7 @@ def _is_numeric(value):
         return False
 
 
-def _check_wrong_datatype(column, value):
+def _is_numeric_as_str(column, value):
     """Check if a column contains numerical data stored as `str`"""
     try:
         if isinstance(value, str) and _is_numeric(value):
@@ -99,10 +99,22 @@ def _check_wrong_datatype(column, value):
 def _generate_column_styles(
     column_indices, background_color="#FFFF00", text_color="black"
 ):
-    """Change the background-color of all columns with data-type mismatch"""
+    """
+    Generate CSS styles to change the background-color of all columns
+    with data-type mismatch.
+
+    Args:
+        column_indices (list): List of column indices with data-type mismatch.
+        background_color (str, optional): Background color for the mismatched columns.
+        text_color (str, optional): Text color for the mismatched columns.
+
+    Returns:
+        str: HTML style tags containing the CSS styles for the mismatched columns.
+    """
+
     styles = ""
     for index in column_indices:
-        styles += f"""
+        styles = f"""{styles}
         #profile-table td:nth-child({index + 1}) {{
             background-color: {background_color};
             color: {text_color};
@@ -116,10 +128,36 @@ def _generate_message(column_indices, columns):
     message = "Columns "
     for c in column_indices:
         col = columns[c - 1]
-        message += f"`{col}`"
-    message += " have a datatype mismatch -> numeric values stored as a string."
-    message += "<br> Cannot calculate mean/min/max/std/percentiles"
+        message = f"{message}`{col}`"
+    message = (
+        f"{message} have a datatype mismatch -> numeric values stored as a string."
+    )
+    message = f"{message} <br> Cannot calculate mean/min/max/std/percentiles"
     return message
+
+
+def _assign_column_specific_stats(col_stats, is_numeric):
+    """
+    Assign NaN values to categorical/numerical specific statistic.
+
+    Args:
+        col_stats (dict): Dictionary containing column statistics.
+        is_numeric (bool): Flag indicating whether the column is numeric or not.
+
+    Returns:
+        dict: Updated col_stats dictionary.
+    """
+    categorical_stats = ["top", "freq"]
+    numerical_stats = ["mean", "min", "max", "std", "25%", "50%", "75%"]
+
+    if is_numeric:
+        for stat in categorical_stats:
+            col_stats[stat] = math.nan
+    else:
+        for stat in numerical_stats:
+            col_stats[stat] = math.nan
+
+    return col_stats
 
 
 @modify_exceptions
@@ -153,27 +191,36 @@ class Columns(DatabaseInspection):
 @modify_exceptions
 class TableDescription(DatabaseInspection):
     """
-    Generates descriptive statistics.
+     Generates descriptive statistics.
 
-    Descriptive statistics are:
+     --------------------------------------
+     Descriptive statistics are:
 
-    Count - Number of all not None values
+     Count - Number of all not None values
 
-    Mean - Mean of the values
+     Mean - Mean of the values
 
-    Max - Maximum of the values in the object.
+     Max - Maximum of the values in the object.
 
-    Min - Minimum of the values in the object.
+     Min - Minimum of the values in the object.
 
-    STD - Standard deviation of the observations
+     STD - Standard deviation of the observations
 
-    25h, 50h and 75h percentiles
+     25h, 50h and 75h percentiles
 
-    Unique - Number of not None unique values
+     Unique - Number of not None unique values
 
-    Top - The most frequent value
+     Top - The most frequent value
 
-    Freq - Frequency of the top value
+     Freq - Frequency of the top value
+
+    ------------------------------------------
+    Following statistics will be calculated for :-
+
+    Categorical columns - [Count, Unique, Top, Freq]
+
+    Numerical columns - [Count, Unique, Mean, Max, Min,
+                         STD, 25h, 50h and 75h percentiles]
 
     """
 
@@ -186,7 +233,6 @@ class TableDescription(DatabaseInspection):
         columns_query_result = sql.run.raw_run(
             Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
         )
-
         if Connection.is_custom_connection():
             columns = [i[0] for i in columns_query_result.description]
         else:
@@ -207,16 +253,13 @@ class TableDescription(DatabaseInspection):
                 ).fetchone()
 
                 value = result[0]
-                if isinstance(value, (int, float)) or (
+                is_numeric = isinstance(value, (int, float)) or (
                     isinstance(value, str) and _is_numeric(value)
-                ):
-                    is_numeric = True
-                else:
-                    is_numeric = False
-            except Exception:
+                )
+            except ValueError:
                 is_numeric = True
 
-            if _check_wrong_datatype(column, value):
+            if _is_numeric_as_str(column, value):
                 columns_with_styles.append(i + 1)
                 message_check = True
             # Note: index is reserved word in sqlite
@@ -228,12 +271,8 @@ class TableDescription(DatabaseInspection):
                     GROUP BY top ORDER BY frequency Desc""",
                 ).fetchall()
 
-                if is_numeric is False:
-                    table_stats[column]["freq"] = result_col_freq_values[0][1]
-                    table_stats[column]["top"] = result_col_freq_values[0][0]
-                else:
-                    table_stats[column]["freq"] = math.nan
-                    table_stats[column]["top"] = math.nan
+                table_stats[column]["freq"] = result_col_freq_values[0][1]
+                table_stats[column]["top"] = result_col_freq_values[0][0]
 
                 columns_to_include_in_report.update(["freq", "top"])
 
@@ -253,13 +292,11 @@ class TableDescription(DatabaseInspection):
                     """,
                 ).fetchall()
 
-                if is_numeric:
-                    table_stats[column]["min"] = round(result_value_values[0][0], 4)
-                    table_stats[column]["max"] = round(result_value_values[0][1], 4)
-                else:
-                    table_stats[column]["min"] = math.nan
-                    table_stats[column]["max"] = math.nan
+                columns_to_include_in_report.update(["count", "min", "max"])
                 table_stats[column]["count"] = result_value_values[0][2]
+
+                table_stats[column]["min"] = round(result_value_values[0][0], 4)
+                table_stats[column]["max"] = round(result_value_values[0][1], 4)
 
                 columns_to_include_in_report.update(["count", "min", "max"])
 
@@ -292,13 +329,8 @@ class TableDescription(DatabaseInspection):
                                 """,
                 ).fetchall()
 
-                if is_numeric:
-                    table_stats[column]["mean"] = format(
-                        float(results_avg[0][0]), ".4f"
-                    )
-                else:
-                    table_stats[column]["mean"] = math.nan
                 columns_to_include_in_report.update(["mean"])
+                table_stats[column]["mean"] = format(float(results_avg[0][0]), ".4f")
 
             except Exception:
                 table_stats[column]["mean"] = math.nan
@@ -323,13 +355,10 @@ class TableDescription(DatabaseInspection):
                     """,
                 ).fetchall()
 
+                columns_to_include_in_report.update(special_numeric_keys)
                 for i, key in enumerate(special_numeric_keys):
                     # r_key = f'key_{key.replace("%", "")}'
-                    if is_numeric:
-                        table_stats[column][key] = format(float(result[0][i]), ".4f")
-                    else:
-                        table_stats[column][key] = math.nan
-                columns_to_include_in_report.update(special_numeric_keys)
+                    table_stats[column][key] = format(float(result[0][i]), ".4f")
 
             except TypeError:
                 # for non numeric values
@@ -346,6 +375,10 @@ class TableDescription(DatabaseInspection):
                 # Failed to run sql command/func (e.g stddev_pop).
                 # We ignore the cell stats for such case.
                 pass
+
+            table_stats[column] = _assign_column_specific_stats(
+                table_stats[column], is_numeric
+            )
 
         self._table = PrettyTable()
         self._table.field_names = [" "] + list(table_stats.keys())
@@ -384,9 +417,26 @@ class TableDescription(DatabaseInspection):
         else:
             message_content = ""
 
+        database = Connection.current.url
+        if "duckdb" in database:
+            db_message = ""
+        else:
+            db_message = (
+                "Following statistics only available with dubckdb: STD, 25%, 50%, 75%"
+            )
+
+        db_html = (
+            f"<div style='position: sticky; left: 0; padding: 10px; "
+            f"font-size: 12px; color: #FFA500'>"
+            f"<strong></strong> {db_message}"
+            "</div>"
+        )
+
         message_html = (
             f"<div style='position: sticky; left: 0; padding: 10px; "
-            f"font-size: 12px; color: #FFA500;'>{message_content}</div>"
+            f"font-size: 12px; color: black; background-color: #FFFFCC;'>"
+            f"<strong>Warning:</strong> {message_content}"
+            "</div>"
         )
 
         # Inject css to html to make first column sticky
@@ -405,7 +455,8 @@ class TableDescription(DatabaseInspection):
 }
             </style>"""
         self._table_html = HTML(
-            sticky_column_css
+            db_html
+            + sticky_column_css
             + column_styles
             + self._table.get_html_string(attributes={"id": "profile-table"})
             + message_html

@@ -14,6 +14,20 @@ VALID_COMMANDS_MESSAGE = (
 )
 
 
+def _get_row_string(row, column_name):
+    """
+    Helper function to retrieve the string value of a specific column in a table row.
+
+    Args:
+        row: PrettyTable row object.
+        column_name: Name of the column.
+
+    Returns:
+        String value of the specified column in the row.
+    """
+    return row.get_string(fields=[column_name], border=False, header=False).strip()
+
+
 @pytest.fixture
 def ip_snippets(ip):
     for key in list(store):
@@ -183,21 +197,17 @@ def test_table_profile(ip, tmp_empty):
     assert len(stats_table.rows) == len(expected)
 
     for row in stats_table:
-        criteria = row.get_string(fields=[" "], border=False).strip()
+        profile_metric = _get_row_string(row, " ")
+        rating = _get_row_string(row, "rating")
+        price = _get_row_string(row, "price")
+        number = _get_row_string(row, "number")
+        word = _get_row_string(row, "word")
 
-        rating = row.get_string(fields=["rating"], border=False, header=False).strip()
-
-        price = row.get_string(fields=["price"], border=False, header=False).strip()
-
-        number = row.get_string(fields=["number"], border=False, header=False).strip()
-
-        word = row.get_string(fields=["word"], border=False, header=False).strip()
-
-        assert criteria in expected
-        assert rating == str(expected[criteria][0])
-        assert price == str(expected[criteria][1])
-        assert number == str(expected[criteria][2])
-        assert word == str(expected[criteria][3])
+        assert profile_metric in expected
+        assert rating == str(expected[profile_metric][0])
+        assert price == str(expected[profile_metric][1])
+        assert number == str(expected[profile_metric][2])
+        assert word == str(expected[profile_metric][3])
 
     # Test sticky column style was injected
     assert "position: sticky;" in out._table_html
@@ -240,21 +250,17 @@ def test_table_profile_with_stdev(ip, tmp_empty):
     assert len(stats_table.rows) == len(expected)
 
     for row in stats_table:
-        criteria = row.get_string(fields=[" "], border=False).strip()
+        profile_metric = _get_row_string(row, " ")
+        rating = _get_row_string(row, "rating")
+        price = _get_row_string(row, "price")
+        number = _get_row_string(row, "number")
+        word = _get_row_string(row, "word")
 
-        rating = row.get_string(fields=["rating"], border=False, header=False).strip()
-
-        price = row.get_string(fields=["price"], border=False, header=False).strip()
-
-        number = row.get_string(fields=["number"], border=False, header=False).strip()
-
-        word = row.get_string(fields=["word"], border=False, header=False).strip()
-
-        assert criteria in expected
-        assert rating == str(expected[criteria][0])
-        assert price == str(expected[criteria][1])
-        assert number == str(expected[criteria][2])
-        assert word == str(expected[criteria][3])
+        assert profile_metric in expected
+        assert rating == str(expected[profile_metric][0])
+        assert price == str(expected[profile_metric][1])
+        assert number == str(expected[profile_metric][2])
+        assert word == str(expected[profile_metric][3])
 
     # Test sticky column style was injected
     assert "position: sticky;" in out._table_html
@@ -299,12 +305,31 @@ def test_table_schema_profile(ip, tmp_empty):
     stats_table = out._table
 
     for row in stats_table:
-        criteria = row.get_string(fields=[" "], border=False).strip()
+        profile_metric = _get_row_string(row, " ")
 
         cell = row.get_string(fields=["n"], border=False, header=False).strip()
 
-        if criteria in expected:
-            assert cell == str(expected[criteria][0])
+        if profile_metric in expected:
+            assert cell == str(expected[profile_metric][0])
+
+
+def test_table_profile_warnings_styles(ip, tmp_empty):
+    ip.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE numbers (rating float,price varchar(50),number int,word varchar(50));
+    INSERT INTO numbers VALUES (14.44, '2.48', 82, 'a');
+    INSERT INTO numbers VALUES (13.13, '1.50', 93, 'b');
+    """
+    )
+    out = ip.run_cell("%sqlcmd profile -t numbers").result
+    stats_table_html = out._table_html
+    assert "Columns `price` have a datatype mismatch" in stats_table_html
+    assert "#profile-table td:nth-child(3" in stats_table_html
+    assert (
+        "Following statistics only available with dubckdb: STD, 25%, 50%, 75%"
+        in stats_table_html
+    )
 
 
 def test_table_profile_store(ip, tmp_empty):
