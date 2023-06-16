@@ -2,6 +2,7 @@
 
 ## 0.7.9dev
 
+
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Fix] Fixed `ResultSet` class to display result table with proper style and added relevant example (#54)
 * [Fix] Fixed `Set` method in `Connection` class to recognize same descriptor with different aliases  (#532)
