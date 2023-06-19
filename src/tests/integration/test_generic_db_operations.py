@@ -520,7 +520,6 @@ def test_profile_query(
     table_columns,
     expected,
     test_table_name_dict,
-    message,
 ):
     pytest.skip("Skip on unclosed session issue")
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
@@ -532,7 +531,6 @@ def test_profile_query(
     ).result
 
     stats_table = out._table
-    stats_table_html = out._table_html
     assert len(stats_table.rows) == len(expected)
 
     for row in stats_table:
