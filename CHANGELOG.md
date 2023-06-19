@@ -18,6 +18,7 @@
 * [Doc] User guide on using JupySQL in `.py` scripts ([#449](https://github.com/ploomber/jupysql/issues/449))
 * [Doc] Added `%magic?` to APIs and quickstart ([#97](https://github.com/ploomber/jupysql/issues/97))
 
+
 ## 0.7.8 (2023-06-01)
 
 * [Feature] Add `%sqlplot bar` and `%sqlplot pie` ([#508](https://github.com/ploomber/jupysql/issues/508))
