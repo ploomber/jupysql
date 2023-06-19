@@ -422,7 +422,7 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
         """
     )
 
-    out = ip_with_dynamic_db.run_cell("%sqlcmd profile -t people").result()
+    out = ip_with_dynamic_db.run_cell("%sqlcmd profile -t people").result
 
     stats_table_html = out._table_html
 
