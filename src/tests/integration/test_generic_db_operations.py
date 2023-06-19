@@ -420,7 +420,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
-            None
+            None,
         ),
         pytest.param(
             "ip_with_mySQL",
@@ -521,7 +521,13 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     ],
 )
 def test_profile_query(
-    request, ip_with_dynamic_db, table, table_columns, expected, test_table_name_dict, message
+    request,
+    ip_with_dynamic_db,
+    table,
+    table_columns,
+    expected,
+    test_table_name_dict,
+    message,
 ):
     pytest.skip("Skip on unclosed session issue")
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
@@ -549,7 +555,7 @@ def test_profile_query(
 
     if message:
         assert message in stats_table_html
-    
+
 
 @pytest.mark.parametrize(
     "table",

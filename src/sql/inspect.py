@@ -424,13 +424,12 @@ class TableDescription(DatabaseInspection):
             warning_title = ""
 
         database = Connection.current.url
-        db_driver = Connection.current._get_curr_sqlalchemy_connection_info()['driver']
+        db_driver = Connection.current._get_curr_sqlalchemy_connection_info()["driver"]
         if "duckdb" in database:
             db_message = ""
         else:
-            db_message = (
-                f"Following statistics are not available in {db_driver}: STD, 25%, 50%, 75%"
-            )
+            db_message = f"""Following statistics are not available in
+            {db_driver}: STD, 25%, 50%, 75%"""
 
         db_html = (
             f"<div style='position: sticky; left: 0; padding: 10px; "
