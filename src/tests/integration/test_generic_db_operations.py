@@ -390,14 +390,47 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
     """
     )
 
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+        ("ip_with_MSSQL"),
+        pytest.param(
+            "ip_with_Snowflake",
+            marks=pytest.mark.xfail(
+                reason="Something wrong with test_sql_cmd_magic_dos in snowflake"
+            ),
+        ),
+        ("ip_with_oracle"),
+    ],
+)
+def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     ip_with_dynamic_db.run_cell(
-        "%sqlcmd test --table test_numbers --column value --greater-or-equal 3"
+        """
+        %%sql sqlite://
+        CREATE TABLE people (name varchar(50),age varchar(50),number int,
+            country varchar(50),gender_1 varchar(50), gender_2 varchar(50));
+        INSERT INTO people VALUES ('joe', '48', 82, 'usa', '0', 'male');
+        INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');
+        """
     )
 
-    _out = capsys.readouterr()
+    out = ip_with_dynamic_db.run_cell("s%sqlcmd profile -t people").result()
 
-    assert "greater_or_equal" in _out.out
-    assert "0" in _out.out
+    stats_table_html = out._table_html
+
+    assert "profile-table td:nth-child(3)" in stats_table_html
+    assert "profile-table td:nth-child(6)" in stats_table_html
+    assert "profile-table td:nth-child(7)" not in stats_table_html
+    assert "profile-table td:nth-child(4)" not in stats_table_html
+    assert "Columns `age``gender_1` have a datatype mismatch" in stats_table_html
 
 
 @pytest.mark.parametrize(

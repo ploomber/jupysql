@@ -330,6 +330,25 @@ def test_table_profile_warnings_styles(ip, tmp_empty):
     assert "Following statistics are not available in" in stats_table_html
 
 
+def test_table_profile_is_numeric(ip, tmp_empty):
+    ip.run_cell(
+        """
+        %%sql sqlite://
+        CREATE TABLE people (name varchar(50),age varchar(50),number int,
+            country varchar(50),gender_1 varchar(50), gender_2 varchar(50));
+        INSERT INTO people VALUES ('joe', '48', 82, 'usa', '0', 'male');
+        INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');
+        """
+    )
+    out = ip.run_cell("%sqlcmd profile -t people").result
+    stats_table_html = out._table_html
+    assert "profile-table td:nth-child(3)" in stats_table_html
+    assert "profile-table td:nth-child(6)" in stats_table_html
+    assert "profile-table td:nth-child(7)" not in stats_table_html
+    assert "profile-table td:nth-child(4)" not in stats_table_html
+    assert "Columns `age``gender_1` have a datatype mismatch" in stats_table_html
+
+
 def test_table_profile_store(ip, tmp_empty):
     ip.run_cell(
         """
