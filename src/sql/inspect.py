@@ -103,7 +103,8 @@ def _generate_column_styles(
     Generate CSS styles to change the background-color of all columns
     with data-type mismatch.
 
-    Args:
+    Parameters
+    ----------
         column_indices (list): List of column indices with data-type mismatch.
         background_color (str, optional): Background color for the mismatched columns.
         text_color (str, optional): Text color for the mismatched columns.
@@ -140,7 +141,8 @@ def _assign_column_specific_stats(col_stats, is_numeric):
     """
     Assign NaN values to categorical/numerical specific statistic.
 
-    Args:
+    Parameters
+    ----------
         col_stats (dict): Dictionary containing column statistics.
         is_numeric (bool): Flag indicating whether the column is numeric or not.
 
@@ -422,11 +424,12 @@ class TableDescription(DatabaseInspection):
             warning_title = ""
 
         database = Connection.current.url
+        db_driver = Connection.current._get_curr_sqlalchemy_connection_info()['driver']
         if "duckdb" in database:
             db_message = ""
         else:
             db_message = (
-                "Following statistics only available with dubckdb: STD, 25%, 50%, 75%"
+                f"Following statistics are not available in {db_driver}: STD, 25%, 50%, 75%"
             )
 
         db_html = (

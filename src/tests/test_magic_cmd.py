@@ -18,7 +18,8 @@ def _get_row_string(row, column_name):
     """
     Helper function to retrieve the string value of a specific column in a table row.
 
-    Args:
+    Parameters
+     ----------
         row: PrettyTable row object.
         column_name: Name of the column.
 
