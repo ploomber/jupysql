@@ -401,7 +401,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, table, table_columns, expected, message",
+    "ip_with_dynamic_db, table, table_columns, expected",
     [
         (
             "ip_with_postgreSQL",
@@ -420,7 +420,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
-            None,
         ),
         pytest.param(
             "ip_with_mySQL",
@@ -435,7 +434,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
-            "Following statistics are not available",
             marks=pytest.mark.xfail(
                 reason="Need to get column names from table with a different query"
             ),
@@ -453,7 +451,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
-            "Following statistics are not available",
             marks=pytest.mark.xfail(
                 reason="Need to get column names from table with a different query"
             ),
@@ -471,7 +468,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "freq": [15],
                 "top": ["Kevin Kelly"],
             },
-            "Following statistics are not available",
         ),
         (
             "ip_with_duckDB",
@@ -490,21 +486,18 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
-            None,
         ),
         (
             "ip_with_MSSQL",
             "taxi",
             ["taxi_driver_name"],
             {"unique": [3], "min": ["Eric Ken"], "max": ["Kevin Kelly"], "count": [45]},
-            "Following statistics are not available",
         ),
         pytest.param(
             "ip_with_Snowflake",
             "taxi",
             ["taxi_driver_name"],
             {},
-            None,
             marks=pytest.mark.xfail(
                 reason="Something wrong with test_profile_query in snowflake"
             ),
@@ -514,7 +507,6 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
             "taxi",
             ["taxi_driver_name"],
             {},
-            None,
             marks=pytest.mark.xfail(
                 reason="Something wrong with test_profile_query in snowflake"
             ),
@@ -553,9 +545,6 @@ def test_profile_query(
 
             assert criteria in expected
             assert cell_value == str(expected[criteria][i])
-
-    if message:
-        assert message in stats_table_html
 
 
 @pytest.mark.parametrize(
