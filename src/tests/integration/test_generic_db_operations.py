@@ -490,6 +490,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
                 "50%": [22.0, math.nan],
                 "75%": [33.0, math.nan],
             },
+            None
         ),
         (
             "ip_with_MSSQL",
