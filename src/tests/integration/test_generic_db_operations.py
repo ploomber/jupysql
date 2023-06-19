@@ -557,6 +557,7 @@ def test_profile_query(
     if message:
         assert message in stats_table_html
 
+
 @pytest.mark.parametrize(
     "table",
     [
