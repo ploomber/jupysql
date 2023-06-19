@@ -328,7 +328,7 @@ def test_table_profile_warnings_styles(ip, tmp_empty):
     assert "Columns `price` have a datatype mismatch" in stats_table_html
     assert "#profile-table td:nth-child(3" in stats_table_html
     assert (
-        "Following statistics only available with dubckdb: STD, 25%, 50%, 75%"
+        "Following statistics are not available in"
         in stats_table_html
     )
 
