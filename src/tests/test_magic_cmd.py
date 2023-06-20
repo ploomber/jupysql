@@ -337,6 +337,8 @@ def test_profile_is_numeric():
     assert _is_numeric("45.6") == True
     assert _is_numeric(100) == True
     assert _is_numeric(True) == False
+    assert _is_numeric('NaN') == True
+    assert _is_numeric(math.nan) == True
 
 def test_table_profile_is_numeric(ip, tmp_empty):
     ip.run_cell(
