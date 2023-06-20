@@ -285,7 +285,7 @@ from sqlalchemy import create_engine
 engine = create_engine("duckdb:///:memory:")
 with engine.begin() as conn:
     pd.DataFrame({"x": range(100)}).to_sql(
-        name='df',
+        name="df",
         con=conn,
         index=False,
     )
