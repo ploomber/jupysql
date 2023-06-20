@@ -7,6 +7,7 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sql.connection import Connection
 from sql.store import store
+from sql.inspect import _is_numeric
 
 
 VALID_COMMANDS_MESSAGE = (
@@ -329,6 +330,13 @@ def test_table_profile_warnings_styles(ip, tmp_empty):
     assert "#profile-table td:nth-child(3" in stats_table_html
     assert "Following statistics are not available in" in stats_table_html
 
+def test_profile_is_numeric():
+    assert _is_numeric("123") == True
+    assert _is_numeric(None) == False
+    assert _is_numeric("abc") == False
+    assert _is_numeric("45.6") == True
+    assert _is_numeric(100) == True
+    assert _is_numeric(True) == False
 
 def test_table_profile_is_numeric(ip, tmp_empty):
     ip.run_cell(

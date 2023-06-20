@@ -80,9 +80,12 @@ def _get_row_with_most_keys(rows):
 def _is_numeric(value):
     """Check if a column has numeric and not categorical datatype"""
     try:
+        if isinstance(value, bool):
+            return False
+        
         float(value)  # Try to convert the value to float
         return True
-    except ValueError:
+    except (TypeError,ValueError):
         return False
 
 
