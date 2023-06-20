@@ -330,15 +330,17 @@ def test_table_profile_warnings_styles(ip, tmp_empty):
     assert "#profile-table td:nth-child(3" in stats_table_html
     assert "Following statistics are not available in" in stats_table_html
 
+
 def test_profile_is_numeric():
-    assert _is_numeric("123") == True
-    assert _is_numeric(None) == False
-    assert _is_numeric("abc") == False
-    assert _is_numeric("45.6") == True
-    assert _is_numeric(100) == True
-    assert _is_numeric(True) == False
-    assert _is_numeric('NaN') == True
-    assert _is_numeric(math.nan) == True
+    assert _is_numeric("123") is True
+    assert _is_numeric(None) is False
+    assert _is_numeric("abc") is False
+    assert _is_numeric("45.6") is True
+    assert _is_numeric(100) is True
+    assert _is_numeric(True) is False
+    assert _is_numeric("NaN") is True
+    assert _is_numeric(math.nan) is True
+
 
 def test_table_profile_is_numeric(ip, tmp_empty):
     ip.run_cell(
