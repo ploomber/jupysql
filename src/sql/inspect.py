@@ -81,7 +81,7 @@ def _is_numeric(value):
     """Check if a column has numeric and not categorical datatype"""
     try:
         if isinstance(value, bool):
-            return False  
+            return False
         float(value)  # Try to convert the value to float
         return True
     except (TypeError, ValueError):
