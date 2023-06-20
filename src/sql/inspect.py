@@ -82,6 +82,7 @@ def _is_numeric(value):
     try:
         if isinstance(value, bool):
             return False
+        
         float(value)  # Try to convert the value to float
         return True
     except (TypeError, ValueError):
