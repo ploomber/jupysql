@@ -357,6 +357,46 @@ def test_pie_two_col(load_data_two_col, ip):
     ip.run_cell("%sqlplot pie -t data_two.csv -c x y")
 
 
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
+def test_boxplot(load_data_one_col, ip):
+    ip.run_cell("%sqlplot boxplot --table data_one.csv --column x")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot_h"], extensions=["png"], remove_text=True)
+def test_boxplot_h(load_data_one_col, ip):
+    ip.run_cell("%sqlplot boxplot --table data_one.csv --column x --orient h") 
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot_two"], extensions=["png"], remove_text=True)
+def test_boxplot_two_col(load_data_two_col, ip):
+    ip.run_cell("%sqlplot boxplot --table data_two.csv --column x y")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["boxplot_null"], extensions=["png"], remove_text=True)
+def test_boxplot_null(load_data_one_col_null, ip):
+    ip.run_cell("%sqlplot boxplot --table data_one_null.csv --column x ")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist"], extensions=["png"], remove_text=True)
+def test_hist(load_data_one_col, ip):
+    ip.run_cell("%sqlplot histogram --table data_one.csv --column x")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_bin"], extensions=["png"], remove_text=True)
+def test_hist_bin(load_data_one_col, ip):
+    ip.run_cell("%sqlplot histogram --table data_one.csv --column x --bins 2") 
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_two"], extensions=["png"], remove_text=True)
+def test_hist_two(load_data_two_col, ip):
+    ip.run_cell("%sqlplot histogram --table data_two.csv --column x y")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
+def test_hist_null(load_data_one_col_null, ip):
+    ip.run_cell("%sqlplot histogram --table data_one_null.csv --column x ")
+
 def test_sqlplot_deprecation_warning(ip_snippets, capsys):
     with pytest.warns(FutureWarning) as record:
         res = ip_snippets.run_cell(
