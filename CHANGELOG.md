@@ -2,7 +2,6 @@
 
 ## 0.7.10dev
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
-
 * [Doc] Document --persist-replace in API section (#539)
 
 ## 0.7.9 (2023-06-19)
