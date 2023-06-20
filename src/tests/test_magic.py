@@ -1104,8 +1104,6 @@ Pass a valid connection string:
 
 def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql duckdb://invalid_db")
-    print(invalid_connection_string_duckdb.strip())
-    print(str(result.error_in_exec))
     assert invalid_connection_string_duckdb.strip() == str(result.error_in_exec)
     assert isinstance(result.error_in_exec, UsageError)
 
