@@ -231,10 +231,12 @@ WHERE x > -1
 def load_penguin(ip):
     if not Path("penguins.csv").is_file():
         urlretrieve(
-            "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+            "https://raw.githubusercontent.com/mwaskom/"
+            "seaborn-data/master/penguins.csv",
             "penguins.csv",
         )
     ip.run_cell("%sql duckdb://")
+
 
 @pytest.fixture
 def load_data_two_col(ip):
@@ -382,7 +384,10 @@ def test_boxplot_h(load_penguin, ip):
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot_two"], extensions=["png"], remove_text=True)
 def test_boxplot_two_col(load_penguin, ip):
-    ip.run_cell("%sqlplot boxplot --table penguins.csv --column bill_length_mm bill_depth_mm flipper_length_mm")
+    ip.run_cell(
+        "%sqlplot boxplot --table penguins.csv --column bill_length_mm "
+        "bill_depth_mm flipper_length_mm"
+    )
 
 
 @_cleanup_cm()
@@ -402,13 +407,17 @@ def test_hist(load_penguin, ip):
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_bin"], extensions=["png"], remove_text=True)
 def test_hist_bin(load_penguin, ip):
-    ip.run_cell("%sqlplot histogram --table penguins.csv --column body_mass_g --bins 300")
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column body_mass_g --bins 300"
+    )
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_two"], extensions=["png"], remove_text=True)
 def test_hist_two(load_penguin, ip):
-    ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm bill_depth_mm")
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column bill_length_mm bill_depth_mm"
+    )
 
 
 @_cleanup_cm()
@@ -416,10 +425,13 @@ def test_hist_two(load_penguin, ip):
 def test_hist_null(load_penguin, ip):
     ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm ")
 
+
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_custom"], extensions=["png"], remove_text=True)
 def test_hist_cust(load_penguin, ip):
-    ax = ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm ").result
+    ax = ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column bill_length_mm "
+    ).result
     ax.set_title("Custom Title")
     _ = ax.grid(True)
 
