@@ -229,10 +229,10 @@ WHERE x > -1
 
 @pytest.fixture
 def load_penguin(ip):
+    tmp = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
     if not Path("penguins.csv").is_file():
         urlretrieve(
-            "https://raw.githubusercontent.com/mwaskom/"
-            "seaborn-data/master/penguins.csv",
+            tmp,
             "penguins.csv",
         )
     ip.run_cell("%sql duckdb://")
