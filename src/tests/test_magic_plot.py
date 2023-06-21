@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 import pytest
 from IPython.core.error import UsageError
-from urllib.request import urlretrieve
 import matplotlib.pyplot as plt
 from sql import util
 
@@ -224,17 +223,6 @@ WHERE x > -1
     # maptlotlib >= 3.7 has Axes but earlier Python
     # versions are not compatible
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
-
-
-@pytest.fixture
-def load_penguin(ip):
-    tmp = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
-    if not Path("penguins.csv").is_file():
-        urlretrieve(
-            tmp,
-            "penguins.csv",
-        )
-    ip.run_cell("%sql duckdb://")
 
 
 @pytest.fixture
