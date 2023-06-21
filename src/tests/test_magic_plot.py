@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import pytest
 from IPython.core.error import UsageError
+from urllib.request import urlretrieve
 import matplotlib.pyplot as plt
 from sql import util
 
@@ -227,6 +228,15 @@ WHERE x > -1
 
 
 @pytest.fixture
+def load_penguin(ip):
+    if not Path("penguins.csv").is_file():
+        urlretrieve(
+            "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+            "penguins.csv",
+        )
+    ip.run_cell("%sql duckdb://")
+
+@pytest.fixture
 def load_data_two_col(ip):
     if not Path("data_two.csv").is_file():
         Path("data_two.csv").write_text(
@@ -359,52 +369,59 @@ def test_pie_two_col(load_data_two_col, ip):
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot"], extensions=["png"], remove_text=True)
-def test_boxplot(load_data_one_col, ip):
-    ip.run_cell("%sqlplot boxplot --table data_one.csv --column x")
+def test_boxplot(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot_h"], extensions=["png"], remove_text=True)
-def test_boxplot_h(load_data_one_col, ip):
-    ip.run_cell("%sqlplot boxplot --table data_one.csv --column x --orient h")
+def test_boxplot_h(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g --orient h")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["boxplot_two"], extensions=["png"], remove_text=True)
-def test_boxplot_two_col(load_data_two_col, ip):
-    ip.run_cell("%sqlplot boxplot --table data_two.csv --column x y")
+def test_boxplot_two_col(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column bill_length_mm bill_depth_mm flipper_length_mm")
 
 
 @_cleanup_cm()
 @image_comparison(
     baseline_images=["boxplot_null"], extensions=["png"], remove_text=True
 )
-def test_boxplot_null(load_data_one_col_null, ip):
-    ip.run_cell("%sqlplot boxplot --table data_one_null.csv --column x ")
+def test_boxplot_null(load_penguin, ip):
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column bill_length_mm ")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist"], extensions=["png"], remove_text=True)
-def test_hist(load_data_one_col, ip):
-    ip.run_cell("%sqlplot histogram --table data_one.csv --column x")
+def test_hist(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column body_mass_g")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_bin"], extensions=["png"], remove_text=True)
-def test_hist_bin(load_data_one_col, ip):
-    ip.run_cell("%sqlplot histogram --table data_one.csv --column x --bins 2")
+def test_hist_bin(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column body_mass_g --bins 300")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_two"], extensions=["png"], remove_text=True)
-def test_hist_two(load_data_two_col, ip):
-    ip.run_cell("%sqlplot histogram --table data_two.csv --column x y")
+def test_hist_two(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm bill_depth_mm")
 
 
 @_cleanup_cm()
 @image_comparison(baseline_images=["hist_null"], extensions=["png"], remove_text=True)
-def test_hist_null(load_data_one_col_null, ip):
-    ip.run_cell("%sqlplot histogram --table data_one_null.csv --column x ")
+def test_hist_null(load_penguin, ip):
+    ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm ")
+
+@_cleanup_cm()
+@image_comparison(baseline_images=["hist_custom"], extensions=["png"], remove_text=True)
+def test_hist_cust(load_penguin, ip):
+    ax = ip.run_cell("%sqlplot histogram --table penguins.csv --column bill_length_mm ").result
+    ax.set_title("Custom Title")
+    _ = ax.grid(True)
 
 
 def test_sqlplot_deprecation_warning(ip_snippets, capsys):
