@@ -31,7 +31,7 @@ JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook.
 %sql duckdb://
 ```
 
-## Load sample data
+### Load sample data
 
 +++
 
@@ -46,7 +46,7 @@ _ = urlretrieve(
 )
 ```
 
-## Query
+### Query
 
 +++
 
@@ -84,7 +84,7 @@ GROUP BY species
 ORDER BY count DESC
 ```
 
-## Plotting
+### Plotting
 
 ```{code-cell} ipython3
 %%sql species_count <<
@@ -108,11 +108,11 @@ _ = ax.set_title("Num of penguins by species")
 %sql duckdb://
 ```
 
-## Load sample data
+### Load sample data
 
 +++
 
-Download sample `.parquet` file:
+Get a sample `.parquet` file:
 
 ```{code-cell} ipython3
 from urllib.request import urlretrieve
@@ -123,7 +123,7 @@ _ = urlretrieve(
 )
 ```
 
-## Query
+### Query
 
 +++
 
@@ -162,7 +162,7 @@ GROUP BY passenger_count
 ORDER BY passenger_count ASC
 ```
 
-## Plotting
+### Plotting
 
 ```{code-cell} ipython3
 %%sql avg_trip_distance <<
