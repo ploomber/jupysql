@@ -354,11 +354,15 @@ def test_table_profile_is_numeric(ip, tmp_empty):
     )
     out = ip.run_cell("%sqlcmd profile -t people").result
     stats_table_html = out._table_html
+    print(stats_table_html)
     assert "profile-table td:nth-child(3)" in stats_table_html
     assert "profile-table td:nth-child(6)" in stats_table_html
     assert "profile-table td:nth-child(7)" not in stats_table_html
     assert "profile-table td:nth-child(4)" not in stats_table_html
-    assert "Columns `age``gender_1` have a datatype mismatch" in stats_table_html
+    assert (
+        "Columns <code>age</code><code>gender_1</code> have a datatype mismatch"
+        in stats_table_html
+    )
 
 
 def test_table_profile_store(ip, tmp_empty):
