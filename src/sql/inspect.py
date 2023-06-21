@@ -99,7 +99,7 @@ def _is_numeric_as_str(column, value):
 
 
 def _generate_column_styles(
-    column_indices, background_color="#FFFF00", text_color="black"
+    column_indices, background_color="#FFFFCC", text_color="black"
 ):
     """
     Generate CSS styles to change the background-color of all columns
@@ -131,7 +131,7 @@ def _generate_message(column_indices, columns):
     message = "Columns "
     for c in column_indices:
         col = columns[c - 1]
-        message = f"{message}`{col}`"
+        message = f"{message}<code>{col}</code>"
     message = (
         f"{message} have a datatype mismatch -> numeric values stored as a string."
     )
