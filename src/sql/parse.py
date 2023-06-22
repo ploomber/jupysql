@@ -53,6 +53,18 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
+        char_pointer = cell.find("SELECT")
+        cell = cell[:char_pointer].strip() + " " + cell[char_pointer:]
+    else:
+        if pieces[0].endswith("SELECT"):
+            char_pointer = pieces[0].find("SELECT")
+            pieces[0] = pieces[0][:char_pointer].replace(" ", "")
+            pieces[1] = "SELECT " + pieces[1]
+        else:
+            char_pointer = pieces[1].find("SELECT")
+            pieces[0] = pieces[0] + pieces[1][:char_pointer]
+            pieces[1] = pieces[1][char_pointer:]
+
     # handle no space situation around =
     if pieces[0].endswith("=<<"):
         result["result_var"] = pieces[0][:-3]
