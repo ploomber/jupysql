@@ -426,10 +426,10 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
 
     stats_table_html = out._table_html
 
-    assert "profile-table td:nth-child(3)" in stats_table_html
-    assert "profile-table td:nth-child(6)" in stats_table_html
-    assert "profile-table td:nth-child(7)" not in stats_table_html
-    assert "profile-table td:nth-child(4)" not in stats_table_html
+    assert "td:nth-child(3)" in stats_table_html
+    assert "td:nth-child(6)" in stats_table_html
+    assert "td:nth-child(7)" not in stats_table_html
+    assert "td:nth-child(4)" not in stats_table_html
     assert (
         "Columns <code>age</code><code>gender_1</code> have a datatype mismatch"
         in stats_table_html

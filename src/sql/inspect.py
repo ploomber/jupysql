@@ -8,6 +8,7 @@ import sql.run
 import math
 from sql import util
 from IPython.core.display import HTML
+import uuid
 
 
 def _get_inspector(conn):
@@ -99,7 +100,7 @@ def _is_numeric_as_str(column, value):
 
 
 def _generate_column_styles(
-    column_indices, background_color="#FFFFCC", text_color="black"
+    column_indices, unique_id, background_color="#FFFFCC", text_color="black"
 ):
     """
     Generate CSS styles to change the background-color of all columns
@@ -108,6 +109,7 @@ def _generate_column_styles(
     Parameters
     ----------
         column_indices (list): List of column indices with data-type mismatch.
+        unique_id (str): Unique ID for the current table.
         background_color (str, optional): Background color for the mismatched columns.
         text_color (str, optional): Text color for the mismatched columns.
 
@@ -118,7 +120,7 @@ def _generate_column_styles(
     styles = ""
     for index in column_indices:
         styles = f"""{styles}
-        #profile-table td:nth-child({index + 1}) {{
+        #profile-table-{unique_id} td:nth-child({index + 1}) {{
             background-color: {background_color};
             color: {text_color};
         }}
@@ -414,7 +416,8 @@ class TableDescription(DatabaseInspection):
 
                 self._table.add_row(values)
 
-        column_styles = _generate_column_styles(columns_with_styles)
+        unique_id = str(uuid.uuid4()).replace("-", "")
+        column_styles = _generate_column_styles(columns_with_styles, unique_id)
 
         if message_check:
             message_content = _generate_message(columns_with_styles, list(columns))
@@ -466,7 +469,9 @@ class TableDescription(DatabaseInspection):
             db_html
             + sticky_column_css
             + column_styles
-            + self._table.get_html_string(attributes={"id": "profile-table"})
+            + self._table.get_html_string(
+                attributes={"id": f"profile-table-{unique_id}"}
+            )
             + message_html
         ).__html__()
 
