@@ -430,7 +430,10 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
     assert "profile-table td:nth-child(6)" in stats_table_html
     assert "profile-table td:nth-child(7)" not in stats_table_html
     assert "profile-table td:nth-child(4)" not in stats_table_html
-    assert "Columns `age``gender_1` have a datatype mismatch" in stats_table_html
+    assert (
+        "Columns <code>age</code><code>gender_1</code> have a datatype mismatch"
+        in stats_table_html
+    )
 
 
 @pytest.mark.parametrize(
