@@ -126,6 +126,11 @@ class ResultSet(ColumnGuesserMixin):
         if self.pretty:
             self.pretty.add_rows(self)
             result = self.pretty.get_html_string()
+            result += (
+                "<p>&lt;&#xfeff;class 'ResultSet'&gt; : "
+                "to convert to pandas, call <code>.DataFrame()</code> "
+                "or to convert to polars, call <code>.PolarsDataFrame</code></p>"
+            )
             # to create clickable links
             result = html.unescape(result)
             result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
@@ -178,6 +183,18 @@ class ResultSet(ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
+        
+    def __getattribute__(self, attr):
+        "Raises AttributeError when invalid operation (pandas-like) is performed."
+        try:
+            return object.__getattribute__(self, attr)
+        except AttributeError:
+            err_msg = (
+                f"'{attr}' is not a valid operation, you can convert this "
+                "into a pandas data frame by calling '.DataFrame()' or a "
+                "polars data frame by calling '.PolarsDataFrame()'"
+            )
+            raise AttributeError(err_msg) from None
 
     def dict(self):
         """Returns a single dict built from the result set
