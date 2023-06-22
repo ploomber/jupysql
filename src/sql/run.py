@@ -129,7 +129,7 @@ class ResultSet(ColumnGuesserMixin):
             result += (
                 "<p>&lt;&#xfeff;class 'ResultSet'&gt; : "
                 "to convert to pandas, call <code>.DataFrame()</code> "
-                "or to convert to polars, call <code>.PolarsDataFrame</code></p>"
+                "or to polars, call <code>.PolarsDataFrame</code></p>"
             )
             # to create clickable links
             result = html.unescape(result)
@@ -183,9 +183,9 @@ class ResultSet(ColumnGuesserMixin):
             if len(result) > 1:
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
-        
+
     def __getattribute__(self, attr):
-        "Raises AttributeError when invalid operation (pandas-like) is performed."
+        "Raises AttributeError when invalid operation is performed."
         try:
             return object.__getattribute__(self, attr)
         except AttributeError:
