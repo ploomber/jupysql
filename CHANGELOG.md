@@ -2,7 +2,6 @@
 
 ## 0.7.10dev
 
-* [Fix] Refactored `magic_cmd.py` by assigning each command logic to a separate file [#518]
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)

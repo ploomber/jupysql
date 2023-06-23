@@ -3,10 +3,22 @@ from sql.util import sanitize_identifier
 from sql.cmd.cmd_utils import CmdParser
 
 
-def execute_columns_command(others):
+def columns(others):
     """
-    Execution logic for the columns command
+    Implementation of `%sqlcmd columns`
+    This function takes in a string containing command line arguments,
+    parses them to extract the name of the table and the schema, and returns
+    a list of columns for the specified table.
 
+    Parameters
+    ----------
+    others : str,
+        A string containing the command line arguments.
+
+    Returns
+    -------
+    columns: list
+        information of the columns in the specified table
     """
     parser = CmdParser()
 

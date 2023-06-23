@@ -5,12 +5,12 @@ from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
 from sql import util
-from sql.cmd.tables import execute_tables_command
-from sql.cmd.columns import execute_columns_command
-from sql.cmd.test import execute_test_command
-from sql.cmd.profile import execute_profile_command
-from sql.cmd.explore import execute_expolore_command
-from sql.cmd.snippets import execute_snippets_command
+from sql.cmd.tables import tables
+from sql.cmd.columns import columns
+from sql.cmd.test import test
+from sql.cmd.profile import profile
+from sql.cmd.explore import explore
+from sql.cmd.snippets import snippets
 
 try:
     from traitlets.config.configurable import Configurable
@@ -82,12 +82,12 @@ class SqlCmdMagic(Magics, Configurable):
         """
 
         router = {
-            "tables": execute_tables_command,
-            "columns": execute_columns_command,
-            "test": execute_test_command,
-            "profile": execute_profile_command,
-            "explore": execute_expolore_command,
-            "snippets": execute_snippets_command,
+            "tables": tables,
+            "columns": columns,
+            "test": test,
+            "profile": profile,
+            "explore": explore,
+            "snippets": snippets,
         }
 
         cmd = router.get(cmd_name)

@@ -4,9 +4,17 @@ from IPython.display import display
 from sql.cmd.cmd_utils import CmdParser
 
 
-def execute_expolore_command(others):
+def explore(others):
     """
-    Execution logic for the explore command
+    Implementation of `%sqlcmd explore`
+    This function takes in a string containing command line arguments,
+    parses them to extract the name of the table, and displays an interactive
+    widget for exploring the contents of the specified table.
+
+    Parameters
+    ----------
+    others : str,
+        A string containing the command line arguments.
 
     """
     parser = CmdParser()

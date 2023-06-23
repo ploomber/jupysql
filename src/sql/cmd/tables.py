@@ -2,9 +2,23 @@ from sql import inspect
 from sql.cmd.cmd_utils import CmdParser
 
 
-def execute_tables_command(others):
+def tables(others):
     """
-    Execution logic for the tables command
+    Implementation of `%sqlcmd tables`
+
+    This function takes in a string containing command line arguments,
+    parses them to extract the schema name, and returns a list of table names
+    present in the specified schema or in the default schema if none is specified.
+
+    Parameters
+    ----------
+    others : str,
+            A string containing the command line arguments.
+
+    Returns
+    -------
+    table_names: list
+        list of tables in the schema
 
     """
     parser = CmdParser()

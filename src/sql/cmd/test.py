@@ -73,9 +73,27 @@ def run_each_individually(args, conn):
     return storage
 
 
-def execute_test_command(others):
+def test(others):
     """
-    Execution logic for the test command
+    Implementation of `%sqlcmd test`
+
+    This function takes in a string containing command line arguments,
+    parses them to extract the table name, column name, and conditions
+    to return if those conditions are satisfied in that table
+
+    Parameters
+    ----------
+    others : str,
+            A string containing the command line arguments.
+
+    Returns
+    -------
+    result: bool
+        Result of the test
+
+    table: PrettyTable
+        table with rows because of which the test fails
+
 
     """
     parser = CmdParser()
