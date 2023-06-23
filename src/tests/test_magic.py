@@ -1061,6 +1061,7 @@ Set the environment variable $DATABASE_URL
 
 def test_error_on_invalid_connection_string(ip_empty, clean_conns):
     result = ip_empty.run_cell("%sql some invalid connection string")
+    
     assert invalid_connection_string.strip() == str(result.error_in_exec)
     assert isinstance(result.error_in_exec, UsageError)
 
