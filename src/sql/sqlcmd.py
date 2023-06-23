@@ -1,6 +1,7 @@
 from sql.magic_cmd import CmdParser
 from sql import util
 from sql.exceptions import UsageError
+from sql.store import store
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -58,6 +59,8 @@ def sqlcmd_snippets(others):
         help="Force delete all stored snippets",
         required=False,
     )
+    if len(others) == 1 and others[0] in util.get_all_keys():
+        return str(store[others[0]])
     args = parser.parse_args(others)
     SNIPPET_ARGS = [args.delete, args.delete_force, args.delete_force_all]
     if SNIPPET_ARGS.count(None) == len(SNIPPET_ARGS):
