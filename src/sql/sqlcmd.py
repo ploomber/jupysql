@@ -1,4 +1,4 @@
-from sql.magic_cmd import CmdParser
+from sql.cmd.cmd_utils import CmdParser
 from sql import util
 from sql.exceptions import UsageError
 
