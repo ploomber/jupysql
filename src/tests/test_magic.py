@@ -120,34 +120,66 @@ def test_result_var_multiline_shovel(ip):
     assert "Shakespeare" in str(result) and "Brecht" in str(result)
 
 
-def test_return_result_var(ip, capsys):
-    # Assert that no result is returned when using regular result var syntax <<
-    result = ip.run_cell_magic(
-        "sql",
-        "",
-        """
-        sqlite://
-        x <<
-        SELECT last_name FROM author;
-        """,
-    )
+@pytest.mark.parametrize(
+    "sql_statement, expected_result",
+    [
+        (
+            """
+            sqlite://
+            x <<
+            SELECT last_name FROM author;
+            """,
+            None,
+        ),
+        (
+            """
+            sqlite://
+            x= <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x = <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x = <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x =     <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+        (
+            """
+            sqlite://
+            x      =     <<
+            SELECT last_name FROM author;
+            """,
+            {"last_name": ("Shakespeare", "Brecht")},
+        ),
+    ],
+)
+def test_return_result_var(ip, sql_statement, expected_result):
+    result = ip.run_cell_magic("sql", "", sql_statement)
     var = ip.user_global_ns["x"]
     assert "Shakespeare" in str(var) and "Brecht" in str(var)
-    assert result is None
-
-    # Assert that correct result is returned when using return result var syntax = <<
-    result = ip.run_cell_magic(
-        "sql",
-        "",
-        """
-        sqlite://
-        x= <<
-        SELECT last_name FROM author;
-        """,
-    )
-    var = ip.user_global_ns["x"]
-    assert "Shakespeare" in str(var) and "Brecht" in str(var)
-    assert result.dict() == {"last_name": ("Shakespeare", "Brecht")}
+    if result is not None:
+        result = result.dict()
+    assert result == expected_result
 
 
 def test_access_results_by_keys(ip):
@@ -524,7 +556,7 @@ def test_displaylimit_default(ip):
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
 
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert "truncated to displaylimit of 10" in out._repr_html_()
+    assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -545,7 +577,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -559,7 +591,7 @@ def test_displaylimit_enabled_no_limit(
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert "truncated to displaylimit of " not in out._repr_html_()
+    assert "Truncated to displaylimit of " not in out._repr_html_()
 
 
 @pytest.mark.parametrize(
@@ -613,10 +645,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert (
-            f"{expected_truncated_length} rows, truncated to displaylimit of 10"
-            in out._repr_html_()
-        )
+        assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):
