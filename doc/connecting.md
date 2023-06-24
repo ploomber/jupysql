@@ -18,7 +18,7 @@ myst:
     property=og:locale: en_US
 ---
 
-# Connecting to a database
+# Connecting to a database!
 
 Learn how to connect to various databases using JupySQL.
 
