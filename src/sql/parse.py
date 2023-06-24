@@ -58,8 +58,6 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
-        char_pointer = cell.find("SELECT")
-        cell = cell[:char_pointer].strip() + " " + cell[char_pointer:]
 
     # handle no space situation around =
     if pieces[0].endswith("=<<"):
