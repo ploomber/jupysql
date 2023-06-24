@@ -47,8 +47,10 @@ def parse(cell, config):
 
     select_pointer = cell.lower().find("select")
     if select_pointer != -1:
-        if cell[select_pointer - 1] != " ":
+        if cell[select_pointer - 1] != " " and cell[select_pointer - 1] != "\n":
             cell = cell[:select_pointer] + " " + cell[select_pointer:]
+        else: 
+            pass
 
     pieces = cell.split(None, 1)
     if not pieces:
