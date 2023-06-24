@@ -1,5 +1,5 @@
 from sql import inspect
-from sql.cmd.cmd_utils import CmdParser
+import argparse
 
 
 def profile(others):
@@ -21,7 +21,7 @@ def profile(others):
     report: PrettyTable
         statistics of the table
     """
-    parser = CmdParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
 
     parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)

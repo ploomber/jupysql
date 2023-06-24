@@ -1,7 +1,6 @@
 from sql.widgets import TableWidget
 from IPython.display import display
-
-from sql.cmd.cmd_utils import CmdParser
+import argparse
 
 
 def explore(others):
@@ -17,7 +16,7 @@ def explore(others):
         A string containing the command line arguments.
 
     """
-    parser = CmdParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
     args = parser.parse_args(others)
 

@@ -1,5 +1,5 @@
 from sql import inspect
-from sql.cmd.cmd_utils import CmdParser
+import argparse
 
 
 def tables(others):
@@ -21,7 +21,7 @@ def tables(others):
         list of tables in the schema
 
     """
-    parser = CmdParser()
+    parser = argparse.ArgumentParser()
 
     parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)
 
