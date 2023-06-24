@@ -45,6 +45,11 @@ def parse(cell, config):
         "return_result_var": False,
     }
 
+    select_pointer = cell.lower().find("select")
+    if select_pointer != -1:
+        if cell[select_pointer - 1] != " ":
+            cell = cell[:select_pointer] + " " + cell[select_pointer:]
+
     pieces = cell.split(None, 1)
     if not pieces:
         return result
@@ -69,6 +74,10 @@ def parse(cell, config):
     if pieces[0].endswith("=<<"):
         result["result_var"] = pieces[0][:-3]
         result["return_result_var"] = True
+        cell = pieces[1]
+    elif pieces[0].endswith("<<"):
+        result["result_var"] = pieces[0][:-2]
+        result["return_result_var"] = False
         cell = pieces[1]
 
     pieces = cell.split(None, 2)

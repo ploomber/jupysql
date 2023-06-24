@@ -8,6 +8,7 @@
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
+* [Fix] Improving << parsing logic (#610)
 
 ## 0.7.9 (2023-06-19)
 

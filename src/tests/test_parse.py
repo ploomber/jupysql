@@ -88,6 +88,10 @@ def test_parse_shovel_operator():
         "dest      =<< SELECT * FROM work",
         "dest =          << SELECT * FROM work",
         "dest=<< SELECT * FROM work",
+        "dest=<<SELECT * FROM work",
+        "dest=<<                   SELECT * FROM work",
+        "dest =   << select * FROM work",
+        "dest =   <<select * FROM work",
     ],
 )
 def test_parse_return_shovel_operator(input_string, ip):
