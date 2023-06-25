@@ -92,8 +92,8 @@ WHERE symbol == 'b'
         ],
         [
             "%sqlcmd columns",
-            UsageError,
-            "the following arguments are required: -t/--table",
+            SystemExit,
+            "2",
         ],
     ],
 )
