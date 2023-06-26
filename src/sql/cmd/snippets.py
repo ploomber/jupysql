@@ -1,6 +1,6 @@
 from sql import util
 from sql.exceptions import UsageError
-import argparse
+from sql.cmd.cmd_utils import CmdParser
 
 
 def _modify_display_msg(key, remaining_keys, dependent_keys=None):
@@ -44,7 +44,7 @@ def snippets(others):
         A string containing the command line arguments.
 
     """
-    parser = argparse.ArgumentParser()
+    parser = CmdParser()
     parser.add_argument(
         "-d", "--delete", type=str, help="Delete stored snippet", required=False
     )

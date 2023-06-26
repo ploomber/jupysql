@@ -3,7 +3,7 @@ import sql.connection
 from sqlalchemy import text
 from sqlglot import select, condition
 from prettytable import PrettyTable
-import argparse
+from sql.cmd.cmd_utils import CmdParser
 
 
 def return_test_results(args, conn, query):
@@ -96,7 +96,7 @@ def test(others):
 
 
     """
-    parser = argparse.ArgumentParser()
+    parser = CmdParser()
 
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
     parser.add_argument("-c", "--column", type=str, help="Column name", required=False)

@@ -1,6 +1,6 @@
 from sql import inspect
 from sql.util import sanitize_identifier
-import argparse
+from sql.cmd.cmd_utils import CmdParser
 
 
 def columns(others):
@@ -20,7 +20,7 @@ def columns(others):
     columns: list
         information of the columns in the specified table
     """
-    parser = argparse.ArgumentParser()
+    parser = CmdParser()
 
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
     parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)
