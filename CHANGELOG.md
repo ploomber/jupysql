@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.7.10dev
+* [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
 * [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
 
