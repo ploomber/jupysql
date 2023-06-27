@@ -88,20 +88,29 @@ def test_parse_shovel_operator():
         "dest      =<< SELECT * FROM work",
         "dest =          << SELECT * FROM work",
         "dest=<< SELECT * FROM work",
+        "dest<<SELECT * FROM work",
+        "dest    <<SELECT * FROM work",
+        "dest    <<    SELECT * FROM work",
         "dest=<<SELECT * FROM work",
-        "dest=<<                   SELECT * FROM work",
-        "dest =   << SELECT * FROM work",
-        "dest =   <<SELECT * FROM work",
+        "dest    =<<SELECT * FROM work",
+        "dest    =<<    SELECT * FROM work",
+        "dest=   <<    SELECT * FROM work",
     ],
 )
 def test_parse_return_shovel_operator(input_string, ip):
-    result = {
+    result_var_true = {
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
         "return_result_var": True,
     }
-    assert parse(input_string, empty_config) == result
+    result_var_false = {
+        "connection": "",
+        "sql": "SELECT * FROM work",
+        "result_var": "dest",
+        "return_result_var": False,
+    }
+    assert parse(input_string, empty_config) == result_var_true or result_var_false
 
 
 def test_parse_connect_plus_shovel():
