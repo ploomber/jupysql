@@ -311,9 +311,6 @@ is challenging given the number of dependencies. If you have problems,
 
 Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) before continuing.
 
-### PostgreSQL Integration Tests
-To run the tests for PostgreSQL DB integration follow the guide [here](../integrations/postgres-test-doc.ipynb)
-
 To install all dependencies:
 
 ```sh
@@ -355,6 +352,9 @@ To run some of the tests:
 ```sh
 pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 ```
+
+### PostgreSQL Integration Tests
+To run the tests for PostgreSQL DB integration follow the guide [here](../integrations/postgres-test-doc.ipynb)
 
 ### Integration tests with cloud databases
 
