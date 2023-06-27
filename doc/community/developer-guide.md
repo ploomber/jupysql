@@ -311,6 +311,9 @@ is challenging given the number of dependencies. If you have problems,
 
 Ensure you have [Docker Desktop](https://docs.docker.com/desktop/) before continuing.
 
+### PostgreSQL Integration Tests
+To run the tests for PostgreSQL DB integration follow the guide [here](../integrations/postgres-test-doc.ipynb)
+
 To install all dependencies:
 
 ```sh
