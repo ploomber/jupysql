@@ -76,6 +76,9 @@ html_theme_options = {
     "use_repository_button": True,
     "use_edit_page_button": False,
     "use_issues_button": True,
+    'html_meta': {
+        'og:image': 'https://rb.gy/t1jmx',
+    },
 }
 nb_execution_cache_path = ""
 nb_execution_mode = "cache"
