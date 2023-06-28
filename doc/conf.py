@@ -54,6 +54,7 @@ html_favicon = ""
 html_logo = "square-no-bg-small.png"
 html_sourcelink_suffix = ""
 html_theme = "sphinx_book_theme"
+html_title = "JupySQL documentation"
 html_theme_options = {
     "launch_buttons": {
         "notebook_interface": "jupyterlab",
