@@ -88,29 +88,39 @@ def test_parse_shovel_operator():
         "dest      =<< SELECT * FROM work",
         "dest =          << SELECT * FROM work",
         "dest=<< SELECT * FROM work",
-        "dest<<SELECT * FROM work",
-        "dest    <<SELECT * FROM work",
-        "dest    <<    SELECT * FROM work",
         "dest=<<SELECT * FROM work",
         "dest    =<<SELECT * FROM work",
         "dest    =<<    SELECT * FROM work",
         "dest=   <<    SELECT * FROM work",
     ],
 )
-def test_parse_return_shovel_operator(input_string, ip):
-    result_var_true = {
+def test_parse_return_shovel_operator_with_equal(input_string, ip):
+    result_var = {
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
         "return_result_var": True,
     }
-    result_var_false = {
+    assert parse(input_string, empty_config) == result_var
+
+
+@pytest.mark.parametrize(
+    "input_string",
+    [
+        "dest<< SELECT * FROM work",
+        "dest<<SELECT * FROM work",
+        "dest    <<SELECT * FROM work",
+        "dest    <<    SELECT * FROM work",
+    ],
+)
+def test_parse_return_shovel_operator_without_equal(input_string, ip):
+    result_var = {
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
         "return_result_var": False,
     }
-    assert parse(input_string, empty_config) == result_var_true or result_var_false
+    assert parse(input_string, empty_config) == result_var
 
 
 def test_parse_connect_plus_shovel():
