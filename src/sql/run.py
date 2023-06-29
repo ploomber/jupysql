@@ -652,7 +652,11 @@ def run(conn, sql, config):
                         resultset = ResultSet(result, config, statement, conn.engine)
                         session.commit()
             else:
-                result = conn.engine.execute(statement)
+                # we need the session so sqlalchemy 2.x works
+                # result = conn.engine.execute(statement)
+                with Session(conn.engine) as session:
+                    result = session.execute(statement)
+
                 resultset = ResultSet(result, config, statement, conn.engine)
 
             if result and config.feedback:
