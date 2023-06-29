@@ -653,7 +653,7 @@ class Connection:
         Executes SQL query on a given connection
         """
         query = self._prepare_query(query, with_)
-        return self.session.execute(query)
+        return self.engine.execute(query)
 
 
 atexit.register(Connection.close_all, verbose=True)

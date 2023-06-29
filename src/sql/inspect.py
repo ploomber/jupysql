@@ -239,10 +239,14 @@ class TableDescription(DatabaseInspection):
         columns_query_result = sql.run.raw_run(
             Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
         )
+
         if Connection.is_custom_connection():
             columns = [i[0] for i in columns_query_result.description]
         else:
             columns = columns_query_result.keys()
+
+        # TODO: abstract it internally
+        columns_query_result.close()
 
         table_stats = dict({})
         columns_to_include_in_report = set()

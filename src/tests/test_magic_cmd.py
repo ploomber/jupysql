@@ -1,11 +1,10 @@
+import sqlite3
 import sys
 import math
 import pytest
 from IPython.core.error import UsageError
 from pathlib import Path
 
-from sqlalchemy import create_engine
-from sql.connection import Connection
 from sql.store import store
 from sql.inspect import _is_numeric
 
@@ -112,8 +111,15 @@ def test_tables(ip):
 
 
 def test_tables_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
-    conn.execute("CREATE TABLE numbers (some_number FLOAT)")
+    # TODO: why does this fail?
+    #     ip.run_cell(
+    #         """%%sql sqlite:///my.db
+    # CREATE TABLE numbers (some_number FLOAT)
+    #     """
+    #     )
+
+    with sqlite3.connect("my.db") as conn:
+        conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
         """%%sql
@@ -150,8 +156,8 @@ def test_columns(ip, cmd, cols):
 
 
 def test_columns_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
-    conn.execute("CREATE TABLE numbers (some_number FLOAT)")
+    with sqlite3.connect("my.db") as conn:
+        conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
         """%%sql
