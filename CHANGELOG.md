@@ -8,6 +8,7 @@
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
+* [Fix] Fixed pytest command getting stuck while running PostgreSQL integration tests in absence of psycopg2 connector library ([#643](https://github.com/ploomber/jupysql/issues/643))
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
 * [Doc] Added guide on running PostgreSQL integration tests ([#643](https://github.com/ploomber/jupysql/issues/643))
 

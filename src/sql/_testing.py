@@ -228,7 +228,7 @@ def postgres(is_bypass_init=False):
                 "POSTGRES_USER": db_config["username"],
                 "POSTGRES_PASSWORD": db_config["password"],
             },
-            ready_test=lambda: database_ready(database="postgreSQL"),
+            ready_test=lambda: database_ready(database="postgreSQL", timeout=5), ## Passing timeout parameter for PostgreSQL to exit quickly in case of absense of connector library (psycopg2)
             healthcheck={
                 "test": "pg_isready",
                 "interval": 10000000000,
