@@ -58,7 +58,7 @@ def parse(cell, config):
     pointer = cell.find("<<")
     if pointer != -1:
         left = cell[:pointer].replace(" ", "").replace("\n", "")
-        right = cell[pointer + 2 :].strip()
+        right = cell[pointer + 2 :].strip(' ')
 
         if "=" in left:
             result["result_var"] = left[:-1]
@@ -68,7 +68,7 @@ def parse(cell, config):
 
         result["sql"] = right
     else:
-        result["sql"] = cell.strip()
+        result["sql"] = cell.strip(' ')
 
     return result
 
