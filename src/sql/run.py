@@ -651,7 +651,6 @@ def run(conn, sql, config):
                         result = session.execute(statement)
                         resultset = ResultSet(result, config, statement, conn.engine)
                         session.commit()
-
             else:
                 result = conn.engine.execute(statement)
                 resultset = ResultSet(result, config, statement, conn.engine)

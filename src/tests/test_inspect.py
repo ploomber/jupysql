@@ -224,20 +224,20 @@ def test_columns_with_missing_values(
     monkeypatch.setattr(inspect, "_get_inspector", lambda _: mock)
 
     ip.run_cell(
-        """%%sql sqlite:///another.db
-CREATE TABLE IF NOT EXISTS another_table (id INT)
-"""
-    )
-
-    ip.run_cell(
-        """%%sql sqlite:///my.db
+        """%%sql duckdb://
 CREATE TABLE IF NOT EXISTS test_table (id INT)
 """
     )
 
     ip.run_cell(
         """%%sql
-ATTACH DATABASE 'another.db' as 'another_schema';
+CREATE SCHEMA another_schema;
+"""
+    )
+
+    ip.run_cell(
+        """%%sql
+CREATE TABLE IF NOT EXISTS another_schema.another_table (id INT)
 """
     )
 

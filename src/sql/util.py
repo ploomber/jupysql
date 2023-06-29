@@ -81,6 +81,7 @@ def is_table_exists(
     ignore_error: bool, default False
         Avoid raising a ValueError
     """
+
     if table is None:
         if ignore_error:
             return False
@@ -188,6 +189,7 @@ def _is_table_exists(table: str, conn) -> bool:
     """
     Runs a SQL query to check if table exists
     """
+
     if not conn:
         conn = Connection.current
 
@@ -201,6 +203,7 @@ def _is_table_exists(table: str, conn) -> bool:
         try:
             conn.execute(query)
             return True
+        # TODO: Add specific exception
         except Exception:
             pass
 

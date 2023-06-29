@@ -1305,6 +1305,7 @@ def test_interact_and_missing_ipywidgets_installed(ip):
 
 
 def test_generic_driver(ip_empty_testing_shell):
+    # TODO: add duckdb support
     # ip_empty_testing_shell.run_cell("import duckdb")
     # ip_empty_testing_shell.run_cell("conn = duckdb.connect(':memory:')")
     ip_empty_testing_shell.run_cell("import sqlite3")
