@@ -630,7 +630,7 @@ def run(conn, sql, config):
 
         # regular query
         else:
-            # TODO: re add commmit feature
+            # TODO: add commit feature again
             # _commit(conn=conn, config=config, manual_commit=manual_commit)
             # manual_commit = set_autocommit(conn, config)
             is_custom_connection = Connection.is_custom_connection(conn)
@@ -639,7 +639,7 @@ def run(conn, sql, config):
             if not is_custom_connection:
                 statement = sqlalchemy.sql.text(statement)
 
-            # NOTE: are thre any edge cases we should cover?
+            # NOTE: are there any edge cases we should cover?
             if not is_select:
                 with Session(conn.engine) as session:
                     result = session.execute(statement)
