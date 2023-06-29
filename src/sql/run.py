@@ -615,7 +615,7 @@ def run(conn, sql, config):
 
     statements = sqlparse.split(sql)
 
-    for index, statement in enumerate(statements):
+    for statement in statements:
         first_word = _first_word(statement)
         is_select = first_word == "select"
         # manual_commit = False
