@@ -1302,3 +1302,16 @@ def test_interact_and_missing_ipywidgets_installed(ip):
             "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
         )
         assert isinstance(out.error_in_exec, ModuleNotFoundError)
+
+
+def test_generic_driver(ip_empty_testing_shell):
+    # ip_empty_testing_shell.run_cell("import duckdb")
+    # ip_empty_testing_shell.run_cell("conn = duckdb.connect(':memory:')")
+    ip_empty_testing_shell.run_cell("import sqlite3")
+    ip_empty_testing_shell.run_cell("conn = sqlite3.connect(':memory:')")
+
+    ip_empty_testing_shell.run_cell("%sql conn")
+    ip_empty_testing_shell.run_cell("%sql CREATE TABLE test (a INTEGER, b INTEGER)")
+    ip_empty_testing_shell.run_cell("%sql INSERT INTO test VALUES (1, 2)")
+    result = ip_empty_testing_shell.run_cell("%sql SELECT * FROM test")
+    assert result.result == [(1, 2)]

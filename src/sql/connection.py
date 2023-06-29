@@ -674,10 +674,14 @@ class CustomSession(sqlalchemy.engine.base.Connection):
             }
         )
 
+    # TODO: need to close the cursor
     def execute(self, query):
         cur = self.engine.cursor()
         cur.execute(query)
         return cur
+
+    def commit(self):
+        self.engine.commit()
 
 
 class CustomConnection(Connection):
@@ -700,6 +704,7 @@ class CustomConnection(Connection):
         self.name = connection_name_
         self.dialect = connection_name_
         self.session = CustomSession(self, engine)
+        self.engine = self.session
 
         self.connections[alias or connection_name_] = self
 

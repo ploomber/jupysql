@@ -641,10 +641,16 @@ def run(conn, sql, config):
 
             # NOTE: are there any edge cases we should cover?
             if not is_select:
-                with Session(conn.engine) as session:
-                    result = session.execute(statement)
+                # TODO: we should abstract this
+                if is_custom_connection:
+                    result = conn.engine.execute(statement)
                     resultset = ResultSet(result, config, statement, conn.engine)
-                    session.commit()
+                    conn.engine.commit()
+                else:
+                    with Session(conn.engine) as session:
+                        result = session.execute(statement)
+                        resultset = ResultSet(result, config, statement, conn.engine)
+                        session.commit()
 
             else:
                 result = conn.engine.execute(statement)
