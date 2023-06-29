@@ -37,20 +37,12 @@ def parse(cell, config):
     We're grandfathering the
     connection string and `<<` operator in.
     """
-
     result = {
         "connection": "",
         "sql": "",
         "result_var": None,
         "return_result_var": False,
     }
-
-    select_pointer = cell.lower().find("select")
-    if select_pointer != -1 and select_pointer != 0:
-        if cell[select_pointer - 1] != " " and cell[select_pointer - 1] != "\n":
-            cell = cell[:select_pointer] + " " + cell[select_pointer:]
-        else:
-            pass
 
     pieces = cell.split(None, 1)
     if not pieces:
@@ -60,42 +52,24 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
+    else:
+        cell = cell
 
-    # handle no space situation around =
-    if pieces[0].endswith("=<<"):
-        result["result_var"] = pieces[0][:-3]
-        result["return_result_var"] = True
-        cell = pieces[1]
-    elif pieces[0].endswith("<<"):
-        result["result_var"] = pieces[0][:-2]
-        result["return_result_var"] = False
-        cell = pieces[1]
+    pointer = cell.find("<<")
+    if pointer != -1:
+        left = cell[:pointer].replace(" ", "").replace("\n", "")
+        right = cell[pointer + 2 :].strip()
 
-    pieces = cell.split(None, 2)
-    # handle flexible spacing around <<
-    if len(pieces) > 1 and pieces[1] == "<<":
-        if pieces[0].endswith("="):
-            result["result_var"] = pieces[0][:-1]
+        if "=" in left:
+            result["result_var"] = left[:-1]
             result["return_result_var"] = True
         else:
-            result["result_var"] = pieces[0]
+            result["result_var"] = left
 
-        if len(pieces) == 2:
-            return result
-        cell = pieces[2]
-    # handle flexible spacing around =<<
-    elif len(pieces) > 1 and (
-        (pieces[1] == "=<<") or (pieces[1] == "=" and pieces[2].startswith("<<"))
-    ):
-        result["result_var"] = pieces[0]
-        result["return_result_var"] = True
-        if pieces[1] == "=<<":
-            cell = pieces[2]
-        else:
-            pieces = cell.split(None, 3)
-            cell = pieces[3]
+        result["sql"] = right
+    else:
+        result["sql"] = cell.strip()
 
-    result["sql"] = cell
     return result
 
 
