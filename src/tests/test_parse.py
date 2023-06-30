@@ -144,7 +144,7 @@ def test_parse_early_newlines():
 def test_parse_connect_shovel_over_newlines():
     assert parse("\nsqlite://\ndest\n<<\nSELECT *\nFROM work", empty_config) == {
         "connection": "sqlite://",
-        "sql": "SELECT *\nFROM work",
+        "sql": "\nSELECT *\nFROM work",
         "result_var": "dest",
         "return_result_var": False,
     }
