@@ -60,7 +60,6 @@ def ip_empty():
     c.HistoryAccessor.enabled = False
     ip_session = InteractiveShell(config=c)
 
-    # ip_session = InteractiveShell()
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
