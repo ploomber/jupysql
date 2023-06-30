@@ -129,7 +129,7 @@ def questdb_container(is_bypass_init=False):
 
 
 @pytest.fixture
-def ip_questdb(diamonds_data, penguins_data, ip_empty):
+def ip_questdb(diamonds_data, penguins_data, ip_empty, skip_on_live_mode):
     """
     Initializes questdb database container and loads it with data
     """
