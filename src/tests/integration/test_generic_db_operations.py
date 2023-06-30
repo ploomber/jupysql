@@ -211,15 +211,15 @@ def test_telemetry_execute_command_has_connection_info(
     "cell",
     [
         (
-            "%sqlplot histogram --with plot_something_subset --table\
+            "%sqlplot histogram --with plot_something_subset2 --table\
               plot_something_subset --column x"
         ),
         (
-            "%sqlplot hist --with plot_something_subset --table\
+            "%sqlplot hist --with plot_something_subset2 --table\
               plot_something_subset --column x"
         ),
         (
-            "%sqlplot histogram --with plot_something_subset --table\
+            "%sqlplot histogram --with plot_something_subset2 --table\
               plot_something_subset --column x --bins 10"
         ),
     ],
@@ -237,16 +237,12 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_Snowflake"),
         pytest.param(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
         ),
-        pytest.param(
-            "ip_with_Snowflake",
-            marks=pytest.mark.xfail(
-                reason="Something wrong with sqlplot histogram in snowflake"
-            ),
-        ),
+
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
@@ -254,11 +250,7 @@ def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_di
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     plt.cla()
 
-    ip_with_dynamic_db.run_cell(
-        f"%sql --save plot_something_subset\
-         --no-execute SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
-    )
-    out = ip_with_dynamic_db.run_cell(cell)
+    out = ip_with_dynamic_db.run_cell(f"%sqlplot histogram --table {test_table_name_dict['plot_something'].upper()} --column x")
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 

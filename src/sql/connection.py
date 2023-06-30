@@ -617,7 +617,7 @@ class Connection:
         """
         write_dialect = self._get_curr_sqlglot_dialect()
         try:
-            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
+            query = sqlglot.parse_one(query, read="mysql").sql(dialect=write_dialect)
         finally:
             return query
 
