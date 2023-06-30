@@ -242,7 +242,6 @@ def test_telemetry_execute_command_has_connection_info(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
         ),
-
     ],
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
@@ -250,7 +249,10 @@ def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_di
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     plt.cla()
 
-    out = ip_with_dynamic_db.run_cell(f"%sqlplot histogram --table {test_table_name_dict['plot_something'].upper()} --column x")
+    out = ip_with_dynamic_db.run_cell(
+        f"%sqlplot histogram --table\
+          {test_table_name_dict['plot_something'].upper()} --column x"
+    )
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
