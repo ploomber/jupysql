@@ -246,12 +246,17 @@ def test_telemetry_execute_command_has_connection_info(
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
     # clean current Axes
+    is_snowflake = ip_with_dynamic_db == "ip_with_Snowflake"
+    plot_table_name = (
+        test_table_name_dict["plot_something"]
+        if not is_snowflake
+        else test_table_name_dict["plot_something"].upper()
+    )
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     plt.cla()
-
     out = ip_with_dynamic_db.run_cell(
         f"%sqlplot histogram --table\
-          {test_table_name_dict['plot_something'].upper()} --column x"
+          {plot_table_name} --column x"
     )
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
