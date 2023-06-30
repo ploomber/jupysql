@@ -297,7 +297,6 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
-
     min_, max_ = con.execute(query, with_).fetchone()
     return min_, max_
 
@@ -311,8 +310,7 @@ def _get_bar_width(ax, bins):
     Return a single bar width based on number of bins
     If bins values are str, calculate value based on figure size.
     """
-
-    if _are_numeric_values(bins[-1], bins[-2]):
+    if len(bins) > 1 and _are_numeric_values(bins[-1], bins[-2]):
         width = bins[-1] - bins[-2]
     else:
         fig = plt.gcf()
