@@ -15,8 +15,8 @@ myst:
     description lang=en: Use DuckDB from Jupyter using JupySQL
     keywords: jupyter, sql, jupysql, duckdb, plotting
     property=og:locale: en_US
-    property=og:image: '../_images/github-codespace.png'
-    property=og:image:alt: 'Better SQL in Jupyter. 📊.'
+    property=og:image: 'https://opengraph.githuassets.com/201e7470ff4ddba2be8281a455019049e7d8a0b5acbd8420bf96715a34b6f892/anupam-tiwari/jupysql'
+    property=og:image:alt: 'https://opengraph.githubassets.com/201e7470ff4ddba2be8281a455019049e7d8a0b5acbd8420bf96715a34b6f892/anupam-tiwari/jupysql'
 ---
 
 
