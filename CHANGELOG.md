@@ -11,7 +11,7 @@
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
-* [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
+* [Fix] Fixed Integration tests command getting stuck when database driver is not available. (#644)
 
 ## 0.7.9 (2023-06-19)
 

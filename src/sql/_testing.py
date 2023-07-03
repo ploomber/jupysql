@@ -7,6 +7,7 @@ from docker import errors
 from sqlalchemy.engine import URL
 import os
 import sqlalchemy
+import pytest
 
 TMP_DIR = "tmp"
 
@@ -187,6 +188,9 @@ def database_ready(
             eng.close()
             print(f"{database} is initialized successfully")
             return True
+        except ModuleNotFoundError as e:
+            msg = "Please install " + e.name.lower() + " first!"
+            pytest.exit(msg)
         except Exception as e:
             print(type(e))
             errors.append(str(e))
