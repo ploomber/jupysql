@@ -111,6 +111,8 @@ def test_parse_return_shovel_operator_with_equal(input_string, ip):
         "dest<<SELECT * FROM work",
         "dest    <<SELECT * FROM work",
         "dest    <<    SELECT * FROM work",
+        "dest <<SELECT * FROM work",
+        "dest << SELECT * FROM work",
     ],
 )
 def test_parse_return_shovel_operator_without_equal(input_string, ip):
