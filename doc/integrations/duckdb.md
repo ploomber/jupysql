@@ -18,6 +18,8 @@ myst:
     property=og:image: (/_static/square-no-bg-small.png)
 ---
 
+![Sample Image](../static/github-codespace.png)
+
 # DuckDB
 
 JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook. Jump into any section to learn more!
