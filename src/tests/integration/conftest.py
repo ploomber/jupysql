@@ -6,6 +6,7 @@ from sql import _testing
 import uuid
 import duckdb
 
+
 def pytest_addoption(parser):
     parser.addoption("--live", action="store_true")
 
@@ -238,12 +239,7 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
     alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
     engine = setup_duckDB
     # Select database engine, use different sqlite database endpoint
-    ip_empty.run_cell(
-        "%sql "
-        + f"{engine}"
-        + " --alias "
-        + alias
-    )
+    ip_empty.run_cell("%sql " + f"{engine}" + " --alias " + alias)
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
