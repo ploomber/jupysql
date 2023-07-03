@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import MetaData, Table, create_engine
 from sql import _testing
 import uuid
-
+import duckdb
 
 def pytest_addoption(parser):
     parser.addoption("--live", action="store_true")
@@ -224,23 +224,23 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 
 @pytest.fixture(scope="session")
 def setup_duckDB(test_table_name_dict, skip_on_live_mode):
-    engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("duckDB"))
+    engine = duckdb.connect(database=":memory:", read_only=False)
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
     yield engine
     tear_down_generic_testing_data(engine, test_table_name_dict)
-    engine.dispose()
+    engine.close()
 
 
 @pytest.fixture
 def ip_with_duckDB(ip_empty, setup_duckDB):
     configKey = "duckDB"
     alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
-
+    engine = setup_duckDB
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell(
         "%sql "
-        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + f"{engine}"
         + " --alias "
         + alias
     )
