@@ -189,8 +189,7 @@ def database_ready(
             print(f"{database} is initialized successfully")
             return True
         except ModuleNotFoundError as e:
-            msg = "Please install " + e.name.lower() + " first!"
-            pytest.exit(msg)
+            raise BaseException("Please install {} first!".format(e.name))
         except Exception as e:
             print(type(e))
             errors.append(str(e))
