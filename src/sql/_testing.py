@@ -7,7 +7,6 @@ from docker import errors
 from sqlalchemy.engine import URL
 import os
 import sqlalchemy
-import pytest
 
 TMP_DIR = "tmp"
 
