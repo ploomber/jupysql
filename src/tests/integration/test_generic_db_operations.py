@@ -674,7 +674,7 @@ SELECT * FROM {test_table_name_dict["numbers"]} WHERE 1=0
     )
 
     if "numbers" in cell:
-        cell.replace("numbers", test_table_name_dict["numbers"])
+        cell = cell.replace("numbers", test_table_name_dict["numbers"])
 
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
