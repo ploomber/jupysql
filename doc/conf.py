@@ -46,6 +46,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "matplotlib.sphinxext.plot_directive",
     "sphinx_jupyterbook_latex",
+    "sphinxext.opengraph",
 ]
 external_toc_exclude_missing = False
 external_toc_path = "_toc.yml"
@@ -100,6 +101,7 @@ pygments_style = "sphinx"
 suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
+ogp_image = "https://cranmer.github.io/stats-ds-book/_static/logo.png"
 
 
 # Adding Algolia search to jupyter-book :
