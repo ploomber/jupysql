@@ -233,6 +233,8 @@ def add_tables_duckdb(ip, names):
     ip.run_cell(
         f"""
 %%sql
+DROP TABLE IF EXISTS {names["taxi"]};
+
 CREATE TABLE {names["taxi"]} (
     taxi_driver_name VARCHAR(50)
 );
@@ -257,6 +259,8 @@ VALUES ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
     ip.run_cell(
         f"""
 %%sql
+DROP TABLE IF EXISTS {names["plot_something"]};
+
 CREATE TABLE {names["plot_something"]} (
     x INTEGER,
     y INTEGER
@@ -269,6 +273,8 @@ VALUES (0, 5), (1, 6), (2, 7), (3, 8), (4, 9);
     ip.run_cell(
         f"""
 %%sql
+DROP TABLE IF EXISTS {names["numbers"]};
+
 CREATE TABLE {names["numbers"]} (
     numbers_elements INTEGER
 );
