@@ -8,7 +8,8 @@ def test_auto_commit_mode_on(ip_with_duckDB, caplog):
     assert caplog.record_tuples[0][0] == "root"
     assert caplog.record_tuples[0][1] == logging.DEBUG
     assert (
-        "The database driver doesn't support such AUTOCOMMIT" in caplog.record_tuples[0][2]
+        "The database driver doesn't support such AUTOCOMMIT"
+        in caplog.record_tuples[0][2]
     )
     assert (
         "CustomSession' object has no attribute '_has_events'"
