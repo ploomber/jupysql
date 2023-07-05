@@ -665,12 +665,16 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
-def test_sql_query(ip_with_dynamic_db, cell, request):
+def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     ip_with_dynamic_db.run_cell(
-        """%%sql --save subset --no-execute
-SELECT * FROM numbers WHERE 1=0
+        f"""%%sql --save subset --no-execute
+SELECT * FROM {test_table_name_dict["numbers"]} WHERE 1=0
 """
     )
+
+    if "numbers" in cell:
+        cell.replace("numbers", test_table_name_dict["numbers"])
+
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
