@@ -237,7 +237,7 @@ CREATE TABLE {names["taxi"]} (
     taxi_driver_name VARCHAR(50)
 );
 
-INSERT INTO taxi (taxi_driver_name)
+INSERT INTO {names["taxi"]} (taxi_driver_name)
 VALUES ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
     ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
     ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
@@ -262,7 +262,7 @@ CREATE TABLE {names["plot_something"]} (
     y INTEGER
 );
 
-INSERT INTO plot (x, y)
+INSERT INTO {names["plot_something"]} (x, y)
 VALUES (0, 5), (1, 6), (2, 7), (3, 8), (4, 9);
 """
     )
@@ -273,7 +273,7 @@ CREATE TABLE {names["numbers"]} (
     numbers_elements INTEGER
 );
 
-INSERT INTO numbers (numbers_elements)
+INSERT INTO {names["numbers"]} (numbers_elements)
 VALUES (1), (2), (3),
     (1), (2), (3),
     (1), (2), (3),
