@@ -226,24 +226,99 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 @pytest.fixture(scope="session")
 def setup_duckDB(test_table_name_dict, skip_on_live_mode):
     engine = duckdb.connect(database=":memory:", read_only=False)
-    # Load pre-defined datasets
-    load_generic_testing_data(engine, test_table_name_dict)
-    yield engine
-    tear_down_generic_testing_data(engine, test_table_name_dict)
-    engine.close()
+    return engine
+
+
+def add_tables_duckdb(ip, names):
+    ip.run_cell(
+        f"""
+%%sql
+CREATE TABLE {names["taxi"]} (
+    taxi_driver_name VARCHAR(50)
+);
+
+INSERT INTO taxi (taxi_driver_name)
+VALUES ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
+    ('Eric Ken'), ('John Smith'), ('Kevin Kelly');
+    """
+    )
+    ip.run_cell(
+        f"""
+%%sql
+CREATE TABLE {names["plot_something"]} (
+    x INTEGER,
+    y INTEGER
+);
+
+INSERT INTO plot (x, y)
+VALUES (0, 5), (1, 6), (2, 7), (3, 8), (4, 9);
+"""
+    )
+    ip.run_cell(
+        f"""
+%%sql
+CREATE TABLE {names["numbers"]} (
+    numbers_elements INTEGER
+);
+
+INSERT INTO numbers (numbers_elements)
+VALUES (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3),
+    (1), (2), (3);
+"""
+    )
+
+    return ip
 
 
 @pytest.fixture
-def ip_with_duckDB(ip_empty, setup_duckDB):
+def ip_with_duckDB(ip_empty, setup_duckDB, test_table_name_dict):
     configKey = "duckDB"
     alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+
     engine = setup_duckDB
     ip_empty.push({"conn": engine})
+    names = test_table_name_dict
+
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell("%sql conn" + " --alias " + alias)
+
+    ip_empty = add_tables_duckdb(ip_empty, names)
     yield ip_empty
+
     # Disconnect database
-    ip_empty.run_cell("%sql -x " + alias)
+    # ip_empty.run_cell("%sql -x " + alias)
+    # tear_down_generic_testing_data(engine, test_table_name_dict)
+    engine.close()
 
 
 @pytest.fixture(scope="session")
