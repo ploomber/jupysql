@@ -13,6 +13,7 @@
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
 * [Fix] Fixed Integration tests command getting stuck when database driver is not available. (#644)
+* [Fix] Used display module when generating CTE (#649)
 
 ## 0.7.9 (2023-06-19)
 
