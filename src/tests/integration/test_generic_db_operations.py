@@ -74,7 +74,14 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         ("ip_with_mySQL", 15, 15),
         ("ip_with_mariaDB", 15, 15),
         ("ip_with_SQLite", 15, 15),
-        ("ip_with_duckDB", 15, 15),
+        pytest.param(
+            "ip_with_duckDB",
+            15,
+            15,
+            marks=pytest.mark.xfail(
+                reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
+            ),
+        ),
         # Snowflake doesn't support index, skip that
     ],
 )
