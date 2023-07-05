@@ -182,7 +182,7 @@ def test_close_and_connect(
         ("ip_with_mySQL", "mysql", "pymysql"),
         ("ip_with_mariaDB", "mysql", "pymysql"),
         ("ip_with_SQLite", "sqlite", "pysqlite"),
-        ("ip_with_duckDB", "duckdb", "duckdb_engine"),
+        ("ip_with_duckDB", None, None),
         ("ip_with_MSSQL", "mssql", "pyodbc"),
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
