@@ -12,8 +12,7 @@ def test_auto_commit_mode_on(ip_with_duckDB, caplog):
             "The database driver doesn't support such AUTOCOMMIT "
             "execution option\nPerhaps you can try running a manual "
             "COMMIT command\nMessage from the database driver\n\t"
-            "Exception:  'duckdb.DuckDBPyConnection' object has no attribute"
-            " 'set_isolation_level'\n",
+            "\tException:  'CustomSession' object has no attribute '_has_events'\n",
         )
     ]
 

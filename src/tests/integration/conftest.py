@@ -318,7 +318,7 @@ def ip_with_duckDB(ip_empty, setup_duckDB, test_table_name_dict):
     # Disconnect database
     # ip_empty.run_cell("%sql -x " + alias)
     # tear_down_generic_testing_data(engine, test_table_name_dict)
-    engine.close()
+    # engine.close()
 
 
 @pytest.fixture(scope="session")
