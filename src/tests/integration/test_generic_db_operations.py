@@ -291,7 +291,10 @@ BOX_PLOT_FAIL_REASON = (
     "ip_with_dynamic_db",
     [
         pytest.param("ip_with_postgreSQL"),
-        pytest.param("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_duckDB",
+            marks=pytest.mark.xfail(reason="Custom driver not supported"),
+        ),
         pytest.param(
             "ip_with_mySQL", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
         ),
