@@ -73,9 +73,9 @@ class RenderMagic(Magics):
     def sqlrender(self, line):
         args = parse_argstring(self.sqlrender, line)
         warnings.warn(
-            "'%sqlrender' will be deprecated soon, "
+            "\n'%sqlrender' will be deprecated soon, "
             f"please use '%sqlcmd snippets {args.line[0]}' instead. "
-            "For documentation, follow this link : "
+            "\n\nFor documentation, follow this link : "
             "https://jupysql.ploomber.io/en/latest/api/magic-snippets.html#id1",
             FutureWarning,
         )
@@ -367,7 +367,7 @@ class SqlMagic(Magics, Configurable):
         with_ = self._store.infer_dependencies(command.sql_original, args.save)
         if with_:
             command.set_sql_with(with_)
-            print(f"Generating CTE with stored snippets : {', '.join(with_)}")
+            display.message(f"Generating CTE with stored snippets: {', '.join(with_)}")
         else:
             with_ = None
 
