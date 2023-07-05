@@ -101,7 +101,8 @@ pygments_style = "sphinx"
 suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
-ogp_image = "https://cranmer.github.io/stats-ds-book/_static/logo.png"
+ogp_site_url = "https://jupysql.ploomber.io/en/latest"
+ogp_image = "/_static/square-no-bg-small.png"
 
 
 # Adding Algolia search to jupyter-book :
