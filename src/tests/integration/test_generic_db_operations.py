@@ -620,7 +620,7 @@ def test_profile_query(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         pytest.param(
-            "ip_with_MSSQL",
+            "ip_with_duckDB",
             marks=pytest.mark.xfail(reason="Bug #428"),
         ),
         ("ip_with_MSSQL"),
@@ -645,7 +645,7 @@ def test_sqlcmd_tables_columns(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         pytest.param(
-            "ip_with_MSSQL",
+            "ip_with_duckDB",
             marks=pytest.mark.xfail(reason="Bug #428"),
         ),
         ("ip_with_MSSQL"),
