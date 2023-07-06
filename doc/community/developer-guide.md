@@ -353,6 +353,14 @@ To run some of the tests:
 pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 ```
 
+```{important}
+There are tests which check compatibility of  Microsoft SQL Server. In order to run them you you will need to install the ODBC driver for SQL Server (https://learn.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server?view=sql-server-ver16). 
+
+Instructions for Linux can be found at https://learn.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server?view=sql-server-ver16
+Instructions for MAC can be found at https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver16
+```
+
+
 ### Integration tests with cloud databases
 
 We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
