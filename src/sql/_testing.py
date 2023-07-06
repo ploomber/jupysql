@@ -7,8 +7,37 @@ from docker import errors
 from sqlalchemy.engine import URL
 import os
 import sqlalchemy
+import pyodbc
 
 TMP_DIR = "tmp"
+
+
+
+def is_driver_installed(data_base_name):
+    """
+    In the event the database being used is MSSQL, tests if ODBC driver for SQL Server has been installed.
+    throws RunTimeError if suitable driver absent
+
+    Args:
+        data_base_name (string): describes type of database being used for the test
+
+    Returns:
+        bool : whether suitable drivers are in place for test to proceed
+    """
+    raise_error_flag = True
+    if data_base_name != "MSSQL":
+        raise_error_flag = False
+    else:
+        drivers =  pyodbc.drivers()
+        for driver in drivers:
+            if 'ODBC Driver' in driver:
+                raise_error_flag = False
+    if raise_error_flag:
+        raise RuntimeError(f''' The driver  ODBC driver for SQL Server is required for using  Microsoft SQL Server. It has not been installed.
+            Install it from https://learn.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server?view=sql-server-ver16.
+            Instructions for Linux can be found at https://learn.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server?view=sql-server-ver16
+            Instructions for MAC can be found at https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver16 ''')
+
 
 
 class DatabaseConfigHelper:
@@ -178,6 +207,7 @@ def database_ready(
     :type timeout: float
     :type poll_freq: float
     """
+    is_driver_installed(database)
     errors = []
 
     t0 = time.time()
