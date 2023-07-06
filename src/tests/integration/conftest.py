@@ -224,7 +224,7 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 
 
 @pytest.fixture(scope="session")
-def setup_duckDB(test_table_name_dict, skip_on_live_mode):
+def setup_duckDB_orig(test_table_name_dict, skip_on_live_mode):
     engine = duckdb.connect(database=":memory:", read_only=False)
     return engine
 
@@ -307,11 +307,11 @@ VALUES (1), (2), (3),
 
 
 @pytest.fixture
-def ip_with_duckDB(ip_empty, setup_duckDB, test_table_name_dict):
+def ip_with_duckDB_orig(ip_empty, setup_duckDB_orig, test_table_name_dict):
     configKey = "duckDB"
     alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
 
-    engine = setup_duckDB
+    engine = setup_duckDB_orig
     ip_empty.push({"conn": engine})
     names = test_table_name_dict
 
@@ -321,10 +321,8 @@ def ip_with_duckDB(ip_empty, setup_duckDB, test_table_name_dict):
     ip_empty = add_tables_duckdb(ip_empty, names)
     yield ip_empty
 
-    # Disconnect database
-    # ip_empty.run_cell("%sql -x " + alias)
-    # tear_down_generic_testing_data(engine, test_table_name_dict)
-    # engine.close()
+    # Cannot close the connection
+    # As `%sql -x` doesn't works with custom driver
 
 
 @pytest.fixture(scope="session")
