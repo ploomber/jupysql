@@ -16,7 +16,8 @@ import pytest
         ),
     ],
 )
-def test_auto_commit_mode_on(ip, exp, caplog):
+def test_auto_commit_mode_on(ip, exp, caplog, request):
+    ip = request.getfixturevalue(ip)
     with caplog.at_level(logging.DEBUG):
         ip.run_cell("%config SqlMagic.autocommit=True")
         ip.run_cell("%sql CREATE TABLE weather4 (city VARCHAR,);")
@@ -36,7 +37,8 @@ def test_auto_commit_mode_on(ip, exp, caplog):
         ("ip_with_duckDB_orig"),
     ],
 )
-def test_auto_commit_mode_off(ip, caplog):
+def test_auto_commit_mode_off(ip, caplog, request):
+    ip = request.getfixturevalue(ip)
     with caplog.at_level(logging.DEBUG):
         ip.run_cell("%config SqlMagic.autocommit=False")
         ip.run_cell("%sql CREATE TABLE weather (city VARCHAR,);")
