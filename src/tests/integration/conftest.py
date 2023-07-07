@@ -326,6 +326,33 @@ def ip_with_duckDB_orig(ip_empty, setup_duckDB_orig, test_table_name_dict):
 
 
 @pytest.fixture(scope="session")
+def setup_duckDB(test_table_name_dict, skip_on_live_mode):
+    engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("duckDB"))
+    # Load pre-defined datasets
+    load_generic_testing_data(engine, test_table_name_dict)
+    yield engine
+    tear_down_generic_testing_data(engine, test_table_name_dict)
+    engine.dispose()
+
+
+@pytest.fixture
+def ip_with_duckDB(ip_empty, setup_duckDB):
+    configKey = "duckDB"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+
+    # Select database engine, use different sqlite database endpoint
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + alias
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + alias)
+
+
+@pytest.fixture(scope="session")
 def setup_MSSQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mssql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("MSSQL"))
