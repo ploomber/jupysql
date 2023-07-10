@@ -232,13 +232,16 @@ def setup_duckDB_orig(test_table_name_dict, skip_on_live_mode):
 def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
     ip.run_cell("import pandas as pd")
     ip.run_cell(
-        f"""{test_table_name_dict['taxi']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+        f"""{test_table_name_dict['taxi']} = pd.DataFrame({{'taxi_driver_name':
+          ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     ip.run_cell(
-        f"""{test_table_name_dict['plot_something']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+        f"""{test_table_name_dict['plot_something']} = pd.DataFrame({{'
+        taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     ip.run_cell(
-        f"""{test_table_name_dict['numbers']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+        f"""{test_table_name_dict['numbers']} = pd.DataFrame({{'taxi_driver_name':
+          ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     return ip
 
