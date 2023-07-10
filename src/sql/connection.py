@@ -601,7 +601,7 @@ class Connection:
 
         return identifiers
 
-    def _transpile_query(self, query):
+    def _transpile_query(self, query, read=None):
         """Translate the given SQL clause that's compatible to current connected
         dialect by sqlglot
 
@@ -617,11 +617,11 @@ class Connection:
         """
         write_dialect = self._get_curr_sqlglot_dialect()
         try:
-            query = sqlglot.parse_one(query, read="mysql").sql(dialect=write_dialect)
+            query = sqlglot.parse_one(query, read=read).sql(dialect=write_dialect)
         finally:
             return query
 
-    def _prepare_query(self, query, with_=None) -> str:
+    def _prepare_query(self, query, with_=None, read=None) -> str:
         """
         Returns a textual representation of a query based
         on the current connection
@@ -637,7 +637,7 @@ class Connection:
         if with_:
             query = str(store.render(query, with_=with_))
 
-        query = self._transpile_query(query)
+        query = self._transpile_query(query, read=read)
 
         if self.is_custom_connection():
             query = str(query)
