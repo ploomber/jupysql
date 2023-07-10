@@ -51,8 +51,8 @@ def mock_log_api(monkeypatch):
 )
 def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out = ip_with_dynamic_db.run_line_magic(
-        "sql", f"SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
+    out = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
     )
 
     # Test query with --with & --save
@@ -64,7 +64,7 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         "%sql --with taxi_subset SELECT * FROM taxi_subset"
     )
 
-    assert len(out) == expected
+    assert len(out.result) == expected
     assert len(out_query_with_save_arg.result) == expected
 
 

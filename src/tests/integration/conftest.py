@@ -229,80 +229,17 @@ def setup_duckDB_orig(test_table_name_dict, skip_on_live_mode):
     return engine
 
 
-def add_tables_duckdb(ip, names):
+def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell("import pandas as pd")
     ip.run_cell(
-        f"""
-%%sql
-DROP TABLE IF EXISTS {names["taxi"]};
-
-CREATE TABLE {names["taxi"]} (
-    taxi_driver_name VARCHAR(50)
-);
-
-INSERT INTO {names["taxi"]} (taxi_driver_name)
-VALUES ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly'),
-    ('Eric Ken'), ('John Smith'), ('Kevin Kelly');
-    """
+        f"""{test_table_name_dict['taxi']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     ip.run_cell(
-        f"""
-%%sql
-DROP TABLE IF EXISTS {names["plot_something"]};
-
-CREATE TABLE {names["plot_something"]} (
-    x INTEGER,
-    y INTEGER
-);
-
-INSERT INTO {names["plot_something"]} (x, y)
-VALUES (0, 5), (1, 6), (2, 7), (3, 8), (4, 9);
-"""
+        f"""{test_table_name_dict['plot_something']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     ip.run_cell(
-        f"""
-%%sql
-DROP TABLE IF EXISTS {names["numbers"]};
-
-CREATE TABLE {names["numbers"]} (
-    numbers_elements INTEGER
-);
-
-INSERT INTO {names["numbers"]} (numbers_elements)
-VALUES (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3),
-    (1), (2), (3);
-"""
+        f"""{test_table_name_dict['numbers']} = pd.DataFrame({{'taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
-
     return ip
 
 
@@ -313,13 +250,12 @@ def ip_with_duckDB_orig(ip_empty, setup_duckDB_orig, test_table_name_dict):
 
     engine = setup_duckDB_orig
     ip_empty.push({"conn": engine})
-    names = test_table_name_dict
 
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell("%sql conn" + " --alias " + alias)
-
-    ip_empty = add_tables_duckdb(ip_empty, names)
+    ip_empty = load_generic_testing_data_duckdb_native(ip_empty, test_table_name_dict)
     yield ip_empty
+    # TODO: Need to tear_down_generic_testing_data for duckDB_native
 
     # Cannot close the connection
     # As `%sql -x` doesn't works with custom driver
