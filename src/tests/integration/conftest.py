@@ -236,12 +236,11 @@ def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
           ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
     )
     ip.run_cell(
-        f"""{test_table_name_dict['plot_something']} = pd.DataFrame({{'
-        taxi_driver_name': ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+        f"""{test_table_name_dict['plot_something']} = pd.DataFrame(
+            {{"x": range(0, 5), "y": range(5, 10)}} )"""
     )
     ip.run_cell(
-        f"""{test_table_name_dict['numbers']} = pd.DataFrame({{'taxi_driver_name':
-          ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+        f"""{test_table_name_dict['numbers']} = pd.DataFrame({{"numbers_elements": [1, 2, 3] * 20}} )"""
     )
     return ip
 
