@@ -246,6 +246,13 @@ def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
     return ip
 
 
+def teardown_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell(f"del {test_table_name_dict['taxi']}")
+    ip.run_cell(f"del {test_table_name_dict['plot_something']}")
+    ip.run_cell(f"del {test_table_name_dict['numbers']}")
+    return ip_empty
+
+
 @pytest.fixture
 def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
     configKey = "duckDB"
@@ -254,14 +261,14 @@ def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
     engine = setup_duckDB_native
     ip_empty.push({"conn": engine})
 
-    # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell("%sql conn" + " --alias " + alias)
     ip_empty = load_generic_testing_data_duckdb_native(ip_empty, test_table_name_dict)
     yield ip_empty
-    # TODO: Need to tear_down_generic_testing_data for duckDB_native
 
-    # Cannot close the connection
-    # As `%sql -x` doesn't works with custom driver
+    ip_empty = teardown_generic_testing_data_duckdb_native(
+        ip_empty, test_table_name_dict
+    )
+    ip_empty.run_cell("%sql --close " + alias)
 
 
 @pytest.fixture(scope="session")
