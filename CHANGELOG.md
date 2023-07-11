@@ -4,12 +4,17 @@
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
+* [Feature] Added a line under `ResultSet` to distinguish it from data frame and error message when invalid operations are performed (#468)
+* [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
+
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
 * [Doc] Document --persist-replace in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
 * [Fix] Added support for `profile` and `explore` commands with saved snippets (#658)
+* [Fix] Used display module when generating CTE (#649)
+
 
 ## 0.7.9 (2023-06-19)
 
