@@ -18,3 +18,19 @@ myst:
 ---
 
 # Sharing notebooks
+
+```{versionadded} 0.1.6
+Notebook sharing requires `jupysql-plugin>=0.1.6`
+```
+
+You can share notebooks with the click of a button using our JupyterLab integration.
+
+![](../static/share-notebook.png)
+
+## Installation
+
+```sh
+pip install jupysql-plugin
+```
+
+> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/quickstart/signup.html)**
