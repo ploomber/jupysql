@@ -252,7 +252,7 @@ def support_only_sql_alchemy_connection(command):
 
 
 def fetch_sql_with_pagination(
-    table, offset, n_rows, sort_column=None, sort_order=None
+    table, offset, n_rows, sort_column=None, sort_order=None, with_clause=""
 ) -> tuple:
     """
     Returns next n_rows and columns from table starting at the offset
@@ -274,19 +274,22 @@ def fetch_sql_with_pagination(
 
     sort_order : 'DESC' or 'ASC', default None
         Order list
+    
+    with_clause : str, default ""
+        Name of the snippet used to generate the table
     """
-    is_table_exists(table)
+    _check_table_exists(table)
 
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
-
     query = f"""
+    {with_clause}
     SELECT * FROM {table} {order_by}
-    OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
+    LIMIT {n_rows} OFFSET {offset}"""
 
     rows = Connection.current.execute(query).fetchall()
 
     columns = sql.run.raw_run(
-        Connection.current, f"SELECT * FROM {table} WHERE 1=0"
+        Connection.current, f"{with_clause} SELECT * FROM {table} WHERE 1=0"
     ).keys()
 
     return rows, columns
@@ -360,3 +363,21 @@ def show_deprecation_warning():
         "raise an exception in the next major release so please remove it.",
         FutureWarning,
     )
+
+def _check_table_exists(table, schema=None):
+    """
+    Check if the referenced table is a snippet
+    Parameters
+    ----------
+    table : str, name of table
+    Returns
+    -------
+    with_ : str, default None
+        name of the snippet
+    """
+    with_ = None
+    if is_saved_snippet(table):
+        with_ = [table]
+    else:
+        is_table_exists(table, schema)
+    return with_

@@ -9,6 +9,7 @@ import math
 from sql import util
 from IPython.core.display import HTML
 import uuid
+from sql.store import store
 
 
 def _get_inspector(conn):
@@ -173,7 +174,7 @@ class Columns(DatabaseInspection):
     """
 
     def __init__(self, name, schema, conn=None) -> None:
-        util.is_table_exists(name, schema)
+        util._check_table_exists(name, schema)
 
         inspector = _get_inspector(conn)
 
@@ -231,13 +232,18 @@ class TableDescription(DatabaseInspection):
     """
 
     def __init__(self, table_name, schema=None) -> None:
-        util.is_table_exists(table_name, schema)
+        with_ = util._check_table_exists(table_name, schema)
 
         if schema:
             table_name = f"{schema}.{table_name}"
 
+        if with_:
+            with_clause = str(store.render("", with_=with_))
+        else:
+            with_clause = ""
+
         columns_query_result = sql.run.raw_run(
-            Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
+            Connection.current, f"{with_clause} SELECT * FROM {table_name} WHERE 1=0"
         )
         if Connection.is_custom_connection():
             columns = [i[0] for i in columns_query_result.description]
@@ -255,7 +261,7 @@ class TableDescription(DatabaseInspection):
             # check the datatype of a column
             try:
                 result = sql.run.raw_run(
-                    Connection.current, f"""SELECT {column} FROM {table_name} LIMIT 1"""
+                    Connection.current, f"""{with_clause} SELECT {column} FROM {table_name} LIMIT 1"""
                 ).fetchone()
 
                 value = result[0]
@@ -272,7 +278,7 @@ class TableDescription(DatabaseInspection):
             try:
                 result_col_freq_values = sql.run.raw_run(
                     Connection.current,
-                    f"""SELECT DISTINCT {column} as top,
+                    f"""{with_clause} SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
                     GROUP BY top ORDER BY frequency Desc""",
                 ).fetchall()
@@ -289,7 +295,7 @@ class TableDescription(DatabaseInspection):
                 # get all non None values, min, max and avg.
                 result_value_values = sql.run.raw_run(
                     Connection.current,
-                    f"""
+                    f"""{with_clause} 
                     SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
                     COUNT({column}) AS count
@@ -314,6 +320,7 @@ class TableDescription(DatabaseInspection):
                 result_value_values = sql.run.raw_run(
                     Connection.current,
                     f"""
+                    {with_clause}
                     SELECT
                     COUNT(DISTINCT {column}) AS unique_count
                     FROM {table_name}
@@ -329,6 +336,7 @@ class TableDescription(DatabaseInspection):
                 results_avg = sql.run.raw_run(
                     Connection.current,
                     f"""
+                    {with_clause} 
                                 SELECT AVG({column}) AS avg
                                 FROM {table_name}
                                 WHERE {column} IS NOT NULL
@@ -349,6 +357,7 @@ class TableDescription(DatabaseInspection):
                 result = sql.run.raw_run(
                     Connection.current,
                     f"""
+                    {with_clause} 
                     SELECT
                         stddev_pop({column}) as key_std,
                         percentile_disc(0.25) WITHIN GROUP
