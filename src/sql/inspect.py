@@ -37,6 +37,7 @@ class Tables(DatabaseInspection):
 
     def __init__(self, schema=None, conn=None) -> None:
         inspector = _get_inspector(conn)
+
         self._table = PrettyTable()
         self._table.field_names = ["Name"]
 
