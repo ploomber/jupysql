@@ -179,6 +179,7 @@ def strip_multiple_chars(string: str, chars: str) -> str:
 
 def is_saved_snippet(table: str) -> bool:
     if table in list(store):
+        print(f"Plotting using saved snippet : {table}")
         return True
     return False
 
