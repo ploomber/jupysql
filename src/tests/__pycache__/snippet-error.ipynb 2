@@ -1,0 +1,554 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "9136a98a-1151-400b-9a83-8b618b6ecaf0",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "%load_ext sql\n",
+    "%sql sqlite://"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "a938708d-36f5-4702-93ba-eee0d781cfe9",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<span style=\"color: green\">1 rows affected.</span>"
+      ],
+      "text/plain": [
+       "1 rows affected."
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<span style=\"color: green\">1 rows affected.</span>"
+      ],
+      "text/plain": [
+       "1 rows affected."
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/plain": []
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%sql sqlite:// CREATE TABLE people (name varchar(50),age varchar(50),number int, country varchar(50),gender_1 varchar(50), gender_2 varchar(50)); INSERT INTO people VALUES ('joe', '48', 82, 'usa', '0', 'male'); INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "f6018014-0237-45c7-84bd-1a4933080b83",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<span style=\"None\">Running query in &#x27;sqlite://&#x27;</span>"
+      ],
+      "text/plain": [
+       "Running query in 'sqlite://'"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<table>\n",
+       "    <thead>\n",
+       "        <tr>\n",
+       "            <th>name</th>\n",
+       "            <th>age</th>\n",
+       "            <th>number</th>\n",
+       "            <th>country</th>\n",
+       "            <th>gender_1</th>\n",
+       "            <th>gender_2</th>\n",
+       "        </tr>\n",
+       "    </thead>\n",
+       "    <tbody>\n",
+       "        <tr>\n",
+       "            <td>joe</td>\n",
+       "            <td>48</td>\n",
+       "            <td>82</td>\n",
+       "            <td>usa</td>\n",
+       "            <td>0</td>\n",
+       "            <td>male</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>paula</td>\n",
+       "            <td>50</td>\n",
+       "            <td>93</td>\n",
+       "            <td>uk</td>\n",
+       "            <td>1</td>\n",
+       "            <td>female</td>\n",
+       "        </tr>\n",
+       "    </tbody>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "+-------+-----+--------+---------+----------+----------+\n",
+       "|  name | age | number | country | gender_1 | gender_2 |\n",
+       "+-------+-----+--------+---------+----------+----------+\n",
+       "|  joe  |  48 |   82   |   usa   |    0     |   male   |\n",
+       "| paula |  50 |   93   |    uk   |    1     |  female  |\n",
+       "+-------+-----+--------+---------+----------+----------+"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%sql select * from people"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "fb42cd7c-78f2-4a3a-b1c4-d4caa5d4d771",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<span style=\"None\">Running query in &#x27;sqlite://&#x27;</span>"
+      ],
+      "text/plain": [
+       "Running query in 'sqlite://'"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<table>\n",
+       "    <thead>\n",
+       "        <tr>\n",
+       "            <th>name</th>\n",
+       "            <th>age</th>\n",
+       "            <th>number</th>\n",
+       "            <th>country</th>\n",
+       "            <th>gender_1</th>\n",
+       "            <th>gender_2</th>\n",
+       "        </tr>\n",
+       "    </thead>\n",
+       "    <tbody>\n",
+       "        <tr>\n",
+       "            <td>joe</td>\n",
+       "            <td>48</td>\n",
+       "            <td>82</td>\n",
+       "            <td>usa</td>\n",
+       "            <td>0</td>\n",
+       "            <td>male</td>\n",
+       "        </tr>\n",
+       "    </tbody>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "+------+-----+--------+---------+----------+----------+\n",
+       "| name | age | number | country | gender_1 | gender_2 |\n",
+       "+------+-----+--------+---------+----------+----------+\n",
+       "| joe  |  48 |   82   |   usa   |    0     |   male   |\n",
+       "+------+-----+--------+---------+----------+----------+"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%%sql --save joe\n",
+    "select * from people where name = 'joe'"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "baf46de7-7eee-4dc2-99dc-514d6a08c95d",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Generating CTE with stored snippets : joe\n"
+     ]
+    },
+    {
+     "data": {
+      "text/html": [
+       "<span style=\"None\">Running query in &#x27;sqlite://&#x27;</span>"
+      ],
+      "text/plain": [
+       "Running query in 'sqlite://'"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/html": [
+       "<table>\n",
+       "    <thead>\n",
+       "        <tr>\n",
+       "            <th>name</th>\n",
+       "            <th>age</th>\n",
+       "            <th>number</th>\n",
+       "            <th>country</th>\n",
+       "            <th>gender_1</th>\n",
+       "            <th>gender_2</th>\n",
+       "        </tr>\n",
+       "    </thead>\n",
+       "    <tbody>\n",
+       "        <tr>\n",
+       "            <td>joe</td>\n",
+       "            <td>48</td>\n",
+       "            <td>82</td>\n",
+       "            <td>usa</td>\n",
+       "            <td>0</td>\n",
+       "            <td>male</td>\n",
+       "        </tr>\n",
+       "    </tbody>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "+------+-----+--------+---------+----------+----------+\n",
+       "| name | age | number | country | gender_1 | gender_2 |\n",
+       "+------+-----+--------+---------+----------+----------+\n",
+       "| joe  |  48 |   82   |   usa   |    0     |   male   |\n",
+       "+------+-----+--------+---------+----------+----------+"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%%sql\n",
+    "select * from joe"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "da0fb91f-0ebe-4af4-867b-a81979ec4c97",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<table>\n",
+       "    <thead>\n",
+       "        <tr>\n",
+       "            <th>Name</th>\n",
+       "        </tr>\n",
+       "    </thead>\n",
+       "    <tbody>\n",
+       "        <tr>\n",
+       "            <td>people</td>\n",
+       "        </tr>\n",
+       "    </tbody>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "+--------+\n",
+       "|  Name  |\n",
+       "+--------+\n",
+       "| people |\n",
+       "+--------+"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%sqlcmd tables"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "8d79c038-f872-417c-9d89-2028ac782ab0",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div style='position: sticky; left: 0; padding: 10px; font-size: 12px; color: #FFA500'><strong></strong> Following statistics are not available in\n",
+       "            pysqlite: STD, 25%, 50%, 75%</div><style>\n",
+       " #profile-table td:first-child {\n",
+       "  position: sticky;\n",
+       "  left: 0;\n",
+       "  background-color: var(--jp-cell-editor-background);\n",
+       "  font-weight: bold;\n",
+       "}\n",
+       " #profile-table thead tr th:first-child {\n",
+       "  position: sticky;\n",
+       "  left: 0;\n",
+       "  background-color: var(--jp-cell-editor-background);\n",
+       "  font-weight: bold; /* Adding bold text */\n",
+       "}\n",
+       "            </style><style>\n",
+       "        #profile-table-b371616d99944101afad36e7b5061415 td:nth-child(3) {\n",
+       "            background-color: #FFFFCC;\n",
+       "            color: black;\n",
+       "        }\n",
+       "        \n",
+       "        #profile-table-b371616d99944101afad36e7b5061415 td:nth-child(6) {\n",
+       "            background-color: #FFFFCC;\n",
+       "            color: black;\n",
+       "        }\n",
+       "        </style><table id=\"profile-table-b371616d99944101afad36e7b5061415\">\n",
+       "    <thead>\n",
+       "        <tr>\n",
+       "            <th> </th>\n",
+       "            <th>name</th>\n",
+       "            <th>age</th>\n",
+       "            <th>number</th>\n",
+       "            <th>country</th>\n",
+       "            <th>gender_1</th>\n",
+       "            <th>gender_2</th>\n",
+       "        </tr>\n",
+       "    </thead>\n",
+       "    <tbody>\n",
+       "        <tr>\n",
+       "            <td>count</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>unique</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "            <td>2</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>top</td>\n",
+       "            <td>paula</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>usa</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>male</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>freq</td>\n",
+       "            <td>1</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>1</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>1</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>mean</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>49.0000</td>\n",
+       "            <td>87.5000</td>\n",
+       "            <td>nan</td>\n",
+       "            <td>0.5000</td>\n",
+       "            <td>nan</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>min</td>\n",
+       "            <td>nan</td>\n",
+       "            <td></td>\n",
+       "            <td>82</td>\n",
+       "            <td>nan</td>\n",
+       "            <td></td>\n",
+       "            <td>nan</td>\n",
+       "        </tr>\n",
+       "        <tr>\n",
+       "            <td>max</td>\n",
+       "            <td>nan</td>\n",
+       "            <td></td>\n",
+       "            <td>93</td>\n",
+       "            <td>nan</td>\n",
+       "            <td></td>\n",
+       "            <td>nan</td>\n",
+       "        </tr>\n",
+       "    </tbody>\n",
+       "</table><div style='position: sticky; left: 0; padding: 10px; font-size: 12px; color: black; background-color: #FFFFCC;'><strong>Warning: </strong> Columns <code>age</code><code>gender_1</code> have a datatype mismatch -> numeric values stored as a string. <br> Cannot calculate mean/min/max/std/percentiles</div>"
+      ],
+      "text/plain": [
+       "+--------+-------+---------+---------+---------+----------+----------+\n",
+       "|        |  name |   age   |  number | country | gender_1 | gender_2 |\n",
+       "+--------+-------+---------+---------+---------+----------+----------+\n",
+       "| count  |   2   |    2    |    2    |    2    |    2     |    2     |\n",
+       "| unique |   2   |    2    |    2    |    2    |    2     |    2     |\n",
+       "|  top   | paula |   nan   |   nan   |   usa   |   nan    |   male   |\n",
+       "|  freq  |   1   |   nan   |   nan   |    1    |   nan    |    1     |\n",
+       "|  mean  |  nan  | 49.0000 | 87.5000 |   nan   |  0.5000  |   nan    |\n",
+       "|  min   |  nan  |         |    82   |   nan   |          |   nan    |\n",
+       "|  max   |  nan  |         |    93   |   nan   |          |   nan    |\n",
+       "+--------+-------+---------+---------+---------+----------+----------+"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "%sqlcmd profile -t people"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "50bdbff6-b02e-481b-982e-7ac7c2c39245",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "TableNotFoundError: There is no table with name 'joe' in the default schema\n",
+      "Did you mean : 'joe'\n",
+      "If you need help solving this issue, send us a message: https://ploomber.io/community\n"
+     ]
+    }
+   ],
+   "source": [
+    "%sqlcmd profile -t joe"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "cb0535de-71ef-4789-8ac2-2b43c2976234",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "TableNotFoundError: There is no table with name 'joe' in the default schema\n",
+      "Did you mean : 'joe'\n"
+     ]
+    }
+   ],
+   "source": [
+    "%sqlcmd explore -t joe"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "6496904e-e333-4961-b5f8-fcf585b33297",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Plotting using saved snippet : joe\n",
+      "Removing NULLs, if there exists any from age\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<Axes: title={'center': 'joe'}, xlabel='age', ylabel='Count'>"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "%sqlplot bar -t joe -c age"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

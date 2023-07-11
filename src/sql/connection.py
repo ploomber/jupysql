@@ -643,7 +643,6 @@ class Connection:
             query = str(query)
         else:
             query = sqlalchemy.sql.text(query)
-
         return query
 
     def execute(self, query, with_=None):
@@ -673,6 +672,7 @@ class CustomSession(sqlalchemy.engine.base.Connection):
         )
 
     def execute(self, query):
+        print("new exec")
         cur = self.engine.cursor()
         cur.execute(query)
         return cur

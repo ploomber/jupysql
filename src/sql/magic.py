@@ -471,7 +471,6 @@ class SqlMagic(Magics, Configurable):
 
         try:
             result = sql.run.run(conn, command.sql, self)
-
             if (
                 result is not None
                 and not isinstance(result, str)

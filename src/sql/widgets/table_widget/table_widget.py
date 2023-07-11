@@ -7,7 +7,9 @@ from sql.util import (
     fetch_sql_with_pagination,
     parse_sql_results_to_json,
     is_table_exists,
+    _check_table_exists,
 )
+from sql.store import store
 
 from sql.widgets import utils
 from sql.telemetry import telemetry
@@ -33,7 +35,15 @@ class TableWidget:
 
         self.html = ""
 
-        is_table_exists(table)
+        self.with_ = _check_table_exists(table)
+
+        if self.with_ is None:
+            is_table_exists(table)
+
+        if self.with_:
+            self.with_clause = str(store.render("", with_=self.with_))
+        else:
+            self.with_clause = ""
 
         # load css
         html_style = utils.load_css(f"{BASE_DIR}/css/tableWidget.css")
@@ -58,10 +68,13 @@ class TableWidget:
         Creates an HTML table with default data
         """
         rows_per_page = 10
-        rows, columns = fetch_sql_with_pagination(table, 0, rows_per_page)
+
+        rows, columns = fetch_sql_with_pagination(
+            table, 0, rows_per_page, with_clause=self.with_clause
+        )
         rows = parse_sql_results_to_json(rows, columns)
 
-        query = f"SELECT count(*) FROM {table}"
+        query = f"{self.with_clause} SELECT count(*) FROM {table}"
         n_total = Connection.current.session.execute(
             sqlalchemy.sql.text(query)
         ).fetchone()[0]
@@ -187,6 +200,7 @@ class TableWidget:
                     n_rows,
                     sort_column=sort_column,
                     sort_order=sort_order,
+                    with_clause=self.with_clause,
                 )
                 rows_json = parse_sql_results_to_json(rows, columns)
 

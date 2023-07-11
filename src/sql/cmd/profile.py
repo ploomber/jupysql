@@ -31,7 +31,6 @@ def profile(others):
     )
 
     args = parser.parse_args(others)
-
     report = inspect.get_table_statistics(schema=args.schema, name=args.table)
 
     if args.output:

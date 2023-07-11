@@ -364,6 +364,64 @@ def test_table_profile_is_numeric(ip, tmp_empty):
     )
 
 
+def test_table_profile_with_snippets(ip, tmp_empty):
+    ip.run_cell(
+        """
+        %%sql duckdb://
+        CREATE TABLE people (name varchar(50), number int, country varchar(50));
+
+        INSERT INTO people VALUES ('joe', 82, 'usa');
+        INSERT INTO people VALUES ('paula', 93, 'uk');
+        INSERT INTO people VALUES ('sam', 77, 'canada');
+        INSERT INTO people VALUES ('emily', 65, 'usa');
+        INSERT INTO people VALUES ('michael', 89, 'usa');
+        INSERT INTO people VALUES ('sarah', 81, 'uk');
+        INSERT INTO people VALUES ('james', 76, 'usa');
+        INSERT INTO people VALUES ('angela', 88, 'usa');
+        INSERT INTO people VALUES ('robert', 82, 'usa');
+        INSERT INTO people VALUES ('lisa', 92, 'uk');
+        INSERT INTO people VALUES ('mark', 77, 'usa');
+        INSERT INTO people VALUES ('jennifer', 68, 'australia');
+        """
+    )
+    ip.run_cell(
+        """
+        %%sql --save citizen
+        select * from people where country = 'usa'
+        """
+    )
+    out = ip.run_cell("%sqlcmd profile -t citizen").result
+
+    expected = {
+        "count": [7, 7, 7],
+        "mean": [math.nan, "79.8571", math.nan],
+        "min": [math.nan, 65, math.nan],
+        "max": [math.nan, 89, math.nan],
+        "unique": [7, 6, 1],
+        "freq": [1, math.nan, 7],
+        "top": ["joe", math.nan, "usa"],
+        "std": [math.nan, "7.5862", math.nan],
+        "25%": [math.nan, "76.0000", math.nan],
+        "50%": [math.nan, "82.0000", math.nan],
+        "75%": [math.nan, "88.0000", math.nan],
+    }
+
+    stats_table = out._table
+
+    assert len(stats_table.rows) == len(expected)
+
+    for row in stats_table:
+        profile_metric = _get_row_string(row, " ")
+        name = _get_row_string(row, "name")
+        number = _get_row_string(row, "number")
+        country = _get_row_string(row, "country")
+
+        assert profile_metric in expected
+        assert name == str(expected[profile_metric][0])
+        assert number == str(expected[profile_metric][1])
+        assert country == str(expected[profile_metric][2])
+
+
 def test_table_profile_store(ip, tmp_empty):
     ip.run_cell(
         """
