@@ -11,7 +11,7 @@ import pytest
             "'set_isolation_level'\n",
         ),
         (
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             "'CustomSession' object has no attribute '_has_events'",
         ),
     ],
@@ -34,7 +34,7 @@ def test_auto_commit_mode_on(ip, exp, caplog, request):
     "ip",
     [
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_orig"),
+        ("ip_with_duckDB_native"),
     ],
 )
 def test_auto_commit_mode_off(ip, caplog, request):

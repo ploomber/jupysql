@@ -224,7 +224,7 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 
 
 @pytest.fixture(scope="session")
-def setup_duckDB_orig(test_table_name_dict, skip_on_live_mode):
+def setup_duckDB_native(test_table_name_dict, skip_on_live_mode):
     engine = duckdb.connect(database=":memory:", read_only=False)
     return engine
 
@@ -247,11 +247,11 @@ def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_duckDB_orig(ip_empty, setup_duckDB_orig, test_table_name_dict):
+def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
     configKey = "duckDB"
     alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
 
-    engine = setup_duckDB_orig
+    engine = setup_duckDB_native
     ip_empty.push({"conn": engine})
 
     # Select database engine, use different sqlite database endpoint

@@ -12,7 +12,7 @@ ALL_DATABASES = [
     "ip_with_mySQL",
     "ip_with_mariaDB",
     "ip_with_SQLite",
-    "ip_with_duckDB_orig",
+    "ip_with_duckDB_native",
     "ip_with_duckDB",
     "ip_with_MSSQL",
     "ip_with_Snowflake",
@@ -44,7 +44,7 @@ def mock_log_api(monkeypatch):
         ("ip_with_mySQL", 3),
         ("ip_with_mariaDB", 3),
         ("ip_with_SQLite", 3),
-        ("ip_with_duckDB_orig", 3),
+        ("ip_with_duckDB_native", 3),
         ("ip_with_duckDB", 3),
         ("ip_with_Snowflake", 3),
     ],
@@ -78,7 +78,7 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         ("ip_with_SQLite", 15, 15),
         ("ip_with_duckDB", 15, 15),
         pytest.param(
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             15,
             15,
             marks=pytest.mark.xfail(
@@ -143,7 +143,7 @@ def get_connection_count(ip_with_dynamic_db):
         ("ip_with_mariaDB", 1),
         ("ip_with_SQLite", 1),
         ("ip_with_duckDB", 1),
-        ("ip_with_duckDB_orig", 1),
+        ("ip_with_duckDB_native", 1),
         ("ip_with_MSSQL", 1),
         ("ip_with_Snowflake", 1),
     ],
@@ -161,7 +161,7 @@ def test_active_connection_number(ip_with_dynamic_db, expected, request):
         ("ip_with_mariaDB", "mariaDB"),
         ("ip_with_SQLite", "SQLite"),
         ("ip_with_duckDB", "duckDB"),
-        ("ip_with_duckDB_orig", "duckDB"),
+        ("ip_with_duckDB_native", "duckDB"),
         ("ip_with_MSSQL", "MSSQL"),
         ("ip_with_Snowflake", "Snowflake"),
         ("ip_with_oracle", "oracle"),
@@ -195,7 +195,7 @@ def test_close_and_connect(
         ("ip_with_mariaDB", "mysql", "pymysql"),
         ("ip_with_SQLite", "sqlite", "pysqlite"),
         ("ip_with_duckDB", "duckdb", "duckdb_engine"),
-        ("ip_with_duckDB_orig", None, None),
+        ("ip_with_duckDB_native", None, None),
         ("ip_with_MSSQL", "mssql", "pyodbc"),
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
@@ -250,7 +250,7 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_orig"),
+        ("ip_with_duckDB_native"),
         pytest.param(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
@@ -307,7 +307,7 @@ BOX_PLOT_FAIL_REASON = (
         pytest.param("ip_with_postgreSQL"),
         pytest.param("ip_with_duckDB"),
         pytest.param(
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Custom driver not supported"),
         ),
         pytest.param(
@@ -349,7 +349,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_orig"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
@@ -387,7 +387,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_orig"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         pytest.param(
             "ip_with_Snowflake",
@@ -421,7 +421,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_orig"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         pytest.param(
             "ip_with_Snowflake",
@@ -552,7 +552,7 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
             None,
         ),
         (
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             "taxi",
             ["index", "taxi_driver_name"],
             {
@@ -651,7 +651,7 @@ def test_profile_query(
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
         pytest.param(
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Bug #428"),
         ),
         ("ip_with_MSSQL"),
@@ -677,7 +677,7 @@ def test_sqlcmd_tables_columns(
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
         pytest.param(
-            "ip_with_duckDB_orig",
+            "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Bug #428"),
         ),
         ("ip_with_MSSQL"),
