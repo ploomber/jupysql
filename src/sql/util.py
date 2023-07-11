@@ -106,7 +106,6 @@ def is_table_exists(
             expected = []
             existing_schemas = []
             existing_tables = []
-
             if try_find_suggestions:
                 existing_schemas = inspect.get_schema_names()
 
@@ -367,7 +366,7 @@ def show_deprecation_warning():
     )
 
 
-def _check_table_exists(table):
+def _check_table_exists(table, schema=None):
     """
     Check if the referenced table is a snippet
     Parameters
@@ -383,5 +382,5 @@ def _check_table_exists(table):
     if is_saved_snippet(table):
         with_ = [table]
     else:
-        is_table_exists(table)
+        is_table_exists(table, schema)
     return with_

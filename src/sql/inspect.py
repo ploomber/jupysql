@@ -174,8 +174,7 @@ class Columns(DatabaseInspection):
     """
 
     def __init__(self, name, schema, conn=None) -> None:
-        if util._check_table_exists(name) is False:
-            util.is_table_exists(name)
+        util._check_table_exists(name, schema)
 
         inspector = _get_inspector(conn)
 
@@ -233,9 +232,7 @@ class TableDescription(DatabaseInspection):
     """
 
     def __init__(self, table_name, schema=None) -> None:
-        with_ = util._check_table_exists(table_name)
-        if with_ is None:
-            util.is_table_exists(table_name, schema)
+        with_ = util._check_table_exists(table_name, schema)
 
         if schema:
             table_name = f"{schema}.{table_name}"
