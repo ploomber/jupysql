@@ -274,7 +274,7 @@ def fetch_sql_with_pagination(
 
     sort_order : 'DESC' or 'ASC', default None
         Order list
-    
+
     with_clause : str, default ""
         Name of the snippet used to generate the table
     """
@@ -363,6 +363,7 @@ def show_deprecation_warning():
         "raise an exception in the next major release so please remove it.",
         FutureWarning,
     )
+
 
 def _check_table_exists(table, schema=None):
     """

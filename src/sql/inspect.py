@@ -261,7 +261,8 @@ class TableDescription(DatabaseInspection):
             # check the datatype of a column
             try:
                 result = sql.run.raw_run(
-                    Connection.current, f"""{with_clause} SELECT {column} FROM {table_name} LIMIT 1"""
+                    Connection.current,
+                    f"""{with_clause} SELECT {column} FROM {table_name} LIMIT 1""",
                 ).fetchone()
 
                 value = result[0]
@@ -295,7 +296,8 @@ class TableDescription(DatabaseInspection):
                 # get all non None values, min, max and avg.
                 result_value_values = sql.run.raw_run(
                     Connection.current,
-                    f"""{with_clause} 
+                    f"""
+                    {with_clause}
                     SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
                     COUNT({column}) AS count
@@ -336,11 +338,11 @@ class TableDescription(DatabaseInspection):
                 results_avg = sql.run.raw_run(
                     Connection.current,
                     f"""
-                    {with_clause} 
-                                SELECT AVG({column}) AS avg
-                                FROM {table_name}
-                                WHERE {column} IS NOT NULL
-                                """,
+                    {with_clause}
+                    SELECT AVG({column}) AS avg
+                    FROM {table_name}
+                    WHERE {column} IS NOT NULL
+                    """,
                 ).fetchall()
 
                 columns_to_include_in_report.update(["mean"])
@@ -357,7 +359,7 @@ class TableDescription(DatabaseInspection):
                 result = sql.run.raw_run(
                     Connection.current,
                     f"""
-                    {with_clause} 
+                    {with_clause}
                     SELECT
                         stddev_pop({column}) as key_std,
                         percentile_disc(0.25) WITHIN GROUP

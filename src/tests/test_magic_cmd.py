@@ -390,6 +390,7 @@ def test_table_profile_store(ip, tmp_empty):
     report = Path("test_report.html")
     assert report.is_file()
 
+
 def test_table_profile_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
