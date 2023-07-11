@@ -250,7 +250,7 @@ def teardown_generic_testing_data_duckdb_native(ip, test_table_name_dict):
     ip.run_cell(f"del {test_table_name_dict['taxi']}")
     ip.run_cell(f"del {test_table_name_dict['plot_something']}")
     ip.run_cell(f"del {test_table_name_dict['numbers']}")
-    return ip_empty
+    return ip
 
 
 @pytest.fixture
