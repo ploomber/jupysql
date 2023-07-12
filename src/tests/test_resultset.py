@@ -1,6 +1,6 @@
 from unittest.mock import Mock, call
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from pathlib import Path
 
 
@@ -88,13 +88,14 @@ def _get_number_of_rows_in_html_table(html):
 @pytest.fixture
 def results(ip_empty):
     engine = create_engine("duckdb://")
+    session = engine.connect()
 
-    engine.execute("CREATE TABLE a (x INT,);")
+    session.execute(text("CREATE TABLE a (x INT,);"))
 
-    engine.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
+    session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
 
     sql = "SELECT * FROM a"
-    results = engine.execute(sql)
+    results = session.execute(text(sql))
 
     results.fetchmany = Mock(wraps=results.fetchmany)
     results.fetchall = Mock(wraps=results.fetchall)
@@ -104,17 +105,19 @@ def results(ip_empty):
 
     yield results
 
+    session.close()
+
 
 @pytest.mark.parametrize("uri", ["duckdb://", "sqlite://"])
 def test_convert_to_dataframe(ip_empty, uri):
     engine = create_engine(uri)
+    session = engine.connect()
 
     mock = Mock()
     mock.displaylimit = 100
     mock.autolimit = 100000
 
-    results = engine.execute("CREATE TABLE a (x INT);")
-    # results = engine.execute("CREATE TABLE test (n INT, name TEXT)")
+    results = session.execute(text("CREATE TABLE a (x INT);"))
 
     rs = ResultSet(results, mock)
     df = rs.DataFrame()
@@ -124,13 +127,14 @@ def test_convert_to_dataframe(ip_empty, uri):
 
 def test_convert_to_dataframe_2(ip_empty):
     engine = create_engine("duckdb://")
+    session = engine.connect()
 
     mock = Mock()
     mock.displaylimit = 100
     mock.autolimit = 100000
 
-    engine.execute("CREATE TABLE a (x INT,);")
-    results = engine.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
+    session.execute(text("CREATE TABLE a (x INT,);"))
+    results = session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
     rs = ResultSet(results, mock)
     df = rs.DataFrame()
 
@@ -140,17 +144,16 @@ def test_convert_to_dataframe_2(ip_empty):
 @pytest.mark.parametrize("uri", ["duckdb://", "sqlite://"])
 def test_convert_to_dataframe_3(ip_empty, uri):
     engine = create_engine(uri)
+    session = engine.connect()
 
     mock = Mock()
     mock.displaylimit = 100
     mock.autolimit = 100000
 
-    engine.execute("CREATE TABLE a (x INT);")
-    engine.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
-    results = engine.execute("SELECT * FROM a")
-    # from ipdb import set_trace
+    session.execute(text("CREATE TABLE a (x INT);"))
+    session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
+    results = session.execute(text("SELECT * FROM a"))
 
-    # set_trace()
     rs = ResultSet(results, mock, statement="SELECT * FROM a")
     df = rs.DataFrame()
 
@@ -195,14 +198,16 @@ def test_no_displaylimit(results, method, autolimit):
 
 def test_no_fetching_if_one_result():
     engine = create_engine("duckdb://")
-    engine.execute("CREATE TABLE a (x INT,);")
-    engine.execute("INSERT INTO a(x) VALUES (1);")
+    session = engine.connect()
+
+    session.execute(text("CREATE TABLE a (x INT,);"))
+    session.execute(text("INSERT INTO a(x) VALUES (1);"))
 
     mock = Mock()
     mock.displaylimit = 100
     mock.autolimit = 1000_000
 
-    results = engine.execute("SELECT * FROM a")
+    results = session.execute(text("SELECT * FROM a"))
     results.fetchmany = Mock(wraps=results.fetchmany)
     results.fetchall = Mock(wraps=results.fetchall)
     results.fetchone = Mock(wraps=results.fetchone)
