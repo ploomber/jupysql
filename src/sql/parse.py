@@ -53,10 +53,9 @@ def parse(cell, config):
             return result
         cell = pieces[1]
 
-    cell = cell.replace("\n", " ")
     pointer = cell.find("<<")
     if pointer != -1:
-        left = cell[:pointer].replace(" ", "")
+        left = cell[:pointer].replace(" ", "").replace("\n", "")
         right = cell[pointer + 2 :].strip(" ")
 
         if "=" in left:
