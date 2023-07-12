@@ -255,7 +255,7 @@ def support_only_sql_alchemy_connection(command):
 
 
 def fetch_sql_with_pagination(
-    table, offset, n_rows, sort_column=None, sort_order=None, with_clause=""
+    table, offset, n_rows, sort_column=None, sort_order=None, with_clause=None
 ) -> tuple:
     """
     Returns next n_rows and columns from table starting at the offset
@@ -278,11 +278,13 @@ def fetch_sql_with_pagination(
     sort_order : 'DESC' or 'ASC', default None
         Order list
 
-    with_clause : str, default ""
+    with_clause : str, default None
         Name of the snippet used to generate the table
     """
-    _check_table_exists(table)
 
+    if with_clause is None:
+        with_clause = ""
+        
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
     query = f"""
     {with_clause}
@@ -368,7 +370,7 @@ def show_deprecation_warning():
     )
 
 
-def _check_table_exists(table, schema=None):
+def is_saved_snippet_or_table_exists(table, schema=None):
     """
     Check if the referenced table is a snippet
     Parameters

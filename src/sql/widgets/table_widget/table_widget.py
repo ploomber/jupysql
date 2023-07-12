@@ -7,7 +7,7 @@ from sql.util import (
     fetch_sql_with_pagination,
     parse_sql_results_to_json,
     is_table_exists,
-    _check_table_exists,
+    is_saved_snippet_or_table_exists,
 )
 from sql.store import store
 
@@ -35,10 +35,8 @@ class TableWidget:
 
         self.html = ""
 
-        self.with_ = _check_table_exists(table)
+        self.with_ = is_saved_snippet_or_table_exists(table)
 
-        if self.with_ is None:
-            is_table_exists(table)
 
         if self.with_:
             self.with_clause = str(store.render("", with_=self.with_))

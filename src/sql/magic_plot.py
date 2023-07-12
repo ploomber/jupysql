@@ -92,7 +92,7 @@ class SqlPlotMagic(Magics, Configurable):
         if cmd.args.with_:
             with_ = cmd.args.with_
         else:
-            with_ = self._check_table_exists(table)
+            with_ = self.is_saved_snippet_or_table_exists(table)
 
         if cmd.args.line[0] in {"box", "boxplot"}:
             return plot.boxplot(
@@ -129,7 +129,7 @@ class SqlPlotMagic(Magics, Configurable):
             )
 
     @staticmethod
-    def _check_table_exists(table):
+    def is_saved_snippet_or_table_exists(table):
         with_ = None
         if util.is_saved_snippet(table):
             with_ = [table]
