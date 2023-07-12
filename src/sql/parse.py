@@ -52,12 +52,11 @@ def parse(cell, config):
         if len(pieces) == 1:
             return result
         cell = pieces[1]
-    else:
-        cell = cell
 
+    cell = cell.replace("\n", " ")
     pointer = cell.find("<<")
     if pointer != -1:
-        left = cell[:pointer].replace(" ", "").replace("\n", "")
+        left = cell[:pointer].replace(" ", "")
         right = cell[pointer + 2 :].strip(" ")
 
         if "=" in left:
