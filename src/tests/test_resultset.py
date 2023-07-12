@@ -46,6 +46,10 @@ def test_resultset_dict(result_set):
     assert result_set.dict() == {"x": (0, 1, 2)}
 
 
+def test_resultset_len(result_set):
+    assert len(result_set) == 3
+
+
 def test_resultset_dicts(result_set):
     assert list(result_set.dicts()) == [{"x": 0}, {"x": 1}, {"x": 2}]
 

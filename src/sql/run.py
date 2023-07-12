@@ -220,6 +220,8 @@ class ResultSet(ColumnGuesserMixin):
             return None
 
     def __len__(self):
+        self.fetchall()
+
         return len(self._results)
 
     def __iter__(self):
