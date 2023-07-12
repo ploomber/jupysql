@@ -68,6 +68,7 @@ parts:
     - file: tutorials/etl
     - file: tutorials/excel
     - file: tutorials/product-analytics
+    - file: tutorials/duckdb-native-sqlalchemy
 
   - caption: Community
     chapters:

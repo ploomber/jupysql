@@ -19,6 +19,14 @@ myst:
 
 # DuckDB
 
+```{important}
+Beginning in version `0.7.10`, we're now recommending to use DuckDB native
+connections. We'll still support
+[SQLALchemy connections](../integrations/duckdb-sqlalchemy.md) but new features will
+primarily ship to native connections.
+[Read more here.](../tutorials/duckdb-native-sqlalchemy.md)
+```
+
 JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook. Jump into any section to learn more!
 
 +++
