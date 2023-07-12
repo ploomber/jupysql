@@ -672,6 +672,8 @@ class CustomSession(sqlalchemy.engine.base.Connection):
             }
         )
 
+    # TODO: this will fail when using a duck native connection and a tmp
+    # table since the table will only be visible to the cursor
     def execute(self, query):
         cur = self.engine.cursor()
         cur.execute(query)
