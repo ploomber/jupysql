@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.8.1dev
+* [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization (#689)
 * [Fix] Fix error that was incorrectly converted into a print message
 
 * [Fix] Fixed vertical color breaks in histograms (#702)
