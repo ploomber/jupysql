@@ -14,6 +14,7 @@ from sql.connection import Connection
 from sqlalchemy.exc import ResourceClosedError
 from sql import exceptions, display
 from .column_guesser import ColumnGuesserMixin
+from sql.warnings import JupySQLDataFramePerformanceWarning
 
 try:
     from pgspecial.main import PGSpecial
@@ -110,12 +111,13 @@ class ResultSet(ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, config, statement=None):
+    def __init__(self, sqlaproxy, config, statement=None, dialect=None):
         self.config = config
         self.truncated = False
         self.sqlaproxy = sqlaproxy
         self.statement = statement
 
+        self._dialect = dialect
         self._keys = None
         self._field_names = None
         self._results = []
@@ -280,8 +282,10 @@ class ResultSet(ColumnGuesserMixin):
             "connection_info"
         ] = Connection.current._get_curr_sqlalchemy_connection_info()
 
+        has_df_method = hasattr(self.sqlaproxy, "df")
+
         # native duckdb connection
-        if hasattr(self.sqlaproxy, "df"):
+        if has_df_method:
             # we need to re-execute the statement because if we fetched some rows
             # already, .df() will return None. But only if it's a select statement
             # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
@@ -296,11 +300,22 @@ class ResultSet(ColumnGuesserMixin):
             import pandas as pd
 
             frame = pd.DataFrame(self, columns=(self and self.keys) or [])
+
+            if self._dialect == "duckdb" and not has_df_method and len(frame) >= 1_000:
+                warnings.warn(
+                    "It looks like you're using DuckDB with SQLAlchemy. "
+                    "For faster conversions to pandas.DataFrame, use "
+                    " a DuckDB native connection. Docs: {URL}."
+                    " to suppress this warning, {CODE}",
+                    category=JupySQLDataFramePerformanceWarning,
+                )
+
             return frame
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
         "Returns a Polars DataFrame instance built from the result set."
+        has_pl_method = hasattr(self.sqlaproxy, "pl")
 
         # native duckdb connection
         if hasattr(self.sqlaproxy, "pl"):
@@ -322,6 +337,16 @@ class ResultSet(ColumnGuesserMixin):
                 schema=self.keys,
                 **polars_dataframe_kwargs,
             )
+
+            if self._dialect == "duckdb" and not has_pl_method and len(frame) >= 1_000:
+                warnings.warn(
+                    "It looks like you're using DuckDB with SQLAlchemy. "
+                    "For faster conversions to polars.DataFrame, use "
+                    " a DuckDB native connection. Docs: {URL}."
+                    " to suppress this warning, {CODE}",
+                    category=JupySQLDataFramePerformanceWarning,
+                )
+
             return frame
 
     @telemetry.log_call("pie")
@@ -676,7 +701,7 @@ def run(conn, sql, config):
                 if hasattr(result, "rowcount"):
                     display_affected_rowcount(result.rowcount)
 
-    resultset = ResultSet(result, config, statement)
+    resultset = ResultSet(result, config, statement, conn._get_curr_sqlglot_dialect())
     return select_df_type(resultset, config)
 
 

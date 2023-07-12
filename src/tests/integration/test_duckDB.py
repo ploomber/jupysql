@@ -9,6 +9,7 @@ import pytest
 from sql.connection import Connection
 from sql.run import ResultSet
 from sql import connection
+from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
 @pytest.fixture
@@ -239,4 +240,14 @@ def test_resultset_uses_native_duckdb_df(ip_empty):
     results.fetchmany.assert_called_once_with(size=2)
 
 
-# TODO: warn when duckdb + autopandas or calling DataFrame/PolarsDataFrame
+@pytest.mark.parametrize("method", ["DataFrame", "PolarsDataFrame"])
+def test_warn_when_using_sqlalchemy_and_converting_to_dataframe(ip_empty, method):
+    ip_empty.run_cell("%sql duckdb://")
+    df = pd.DataFrame(range(1000))  # noqa
+
+    data = ip_empty.run_cell("%sql SELECT * FROM df;").result
+
+    with pytest.warns(JupySQLDataFramePerformanceWarning) as record:
+        getattr(data, method)()
+
+    assert len(record) == 1
