@@ -284,6 +284,7 @@ def fetch_sql_with_pagination(
 
     if with_clause is None:
         with_clause = ""
+        is_table_exists(table)
 
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
     query = f"""
