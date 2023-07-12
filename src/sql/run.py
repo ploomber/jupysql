@@ -192,8 +192,9 @@ class ResultSet(ColumnGuesserMixin):
         self.fetch_for_repr_if_needed()
 
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
+
+        # TODO: I think I can delete this if statement
         if self.pretty_table:
-            self.pretty_table.add_rows(self)
             result = self.pretty_table.get_html_string()
             HTML = (
                 "%s\n<span style='font-style:italic;font-size:11px'>"

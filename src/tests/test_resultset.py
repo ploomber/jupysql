@@ -304,7 +304,7 @@ def test_fetches_remaining_rows(results):
 
 
 @pytest.mark.parametrize(
-    "method, repr_",
+    "method, repr_expected",
     [
         [
             "__repr__",
@@ -319,16 +319,17 @@ def test_fetches_remaining_rows(results):
             "<td>3</td>\n        </tr>\n    </tbody>\n</table>",
         ],
     ],
+    ids=["repr", "repr_html"],
 )
-def test_resultset_fetches_required_rows_repr_html(results, method, repr_):
+def test_resultset_fetches_required_rows_repr_html(results, method, repr_expected):
     mock = Mock()
     mock.displaylimit = 3
     mock.autolimit = 1000_000
 
     rs = ResultSet(results, mock)
-    rs_repr = getattr(rs, method)()
+    repr_returned = getattr(rs, method)()
 
-    assert repr_ in rs_repr
+    assert repr_expected in repr_returned
     assert rs.did_finish_fetching() is False
     results.fetchall.assert_not_called()
     results.fetchmany.assert_has_calls([call(size=2), call(size=1)])
