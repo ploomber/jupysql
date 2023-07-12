@@ -26,15 +26,9 @@ JupySQL integrates with DuckDB so you can run SQL queries in a Jupyter notebook.
 ## Pre-requisites for `.csv` file
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb --quiet
-```
-
-```{code-cell} ipython3
-import duckdb
-
+%pip install jupysql duckdb duckdb-engine --quiet
 %load_ext sql
-conn = duckdb.connect()
-%sql conn --alias duckdb
+%sql duckdb://
 ```
 
 ### Load sample data
@@ -61,6 +55,18 @@ The data from the `.csv` file must first be registered as a table in order for t
 ```{code-cell} ipython3
 %%sql
 CREATE TABLE penguins AS SELECT * FROM penguins.csv
+```
+
+The cell above allows the data to now be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the penguins table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t penguins
 ```
 
 ```{code-cell} ipython3
@@ -97,10 +103,9 @@ _ = ax.set_title("Num of penguins by species")
 ## Pre-requisites for `.parquet` file
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb pyarrow --quiet
+%pip install jupysql duckdb duckdb-engine pyarrow --quiet
 %load_ext sql
-conn = duckdb.connect()
-%sql conn --alias duckdb
+%sql duckdb://
 ```
 
 ### Load sample data
@@ -127,6 +132,18 @@ Identically, to list the data from a `.parquet` file as a table, the data must f
 ```{code-cell} ipython3
 %%sql
 CREATE TABLE tripdata AS SELECT * FROM "yellow_tripdata_2021-01.parquet"
+```
+
+The data is now able to be listed as a table from the following code:
+
+```{code-cell} ipython3
+%sqlcmd tables
+```
+
+List columns in the tripdata table:
+
+```{code-cell} ipython3
+%sqlcmd columns -t tripdata
 ```
 
 ```{code-cell} ipython3
@@ -183,14 +200,7 @@ if not Path("my.db").is_file():
 We'll use `sqlite_scanner` extension to load a sample SQLite database into DuckDB:
 
 ```{code-cell} ipython3
-import duckdb
-
-conn = duckdb.connect()
-%sql conn
-```
-
-```{code-cell} ipython3
-%%sql
+%%sql duckdb://
 INSTALL 'sqlite_scanner';
 LOAD 'sqlite_scanner';
 CALL sqlite_attach('my.db');
@@ -211,7 +221,7 @@ This section demonstrates how we can efficiently plot large datasets with DuckDB
 Let's install the required package:
 
 ```{code-cell} ipython3
-%pip install jupysql duckdb pyarrow --quiet
+%pip install jupysql duckdb duckdb-engine pyarrow --quiet
 ```
 
 Now, we download a sample data: NYC Taxi data split in 3 parquet files:
@@ -263,26 +273,43 @@ WHERE trip_distance < 18.93
 ```
 
 ```{code-cell} ipython3
-# %sqlplot boxplot --table no_outliers --column trip_distance
+%sqlplot boxplot --table no_outliers --column trip_distance
 ```
 
 ## Querying existing dataframes
 
 ```{code-cell} ipython3
 import pandas as pd
-import duckdb
+from sqlalchemy import create_engine
 
-conn = duckdb.connect()
-df = pd.DataFrame({"x": range(10)})
+engine = create_engine("duckdb:///:memory:")
+df = pd.DataFrame({"x": range(100)})
 ```
 
 ```{code-cell} ipython3
-%sql conn
+%sql engine
 ```
 
 ```{code-cell} ipython3
 %%sql
 SELECT *
 FROM df
-WHERE x > 4
+WHERE x > 95
+```
+
+## Passing parameters to connection
+
+```{code-cell} ipython3
+from sqlalchemy import create_engine
+
+some_engine = create_engine(
+    "duckdb:///:memory:",
+    connect_args={
+        "preload_extensions": ["excel"],
+    },
+)
+```
+
+```{code-cell} ipython3
+%sql some_engine
 ```
