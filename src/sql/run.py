@@ -110,11 +110,7 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
-    _INSTANCES = []
-
     def __init__(self, sqlaproxy, config, statement=None, dialect=None):
-        ResultSet._INSTANCES.append(self)
-
         self.config = config
         self.truncated = False
         self.sqlaproxy = sqlaproxy
@@ -703,11 +699,11 @@ def run(conn, sql, config):
             if not is_custom_connection:
                 statement = sqlalchemy.sql.text(statement)
 
-            # edge case: duckdb does dot return a new cursor by default, so if we
+            # TODO: duckdb does dot return a new cursor by default, so if we
             # run conn.session.execute, all pending results from existing resultsets
-            # are lost. To avoid this, we first fetch all pending results, then run
-            for result in ResultSet._INSTANCES:
-                result.fetchall()
+            # are lost. we need to warn the user about this. we can fix this by
+            # adding a flag to know if we need to re-run the query for outdated
+            # resultssets
 
             result = conn.session.execute(statement)
             _commit(conn=conn, config=config, manual_commit=manual_commit)
