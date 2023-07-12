@@ -284,7 +284,7 @@ def fetch_sql_with_pagination(
 
     if with_clause is None:
         with_clause = ""
-        
+
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
     query = f"""
     {with_clause}

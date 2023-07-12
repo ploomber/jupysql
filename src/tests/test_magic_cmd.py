@@ -644,6 +644,7 @@ def test_delete_invalid_snippet(arg, ip_snippets):
         ": non_existent_snippet"
     )
 
+
 def test_table_explore_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
