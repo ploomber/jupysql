@@ -50,6 +50,19 @@ def clean_conns():
     yield
 
 
+# if we enable it, we'll have to update tests!
+# because they expect the error not to be raised
+class TestingShell(InteractiveShell):
+    def run_cell(self, *args, **kwargs):
+        result = super().run_cell(*args, **kwargs)
+
+        if result.error_in_exec is not None:
+            # raise RuntimeError("a") from result.error_in_exec
+            raise result.error_in_exec
+
+        return result
+
+
 @pytest.fixture
 def ip_empty():
     c = Config()
