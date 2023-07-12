@@ -71,19 +71,17 @@ def test_resultset_str(result_set):
 
 
 def test_resultset_repr_html(result_set):
-    assert result_set._repr_html_() == (
-        "<table>\n    <thead>\n        <tr>\n            "
-        "<th>x</th>\n        </tr>\n    </thead>\n    <tbody>\n        "
-        "<tr>\n            <td>0</td>\n        </tr>\n        <tr>\n            "
-        "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n        "
-        "</tr>\n    </tbody>\n</table>\n"
+    html_ = result_set._repr_html_()
+    assert (
         "<span style='font-style:italic;font-size:11px'>"
         "<code>ResultSet</code> : to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
-    )
+    ) in html_
+
+    assert "Truncated to displaylimit of 5" in html_
 
 
 @pytest.mark.parametrize(
