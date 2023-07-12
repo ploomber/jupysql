@@ -15,6 +15,8 @@
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
 * [Fix] Used display module when generating CTE (#649)
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
+* [Feature] Better performance when using DuckDB native connection and converting to `polars.DataFrame`
+* [Feature] Better performance when using DuckDB native connection and converting to `pandas.DataFrame`
 
 ## 0.7.9 (2023-06-19)
 
