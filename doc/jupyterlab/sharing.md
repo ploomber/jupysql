@@ -35,4 +35,4 @@ you with a unique URL that you can share.
 pip install jupysql-plugin
 ```
 
-> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/quickstart/signup.html)**
+> **For detailed instructions [click here.](https://docs.cloud.ploomber.io/en/latest/dashboards/jupyterlab-plugin.html)**
