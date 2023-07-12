@@ -51,6 +51,7 @@ def mock_log_api(monkeypatch):
 )
 def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     out = ip_with_dynamic_db.run_line_magic(
         "sql", f"SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
     )
