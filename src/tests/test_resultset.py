@@ -11,8 +11,6 @@ import sqlalchemy
 
 from sql.run import ResultSet
 
-import re
-
 
 @pytest.fixture
 def config():
@@ -71,17 +69,6 @@ def test_resultset_config_autolimit_dict(result, config):
     assert resultset.dict() == {"x": (0,)}
 
 
-def _get_number_of_rows_in_html_table(html):
-    """
-    Returns the number of <tr> tags within the <tbody> section
-    """
-    pattern = r"<tbody>(.*?)<\/tbody>"
-    tbody_content = re.findall(pattern, html, re.DOTALL)[0]
-    row_count = len(re.findall(r"<tr>", tbody_content))
-
-    return row_count
-
-
 # TODO: add dbapi tests
 
 
@@ -100,8 +87,6 @@ def results(ip_empty):
     results.fetchmany = Mock(wraps=results.fetchmany)
     results.fetchall = Mock(wraps=results.fetchall)
     results.fetchone = Mock(wraps=results.fetchone)
-
-    # results.fetchone = Mock(side_effect=ValueError("fetchone called"))
 
     yield results
 

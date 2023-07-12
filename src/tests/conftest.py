@@ -60,7 +60,6 @@ class TestingShell(InteractiveShell):
         result = super().run_cell(*args, **kwargs)
 
         if result.error_in_exec is not None:
-            # raise RuntimeError("a") from result.error_in_exec
             raise result.error_in_exec
 
         return result
