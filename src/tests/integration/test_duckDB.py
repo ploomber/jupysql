@@ -11,10 +11,11 @@ from sql import connection
 
 
 @pytest.fixture
-def ip_duckdb_native(ip_empty):
-    ip_empty.run_cell("import duckdb; conn = duckdb.connect()")
-    ip_empty.run_cell("%sql conn --alias duck")
-    yield ip_empty
+def ip_duckdb_native(ip_empty_testing):
+    ip_empty_testing.run_cell("import duckdb; conn = duckdb.connect()")
+    ip_empty_testing.run_cell("%sql conn --alias duck")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("conn.close()")
 
 
 def test_auto_commit_mode_on(ip_with_duckDB, caplog):
@@ -50,13 +51,6 @@ def test_native_connection_sets_right_dialect(ip_duckdb_native):
     assert Connection.current.dialect == "duckdb"
 
 
-# TODO: test the case where you already fetched some resuults because
-# in that sceenario the results will be empty
-# TODO: test with autopanas
-# TODO: fix resultset fetchall
-# TODO: warn when duckdb + autopandas or calling DataFrame/PolarsDataFrame
-
-
 @pytest.mark.parametrize(
     "method, expected_type, expected_native_method",
     [
@@ -64,7 +58,7 @@ def test_native_connection_sets_right_dialect(ip_duckdb_native):
         ("PolarsDataFrame", pl.DataFrame, "pl"),
     ],
 )
-def test_can_convert_to_bears_natively(
+def test_converts_to_data_frames_natively(
     monkeypatch,
     ip_duckdb_native,
     method,
@@ -75,6 +69,7 @@ def test_can_convert_to_bears_natively(
     ip_duckdb_native.run_cell("%sql INSERT INTO weather VALUES ('San Francisco', 46);")
     ip_duckdb_native.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
     ip_duckdb_native.run_cell("results = %sql SELECT * FROM weather")
+
     results = ip_duckdb_native.run_cell("results").result
 
     mock = Mock(wraps=results.sqlaproxy)
@@ -86,6 +81,31 @@ def test_can_convert_to_bears_natively(
     getattr(mock, expected_native_method).assert_called_once_with()
     assert isinstance(out.result, expected_type)
     assert out.result.shape == (2, 2)
+
+
+@pytest.mark.parametrize(
+    "conversion_cell, expected_type",
+    [
+        ("%config SqlMagic.autopandas = True", pd.DataFrame),
+        ("%config SqlMagic.autopolars = True", pl.DataFrame),
+    ],
+    ids=[
+        "autopandas_on",
+        "autopolars_on",
+    ],
+)
+def test_auto_data_frame_config(
+    ip_duckdb_native,
+    conversion_cell,
+    expected_type,
+):
+    ip_duckdb_native.run_cell(conversion_cell)
+    ip_duckdb_native.run_cell("%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);")
+    ip_duckdb_native.run_cell("%sql INSERT INTO weather VALUES ('San Francisco', 46);")
+    ip_duckdb_native.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
+    df = ip_duckdb_native.run_cell("%sql SELECT * FROM weather").result
+    assert isinstance(df, expected_type)
+    assert df.shape == (2, 2)
 
 
 @pytest.mark.parametrize(
@@ -205,14 +225,16 @@ def test_resultset_uses_native_duckdb_df(ip_empty):
 
     mock = Mock()
     mock.displaylimit = 1
+    mock.autolimit = 0
 
     result_set = ResultSet(results, mock, statement=sql)
-
-    result_set.fetch_results()
 
     df = result_set.DataFrame()
 
     assert isinstance(df, pd.DataFrame)
-    assert df.to_dict() == {"x": {0: 1, 1: 2, 2: 3}}
+    assert df.to_dict() == {"x": {0: 10, 1: 20, 2: 30}}
 
-    results.fetchmany.assert_called_once_with(size=1)
+    results.fetchmany.assert_called_once_with(size=2)
+
+
+# TODO: warn when duckdb + autopandas or calling DataFrame/PolarsDataFrame

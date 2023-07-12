@@ -50,9 +50,12 @@ def clean_conns():
     yield
 
 
-# if we enable it, we'll have to update tests!
-# because they expect the error not to be raised
 class TestingShell(InteractiveShell):
+    """
+    A custom InteractiveShell that raises exceptions instead of silently suppressing
+    them.
+    """
+
     def run_cell(self, *args, **kwargs):
         result = super().run_cell(*args, **kwargs)
 
@@ -72,6 +75,20 @@ def ip_empty():
     # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
     c.HistoryAccessor.enabled = False
     ip_session = InteractiveShell(config=c)
+
+    ip_session.register_magics(SqlMagic)
+    ip_session.register_magics(RenderMagic)
+    ip_session.register_magics(SqlPlotMagic)
+    ip_session.register_magics(SqlCmdMagic)
+    yield ip_session
+    Connection.close_all()
+
+
+@pytest.fixture
+def ip_empty_testing():
+    c = Config()
+    c.HistoryAccessor.enabled = False
+    ip_session = TestingShell(config=c)
 
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)

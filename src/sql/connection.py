@@ -693,6 +693,7 @@ class CustomConnection(Connection):
         if engine is None:
             raise ValueError("Engine cannot be None")
 
+        # detect if the engine is a native duckdb connection
         _is_duckdb_native = _check_if_duckdb_native_connection(engine)
         connection_name_ = "duckdb" if _is_duckdb_native else "custom_driver"
 

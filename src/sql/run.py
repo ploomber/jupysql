@@ -284,8 +284,14 @@ class ResultSet(ColumnGuesserMixin):
         # native duckdb connection
         if hasattr(self.sqlaproxy, "df"):
             # we need to re-execute the statement because if we fetched some rows
-            # already, .df() will return None
-            self.sqlaproxy.execute(self.statement)
+            # already, .df() will return None. But only if it's a select statement
+            # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
+            # statements
+            is_select = self.statement.lower().startswith("select")
+
+            if is_select:
+                self.sqlaproxy.execute(self.statement)
+
             return self.sqlaproxy.df()
         else:
             import pandas as pd
@@ -300,8 +306,14 @@ class ResultSet(ColumnGuesserMixin):
         # native duckdb connection
         if hasattr(self.sqlaproxy, "pl"):
             # we need to re-execute the statement because if we fetched some rows
-            # already, .pl() will return None
-            self.sqlaproxy.execute(self.statement)
+            # already, .df() will return None. But only if it's a select statement
+            # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
+            # statements
+            is_select = self.statement.lower().startswith("select")
+
+            if is_select:
+                self.sqlaproxy.execute(self.statement)
+
             return self.sqlaproxy.pl()
         else:
             import polars as pl
