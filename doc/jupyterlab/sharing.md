@@ -23,7 +23,9 @@ myst:
 Notebook sharing requires `jupysql-plugin>=0.1.6`
 ```
 
-You can share notebooks with the click of a button using our JupyterLab integration.
+If you ever wanted to share an analysis with a colleague, you can do so with the click
+of a button using our JupyterLab integration. It'll upload your notebook and provide
+you with a unique URL that you can share.
 
 ![](../static/share-notebook.png)
 
