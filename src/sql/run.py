@@ -273,13 +273,12 @@ class ResultSet(ColumnGuesserMixin):
         for row in self:
             yield dict(zip(self.keys, row))
 
-    # @telemetry.log_call("data-frame", payload=True)
-    # payload
-    def DataFrame(self):
+    @telemetry.log_call("data-frame", payload=True)
+    def DataFrame(self, payload):
         "Returns a Pandas DataFrame instance built from the result set."
-        # payload[
-        #     "connection_info"
-        # ] = Connection.current._get_curr_sqlalchemy_connection_info()
+        payload[
+            "connection_info"
+        ] = Connection.current._get_curr_sqlalchemy_connection_info()
 
         # native duckdb connection
         if hasattr(self.sqlaproxy, "df"):
