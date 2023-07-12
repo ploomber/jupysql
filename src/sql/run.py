@@ -106,9 +106,8 @@ _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
 class ResultSet(ColumnGuesserMixin):
     """
-    Results of a SQL query.
-
-    Can access rows listwise, or by string value of leftmost column.
+    Results of a SQL query. Fetches rows lazily (only the necessary rows to show the
+    preview based on the current configuration)
     """
 
     def __init__(self, sqlaproxy, config, statement=None, dialect=None):
@@ -125,34 +124,38 @@ class ResultSet(ColumnGuesserMixin):
         # https://peps.python.org/pep-0249/#description
         self.is_dbapi_results = hasattr(sqlaproxy, "description")
 
-        # NOTE: this will trigger key fetching
+        # note that calling this will fetch the keys
         self.pretty_table = self._init_table()
 
         self._done_fetching = False
 
         if self.config.autolimit == 1:
+            # if autolimit is 1, we only want to fetch one row
             self.fetchmany(size=1)
             self.did_finish_fetching()
-        # EXPLAIN WHY WE NEED TWO
         else:
+            # in all other cases, 2 allows us to know if there are more rows
+            # for example when creating a table, the results contains one row, in
+            # such case, fetching 2 rows will tell us that there are no more rows
+            # and can set the _done_fetching flag to True
             self.fetchmany(size=2)
 
     def extend_results(self, elements):
         self._results.extend(elements)
 
-        # NOTE: we shouold use add_rows but there is a subclass that behaves weird
-        # so using add_row for now
+        # TODO: we should use add_rows but there is a subclass that behaves weirdly
+        # so using add_row for now. this is behavior that we inherited from ipython-sql
         for e in elements:
             self.pretty_table.add_row(e)
 
     def done_fetching(self):
         self._done_fetching = True
-        # self.sqlaproxy.close()
+        # NOTE: don't close the connection here (self.sqlaproxy.close()),
+        # because we need to keep it open for the next query
 
     def did_finish_fetching(self):
         return self._done_fetching
 
-    # NOTE: this triggers key fetching
     @property
     def field_names(self):
         if self._field_names is None:
@@ -160,7 +163,6 @@ class ResultSet(ColumnGuesserMixin):
 
         return self._field_names
 
-    # NOTE: this triggers key fetching
     @property
     def keys(self):
         if self._keys is not None:
@@ -277,7 +279,7 @@ class ResultSet(ColumnGuesserMixin):
 
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
-        "Returns a Pandas DataFrame instance built from the result set."
+        """Returns a Pandas DataFrame instance built from the result set."""
         payload[
             "connection_info"
         ] = Connection.current._get_curr_sqlalchemy_connection_info()
@@ -314,7 +316,7 @@ class ResultSet(ColumnGuesserMixin):
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
-        "Returns a Polars DataFrame instance built from the result set."
+        """Returns a Polars DataFrame instance built from the result set."""
         has_pl_method = hasattr(self.sqlaproxy, "pl")
 
         # native duckdb connection
