@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 import logging
 
+from sqlalchemy import text
 import polars as pl
 import pandas as pd
 import pytest
@@ -208,16 +209,17 @@ def test_resultset_uses_native_duckdb_df(ip_empty):
     from sql.connection import Connection
 
     engine = create_engine("duckdb://")
+    session = engine.connect()
 
-    engine.execute("CREATE TABLE a (x INT,);")
-    engine.execute("INSERT INTO a(x) VALUES (10),(20),(30);")
+    session.execute(text("CREATE TABLE a (x INT,);"))
+    session.execute(text("INSERT INTO a(x) VALUES (10),(20),(30);"))
 
-    sql = "SELECT * FROM a"
+    sql = text("SELECT * FROM a")
 
     # this breaks if there's an open results set
-    engine.execute(sql).fetchall()
+    session.execute(sql).fetchall()
 
-    results = engine.execute(sql)
+    results = session.execute(sql)
 
     Connection.set(engine, displaycon=False)
 

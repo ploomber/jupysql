@@ -10,6 +10,7 @@ import polars as pl
 import sqlalchemy
 
 from sql.run import ResultSet
+from sql import run as run_module
 
 
 @pytest.fixture
@@ -49,6 +50,12 @@ def test_resultset_dicts(result_set):
     assert list(result_set.dicts()) == [{"x": 0}, {"x": 1}, {"x": 2}]
 
 
+def test_resultset_dataframe(result_set, monkeypatch):
+    monkeypatch.setattr(run_module.Connection, "current", Mock())
+
+    assert result_set.DataFrame().equals(pd.DataFrame({"x": range(3)}))
+
+
 def test_resultset_polars_dataframe(result_set, monkeypatch):
     assert result_set.PolarsDataFrame().frame_equal(pl.DataFrame({"x": range(3)}))
 
@@ -61,6 +68,42 @@ def test_resultset_csv(result_set, tmp_empty):
 
 def test_resultset_str(result_set):
     assert str(result_set) == "+---+\n| x |\n+---+\n| 0 |\n| 1 |\n| 2 |\n+---+"
+
+
+def test_resultset_repr_html(result_set):
+    assert result_set._repr_html_() == (
+        "<table>\n    <thead>\n        <tr>\n            "
+        "<th>x</th>\n        </tr>\n    </thead>\n    <tbody>\n        "
+        "<tr>\n            <td>0</td>\n        </tr>\n        <tr>\n            "
+        "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n        "
+        "</tr>\n    </tbody>\n</table>\n"
+        "<span style='font-style:italic;font-size:11px'>"
+        "<code>ResultSet</code> : to convert to pandas, call <a href="
+        "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+        "<code>.DataFrame()</code></a> or to polars, call <a href="
+        "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+        "<code>.PolarsDataFrame()</code></a></span><br>"
+    )
+
+
+@pytest.mark.parametrize(
+    "fname, parameters",
+    [
+        ("head", -1),
+        ("tail", None),
+        ("value_counts", None),
+        ("not_df_function", None),
+    ],
+)
+def test_invalid_operation_error(result_set, fname, parameters):
+    with pytest.raises(AttributeError) as excinfo:
+        getattr(result_set, fname)(parameters)
+
+    assert str(excinfo.value) == (
+        f"'{fname}' is not a valid operation, you can convert this "
+        "into a pandas data frame by calling '.DataFrame()' or a "
+        "polars data frame by calling '.PolarsDataFrame()'"
+    )
 
 
 def test_resultset_config_autolimit_dict(result, config):
