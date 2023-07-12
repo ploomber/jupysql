@@ -66,7 +66,7 @@ def parse(cell, config):
 
         result["sql"] = right
     else:
-        result["sql"] = cell.strip(" ")
+        result["sql"] = cell
     return result
 
 
