@@ -109,12 +109,13 @@ class ResultSet(ColumnGuesserMixin):
     Can access rows listwise, or by string value of leftmost column.
     """
 
-    def __init__(self, sqlaproxy, config):
+    def __init__(self, sqlaproxy, config, statement):
         self.config = config
         self.keys = {}
         self._results = []
         self.truncated = False
         self.sqlaproxy = sqlaproxy
+        self.statement = statement
 
         # https://peps.python.org/pep-0249/#description
         self.is_dbapi_results = hasattr(sqlaproxy, "description")
@@ -215,23 +216,41 @@ class ResultSet(ColumnGuesserMixin):
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
         "Returns a Pandas DataFrame instance built from the result set."
-        import pandas as pd
-
-        frame = pd.DataFrame(self, columns=(self and self.keys) or [])
         payload[
             "connection_info"
         ] = Connection.current._get_curr_sqlalchemy_connection_info()
-        return frame
+
+        # native duckdb connection
+        if hasattr(self.sqlaproxy, "df"):
+            # we need to re-execute the statement because if we fetched some rows
+            # already, .df() will return None
+            self.sqlaproxy.execute(self.statement)
+            return self.sqlaproxy.df()
+        else:
+            import pandas as pd
+
+            frame = pd.DataFrame(self, columns=(self and self.keys) or [])
+            return frame
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
         "Returns a Polars DataFrame instance built from the result set."
-        import polars as pl
 
-        frame = pl.DataFrame(
-            (tuple(row) for row in self), schema=self.keys, **polars_dataframe_kwargs
-        )
-        return frame
+        # native duckdb connection
+        if hasattr(self.sqlaproxy, "pl"):
+            # we need to re-execute the statement because if we fetched some rows
+            # already, .pl() will return None
+            self.sqlaproxy.execute(self.statement)
+            return self.sqlaproxy.pl()
+        else:
+            import polars as pl
+
+            frame = pl.DataFrame(
+                (tuple(row) for row in self),
+                schema=self.keys,
+                **polars_dataframe_kwargs,
+            )
+            return frame
 
     @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
@@ -604,10 +623,6 @@ def run(conn, sql, config):
     config
         Configuration object
     """
-    info = conn._get_curr_sqlalchemy_connection_info()
-
-    duckdb_autopandas = info and info.get("dialect") == "duckdb" and config.autopandas
-
     if not sql.strip():
         # returning only when sql is empty string
         return "Connected: %s" % conn.name
@@ -632,12 +647,6 @@ def run(conn, sql, config):
             # if regular sqlalchemy, pass a text object
             if not is_custom_connection:
                 statement = sqlalchemy.sql.text(statement)
-
-            if duckdb_autopandas:
-                conn = conn.engine.raw_connection()
-                cursor = conn.cursor()
-                cursor.execute(str(statement))
-
             else:
                 result = conn.session.execute(statement)
                 _commit(conn=conn, config=config, manual_commit=manual_commit)
@@ -646,17 +655,10 @@ def run(conn, sql, config):
                     if hasattr(result, "rowcount"):
                         display_affected_rowcount(result.rowcount)
 
-    # bypass ResultSet and use duckdb's native method to return a pandas data frame
-    if duckdb_autopandas:
-        df = cursor.df()
-        conn.close()
-        return df
-    else:
-        resultset = ResultSet(result, config)
-
-        # lazy load
-        resultset.fetch_results()
-        return select_df_type(resultset, config)
+    resultset = ResultSet(result, config, statement)
+    # lazy load
+    resultset.fetch_results()
+    return select_df_type(resultset, config)
 
 
 def raw_run(conn, sql):

@@ -693,7 +693,9 @@ class CustomConnection(Connection):
         if engine is None:
             raise ValueError("Engine cannot be None")
 
-        connection_name_ = "custom_driver"
+        _is_duckdb_native = _check_if_duckdb_native_connection(engine)
+        connection_name_ = "duckdb" if _is_duckdb_native else "custom_driver"
+
         self.url = str(engine)
         self.name = connection_name_
         self.dialect = connection_name_
@@ -704,3 +706,8 @@ class CustomConnection(Connection):
         self.connect_args = None
         self.alias = alias
         Connection.current = self
+
+
+def _check_if_duckdb_native_connection(conn):
+    """Check if the connection is a native duckdb connection"""
+    return hasattr(conn, "df") and hasattr(conn, "pl")
