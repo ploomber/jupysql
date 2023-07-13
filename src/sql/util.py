@@ -180,9 +180,27 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     return string.translate(str.maketrans("", "", chars))
 
 
-def is_saved_snippet(table: str) -> bool:
+def is_saved_snippet(table: str, task=None) -> bool:
+    """
+    checks if table is part of a snippet
+    Parameters
+    ----------
+    table: str
+        Table name
+
+    task: str, default None
+        specifies the command calling this function
+        helps to craft the output message
+    """
+    msg = "Analyzing"
+    if task == "explore":
+        msg = "Exploring"
+    elif task == "profile":
+        msg = "Profiling"
+    elif task == "plot":
+        msg = "Plotting"
     if table in list(store):
-        print(f"Plotting using saved snippet : {table}")
+        print(f"{msg} using saved snippet : {table}")
         return True
     return False
 
@@ -371,19 +389,27 @@ def show_deprecation_warning():
     )
 
 
-def is_saved_snippet_or_table_exists(table, schema=None):
+def is_saved_snippet_or_table_exists(table, schema=None, task=None):
     """
     Check if the referenced table is a snippet
     Parameters
     ----------
-    table : str, name of table
+    table : str,
+        name of table
+
+    schema : str, default None
+        Name of the schema
+
+    task: str, default None
+        Command calling this function
+
     Returns
     -------
     with_ : str, default None
         name of the snippet
     """
     with_ = None
-    if is_saved_snippet(table):
+    if is_saved_snippet(table, task):
         with_ = [table]
     else:
         is_table_exists(table, schema)

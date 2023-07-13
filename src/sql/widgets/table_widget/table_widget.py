@@ -34,7 +34,7 @@ class TableWidget:
 
         self.html = ""
 
-        self.with_ = is_saved_snippet_or_table_exists(table)
+        self.with_ = is_saved_snippet_or_table_exists(table, task="explore")
 
         if self.with_:
             self.with_clause = str(store.render("", with_=self.with_))

@@ -232,7 +232,9 @@ class TableDescription(DatabaseInspection):
     """
 
     def __init__(self, table_name, schema=None) -> None:
-        with_ = util.is_saved_snippet_or_table_exists(table_name, schema)
+        with_ = util.is_saved_snippet_or_table_exists(
+            table_name, schema, task="profile"
+        )
 
         if schema:
             table_name = f"{schema}.{table_name}"
