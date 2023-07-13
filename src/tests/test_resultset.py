@@ -34,7 +34,7 @@ def result():
 
 @pytest.fixture
 def result_set(result, config):
-    return ResultSet(result, config)
+    return ResultSet(result, config, statement=None, conn=Mock())
 
 
 def test_resultset_getitem(result_set):
@@ -110,7 +110,7 @@ def test_invalid_operation_error(result_set, fname, parameters):
 
 def test_resultset_config_autolimit_dict(result, config):
     config.autolimit = 1
-    resultset = ResultSet(result, config)
+    resultset = ResultSet(result, config, statement=None, conn=Mock())
     assert resultset.dict() == {"x": (0,)}
 
 
@@ -149,7 +149,7 @@ def test_convert_to_dataframe(ip_empty, uri):
 
     results = session.execute(text("CREATE TABLE a (x INT);"))
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     df = rs.DataFrame()
 
     assert df.to_dict() == {}
@@ -165,7 +165,7 @@ def test_convert_to_dataframe_2(ip_empty):
 
     session.execute(text("CREATE TABLE a (x INT,);"))
     results = session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     df = rs.DataFrame()
 
     assert df.to_dict() == {"Count": {0: 5}}
@@ -184,7 +184,7 @@ def test_convert_to_dataframe_3(ip_empty, uri):
     session.execute(text("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"))
     results = session.execute(text("SELECT * FROM a"))
 
-    rs = ResultSet(results, mock, statement="SELECT * FROM a")
+    rs = ResultSet(results, mock, statement="SELECT * FROM a", conn=Mock())
     df = rs.DataFrame()
 
     # TODO: check native duckdb was called if using duckb
@@ -196,7 +196,7 @@ def test_done_fetching_if_reached_autolimit(results):
     mock.autolimit = 2
     mock.displaylimit = 100
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert rs.did_finish_fetching() is True
 
@@ -206,7 +206,7 @@ def test_done_fetching_if_reached_autolimit_2(results):
     mock.autolimit = 4
     mock.displaylimit = 100
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     list(rs)
 
     assert rs.did_finish_fetching() is True
@@ -219,7 +219,7 @@ def test_no_displaylimit(results, method, autolimit):
     mock.displaylimit = 0
     mock.autolimit = autolimit
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     getattr(rs, method)()
 
     assert rs._results == [(1,), (2,), (3,), (4,), (5,)]
@@ -242,7 +242,7 @@ def test_no_fetching_if_one_result():
     results.fetchall = Mock(wraps=results.fetchall)
     results.fetchone = Mock(wraps=results.fetchone)
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert rs.did_finish_fetching() is True
     results.fetchall.assert_not_called()
@@ -264,7 +264,7 @@ def test_resultset_fetches_required_rows(results):
     mock.displaylimit = 3
     mock.autolimit = 1000_000
 
-    ResultSet(results, mock)
+    ResultSet(results, mock, statement=None, conn=Mock())
     # rs.fetch_results()
     # rs._repr_html_()
     # str(rs)
@@ -279,7 +279,7 @@ def test_fetches_remaining_rows(results):
     mock.displaylimit = 1
     mock.autolimit = 1000_000
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     # this will trigger fetching two
     str(rs)
@@ -326,7 +326,7 @@ def test_resultset_fetches_required_rows_repr_html(results, method, repr_expecte
     mock.displaylimit = 3
     mock.autolimit = 1000_000
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     repr_returned = getattr(rs, method)()
 
     assert repr_expected in repr_returned
@@ -341,7 +341,7 @@ def test_resultset_fetches_no_rows(results):
     mock.displaylimit = 1
     mock.autolimit = 1000_000
 
-    ResultSet(results, mock)
+    ResultSet(results, mock, statement=None, conn=Mock())
 
     results.fetchmany.assert_has_calls([call(size=2)])
     results.fetchone.assert_not_called()
@@ -353,7 +353,7 @@ def test_resultset_autolimit_one(results):
     mock.displaylimit = 10
     mock.autolimit = 1
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
     repr(rs)
     str(rs)
     rs._repr_html_()
@@ -371,7 +371,7 @@ def test_displaylimit_message(results):
     mock.displaylimit = 1
     mock.autolimit = 0
 
-    rs = ResultSet(results, mock)
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert "Truncated to displaylimit of 1" in rs._repr_html_()
 

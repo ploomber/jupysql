@@ -301,9 +301,7 @@ class ResultSet(ColumnGuesserMixin):
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
         """Returns a Pandas DataFrame instance built from the result set."""
-        payload[
-            "connection_info"
-        ] = Connection.current._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
 
         has_df_method = hasattr(self.sqlaproxy, "df")
 

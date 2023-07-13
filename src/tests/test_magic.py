@@ -97,12 +97,16 @@ def test_result_var_link(ip, capsys):
     )
     result = ip.user_global_ns["x"]
     out, _ = capsys.readouterr()
+
     assert (
         "<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>"
-        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>" in result._repr_html_()
-        and "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
-        "https://en.wikipedia.org/wiki/William_Shakespeare</a>" in result._repr_html_()
-    )
+        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>"
+    ) in result._repr_html_()
+
+    assert (
+        "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
+        "https://en.wikipedia.org/wiki/William_Shakespeare</a>"
+    ) in result._repr_html_()
     assert "Returning data to local variable" not in out
     assert "<a href=google_link>google_link</a>" not in result._repr_html_()
 
