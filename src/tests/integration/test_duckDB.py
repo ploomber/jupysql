@@ -5,7 +5,6 @@ import pytest
 from sqlalchemy import text
 import polars as pl
 import pandas as pd
-import pytest
 
 from sql.connection import Connection
 from sql.run import ResultSet
@@ -31,7 +30,7 @@ def ip_duckdb_native(ip_empty_testing):
         ),
         (
             "ip_with_duckDB_native",
-            "'CustomSession' object has no attribute '_has_events'",
+            "'DBAPISession' object has no attribute '_has_events'",
         ),
     ],
 )
