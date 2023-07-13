@@ -108,6 +108,7 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
+    # user to overcome a duckdb-engine limitation, see @sqlaproxy for details
     LAST_BY_CONNECTION = {}
 
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
@@ -705,12 +706,6 @@ def run(conn, sql, config):
             # if regular sqlalchemy, pass a text object
             if not is_dbapi_connection:
                 statement = sqlalchemy.sql.text(statement)
-
-            # TODO: duckdb does dot return a new cursor by default, so if we
-            # run conn.session.execute, all pending results from existing resultsets
-            # are lost. we need to warn the user about this. we can fix this by
-            # adding a flag to know if we need to re-run the query for outdated
-            # resultssets
 
             result = conn.session.execute(statement)
             _commit(conn=conn, config=config, manual_commit=manual_commit)
