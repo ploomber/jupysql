@@ -110,6 +110,7 @@ def test_auto_data_frame_config(
     assert df.shape == (2, 2)
 
 
+# TODO: make this an integration test, also try with native connections
 @pytest.mark.parametrize(
     "config",
     [
@@ -145,18 +146,62 @@ def test_auto_data_frame_config(
         "multiple_tables_created",
     ],
 )
-def test_multiple_statements(ip_empty, config, sql, tables):
-    ip_empty.run_cell("%sql duckdb://")
-    ip_empty.run_cell(config)
+def test_multiple_statements(ip_empty_testing, config, sql, tables):
+    ip_empty_testing.run_cell("%sql duckdb://")
+    ip_empty_testing.run_cell(config)
 
-    ip_empty.run_cell("%sql CREATE TABLE weather (city VARCHAR,);")
-    ip_empty.run_cell("%sql INSERT INTO weather VALUES ('NYC');")
-    ip_empty.run_cell("%sql SELECT * FROM weather;")
+    ip_empty_testing.run_cell("%sql CREATE TABLE weather (city VARCHAR,);")
+    ip_empty_testing.run_cell("%sql INSERT INTO weather VALUES ('NYC');")
+    ip_empty_testing.run_cell("%sql SELECT * FROM weather;")
 
-    out = ip_empty.run_cell(sql)
-    out_tables = ip_empty.run_cell("%sqlcmd tables")
+    out = ip_empty_testing.run_cell(sql)
+    out_tables = ip_empty_testing.run_cell("%sqlcmd tables")
 
     assert out.error_in_exec is None
+
+    if config == "%config SqlMagic.autopandas = True":
+        assert out.result.to_dict() == {"city": {0: "NYC"}}
+    else:
+        assert out.result.dict() == {"city": ("NYC",)}
+
+    assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
+
+
+# TODO: make this an integration test, also try with native connections
+@pytest.mark.parametrize(
+    "config",
+    [
+        "%config SqlMagic.autopandas = True",
+        "%config SqlMagic.autopandas = False",
+    ],
+    ids=[
+        "autopandas_on",
+        "autopandas_off",
+    ],
+)
+@pytest.mark.parametrize(
+    "sql, tables",
+    [
+        [
+            (
+                "%sql CREATE TEMP TABLE names (city VARCHAR,);"
+                "CREATE TABLE more_names (city VARCHAR,);"
+                "INSERT INTO names VALUES ('NYC');"
+                "SELECT * FROM names;"
+            ),
+            ["more_names"],
+        ],
+    ],
+    ids=[
+        "multiple_selects",
+    ],
+)
+def test_tmp_table(ip_empty_testing, config, sql, tables):
+    ip_empty_testing.run_cell("%sql duckdb://")
+    ip_empty_testing.run_cell(config)
+
+    out = ip_empty_testing.run_cell(sql)
+    out_tables = ip_empty_testing.run_cell("%sqlcmd tables")
 
     if config == "%config SqlMagic.autopandas = True":
         assert out.result.to_dict() == {"city": {0: "NYC"}}
