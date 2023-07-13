@@ -79,6 +79,12 @@ def ip_empty():
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
     yield ip_session
     Connection.close_all()
 
@@ -93,6 +99,12 @@ def ip_empty_testing():
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
     yield ip_session
     Connection.close_all()
 
