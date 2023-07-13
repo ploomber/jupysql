@@ -147,8 +147,10 @@ class ResultSet(ColumnGuesserMixin):
 
     @property
     def sqlaproxy(self):
-        # this is a workaround for duckb
-        # TODO: add more details
+        # there is a problem when using duckdb + sqlalchemy: duckdb-engine doesn't
+        # create separate cursors, so whenever we have >1 ResultSet, the old ones
+        # become outdated and fetching their results will return the results from
+        # the last ResultSet. To fix this, we have to re-issue the query
         is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
 
         if (
@@ -159,6 +161,8 @@ class ResultSet(ColumnGuesserMixin):
         ):
             self._sqlaproxy = self._conn.session.execute(self.statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
+
+            ResultSet.LAST_BY_CONNECTION[self._conn] = self
 
         return self._sqlaproxy
 
