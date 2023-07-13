@@ -1,3 +1,4 @@
+import os
 import shutil
 import pandas as pd
 import pytest
@@ -279,6 +280,19 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
 
 @pytest.fixture(scope="session")
 def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
+    username = os.getenv("SF_USERNAME")
+    password = os.getenv("SF_PASSWORD")
+    database = os.getenv("SF_DATABASE")
+
+    if username is None:
+        raise ValueError("SF_USERNAME is required to run snowflake integration tests")
+
+    if password is None:
+        raise ValueError("SF_PASSWORD is required to run snowflake integration tests")
+
+    if database is None:
+        raise ValueError("SF_DATABASE is required to run snowflake integration tests")
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("Snowflake"))
     engine.connect()
     # Load pre-defined datasets
