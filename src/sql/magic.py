@@ -607,9 +607,7 @@ class SqlMagic(Magics, Configurable):
             if_exists = "fail"
 
         try:
-            frame.to_sql(
-                table_name, conn.session.engine, if_exists=if_exists, index=index
-            )
+            frame.to_sql(table_name, conn.session, if_exists=if_exists, index=index)
         except ValueError:
             raise exceptions.ValueError(
                 f"""Table {table_name!r} already exists. Consider using \
