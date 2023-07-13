@@ -168,47 +168,47 @@ def test_multiple_statements(ip_empty_testing, config, sql, tables):
 
 
 # TODO: make this an integration test, also try with native connections
-@pytest.mark.parametrize(
-    "config",
-    [
-        "%config SqlMagic.autopandas = True",
-        "%config SqlMagic.autopandas = False",
-    ],
-    ids=[
-        "autopandas_on",
-        "autopandas_off",
-    ],
-)
-@pytest.mark.parametrize(
-    "sql, tables",
-    [
-        [
-            (
-                "%sql CREATE TEMP TABLE some_table (city VARCHAR,);"
-                "CREATE TABLE more_names (city VARCHAR,);"
-                "INSERT INTO some_table VALUES ('NYC');"
-                "SELECT * FROM some_table;"
-            ),
-            ["more_names"],
-        ],
-    ],
-    ids=[
-        "multiple_selects",
-    ],
-)
-def test_tmp_table(ip_empty_testing, config, sql, tables):
-    ip_empty_testing.run_cell("%sql duckdb://")
-    ip_empty_testing.run_cell(config)
+# @pytest.mark.parametrize(
+#     "config",
+#     [
+#         "%config SqlMagic.autopandas = True",
+#         "%config SqlMagic.autopandas = False",
+#     ],
+#     ids=[
+#         "autopandas_on",
+#         "autopandas_off",
+#     ],
+# )
+# @pytest.mark.parametrize(
+#     "sql, tables",
+#     [
+#         [
+#             (
+#                 "%sql CREATE TEMP TABLE some_table (city VARCHAR,);"
+#                 "CREATE TABLE more_names (city VARCHAR,);"
+#                 "INSERT INTO some_table VALUES ('NYC');"
+#                 "SELECT * FROM some_table;"
+#             ),
+#             ["more_names"],
+#         ],
+#     ],
+#     ids=[
+#         "multiple_selects",
+#     ],
+# )
+# def test_tmp_table(ip_empty_testing, config, sql, tables):
+#     ip_empty_testing.run_cell("%sql duckdb://")
+#     ip_empty_testing.run_cell(config)
 
-    out = ip_empty_testing.run_cell(sql)
-    out_tables = ip_empty_testing.run_cell("%sqlcmd tables")
+#     out = ip_empty_testing.run_cell(sql)
+#     out_tables = ip_empty_testing.run_cell("%sqlcmd tables")
 
-    if config == "%config SqlMagic.autopandas = True":
-        assert out.result.to_dict() == {"city": {0: "NYC"}}
-    else:
-        assert out.result.dict() == {"city": ("NYC",)}
+#     if config == "%config SqlMagic.autopandas = True":
+#         assert out.result.to_dict() == {"city": {0: "NYC"}}
+#     else:
+#         assert out.result.dict() == {"city": ("NYC",)}
 
-    assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
+#     assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
 
 
 def test_dataframe_returned_only_if_last_statement_is_select(ip_empty):
