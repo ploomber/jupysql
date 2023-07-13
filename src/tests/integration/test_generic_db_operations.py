@@ -78,6 +78,7 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         "ip_with_mariaDB",
         "ip_with_SQLite",
         "ip_with_duckDB",
+        "ip_with_duckDB_native",
         "ip_with_Snowflake",
     ],
 )
