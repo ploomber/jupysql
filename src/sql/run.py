@@ -275,17 +275,13 @@ class ResultSet(ColumnGuesserMixin):
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
 
-    # def __getattribute__(self, attr):
-    #     "Raises AttributeError when invalid operation is performed."
-    #     try:
-    #         return object.__getattribute__(self, attr)
-    #     except AttributeError:
-    #         err_msg = (
-    #             f"'{attr}' is not a valid operation, you can convert this "
-    #             "into a pandas data frame by calling '.DataFrame()' or a "
-    #             "polars data frame by calling '.PolarsDataFrame()'"
-    #         )
-    #         raise AttributeError(err_msg) from None
+    def __getattr__(self, attr):
+        err_msg = (
+            f"'{attr}' is not a valid operation, you can convert this "
+            "into a pandas data frame by calling '.DataFrame()' or a "
+            "polars data frame by calling '.PolarsDataFrame()'"
+        )
+        raise AttributeError(err_msg)
 
     def dict(self):
         """Returns a single dict built from the result set
