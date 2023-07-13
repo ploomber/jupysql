@@ -184,10 +184,10 @@ def test_multiple_statements(ip_empty_testing, config, sql, tables):
     [
         [
             (
-                "%sql CREATE TEMP TABLE names (city VARCHAR,);"
+                "%sql CREATE TEMP TABLE some_table (city VARCHAR,);"
                 "CREATE TABLE more_names (city VARCHAR,);"
-                "INSERT INTO names VALUES ('NYC');"
-                "SELECT * FROM names;"
+                "INSERT INTO some_table VALUES ('NYC');"
+                "SELECT * FROM some_table;"
             ),
             ["more_names"],
         ],
