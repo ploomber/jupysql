@@ -130,6 +130,7 @@ def test_create_table_with_indexed_df(
     ip_with_dynamic_db.run_cell(
         f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"
     )
+
     # Prepare DF
     ip_with_dynamic_db.run_cell(
         f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
@@ -152,9 +153,11 @@ def test_create_table_with_indexed_df(
     )
     assert persist_out.error_in_exec is None and out_df.error_in_exec is None
     assert len(out_df.result) == expected
-    assert expected_df.result.DataFrame().equals(
-        out_df.result.DataFrame().loc[:, out_df.result.DataFrame().columns != "level_0"]
-    )
+
+    expected_df_ = expected_df.result.DataFrame()
+    out_df_ = out_df.result.DataFrame()
+
+    assert expected_df_.equals(out_df_.loc[:, out_df_.columns != "level_0"])
 
 
 def get_connection_count(ip_with_dynamic_db):
