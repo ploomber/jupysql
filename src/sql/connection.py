@@ -365,7 +365,7 @@ class Connection:
             elif isinstance(descriptor, Engine):
                 cls.current = Connection(descriptor, alias=alias)
             elif is_custom_connection_:
-                cls.current = CustomConnection(descriptor, alias=alias)
+                cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
                 # NOTE: I added one indentation level, otherwise
@@ -505,7 +505,7 @@ class Connection:
             else:
                 conn = Connection.current.session
 
-        if isinstance(conn, (CustomConnection, CustomSession)):
+        if isinstance(conn, (DBAPIConnection, DBAPISession)):
             is_custom_connection_ = True
         else:
             if isinstance(
@@ -658,9 +658,9 @@ class Connection:
 atexit.register(Connection.close_all, verbose=True)
 
 
-class CustomSession(sqlalchemy.engine.base.Connection):
+class DBAPISession(sqlalchemy.engine.base.Connection):
     """
-    Custom sql alchemy session
+    A session objecr for generic DBAPI connections
     """
 
     def __init__(self, connection, engine):
@@ -681,12 +681,12 @@ class CustomSession(sqlalchemy.engine.base.Connection):
         return cur
 
 
-class CustomConnection(Connection):
+class DBAPIConnection(Connection):
     """
-    Custom connection for unsupported drivers in sqlalchemy
+    A connection object for generic DBAPI connections
     """
 
-    @telemetry.log_call("CustomConnection", payload=True)
+    @telemetry.log_call("DBAPIConnection", payload=True)
     def __init__(self, payload, engine=None, alias=None):
         try:
             payload["engine"] = type(engine)
@@ -703,7 +703,7 @@ class CustomConnection(Connection):
         self.url = str(engine)
         self.name = connection_name_
         self.dialect = connection_name_
-        self.session = CustomSession(self, engine)
+        self.session = DBAPISession(self, engine)
 
         self.connections[alias or connection_name_] = self
 

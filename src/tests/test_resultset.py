@@ -10,7 +10,7 @@ import pandas as pd
 import polars as pl
 import sqlalchemy
 
-from sql.connection import CustomConnection
+from sql.connection import DBAPIConnection
 from sql.run import ResultSet
 from sql import run as run_module
 
@@ -232,7 +232,7 @@ def test_convert_to_dataframe_using_native_duckdb(
     session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
     results = session.execute(query)
 
-    rs = ResultSet(results, mock, statement=query, conn=CustomConnection(session))
+    rs = ResultSet(results, mock, statement=query, conn=DBAPIConnection(session))
     # force fetching
     list(rs)
 
