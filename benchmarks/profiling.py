@@ -1,3 +1,6 @@
+"""
+Sample script to profile the sql magic.
+"""
 from sql.magic import SqlMagic
 from IPython import InteractiveShell
 import duckdb
@@ -16,6 +19,7 @@ magic.autopandas = True
 magic.displaycon = False
 
 
+# NOTE: you can put the @profile decorator on any internal function to profile it
 @profile  # noqa
 def run_magic():
     magic.execute("SELECT * FROM df")
