@@ -162,9 +162,6 @@ def _get_database_url(database):
     ).render_as_string(hide_password=False)
 
 
-client = docker.from_env()
-
-
 def database_ready(
     database,
     timeout=60,
