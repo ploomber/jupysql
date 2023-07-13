@@ -110,13 +110,14 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
-    def __init__(self, sqlaproxy, config, statement=None, dialect=None):
+    def __init__(self, sqlaproxy, config, statement=None, conn=None):
         self.config = config
         self.truncated = False
-        self.sqlaproxy = sqlaproxy
         self.statement = statement
 
-        self._dialect = dialect
+        self._sqlaproxy = sqlaproxy
+        self._conn = conn
+        self._dialect = conn._get_curr_sqlglot_dialect()
         self._keys = None
         self._field_names = None
         self._results = []
@@ -139,6 +140,23 @@ class ResultSet(ColumnGuesserMixin):
             # such case, fetching 2 rows will tell us that there are no more rows
             # and can set the _done_fetching flag to True
             self.fetchmany(size=2)
+
+        self._finished_init = True
+
+    @property
+    def sqlaproxy(self):
+        # this is a workaround for duckb
+        # TODO: need to add a flag so we only do this when this results set is outdated
+        # and then used again. also we need to do it per connection
+        if (
+            hasattr(self, "_finished_init")
+            and self._dialect == "duckdb"
+            and not self._conn.is_custom_connection()
+        ):
+            self._sqlaproxy = self._conn.session.execute(self.statement)
+            self._sqlaproxy.fetchmany(size=len(self._results))
+
+        return self._sqlaproxy
 
     def extend_results(self, elements):
         self._results.extend(elements)
@@ -257,17 +275,17 @@ class ResultSet(ColumnGuesserMixin):
                 raise KeyError('%d results for "%s"' % (len(result), key))
             return result[0]
 
-    def __getattribute__(self, attr):
-        "Raises AttributeError when invalid operation is performed."
-        try:
-            return object.__getattribute__(self, attr)
-        except AttributeError:
-            err_msg = (
-                f"'{attr}' is not a valid operation, you can convert this "
-                "into a pandas data frame by calling '.DataFrame()' or a "
-                "polars data frame by calling '.PolarsDataFrame()'"
-            )
-            raise AttributeError(err_msg) from None
+    # def __getattribute__(self, attr):
+    #     "Raises AttributeError when invalid operation is performed."
+    #     try:
+    #         return object.__getattribute__(self, attr)
+    #     except AttributeError:
+    #         err_msg = (
+    #             f"'{attr}' is not a valid operation, you can convert this "
+    #             "into a pandas data frame by calling '.DataFrame()' or a "
+    #             "polars data frame by calling '.PolarsDataFrame()'"
+    #         )
+    #         raise AttributeError(err_msg) from None
 
     def dict(self):
         """Returns a single dict built from the result set
@@ -712,7 +730,7 @@ def run(conn, sql, config):
                 if hasattr(result, "rowcount"):
                     display_affected_rowcount(result.rowcount)
 
-    resultset = ResultSet(result, config, statement, conn._get_curr_sqlglot_dialect())
+    resultset = ResultSet(result, config, statement, conn)
     return select_df_type(resultset, config)
 
 

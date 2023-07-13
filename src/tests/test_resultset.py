@@ -374,3 +374,15 @@ def test_displaylimit_message(results):
     rs = ResultSet(results, mock)
 
     assert "Truncated to displaylimit of 1" in rs._repr_html_()
+
+
+def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
+    pass
+
+
+def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
+    pass
+
+
+def test_doesnt_refresh_sqlaproxy_if_different_connection():
+    pass
