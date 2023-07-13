@@ -117,7 +117,7 @@ databaseConfig = {
         "username": os.getenv("SF_USERNAME"),
         "password": os.getenv("SF_PASSWORD"),
         # database/schema
-        "database": os.getenv("SF_DATABASE"),
+        "database": os.getenv("SF_DATABASE", "JUPYSQL_INTEGRATION_TESTING/GENERAL"),
         "host": "lpb17716.us-east-1",
         "port": None,
         "alias": "snowflakeTest",
