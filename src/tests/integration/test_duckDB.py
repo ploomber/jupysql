@@ -75,7 +75,7 @@ def test_converts_to_data_frames_natively(
     results = ip_duckdb_native.run_cell("results").result
 
     mock = Mock(wraps=results.sqlaproxy)
-    monkeypatch.setattr(results, "sqlaproxy", mock)
+    monkeypatch.setattr(results, "_sqlaproxy", mock)
 
     out = ip_duckdb_native.run_cell(f"results.{method}()")
 
@@ -230,7 +230,7 @@ def test_resultset_uses_native_duckdb_df(ip_empty):
     mock.displaylimit = 1
     mock.autolimit = 0
 
-    result_set = ResultSet(results, mock, statement=sql)
+    result_set = ResultSet(results, mock, statement=sql, conn=Mock())
 
     df = result_set.DataFrame()
 

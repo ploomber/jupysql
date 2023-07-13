@@ -108,7 +108,11 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
+    LAST_BY_CONNECTION = {}
+
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
+        ResultSet.LAST_BY_CONNECTION[conn] = self
+
         self.config = config
         self.truncated = False
         self.statement = statement
@@ -144,10 +148,12 @@ class ResultSet(ColumnGuesserMixin):
     @property
     def sqlaproxy(self):
         # this is a workaround for duckb
-        # TODO: need to add a flag so we only do this when this results set is outdated
-        # and then used again. also we need to do it per connection
+        # TODO: add more details
+        is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
+
         if (
-            hasattr(self, "_finished_init")
+            not is_last_result
+            and hasattr(self, "_finished_init")
             and self._dialect == "duckdb"
             and not self._conn.is_custom_connection()
         ):
