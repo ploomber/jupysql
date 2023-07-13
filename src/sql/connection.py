@@ -697,7 +697,7 @@ class DBAPIConnection(Connection):
             raise ValueError("Engine cannot be None")
 
         # detect if the engine is a native duckdb connection
-        _is_duckdb_native = _check_if_duckdb_native_connection(engine)
+        _is_duckdb_native = _check_if_duckdb_dbapi_connection(engine)
         connection_name_ = "duckdb" if _is_duckdb_native else "custom_driver"
 
         self.url = str(engine)
@@ -712,6 +712,6 @@ class DBAPIConnection(Connection):
         Connection.current = self
 
 
-def _check_if_duckdb_native_connection(conn):
+def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
     return hasattr(conn, "df") and hasattr(conn, "pl")

@@ -48,7 +48,7 @@ def test_auto_commit_mode_off(ip_with_duckDB, caplog):
     assert any("weather" == table[0] for table in tables_out)
 
 
-def test_native_connection_sets_right_dialect(ip_duckdb_native):
+def test_dbapi_connection_sets_right_dialect(ip_duckdb_native):
     assert Connection.current.is_dbapi_connection()
     assert Connection.current.dialect == "duckdb"
 
