@@ -7,16 +7,17 @@
 * [Feature] Added a line under `ResultSet` to distinguish it from data frame and error message when invalid operations are performed (#468)
 * [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
 * [Feature] Added tables listing stored snippets when `%sqlcmd snippets` is called (#648)
-
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
-* [Doc] Document --persist-replace in API section (#539)
+* [Doc] Document `--persist-replace` in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
 * [Fix] Used display module when generating CTE (#649)
+* [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
 * [Feature] Better performance when using DuckDB native connection and converting to `polars.DataFrame`
 * [Feature] Better performance when using DuckDB native connection and converting to `pandas.DataFrame`
+* [Fix] Improving `<<` parsing logic (#610)
 
 ## 0.7.9 (2023-06-19)
 
