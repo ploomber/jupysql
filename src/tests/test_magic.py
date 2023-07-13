@@ -916,7 +916,7 @@ def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
     assert {"one"} == set(Connection.connections)
 
 
-def test_alias_custom_connection(clean_conns, ip_empty, tmp_empty):
+def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
     assert {"one"} == set(Connection.connections)
@@ -955,7 +955,7 @@ def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
     assert "second" not in Connection.connections
 
 
-def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
+def test_close_connection_with_dbapi_connection_and_alias(ip, tmp_empty):
     ip.user_global_ns["first"] = create_engine("sqlite:///first.db")
     ip.user_global_ns["second"] = create_engine("sqlite:///second.db")
 

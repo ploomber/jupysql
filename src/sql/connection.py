@@ -359,12 +359,12 @@ class Connection:
         connect_args = connect_args or {}
 
         if descriptor:
-            is_custom_connection_ = Connection.is_custom_connection(descriptor)
+            is_dbapi_connection_ = Connection.is_dbapi_connection(descriptor)
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
                 cls.current = Connection(descriptor, alias=alias)
-            elif is_custom_connection_:
+            elif is_dbapi_connection_:
                 cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
@@ -493,11 +493,11 @@ class Connection:
 
         cls.connections = {}
 
-    def is_custom_connection(conn=None) -> bool:
+    def is_dbapi_connection(conn=None) -> bool:
         """
         Checks if given connection is custom
         """
-        is_custom_connection_ = False
+        is_dbapi_connection_ = False
 
         if conn is None:
             if not Connection.current:
@@ -506,16 +506,16 @@ class Connection:
                 conn = Connection.current.session
 
         if isinstance(conn, (DBAPIConnection, DBAPISession)):
-            is_custom_connection_ = True
+            is_dbapi_connection_ = True
         else:
             if isinstance(
                 conn, (sqlalchemy.engine.base.Connection, Connection)
             ) or not (is_pep249_compliant(conn)):
-                is_custom_connection_ = False
+                is_dbapi_connection_ = False
             else:
-                is_custom_connection_ = True
+                is_dbapi_connection_ = True
 
-        return is_custom_connection_
+        return is_dbapi_connection_
 
     def _get_curr_sqlalchemy_connection_info(self):
         """Get the dialect, driver, and database server version info of current
@@ -640,7 +640,7 @@ class Connection:
 
         query = self._transpile_query(query)
 
-        if self.is_custom_connection():
+        if self.is_dbapi_connection():
             query = str(query)
         else:
             query = sqlalchemy.sql.text(query)

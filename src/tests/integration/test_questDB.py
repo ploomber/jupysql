@@ -70,7 +70,7 @@ def import_data(file_name, table_name):
 
 
 def custom_database_ready(
-    custom_connection,
+    dbapi_connection,
     timeout=20,
     poll_freq=0.5,
 ):
@@ -88,7 +88,7 @@ def custom_database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            custom_connection()
+            dbapi_connection()
             return True
         except Exception as e:
             errors.append(str(e))
@@ -590,7 +590,7 @@ def test_sqlplot_not_supported_error(
     "alias",
     [None, "test_alias"],
 )
-def test_custom_connection(ip_questdb, alias):
+def test_dbapi_connection(ip_questdb, alias):
     import psycopg as pg
 
     engine = pg.connect(QUESTDB_CONNECTION_STRING)
@@ -614,7 +614,7 @@ def test_custom_connection(ip_questdb, alias):
     assert isinstance(stored_connection, DBAPIConnection)
 
 
-def test_custom_connection_error(ip_questdb):
+def test_dbapi_connection_error(ip_questdb):
     with pytest.raises(ValueError) as err:
         DBAPIConnection()
 

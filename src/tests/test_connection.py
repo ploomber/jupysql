@@ -350,15 +350,15 @@ class dummy_connection:
     ],
     ids=[
         "sqlite3_connection",
-        "custom_connection",
+        "dbapi_connection",
         "normal_connection",
         "dummy_connection",
         "str",
         "int",
     ],
 )
-def test_custom_connection(conn, expected):
-    is_custom = Connection.is_custom_connection(conn)
+def test_dbapi_connection(conn, expected):
+    is_custom = Connection.is_dbapi_connection(conn)
     assert is_custom == expected
 
 

@@ -157,7 +157,7 @@ class ResultSet(ColumnGuesserMixin):
             not is_last_result
             and hasattr(self, "_finished_init")
             and self._dialect == "duckdb"
-            and not self._conn.is_custom_connection()
+            and not self._conn.is_dbapi_connection()
         ):
             self._sqlaproxy = self._conn.session.execute(self.statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
@@ -700,10 +700,10 @@ def run(conn, sql, config):
         # regular query
         else:
             manual_commit = set_autocommit(conn, config)
-            is_custom_connection = Connection.is_custom_connection(conn)
+            is_dbapi_connection = Connection.is_dbapi_connection(conn)
 
             # if regular sqlalchemy, pass a text object
-            if not is_custom_connection:
+            if not is_dbapi_connection:
                 statement = sqlalchemy.sql.text(statement)
 
             # TODO: duckdb does dot return a new cursor by default, so if we
