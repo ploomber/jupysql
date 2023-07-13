@@ -96,20 +96,16 @@ def test_handle_multiple_open_result_sets(
         f"%sql SELECT * FROM {numbers_table} LIMIT 5"
     ).result
 
-    assert taxi.dict() == {
-        "index": (0, 1, 2, 3, 4),
-        "taxi_driver_name": (
-            "Eric Ken",
-            "John Smith",
-            "Kevin Kelly",
-            "Eric Ken",
-            "John Smith",
-        ),
-    }
-    assert numbers.dict() == {
-        "index": (0, 1, 2, 3, 4),
-        "numbers_elements": (1, 2, 3, 1, 2),
-    }
+    # NOTE: we do not check the value of the indexes because snowflake does not support
+    # them
+    assert taxi.dict()["taxi_driver_name"] == (
+        "Eric Ken",
+        "John Smith",
+        "Kevin Kelly",
+        "Eric Ken",
+        "John Smith",
+    )
+    assert numbers.dict()["numbers_elements"] == (1, 2, 3, 1, 2)
 
 
 @pytest.mark.parametrize(
