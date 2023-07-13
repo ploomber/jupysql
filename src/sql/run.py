@@ -27,8 +27,6 @@ import logging
 import warnings
 from collections.abc import Iterable
 
-DEFAULT_DISPLAYLIMIT_VALUE = 10
-
 
 def unduplicate_field_names(field_names):
     """Append a number to duplicate field names to make them unique."""
@@ -159,12 +157,9 @@ class ResultSet(ColumnGuesserMixin):
         return self._sqlaproxy
 
     def extend_results(self, elements):
+        to_add = self.config.displaylimit - len(self._results)
         self._results.extend(elements)
-
-        # TODO: we should use add_rows but there is a subclass that behaves weirdly
-        # so using add_row for now. this is behavior that we inherited from ipython-sql
-        for e in elements:
-            self.pretty_table.add_row(e)
+        self.pretty_table.add_rows(elements[:to_add])
 
     def done_fetching(self):
         self._done_fetching = True
@@ -207,36 +202,32 @@ class ResultSet(ColumnGuesserMixin):
 
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
-        # TODO: I think I can delete this if statement
-        if self.pretty_table:
-            result = self.pretty_table.get_html_string()
-            HTML = (
-                "%s\n<span style='font-style:italic;font-size:11px'>"
-                "<code>ResultSet</code> : to convert to pandas, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
-                "<code>.DataFrame()</code></a> or to polars, call <a href="
-                "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
-                "<code>.PolarsDataFrame()</code></a></span><br>"
-            )
-            result = HTML % (result)
+        result = self.pretty_table.get_html_string()
+        HTML = (
+            "%s\n<span style='font-style:italic;font-size:11px'>"
+            "<code>ResultSet</code> : to convert to pandas, call <a href="
+            "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+            "<code>.DataFrame()</code></a> or to polars, call <a href="
+            "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+            "<code>.PolarsDataFrame()</code></a></span><br>"
+        )
+        result = HTML % (result)
 
-            # to create clickable links
-            result = html.unescape(result)
-            result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-            if self.config.displaylimit != 0:
-                HTML = (
-                    '%s\n<span style="font-style:italic;text-align:center;">'
-                    "Truncated to displaylimit of %d</span>"
-                    "<br>"
-                    '<span style="font-style:italic;text-align:center;">'
-                    "If you want to see more, please visit "
-                    '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
-                    " configuration</span>"
-                )
-                result = HTML % (result, self.config.displaylimit)
-            return result
-        else:
-            return None
+        # to create clickable links
+        result = html.unescape(result)
+        result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
+        if self.config.displaylimit != 0:
+            HTML = (
+                '%s\n<span style="font-style:italic;text-align:center;">'
+                "Truncated to displaylimit of %d</span>"
+                "<br>"
+                '<span style="font-style:italic;text-align:center;">'
+                "If you want to see more, please visit "
+                '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
+                " configuration</span>"
+            )
+            result = HTML % (result, self.config.displaylimit)
+        return result
 
     def __len__(self):
         self.fetchall()
@@ -254,8 +245,7 @@ class ResultSet(ColumnGuesserMixin):
         return str(self.pretty_table)
 
     def __repr__(self) -> str:
-        self.fetch_for_repr_if_needed()
-        return str(self.pretty_table)
+        return str(self)
 
     def __eq__(self, another: object) -> bool:
         return self._results == another
@@ -475,11 +465,6 @@ class ResultSet(ColumnGuesserMixin):
     def csv(self, filename=None, **format_params):
         """Generate results in comma-separated form.  Write to ``filename`` if given.
         Any other parameters will be passed on to csv.writer."""
-        if not self.pretty_table:
-            return None  # no results
-
-        self.pretty_table.add_rows(self)
-
         if filename:
             encoding = format_params.get("encoding", "utf-8")
             outfile = open(filename, "w", newline="", encoding=encoding)
@@ -534,7 +519,7 @@ class ResultSet(ColumnGuesserMixin):
             self.done_fetching()
 
     def _init_table(self):
-        pretty = PrettyTable(self.field_names)
+        pretty = CustomPrettyTable(self.field_names)
 
         if isinstance(self.config.style, str):
             _style = prettytable.__dict__[self.config.style.upper()]
@@ -732,24 +717,9 @@ def raw_run(conn, sql):
     return conn.session.execute(sqlalchemy.sql.text(sql))
 
 
-class PrettyTable(prettytable.PrettyTable):
-    def __init__(self, *args, **kwargs):
-        self.row_count = 0
-        self.displaylimit = DEFAULT_DISPLAYLIMIT_VALUE
-        return super(PrettyTable, self).__init__(*args, **kwargs)
-
+class CustomPrettyTable(prettytable.PrettyTable):
     def add_rows(self, data):
-        if self.row_count and (data.config.displaylimit == self.displaylimit):
-            return  # correct number of rows already present
-        self.clear_rows()
-        self.displaylimit = data.config.displaylimit
-        if self.displaylimit == 0:
-            self.displaylimit = None
-        if self.displaylimit in (None, 0):
-            self.row_count = len(data)
-        else:
-            self.row_count = min(len(data), self.displaylimit)
-        for row in data[: self.displaylimit]:
+        for row in data:
             formatted_row = []
             for cell in row:
                 if isinstance(cell, str) and cell.startswith("http"):

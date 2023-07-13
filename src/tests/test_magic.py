@@ -569,6 +569,8 @@ def test_displaylimit(ip):
 
     assert "Brecht" in result._repr_html_()
     assert "Shakespeare" not in result._repr_html_()
+    assert "Brecht" in repr(result)
+    assert "Shakespeare" not in repr(result)
 
 
 @pytest.mark.parametrize("config_value, expected_length", [(3, 3), (6, 6)])

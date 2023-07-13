@@ -321,7 +321,7 @@ def test_fetches_remaining_rows(results):
     ],
     ids=["repr", "repr_html"],
 )
-def test_resultset_fetches_required_rows_repr_html(results, method, repr_expected):
+def test_resultset_fetches_required_rows_repr(results, method, repr_expected):
     mock = Mock()
     mock.displaylimit = 3
     mock.autolimit = 1000_000
@@ -362,6 +362,24 @@ def test_resultset_autolimit_one(results):
     results.fetchmany.assert_has_calls([call(size=1)])
     results.fetchone.assert_not_called()
     results.fetchall.assert_not_called()
+
+
+def test_display_limit_respected_even_when_feched_all(results):
+    mock = Mock()
+    mock.displaylimit = 2
+    mock.autolimit = 0
+
+    rs = ResultSet(results, mock, statement=None, conn=Mock())
+    elements = list(rs)
+
+    assert len(elements) == 5
+    assert str(rs) == "+---+\n| x |\n+---+\n| 1 |\n| 2 |\n+---+"
+    assert (
+        "<table>\n    <thead>\n        <tr>\n            <th>x</th>\n        "
+        "</tr>\n    </thead>\n    <tbody>\n        <tr>\n            "
+        "<td>1</td>\n        </tr>\n        <tr>\n            <td>2</td>\n"
+        "        </tr>\n    </tbody>\n</table>" in rs._repr_html_()
+    )
 
 
 # TODO: try with more values of displaylimit
