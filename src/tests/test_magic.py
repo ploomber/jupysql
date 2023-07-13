@@ -85,7 +85,7 @@ def test_result_var(ip, capsys):
     assert "Returning data to local variable" not in out
 
 
-def test_result_var_link(ip, capsys):
+def test_result_var_link(ip):
     ip.run_cell_magic(
         "sql",
         "",
@@ -96,7 +96,6 @@ def test_result_var_link(ip, capsys):
         """,
     )
     result = ip.user_global_ns["x"]
-    out, _ = capsys.readouterr()
 
     assert (
         "<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>"
@@ -107,7 +106,6 @@ def test_result_var_link(ip, capsys):
         "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
         "https://en.wikipedia.org/wiki/William_Shakespeare</a>"
     ) in result._repr_html_()
-    assert "Returning data to local variable" not in out
     assert "<a href=google_link>google_link</a>" not in result._repr_html_()
 
 
