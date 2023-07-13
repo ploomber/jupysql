@@ -1,5 +1,6 @@
 from unittest.mock import Mock, call
 
+import duckdb
 from sqlalchemy import create_engine, text
 from pathlib import Path
 
@@ -9,6 +10,7 @@ import pandas as pd
 import polars as pl
 import sqlalchemy
 
+from sql.connection import CustomConnection
 from sql.run import ResultSet
 from sql import run as run_module
 
@@ -189,6 +191,60 @@ def test_convert_to_dataframe_3(ip_empty, uri):
 
     # TODO: check native duckdb was called if using duckb
     assert df.to_dict() == {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "SELECT * FROM a",
+        "\nSELECT * FROM a",
+        "    SELECT * FROM a",
+        "FROM a",
+        "\nFROM a",
+        "    FROM a",
+    ],
+    ids=[
+        "select",
+        "select-with-newline",
+        "select-with-spaces",
+        "from",
+        "from-with-newline",
+        "from-with-spaces",
+    ],
+)
+@pytest.mark.parametrize(
+    "to_df_method, expected_value",
+    [
+        ("DataFrame", {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}),
+        ("PolarsDataFrame", {"x": [1, 2, 3, 4, 5]}),
+    ],
+)
+def test_convert_to_dataframe_using_native_duckdb(
+    ip_empty, query, to_df_method, expected_value
+):
+    mock = Mock()
+    mock.displaylimit = 100
+    mock.autolimit = 100000
+
+    session = duckdb.connect()
+
+    session.execute("CREATE TABLE a (x INT);")
+    session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
+    results = session.execute(query)
+
+    rs = ResultSet(results, mock, statement=query, conn=CustomConnection(session))
+    # force fetching
+    list(rs)
+
+    df = getattr(rs, to_df_method)()
+
+    d = df.to_dict()
+
+    if to_df_method == "PolarsDataFrame":
+        d["x"] = list(d["x"])
+
+    # TODO: check native duckdb was called if using duckb
+    assert d == expected_value
 
 
 def test_done_fetching_if_reached_autolimit(results):

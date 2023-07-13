@@ -307,7 +307,7 @@ class ResultSet(ColumnGuesserMixin):
             # already, .df() will return None. But only if it's a select statement
             # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
             # statements
-            is_select = self.statement.lower().startswith("select")
+            is_select = _statement_is_select(self.statement)
 
             if is_select:
                 self.sqlaproxy.execute(self.statement)
@@ -340,7 +340,7 @@ class ResultSet(ColumnGuesserMixin):
             # already, .df() will return None. But only if it's a select statement
             # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
             # statements
-            is_select = self.statement.lower().startswith("select")
+            is_select = _statement_is_select(self.statement)
 
             if is_select:
                 self.sqlaproxy.execute(self.statement)
@@ -737,3 +737,9 @@ class CustomPrettyTable(prettytable.PrettyTable):
                 else:
                     formatted_row.append(cell)
             self.add_row(formatted_row)
+
+
+def _statement_is_select(statement):
+    statement_ = statement.lower().strip()
+    # duckdb also allows FROM without SELECT
+    return statement_.startswith("select") or statement_.startswith("from")
