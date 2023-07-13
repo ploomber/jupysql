@@ -8,6 +8,9 @@ import sqlalchemy
 
 from ploomber_core.dependencies import requires
 
+# SQLite and DuckDB do not require Docker, so we make docker packages optional
+# in case we want to run those tests
+
 try:
     from dockerctx import new_container
 except ModuleNotFoundError:
