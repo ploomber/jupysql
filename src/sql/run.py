@@ -310,6 +310,7 @@ class ResultSet(ColumnGuesserMixin):
         """Returns a Polars DataFrame instance built from the result set."""
         import polars as pl
 
+        polars_dataframe_kwargs["schema"] = self.keys
         return _convert_to_data_frame(self, "pl", pl.DataFrame, polars_dataframe_kwargs)
 
     @telemetry.log_call("pie")
@@ -706,12 +707,11 @@ def _convert_to_data_frame(
     else:
         frame = constructor(
             (tuple(row) for row in result_set),
-            schema=result_set.keys,
             **constructor_kwargs,
         )
 
         # NOTE: in JupySQL 0.7.9, we were opening a raw new connection so people
-        # using SQLALchemy still had the native performance to convert to pandas
+        # using SQLALchemy still had the native performance to convert to data frames
         # but this led to other problems because the native connection didn't
         # have the same state as the SQLAlchemy connection, yielding confusing
         # errors. So we decided to remove this and just warn the user that
@@ -721,11 +721,14 @@ def _convert_to_data_frame(
             and not has_converter_method
             and len(frame) >= 1_000
         ):
+            DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
+            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
+
             warnings.warn(
                 "It looks like you're using DuckDB with SQLAlchemy. "
                 "For faster conversions, use "
-                " a DuckDB native connection. Docs: {URL}."
-                " to suppress this warning, {CODE}",
+                f" a DuckDB native connection. Docs: {DOCS}."
+                f" to suppress this warning, see: {WARNINGS}",
                 category=JupySQLDataFramePerformanceWarning,
             )
 

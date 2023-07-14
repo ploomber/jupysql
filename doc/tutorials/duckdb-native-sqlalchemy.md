@@ -110,3 +110,25 @@ tags: [raises-exception]
 ---
 %sqlplot boxplot --table df --column x
 ```
+
+## Supress warnings
+
+When converting large datasets using SQLALchemy, you'll see a warning:
+
+```{code-cell} ipython3
+%sql duckdb-sqlalchemy
+_ = %sql SELECT * FROM df
+```
+
+To supress it, add this at the top of your notebook/script:
+
+```{code-cell} ipython3
+from sql.warnings import JupySQLDataFramePerformanceWarning
+import warnings
+warnings.filterwarnings("ignore", category=JupySQLDataFramePerformanceWarning)
+```
+
+```{code-cell} ipython3
+%sql duckdb-sqlalchemy
+_ = %sql SELECT * FROM df
+```
