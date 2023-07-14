@@ -36,11 +36,6 @@ class TableWidget:
 
         self.with_ = is_saved_snippet_or_table_exists(table, task="explore")
 
-        if self.with_:
-            self.with_clause = str(store.render("", with_=self.with_))
-        else:
-            self.with_clause = ""
-
         # load css
         html_style = utils.load_css(f"{BASE_DIR}/css/tableWidget.css")
         self.add_to_html(html_style)
@@ -65,11 +60,16 @@ class TableWidget:
         """
         rows_per_page = 10
         rows, columns = fetch_sql_with_pagination(
-            table, 0, rows_per_page, with_clause=self.with_clause
+            table, 0, rows_per_page, with_=self.with_
         )
         rows = parse_sql_results_to_json(rows, columns)
 
-        query = f"{self.with_clause} SELECT count(*) FROM {table}"
+        query = str(
+            store.render(
+                f""" SELECT count(*) FROM {table}""",
+                with_=self.with_,
+            )
+        )
         n_total = Connection.current.session.execute(
             sqlalchemy.sql.text(query)
         ).fetchone()[0]
@@ -195,7 +195,7 @@ class TableWidget:
                     n_rows,
                     sort_column=sort_column,
                     sort_order=sort_order,
-                    with_clause=self.with_clause,
+                    with_=self.with_,
                 )
                 rows_json = parse_sql_results_to_json(rows, columns)
 

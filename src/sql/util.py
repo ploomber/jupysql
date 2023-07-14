@@ -180,7 +180,7 @@ def strip_multiple_chars(string: str, chars: str) -> str:
     return string.translate(str.maketrans("", "", chars))
 
 
-def is_saved_snippet(table: str, task=None) -> bool:
+def is_saved_snippet(table: str) -> bool:
     """
     checks if table is part of a snippet
     Parameters
@@ -188,19 +188,8 @@ def is_saved_snippet(table: str, task=None) -> bool:
     table: str
         Table name
 
-    task: str, default None
-        specifies the command calling this function
-        helps to craft the output message
     """
-    msg = "Analyzing"
-    if task == "explore":
-        msg = "Exploring"
-    elif task == "profile":
-        msg = "Profiling"
-    elif task == "plot":
-        msg = "Plotting"
     if table in list(store):
-        print(f"{msg} using saved snippet : {table}")
         return True
     return False
 
@@ -273,7 +262,7 @@ def support_only_sql_alchemy_connection(command):
 
 
 def fetch_sql_with_pagination(
-    table, offset, n_rows, sort_column=None, sort_order=None, with_clause=None
+    table, offset, n_rows, sort_column=None, sort_order=None, with_=None
 ) -> tuple:
     """
     Returns next n_rows and columns from table starting at the offset
@@ -296,24 +285,29 @@ def fetch_sql_with_pagination(
     sort_order : 'DESC' or 'ASC', default None
         Order list
 
-    with_clause : str, default None
+    with_ : str, default None
         Name of the snippet used to generate the table
     """
 
-    if with_clause is None:
-        with_clause = ""
-        is_table_exists(table)
-
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
-    query = f"""
-    {with_clause}
-    SELECT * FROM {table} {order_by}
-    LIMIT {n_rows} OFFSET {offset}"""
+    query = str(
+        store.render(
+            f""" SELECT * FROM {table} {order_by}
+    LIMIT {n_rows} OFFSET {offset}""",
+            with_=with_,
+        )
+    )
 
     rows = Connection.current.execute(query).fetchall()
 
     columns = sql.run.raw_run(
-        Connection.current, f"{with_clause} SELECT * FROM {table} WHERE 1=0"
+        Connection.current,
+        str(
+            store.render(
+                f""" SELECT * FROM {table} WHERE 1=0""",
+                with_=with_,
+            )
+        ),
     ).keys()
 
     return rows, columns
@@ -409,8 +403,17 @@ def is_saved_snippet_or_table_exists(table, schema=None, task=None):
         name of the snippet
     """
     with_ = None
-    if is_saved_snippet(table, task):
+    msg = "Analyzing"
+    if task == "explore":
+        msg = "Exploring"
+    elif task == "profile":
+        msg = "Profiling"
+    elif task == "plot":
+        msg = "Plotting"
+
+    if is_saved_snippet(table):
         with_ = [table]
+        print(f"{msg} using saved snippet : {table}")
     else:
         is_table_exists(table, schema)
     return with_

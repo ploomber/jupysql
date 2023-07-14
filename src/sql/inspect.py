@@ -239,13 +239,9 @@ class TableDescription(DatabaseInspection):
         if schema:
             table_name = f"{schema}.{table_name}"
 
-        if with_:
-            with_clause = str(store.render("", with_=with_))
-        else:
-            with_clause = ""
-
         columns_query_result = sql.run.raw_run(
-            Connection.current, f"{with_clause} SELECT * FROM {table_name} WHERE 1=0"
+            Connection.current,
+            str(store.render(f"SELECT * FROM {table_name} WHERE 1=0", with_=with_)),
         )
 
         if Connection.is_custom_connection():
@@ -265,7 +261,11 @@ class TableDescription(DatabaseInspection):
             try:
                 result = sql.run.raw_run(
                     Connection.current,
-                    f"""{with_clause} SELECT {column} FROM {table_name} LIMIT 1""",
+                    str(
+                        store.render(
+                            f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
+                        )
+                    ),
                 ).fetchone()
 
                 value = result[0]
@@ -282,9 +282,14 @@ class TableDescription(DatabaseInspection):
             try:
                 result_col_freq_values = sql.run.raw_run(
                     Connection.current,
-                    f"""{with_clause} SELECT DISTINCT {column} as top,
+                    str(
+                        store.render(
+                            f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
                     GROUP BY top ORDER BY frequency Desc""",
+                            with_=with_,
+                        )
+                    ),
                 ).fetchall()
 
                 table_stats[column]["freq"] = result_col_freq_values[0][1]
@@ -299,14 +304,16 @@ class TableDescription(DatabaseInspection):
                 # get all non None values, min, max and avg.
                 result_value_values = sql.run.raw_run(
                     Connection.current,
-                    f"""
-                    {with_clause}
-                    SELECT MIN({column}) AS min,
+                    str(
+                        store.render(
+                            f"""SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
                     COUNT({column}) AS count
                     FROM {table_name}
-                    WHERE {column} IS NOT NULL
-                    """,
+                    WHERE {column} IS NOT NULL""",
+                            with_=with_,
+                        )
+                    ),
                 ).fetchall()
 
                 columns_to_include_in_report.update(["count", "min", "max"])
@@ -324,13 +331,15 @@ class TableDescription(DatabaseInspection):
                 # get unique values
                 result_value_values = sql.run.raw_run(
                     Connection.current,
-                    f"""
-                    {with_clause}
-                    SELECT
+                    str(
+                        store.render(
+                            f""" SELECT
                     COUNT(DISTINCT {column}) AS unique_count
                     FROM {table_name}
-                    WHERE {column} IS NOT NULL
-                    """,
+                    WHERE {column} IS NOT NULL""",
+                            with_=with_,
+                        )
+                    ),
                 ).fetchall()
                 table_stats[column]["unique"] = result_value_values[0][0]
                 columns_to_include_in_report.update(["unique"])
@@ -340,12 +349,14 @@ class TableDescription(DatabaseInspection):
             try:
                 results_avg = sql.run.raw_run(
                     Connection.current,
-                    f"""
-                    {with_clause}
-                    SELECT AVG({column}) AS avg
+                    str(
+                        store.render(
+                            f""" SELECT AVG({column}) AS avg
                     FROM {table_name}
-                    WHERE {column} IS NOT NULL
-                    """,
+                    WHERE {column} IS NOT NULL""",
+                            with_=with_,
+                        )
+                    ),
                 ).fetchall()
 
                 columns_to_include_in_report.update(["mean"])
@@ -361,18 +372,14 @@ class TableDescription(DatabaseInspection):
                 # Note: stddev_pop and PERCENTILE_DISC will work only on DuckDB
                 result = sql.run.raw_run(
                     Connection.current,
-                    f"""
-                    {with_clause}
-                    SELECT
-                        stddev_pop({column}) as key_std,
-                        percentile_disc(0.25) WITHIN GROUP
-                        (ORDER BY {column}) as key_25,
-                        percentile_disc(0.50) WITHIN GROUP
-                        (ORDER BY {column}) as key_50,
-                        percentile_disc(0.75) WITHIN GROUP
-                        (ORDER BY {column}) as key_75
+                    str(
+                        store.render(
+                            f""" SELECT AVG({column}) AS avg
                     FROM {table_name}
-                    """,
+                    WHERE {column} IS NOT NULL""",
+                            with_=with_,
+                        )
+                    ),
                 ).fetchall()
 
                 columns_to_include_in_report.update(special_numeric_keys)
