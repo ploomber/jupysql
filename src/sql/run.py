@@ -301,73 +301,16 @@ class ResultSet(ColumnGuesserMixin):
     def DataFrame(self, payload):
         """Returns a Pandas DataFrame instance built from the result set."""
         payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
+        import pandas as pd
 
-        has_df_method = hasattr(self.sqlaproxy, "df")
-
-        # native duckdb connection
-        if has_df_method:
-            # we need to re-execute the statement because if we fetched some rows
-            # already, .df() will return None. But only if it's a select statement
-            # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
-            # statements
-            is_select = _statement_is_select(self.statement)
-
-            if is_select:
-                self.sqlaproxy.execute(self.statement)
-
-            return self.sqlaproxy.df()
-        else:
-            import pandas as pd
-
-            frame = pd.DataFrame(self, columns=(self and self.keys) or [])
-
-            if self._dialect == "duckdb" and not has_df_method and len(frame) >= 1_000:
-                warnings.warn(
-                    "It looks like you're using DuckDB with SQLAlchemy. "
-                    "For faster conversions to pandas.DataFrame, use "
-                    " a DuckDB native connection. Docs: {URL}."
-                    " to suppress this warning, {CODE}",
-                    category=JupySQLDataFramePerformanceWarning,
-                )
-
-            return frame
+        return _convert_to_data_frame(self, "pd", pd.DataFrame)
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
         """Returns a Polars DataFrame instance built from the result set."""
-        has_pl_method = hasattr(self.sqlaproxy, "pl")
+        import polars as pl
 
-        # native duckdb connection
-        if hasattr(self.sqlaproxy, "pl"):
-            # we need to re-execute the statement because if we fetched some rows
-            # already, .df() will return None. But only if it's a select statement
-            # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
-            # statements
-            is_select = _statement_is_select(self.statement)
-
-            if is_select:
-                self.sqlaproxy.execute(self.statement)
-
-            return self.sqlaproxy.pl()
-        else:
-            import polars as pl
-
-            frame = pl.DataFrame(
-                (tuple(row) for row in self),
-                schema=self.keys,
-                **polars_dataframe_kwargs,
-            )
-
-            if self._dialect == "duckdb" and not has_pl_method and len(frame) >= 1_000:
-                warnings.warn(
-                    "It looks like you're using DuckDB with SQLAlchemy. "
-                    "For faster conversions to polars.DataFrame, use "
-                    " a DuckDB native connection. Docs: {URL}."
-                    " to suppress this warning, {CODE}",
-                    category=JupySQLDataFramePerformanceWarning,
-                )
-
-            return frame
+        return _convert_to_data_frame(self, "pl", pl.DataFrame, polars_dataframe_kwargs)
 
     @telemetry.log_call("pie")
     def pie(self, key_word_sep=" ", title=None, **kwargs):
@@ -740,3 +683,50 @@ def _statement_is_select(statement):
     statement_ = statement.lower().strip()
     # duckdb also allows FROM without SELECT
     return statement_.startswith("select") or statement_.startswith("from")
+
+
+def _convert_to_data_frame(
+    result_set, converter_name, constructor, constructor_kwargs=None
+):
+    constructor_kwargs = constructor_kwargs or {}
+    has_converter_method = hasattr(result_set.sqlaproxy, converter_name)
+
+    # native duckdb connection
+    if hasattr(result_set.sqlaproxy, converter_name):
+        # we need to re-execute the statement because if we fetched some rows
+        # already, .df() will return None. But only if it's a select statement
+        # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
+        # statements
+        is_select = _statement_is_select(result_set.statement)
+
+        if is_select:
+            result_set.sqlaproxy.execute(result_set.statement)
+
+        return getattr(result_set.sqlaproxy, converter_name)()
+    else:
+        frame = constructor(
+            (tuple(row) for row in result_set),
+            schema=result_set.keys,
+            **constructor_kwargs,
+        )
+
+        # NOTE: in JupySQL 0.7.9, we were opening a raw new connection so people
+        # using SQLALchemy still had the native performance to convert to pandas
+        # but this led to other problems because the native connection didn't
+        # have the same state as the SQLAlchemy connection, yielding confusing
+        # errors. So we decided to remove this and just warn the user that
+        # performance might be slow and they could use a native connection
+        if (
+            result_set._dialect == "duckdb"
+            and not has_converter_method
+            and len(frame) >= 1_000
+        ):
+            warnings.warn(
+                "It looks like you're using DuckDB with SQLAlchemy. "
+                "For faster conversions, use "
+                " a DuckDB native connection. Docs: {URL}."
+                " to suppress this warning, {CODE}",
+                category=JupySQLDataFramePerformanceWarning,
+            )
+
+        return frame
