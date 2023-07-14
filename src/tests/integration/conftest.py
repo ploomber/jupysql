@@ -200,6 +200,11 @@ def ip_with_mariaDB(ip_empty, setup_mariaDB):
 
 @pytest.fixture(scope="session")
 def setup_SQLite(test_table_name_dict, skip_on_live_mode):
+    config = _testing.DatabaseConfigHelper.get_database_config("SQLite")
+
+    if Path(config["database"]).exists():
+        Path(config["database"]).unlink()
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("SQLite"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
@@ -213,9 +218,6 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     configKey = "SQLite"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     alias = config["alias"]
-
-    if Path(config["database"]).exists():
-        Path(config["database"]).unlink()
 
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell(
@@ -279,6 +281,11 @@ def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
 
 @pytest.fixture(scope="session")
 def setup_duckDB(test_table_name_dict, skip_on_live_mode):
+    config = _testing.DatabaseConfigHelper.get_database_config("duckDB")
+
+    if Path(config["database"]).exists():
+        Path(config["database"]).unlink()
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("duckDB"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
@@ -291,10 +298,6 @@ def setup_duckDB(test_table_name_dict, skip_on_live_mode):
 def ip_with_duckDB(ip_empty, setup_duckDB):
     configKey = "duckDB"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
-
-    if Path(config["database"]).exists():
-        Path(config["database"]).unlink()
-
     alias = config["alias"]
 
     # Select database engine, use different sqlite database endpoint

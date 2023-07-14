@@ -303,7 +303,8 @@ class ResultSet(ColumnGuesserMixin):
         payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
         import pandas as pd
 
-        return _convert_to_data_frame(self, "pd", pd.DataFrame)
+        kwargs = {"columns": (self and self.keys) or []}
+        return _convert_to_data_frame(self, "df", pd.DataFrame, kwargs)
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
@@ -722,7 +723,10 @@ def _convert_to_data_frame(
             and len(frame) >= 1_000
         ):
             DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
-            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
+            WARNINGS = (
+                "https://jupysql.ploomber.io/en/latest/tutorials"
+                "/duckdb-native-sqlalchemy.html#supress-warnings"
+            )
 
             warnings.warn(
                 "It looks like you're using DuckDB with SQLAlchemy. "
