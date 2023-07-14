@@ -288,6 +288,8 @@ def fetch_sql_with_pagination(
     with_ : str, default None
         Name of the snippet used to generate the table
     """
+    if with_ is None:
+        is_table_exists(table)
 
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
     query = str(

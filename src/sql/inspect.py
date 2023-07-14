@@ -374,9 +374,15 @@ class TableDescription(DatabaseInspection):
                     Connection.current,
                     str(
                         store.render(
-                            f""" SELECT AVG({column}) AS avg
-                    FROM {table_name}
-                    WHERE {column} IS NOT NULL""",
+                            f""" SELECT
+                        stddev_pop({column}) as key_std,
+                        percentile_disc(0.25) WITHIN GROUP
+                        (ORDER BY {column}) as key_25,
+                        percentile_disc(0.50) WITHIN GROUP
+                        (ORDER BY {column}) as key_50,
+                        percentile_disc(0.75) WITHIN GROUP
+                        (ORDER BY {column}) as key_75
+                    FROM {table_name}""",
                             with_=with_,
                         )
                     ),
