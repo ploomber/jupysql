@@ -230,7 +230,7 @@ class Connection:
             if detailed_msg is not None:
                 raise exceptions.UsageError(detailed_msg)
             else:
-                print(e)
+                display.message(e)
         except Exception as e:
             raise cls._error_invalid_connection_info(e, connect_str) from e
 
@@ -489,7 +489,7 @@ class Connection:
             conn.close(key)
 
             if verbose:
-                print(f"Closing {key}")
+                display.message(f"Closing {key}")
 
         cls.connections = {}
 

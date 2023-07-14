@@ -1,4 +1,4 @@
-from sql import exceptions
+from sql import exceptions, display
 import sql.connection
 from sqlalchemy import text
 from sqlglot import select, condition
@@ -167,12 +167,12 @@ def test(others):
     if any(len(rows) > 1 for rows in list(result_dict.values())):
         for comparator, rows in result_dict.items():
             if len(rows) > 1:
-                print(f"\n{comparator}:\n")
+                display.message(f"\n{comparator}:\n")
                 _pretty = PrettyTable()
                 _pretty.field_names = rows[0]
                 for row in rows[1:]:
                     _pretty.add_row(row)
-                print(_pretty)
+                display.message(_pretty)
         raise exceptions.UsageError(
             "The above values do not not match your test requirements."
         )
