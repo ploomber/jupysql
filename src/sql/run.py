@@ -723,10 +723,7 @@ def _convert_to_data_frame(
             and len(frame) >= 1_000
         ):
             DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
-            WARNINGS = (
-                "https://jupysql.ploomber.io/en/latest/tutorials"
-                "/duckdb-native-sqlalchemy.html#supress-warnings"
-            )
+            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
 
             warnings.warn(
                 "It looks like you're using DuckDB with SQLAlchemy. "
