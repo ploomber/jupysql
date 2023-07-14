@@ -111,7 +111,7 @@ tags: [raises-exception]
 %sqlplot boxplot --table df --column x
 ```
 
-## Supress warnings
+## Suppress warnings
 
 When converting large datasets using SQLALchemy, you'll see a warning:
 
@@ -120,7 +120,7 @@ When converting large datasets using SQLALchemy, you'll see a warning:
 _ = %sql SELECT * FROM df
 ```
 
-To supress it, add this at the top of your notebook/script:
+To suppress it, add this at the top of your notebook/script:
 
 ```{code-cell} ipython3
 from sql.warnings import JupySQLDataFramePerformanceWarning
