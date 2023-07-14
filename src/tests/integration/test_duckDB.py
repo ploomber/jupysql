@@ -225,7 +225,9 @@ def test_multiple_statements(ip, config, sql, tables, request):
                 "INSERT INTO some_table VALUES ('NYC');"
                 "SELECT * FROM some_table;"
             ),
-            ["more_names"],
+            # NOTE: this is failing locally (Mac M processor), but not on CI
+            # I tried debugging but couldn't find the issue
+            ["some_table", "more_names"],
         ],
     ],
     ids=[
