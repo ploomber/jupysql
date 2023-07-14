@@ -131,17 +131,17 @@ class ResultSet(ColumnGuesserMixin):
         # note that calling this will fetch the keys
         self.pretty_table = self._init_table()
 
-        self._done_fetching = False
+        self._mark_fetching_as_done = False
 
         if self.config.autolimit == 1:
             # if autolimit is 1, we only want to fetch one row
             self.fetchmany(size=1)
-            self.did_finish_fetching()
+            self.done_fetching()
         else:
             # in all other cases, 2 allows us to know if there are more rows
             # for example when creating a table, the results contains one row, in
             # such case, fetching 2 rows will tell us that there are no more rows
-            # and can set the _done_fetching flag to True
+            # and can set the _mark_fetching_as_done flag to True
             self.fetchmany(size=2)
 
         self._finished_init = True
@@ -172,13 +172,13 @@ class ResultSet(ColumnGuesserMixin):
         self._results.extend(elements)
         self.pretty_table.add_rows(elements[:to_add])
 
-    def done_fetching(self):
-        self._done_fetching = True
+    def mark_fetching_as_done(self):
+        self._mark_fetching_as_done = True
         # NOTE: don't close the connection here (self.sqlaproxy.close()),
         # because we need to keep it open for the next query
 
-    def did_finish_fetching(self):
-        return self._done_fetching
+    def done_fetching(self):
+        return self._mark_fetching_as_done
 
     @property
     def field_names(self):
@@ -214,6 +214,7 @@ class ResultSet(ColumnGuesserMixin):
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
         result = self.pretty_table.get_html_string()
+
         HTML = (
             "%s\n<span style='font-style:italic;font-size:11px'>"
             "<code>ResultSet</code> : to convert to pandas, call <a href="
@@ -227,7 +228,8 @@ class ResultSet(ColumnGuesserMixin):
         # to create clickable links
         result = html.unescape(result)
         result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
-        if self.config.displaylimit != 0:
+
+        if self.config.displaylimit != 0 and not self.done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
                 "Truncated to displaylimit of %d</span>"
@@ -494,26 +496,26 @@ class ResultSet(ColumnGuesserMixin):
 
     def fetchmany(self, size):
         """Fetch n results and add it to the results"""
-        if not self.did_finish_fetching():
+        if not self.done_fetching():
             try:
                 returned = self.sqlaproxy.fetchmany(size=size)
             # sqlite raises this error when running a script that doesn't return rows
             # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
             except ResourceClosedError:
-                self.done_fetching()
+                self.mark_fetching_as_done()
                 return
 
             self.extend_results(returned)
 
             if len(returned) < size:
-                self.done_fetching()
+                self.mark_fetching_as_done()
 
             if (
                 self.config.autolimit is not None
                 and self.config.autolimit != 0
                 and len(self._results) >= self.config.autolimit
             ):
-                self.done_fetching()
+                self.mark_fetching_as_done()
 
     def fetch_for_repr_if_needed(self):
         if self.config.displaylimit == 0:
@@ -525,9 +527,9 @@ class ResultSet(ColumnGuesserMixin):
             self.fetchmany(missing)
 
     def fetchall(self):
-        if not self.did_finish_fetching():
+        if not self.done_fetching():
             self.extend_results(self.sqlaproxy.fetchall())
-            self.done_fetching()
+            self.mark_fetching_as_done()
 
     def _init_table(self):
         pretty = CustomPrettyTable(self.field_names)
