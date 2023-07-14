@@ -50,7 +50,7 @@ def _summary_stats(conn, table, column, with_=None):
     try:
         values = conn.execute(query, with_).fetchone()
     except ProgrammingError as e:
-        display.message(e)
+        print(e)
         raise exceptions.RuntimeError(
             f"\nEnsure that percentile_disc function is available on {driver}."
         )
