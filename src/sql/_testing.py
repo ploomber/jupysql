@@ -186,10 +186,10 @@ def database_ready(
         try:
             eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
             eng.close()
-            display.message_success(f"{database} is initialized successfully")
+            print(f"{database} is initialized successfully")
             return True
         except Exception as e:
-            display.message(type(e))
+            print(type(e))
             errors.append(str(e))
 
         time.sleep(poll_freq)
@@ -197,7 +197,7 @@ def database_ready(
     # print all the errors so we know what's going on since failing to connect might be
     # to some misconfiguration error
     errors_ = "\n".join(errors)
-    display.message(f"ERRORS: {errors_}")
+    print(f"ERRORS: {errors_}")
 
     return True
 
@@ -219,7 +219,7 @@ def postgres(is_bypass_init=False):
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
-        display.message("Creating new container: postgreSQL")
+        print("Creating new container: postgreSQL")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
@@ -251,7 +251,7 @@ def mysql(is_bypass_init=False):
         container = client.containers.get(db_config["docker_ct"]["name"])
         yield container
     except errors.NotFound:
-        display.message("Creating new container: mysql")
+        print("Creating new container: mysql")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
@@ -291,7 +291,7 @@ def mariadb(is_bypass_init=False):
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
-        display.message("Creating new container: mariaDB")
+        print("Creating new container: mariaDB")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
@@ -331,7 +331,7 @@ def mssql(is_bypass_init=False):
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
-        display.message("Creating new container: MSSQL")
+        print("Creating new container: MSSQL")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
@@ -364,7 +364,7 @@ def oracle(is_bypass_init=False):
         curr = client.containers.get(db_config["docker_ct"]["name"])
         yield curr
     except errors.NotFound:
-        display.message("Creating new container: oracle")
+        print("Creating new container: oracle")
         with new_container(
             new_container_name=db_config["docker_ct"]["name"],
             image_name=db_config["docker_ct"]["image"],
@@ -381,14 +381,14 @@ def oracle(is_bypass_init=False):
 
 
 def main():
-    display.message("Starting test containers...")
+    print("Starting test containers...")
     with postgres(), mysql(), mariadb(), mssql(), oracle():
-        display.message("Press CTRL+C to exit")
+        print("Press CTRL+C to exit")
         try:
             while True:
                 time.sleep(5)
         except KeyboardInterrupt:
-            display.message("Exit, containers will be killed")
+            print("Exit, containers will be killed")
             sys.exit()
 
 
