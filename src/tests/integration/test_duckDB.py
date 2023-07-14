@@ -9,22 +9,6 @@ from sql.connection import Connection
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
-# TODO: reconcile the fixtures, we have other fixtures in conftest.py
-@pytest.fixture
-def ip_duckdb_native_empty(tmp_empty, ip_empty_testing):
-    ip_empty_testing.run_cell("import duckdb; conn = duckdb.connect('my.db')")
-    ip_empty_testing.run_cell("%sql conn --alias duck")
-    yield ip_empty_testing
-    ip_empty_testing.run_cell("conn.close()")
-
-
-@pytest.fixture
-def ip_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
-    ip_empty_testing.run_cell("%sql duckdb:///my.db --alias duckdb")
-    yield ip_empty_testing
-    ip_empty_testing.run_cell("%sql --close duckdb")
-
-
 @pytest.mark.parametrize(
     "ip, exp",
     [
@@ -86,26 +70,26 @@ def test_dbapi_connection_sets_right_dialect(ip_with_duckDB_native):
 )
 def test_native_connection_converts_to_data_frames_natively(
     monkeypatch,
-    ip_duckdb_native_empty,
+    ip_with_duckdb_native_empty,
     method,
     expected_type,
     expected_native_method,
 ):
-    ip_duckdb_native_empty.run_cell(
+    ip_with_duckdb_native_empty.run_cell(
         "%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);"
     )
-    ip_duckdb_native_empty.run_cell(
+    ip_with_duckdb_native_empty.run_cell(
         "%sql INSERT INTO weather VALUES ('San Francisco', 46);"
     )
-    ip_duckdb_native_empty.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
-    ip_duckdb_native_empty.run_cell("results = %sql SELECT * FROM weather")
+    ip_with_duckdb_native_empty.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
+    ip_with_duckdb_native_empty.run_cell("results = %sql SELECT * FROM weather")
 
-    results = ip_duckdb_native_empty.run_cell("results").result
+    results = ip_with_duckdb_native_empty.run_cell("results").result
 
     mock = Mock(wraps=results.sqlaproxy)
     monkeypatch.setattr(results, "_sqlaproxy", mock)
 
-    out = ip_duckdb_native_empty.run_cell(f"results.{method}()")
+    out = ip_with_duckdb_native_empty.run_cell(f"results.{method}()")
 
     mock.execute.assert_called_once_with("SELECT * FROM weather")
     getattr(mock, expected_native_method).assert_called_once_with()
@@ -125,19 +109,19 @@ def test_native_connection_converts_to_data_frames_natively(
     ],
 )
 def test_convert_to_dataframe_automatically(
-    ip_duckdb_native_empty,
+    ip_with_duckdb_native_empty,
     conversion_cell,
     expected_type,
 ):
-    ip_duckdb_native_empty.run_cell(conversion_cell)
-    ip_duckdb_native_empty.run_cell(
+    ip_with_duckdb_native_empty.run_cell(conversion_cell)
+    ip_with_duckdb_native_empty.run_cell(
         "%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);"
     )
-    ip_duckdb_native_empty.run_cell(
+    ip_with_duckdb_native_empty.run_cell(
         "%sql INSERT INTO weather VALUES ('San Francisco', 46);"
     )
-    ip_duckdb_native_empty.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
-    df = ip_duckdb_native_empty.run_cell("%sql SELECT * FROM weather").result
+    ip_with_duckdb_native_empty.run_cell("%sql INSERT INTO weather VALUES ('NYC', 20);")
+    df = ip_with_duckdb_native_empty.run_cell("%sql SELECT * FROM weather").result
     assert isinstance(df, expected_type)
     assert df.shape == (2, 2)
 
@@ -180,8 +164,8 @@ def test_convert_to_dataframe_automatically(
 @pytest.mark.parametrize(
     "ip",
     [
-        "ip_duckdb_native_empty",
-        "ip_duckdb_sqlalchemy_empty",
+        "ip_with_duckdb_native_empty",
+        "ip_with_duckdb_sqlalchemy_empty",
     ],
 )
 def test_multiple_statements(ip, config, sql, tables, request):
@@ -199,7 +183,7 @@ def test_multiple_statements(ip, config, sql, tables, request):
     else:
         assert out.result.dict() == {"city": ("NYC",)}
 
-    if ip == "ip_duckdb_sqlalchemy_empty":
+    if ip == "ip_with_duckdb_sqlalchemy_empty":
         out_tables = ip_.run_cell("%sqlcmd tables")
         assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
 
@@ -236,14 +220,14 @@ def test_multiple_statements(ip, config, sql, tables, request):
     "ip",
     [
         pytest.param(
-            "ip_duckdb_native_empty",
+            "ip_with_duckdb_native_empty",
             marks=pytest.mark.xfail(
                 reason="Currently, native DuckDB runs each "
                 "statement in a separate cursor"
             ),
         ),
         pytest.param(
-            "ip_duckdb_sqlalchemy_empty",
+            "ip_with_duckdb_sqlalchemy_empty",
             marks=pytest.mark.xfail(
                 reason="There is some issue with this tests that I was unable "
                 "to reproduce. It returns different results on local "
@@ -270,8 +254,8 @@ def test_tmp_table(ip, config, sql, tables, request):
 @pytest.mark.parametrize(
     "ip",
     [
-        "ip_duckdb_native_empty",
-        "ip_duckdb_sqlalchemy_empty",
+        "ip_with_duckdb_native_empty",
+        "ip_with_duckdb_sqlalchemy_empty",
     ],
 )
 def test_empty_data_frame_if_last_statement_is_not_select(ip, request):
@@ -302,8 +286,8 @@ SELECT * FROM a UNION ALL SELECT * FROM b;
 @pytest.mark.parametrize(
     "ip",
     [
-        "ip_duckdb_native_empty",
-        "ip_duckdb_sqlalchemy_empty",
+        "ip_with_duckdb_native_empty",
+        "ip_with_duckdb_sqlalchemy_empty",
     ],
 )
 def test_commits_all_statements(ip, sql, request):

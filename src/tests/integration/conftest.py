@@ -309,6 +309,21 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
     ip_empty.run_cell("%sql -x " + alias)
 
 
+@pytest.fixture
+def ip_with_duckdb_native_empty(tmp_empty, ip_empty_testing):
+    ip_empty_testing.run_cell("import duckdb; conn = duckdb.connect('my.db')")
+    ip_empty_testing.run_cell("%sql conn --alias duck")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("conn.close()")
+
+
+@pytest.fixture
+def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
+    ip_empty_testing.run_cell("%sql duckdb:///my.db --alias duckdb")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("%sql --close duckdb")
+
+
 @pytest.fixture(scope="session")
 def setup_MSSQL(test_table_name_dict, skip_on_live_mode):
     with _testing.mssql():
