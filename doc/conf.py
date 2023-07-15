@@ -102,7 +102,7 @@ suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
 ogp_site_url = "https://jupysql.ploomber.io"
-ogp_image = "/./static/github-codespace.png"
+ogp_image = "/./static/github-codespace"
 
 
 # Adding Algolia search to jupyter-book :
