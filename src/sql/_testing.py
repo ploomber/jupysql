@@ -167,7 +167,7 @@ client = docker.from_env()
 
 def database_ready(
     database,
-    timeout=60,
+    timeout=20,
     poll_freq=0.5,
 ):
     """Wait until the container is ready to receive connections.
@@ -180,18 +180,19 @@ def database_ready(
     """
     errors = []
 
+    engine = sqlalchemy.create_engine(_get_database_url(database))
+
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            eng = sqlalchemy.create_engine(_get_database_url(database)).connect()
-            eng.close()
-            print(f"{database} is initialized successfully")
+            engine.connect()
             return True
         except Exception as e:
-            print(type(e))
-            errors.append(str(e))
+            errors.append(f"{type(e).__name__}: {e}")
 
         time.sleep(poll_freq)
+
+    engine.dispose()
 
     # print all the errors so we know what's going on since failing to connect might be
     # to some misconfiguration error

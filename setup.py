@@ -59,9 +59,9 @@ INTEGRATION = [
     "psycopg2-binary",
     "pymysql",
     "pgspecial==2.0.1",
-    "pyodbc",
+    "pyodbc",  # fails on mac M1
     "snowflake-sqlalchemy",
-    "oracledb",
+    "oracledb",  # pip install fails
 ]
 
 setup(
