@@ -136,7 +136,7 @@ class ResultSet(ColumnGuesserMixin):
         if self.config.autolimit == 1:
             # if autolimit is 1, we only want to fetch one row
             self.fetchmany(size=1)
-            self.done_fetching()
+            self._done_fetching()
         else:
             # in all other cases, 2 allows us to know if there are more rows
             # for example when creating a table, the results contains one row, in
@@ -171,7 +171,8 @@ class ResultSet(ColumnGuesserMixin):
 
         return self._sqlaproxy
 
-    def extend_results(self, elements):
+    def _extend_results(self, elements):
+        """Store the DB fetched results into the internal list of results"""
         to_add = self.config.displaylimit - len(self._results)
         self._results.extend(elements)
         self.pretty_table.add_rows(elements[:to_add])
@@ -181,7 +182,7 @@ class ResultSet(ColumnGuesserMixin):
         # NOTE: don't close the connection here (self.sqlaproxy.close()),
         # because we need to keep it open for the next query
 
-    def done_fetching(self):
+    def _done_fetching(self):
         return self._mark_fetching_as_done
 
     @property
@@ -233,7 +234,7 @@ class ResultSet(ColumnGuesserMixin):
         result = html.unescape(result)
         result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
 
-        if self.config.displaylimit != 0 and not self.done_fetching():
+        if self.config.displaylimit != 0 and not self._done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
                 "Truncated to displaylimit of %d</span>"
@@ -445,7 +446,7 @@ class ResultSet(ColumnGuesserMixin):
 
     def fetchmany(self, size):
         """Fetch n results and add it to the results"""
-        if not self.done_fetching():
+        if not self._done_fetching():
             try:
                 returned = self.sqlaproxy.fetchmany(size=size)
             # sqlite raises this error when running a script that doesn't return rows
@@ -454,7 +455,7 @@ class ResultSet(ColumnGuesserMixin):
                 self.mark_fetching_as_done()
                 return
 
-            self.extend_results(returned)
+            self._extend_results(returned)
 
             if len(returned) < size:
                 self.mark_fetching_as_done()
@@ -476,8 +477,8 @@ class ResultSet(ColumnGuesserMixin):
             self.fetchmany(missing)
 
     def fetchall(self):
-        if not self.done_fetching():
-            self.extend_results(self.sqlaproxy.fetchall())
+        if not self._done_fetching():
+            self._extend_results(self.sqlaproxy.fetchall())
             self.mark_fetching_as_done()
 
     def _init_table(self):
