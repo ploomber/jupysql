@@ -251,7 +251,10 @@ def support_only_sql_alchemy_connection(command):
     Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
     if Connection.is_dbapi_connection():
-        raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")
+        raise exceptions.RuntimeError(
+            f"{command} is only supported with SQLAlchemy "
+            "connections, not with DBAPI connections"
+        )
 
 
 def fetch_sql_with_pagination(
