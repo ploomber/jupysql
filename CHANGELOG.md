@@ -15,8 +15,7 @@
 * [Fix] Used display module when generating CTE (#649)
 * [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
-* [Feature] Better performance when using DuckDB native connection and converting to `polars.DataFrame`
-* [Feature] Better performance when using DuckDB native connection and converting to `pandas.DataFrame`
+* [Feature] Better performance when using DuckDB native connection and converting to `pandas.DataFrame` or `polars.DataFrame`
 * [Fix] Improving `<<` parsing logic (#610)
 
 ## 0.7.9 (2023-06-19)
