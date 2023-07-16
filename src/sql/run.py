@@ -153,12 +153,16 @@ class ResultSet(ColumnGuesserMixin):
         # become outdated and fetching their results will return the results from
         # the last ResultSet. To fix this, we have to re-issue the query
         is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
+        is_duckdb_sqlalchemy = (
+            self._dialect == "duckdb" and not self._conn.is_dbapi_connection()
+        )
 
         if (
-            not is_last_result
-            and hasattr(self, "_finished_init")
-            and self._dialect == "duckdb"
-            and not self._conn.is_dbapi_connection()
+            # skip this if we're initializing the object (we're running __init__)
+            hasattr(self, "_finished_init")
+            # this only applies to duckdb + sqlalchemy with outdated results
+            and is_duckdb_sqlalchemy
+            and not is_last_result
         ):
             self._sqlaproxy = self._conn.session.execute(self.statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
