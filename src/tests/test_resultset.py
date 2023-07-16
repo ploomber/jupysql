@@ -154,6 +154,14 @@ def duckdb_dbapi():
     yield conn
 
 
+@pytest.fixture
+def mock_config():
+    mock = Mock()
+    mock.displaylimit = 100
+    mock.autolimit = 100000
+    yield mock
+
+
 @pytest.mark.parametrize(
     "session, expected_value",
     [
@@ -162,17 +170,15 @@ def duckdb_dbapi():
         ("sqlite_sqlalchemy", {}),
     ],
 )
-def test_convert_to_dataframe_create_table(session, expected_value, request):
+def test_convert_to_dataframe_create_table(
+    session, expected_value, request, mock_config
+):
     session = request.getfixturevalue(session)
-
-    mock = Mock()
-    mock.displaylimit = 100
-    mock.autolimit = 100000
 
     statement = "CREATE TABLE a (x INT);"
     results = session.execute(statement)
 
-    rs = ResultSet(results, mock, statement=statement, conn=session)
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
     df = rs.DataFrame()
 
     assert df.to_dict() == expected_value
@@ -186,17 +192,15 @@ def test_convert_to_dataframe_create_table(session, expected_value, request):
         ("sqlite_sqlalchemy", {}),
     ],
 )
-def test_convert_to_dataframe_insert_into(session, expected_value, request):
+def test_convert_to_dataframe_insert_into(
+    session, expected_value, request, mock_config
+):
     session = request.getfixturevalue(session)
-
-    mock = Mock()
-    mock.displaylimit = 100
-    mock.autolimit = 100000
 
     session.execute("CREATE TABLE a (x INT,);")
     statement = "INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);"
     results = session.execute(statement)
-    rs = ResultSet(results, mock, statement=statement, conn=session)
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
     df = rs.DataFrame()
 
     assert df.to_dict() == expected_value
@@ -210,19 +214,15 @@ def test_convert_to_dataframe_insert_into(session, expected_value, request):
         "sqlite_sqlalchemy",
     ],
 )
-def test_convert_to_dataframe_select(session, request):
+def test_convert_to_dataframe_select(session, request, mock_config):
     session = request.getfixturevalue(session)
-
-    mock = Mock()
-    mock.displaylimit = 100
-    mock.autolimit = 100000
 
     session.execute("CREATE TABLE a (x INT);")
     session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
     statement = "SELECT * FROM a"
     results = session.execute(statement)
 
-    rs = ResultSet(results, mock, statement=statement, conn=session)
+    rs = ResultSet(results, mock_config, statement=statement, conn=session)
     df = rs.DataFrame()
 
     assert df.to_dict() == {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}
@@ -255,19 +255,15 @@ def test_convert_to_dataframe_select(session, request):
     ],
 )
 def test_convert_to_dataframe_using_native_duckdb(
-    ip_empty, query, to_df_method, expected_value
+    ip_empty, query, to_df_method, expected_value, mock_config
 ):
-    mock = Mock()
-    mock.displaylimit = 100
-    mock.autolimit = 100000
-
     session = duckdb.connect()
 
     session.execute("CREATE TABLE a (x INT);")
     session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
     results = session.execute(query)
 
-    rs = ResultSet(results, mock, statement=query, conn=DBAPIConnection(session))
+    rs = ResultSet(results, mock_config, statement=query, conn=DBAPIConnection(session))
     # force fetching
     list(rs)
 
@@ -288,7 +284,7 @@ def test_done_fetching_if_reached_autolimit(results):
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
-    assert rs.done_fetching() is True
+    assert rs._done_fetching() is True
 
 
 def test_done_fetching_if_reached_autolimit_2(results):
@@ -297,9 +293,10 @@ def test_done_fetching_if_reached_autolimit_2(results):
     mock.displaylimit = 100
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
+    # force fetching from db
     list(rs)
 
-    assert rs.done_fetching() is True
+    assert rs._done_fetching() is True
 
 
 @pytest.mark.parametrize("method", ["__repr__", "_repr_html_"])
@@ -313,7 +310,7 @@ def test_no_displaylimit(results, method, autolimit):
     getattr(rs, method)()
 
     assert rs._results == [(1,), (2,), (3,), (4,), (5,)]
-    assert rs.done_fetching() is True
+    assert rs._done_fetching() is True
 
 
 def test_no_fetching_if_one_result():
@@ -334,7 +331,7 @@ def test_no_fetching_if_one_result():
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
-    assert rs.done_fetching() is True
+    assert rs._done_fetching() is True
     results.fetchall.assert_not_called()
     results.fetchmany.assert_called_once_with(size=2)
     results.fetchone.assert_not_called()
@@ -432,7 +429,7 @@ def test_resultset_fetches_required_rows_repr(results, method, repr_expected):
     repr_returned = getattr(rs, method)()
 
     assert repr_expected in repr_returned
-    assert rs.done_fetching() is False
+    assert rs._done_fetching() is False
     results.fetchall.assert_not_called()
     results.fetchmany.assert_has_calls([call(size=2), call(size=1)])
     results.fetchone.assert_not_called()
