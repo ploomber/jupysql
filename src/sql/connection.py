@@ -660,7 +660,7 @@ atexit.register(Connection.close_all, verbose=True)
 
 class DBAPISession(sqlalchemy.engine.base.Connection):
     """
-    A session objecr for generic DBAPI connections
+    A session object for generic DBAPI connections
     """
 
     def __init__(self, connection, engine):
