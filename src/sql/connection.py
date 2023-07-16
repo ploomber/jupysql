@@ -597,7 +597,7 @@ class Connection:
         except ValueError:
             pass
         except AttributeError:
-            # this might be a custom connection..
+            # this might be a DBAPI connection
             pass
 
         return identifiers

@@ -512,7 +512,9 @@ def test_sql(ip_questdb, query, expected_results):
 # NOT SUPPORTED ERRORS
 
 
-NOT_SUPPORTED_SUFFIX = "is not supported for a custom engine"
+NOT_SUPPORTED_SUFFIX = (
+    "is only supported with SQLAlchemy connections, not with DBAPI connections"
+)
 
 
 @pytest.mark.parametrize(
