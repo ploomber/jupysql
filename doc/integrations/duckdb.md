@@ -270,10 +270,6 @@ WHERE trip_distance < 18.93
 %sqlplot histogram --table no_outliers --column trip_distance --bins 50
 ```
 
-```{code-cell} ipython3
-# %sqlplot boxplot --table no_outliers --column trip_distance
-```
-
 ## Querying existing dataframes
 
 ```{code-cell} ipython3
