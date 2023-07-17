@@ -4,7 +4,7 @@ from sql import inspect
 import difflib
 from sql.connection import Connection
 from sql.store import store, _get_dependents_for_key
-from sql import exceptions, display
+from sql import exceptions
 import json
 
 SINGLE_QUOTE = "'"

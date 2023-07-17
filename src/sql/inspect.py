@@ -244,7 +244,6 @@ class TableDescription(DatabaseInspection):
             str(store.render(f"SELECT * FROM {table_name} WHERE 1=0", with_=with_)),
         )
         if Connection.is_dbapi_connection():
-
             columns = [i[0] for i in columns_query_result.description]
         else:
             columns = columns_query_result.keys()
