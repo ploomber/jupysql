@@ -542,7 +542,7 @@ class Connection:
             "server_version_info": getattr(engine.dialect, "server_version_info", None),
         }
 
-    # TODO: we have self.dialect and we also have this, which is confusing
+    # TODO: we have self.dialect and we also have this, which is confusing, see #732
     def _get_curr_sqlglot_dialect(self):
         """Get the dialect name in sqlglot package scope
 
@@ -714,4 +714,6 @@ class DBAPIConnection(Connection):
 
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
+    # NOTE: duckdb defines df and pl to efficiently convert results to
+    # pandas.DataFrame and polars.DataFrame respectively
     return hasattr(conn, "df") and hasattr(conn, "pl")

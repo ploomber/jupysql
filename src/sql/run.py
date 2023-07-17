@@ -194,6 +194,9 @@ class ResultSet(ColumnGuesserMixin):
 
     @property
     def keys(self):
+        """
+        Return the keys of the results (the column names)
+        """
         if self._keys is not None:
             return self._keys
 

@@ -20,6 +20,8 @@ magic.displaycon = False
 
 
 # NOTE: you can put the @profile decorator on any internal function to profile it
+# the @profile decorator is injected by the line_profiler package at runtime, to learn
+# more, see: https://github.com/pyutils/line_profiler
 @profile  # noqa
 def run_magic():
     magic.execute("SELECT * FROM df")
