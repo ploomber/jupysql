@@ -406,11 +406,7 @@ def is_saved_snippet_or_table_exists(table, schema=None, task=None):
     """
     with_ = None
 
-    task_messages = {
-    "explore": "Exploring",
-    "profile": "Profiling",
-    "plot": "Plotting"
-    }
+    task_messages = {"explore": "Exploring", "profile": "Profiling", "plot": "Plotting"}
 
     msg = task_messages.get(task, "Analyzing")
 
