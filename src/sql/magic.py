@@ -1,5 +1,8 @@
 import json
 import re
+from pathlib import Path
+import glob
+import os
 
 try:
     from ipywidgets import interact
@@ -136,6 +139,11 @@ class SqlMagic(Magics, Configurable):
             "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
         ),
     )
+    persist_snippets = Bool(
+        False,
+        config=True,
+        help=("Save snippet as a SQL file"),
+    )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
@@ -159,6 +167,7 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+        self._load_snippets()
 
     # To verify displaylimit is valid positive integer
     # If:
@@ -189,6 +198,25 @@ class SqlMagic(Magics, Configurable):
             if getattr(self, other):
                 setattr(self, other, False)
                 print(f"Disabled '{other}' since '{change['name']}' was enabled.")
+
+    def _load_snippets(self):
+        """Load the saved snippets from the sql files
+        whenever
+        """
+        snippets_dir = "jupysql-snippets/"
+        if os.path.exists(snippets_dir) and os.path.isdir(snippets_dir):
+            snippet_files = glob.glob(snippets_dir + "*.sql")
+            snippet_names = [
+                filename[len(snippets_dir) : -4] for filename in snippet_files
+            ]
+            for name, filename in zip(snippet_names, snippet_files):
+                with open(filename, "r") as file:
+                    snippet_content = file.read()
+                    key = query_util.extract_tables_from_query(snippet_content)
+                    dependencies = self._store.infer_dependencies(
+                        snippet_content, key=key
+                    )
+                    self._store.store(name, snippet_content, with_=dependencies)
 
     def check_random_arguments(self, line="", cell=""):
         # check only for cell magic
@@ -503,6 +531,19 @@ class SqlMagic(Magics, Configurable):
                     + " instead for the save argument.",
                     FutureWarning,
                 )
+            if self.persist_snippets:
+                snippets_dir = "jupysql-snippets"
+                snippet_path = Path(snippets_dir) / f"{args.save}.sql"
+                snippet_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(snippet_path, "w") as file:
+                    file.write(command.sql_original)
+                print(
+                    """ Note: Manual editing of .sql files may not be reflected when
+                reopening the notebook. \n Please edit snippets directly in the notebook
+                to ensure consistency
+                """
+                )
+
             self._store.store(args.save, command.sql_original, with_=with_)
 
         if args.no_execute:
