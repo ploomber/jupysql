@@ -405,13 +405,14 @@ def is_saved_snippet_or_table_exists(table, schema=None, task=None):
         name of the snippet
     """
     with_ = None
-    msg = "Analyzing"
-    if task == "explore":
-        msg = "Exploring"
-    elif task == "profile":
-        msg = "Profiling"
-    elif task == "plot":
-        msg = "Plotting"
+
+    task_messages = {
+    "explore": "Exploring",
+    "profile": "Profiling",
+    "plot": "Plotting"
+    }
+
+    msg = task_messages.get(task, "Analyzing")
 
     if is_saved_snippet(table):
         with_ = [table]
