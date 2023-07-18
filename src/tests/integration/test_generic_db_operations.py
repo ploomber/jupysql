@@ -800,48 +800,70 @@ SELECT * FROM second_cte"""
 @pytest.mark.parametrize(
     "table, offset, n_rows, expected_rows, expected_columns",
     [
-        ("number_table", 0, 0, [], ["x", "y"]),
-        ("number_table", 5, 0, [], ["x", "y"]),
-        ("number_table", 50, 0, [], ["x", "y"]),
-        ("number_table", 50, 10, [], ["x", "y"]),
+        ("test_numbers", 0, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 5, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 50, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 50, 10, [], ["value_one", "value_two"]),
+        ("test_numbers", 0, 2, [(0, 1), (0, 0)], ["value_one", "value_two"]),
         (
-            "number_table",
-            2,
+            "test_numbers",
+            0,
             10,
-            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
-            ["x", "y"],
+            [
+                (0, 1),
+                (0, 0),
+                (5, 2),
+                (6, 3),
+                (7, 3),
+                (8, 8),
+                (9, 3),
+                (10, 5),
+                (11, 9),
+                (12, 19),
+            ],
+            ["value_one", "value_two"],
         ),
         (
-            "number_table",
-            2,
-            100,
-            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
-            ["x", "y"],
-        ),
-        ("number_table", 0, 2, [(4, -2), (-5, 0)], ["x", "y"]),
-        ("number_table", 2, 2, [(2, 4), (0, 2)], ["x", "y"]),
-        (
-            "number_table",
-            2,
+            "test_numbers",
+            0,
             5,
-            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3)],
-            ["x", "y"],
+            [(0, 1), (0, 0), (5, 2), (6, 3), (7, 3)],
+            ["value_one", "value_two"],
         ),
-        ("empty_table", 2, 5, [], ["column", "another"]),
+        (
+            "test_numbers",
+            5,
+            5,
+            [(8, 8), (9, 3), (10, 5), (11, 9), (12, 19)],
+            ["value_one", "value_two"],
+        ),
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
-def test_sql_explore_table(
-    table,
-    offset,
-    n_rows,
-    expected_rows,
-    expected_columns,
-    ip_with_dynamic_db,
-    request,
+def test_explore_fetch_sql_with_pagination(
+    ip_with_dynamic_db, request, table, offset, n_rows, expected_rows, expected_columns
 ):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
+    ip_with_dynamic_db.run_cell(
+        """
+    %%sql sqlite://
+    CREATE TABLE test_numbers (value_one, value_two);
+    INSERT INTO test_numbers VALUES (0, 1);
+    INSERT INTO test_numbers VALUES (0, 0);
+    INSERT INTO test_numbers VALUES (5, 2);
+    INSERT INTO test_numbers VALUES (6, 3);
+    INSERT INTO test_numbers VALUES (7, 3);
+    INSERT INTO test_numbers VALUES (8, 8);
+    INSERT INTO test_numbers VALUES (9, 3);
+    INSERT INTO test_numbers VALUES (10, 5);
+    INSERT INTO test_numbers VALUES (11, 9);
+    INSERT INTO test_numbers VALUES (12, 19);
+    INSERT INTO test_numbers VALUES (13, 40);
+    INSERT INTO test_numbers VALUES (14, 39);
+    INSERT INTO test_numbers VALUES (15, 13);
 
+    """
+    )
+    rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
     assert rows == expected_rows
     assert columns == expected_columns
