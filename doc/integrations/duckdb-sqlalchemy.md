@@ -202,6 +202,8 @@ Let's install the required package:
 Now, we download a sample data: NYC Taxi data split in 3 parquet files:
 
 ```{code-cell} ipython3
+from pathlib import Path
+
 N_MONTHS = 3
 
 # https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page
