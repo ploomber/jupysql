@@ -203,6 +203,7 @@ Now, we download a sample data: NYC Taxi data split in 3 parquet files:
 
 ```{code-cell} ipython3
 from pathlib import Path
+from urllib.request import urlretrieve
 
 N_MONTHS = 3
 
@@ -212,7 +213,7 @@ for i in range(1, N_MONTHS + 1):
     if not Path(filename).is_file():
         print(f"Downloading: {filename}")
         url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{filename}"
-        urllib.request.urlretrieve(url, filename)
+        urlretrieve(url, filename)
 ```
 
 In total, this contains more then 4.6M observations:
