@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 0.8.1dev
-- Added support for duckdb native connection for histogram and boxplot
+* [Feature] Added support for duckdb native connection for histogram and boxplot
 
 ## 0.8.0 (2023-07-18)
 
