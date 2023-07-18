@@ -673,5 +673,4 @@ def test_table_explore_with_snippets(ip, tmp_empty):
     with capture_output() as captured:
         ip.run_cell("%sqlcmd explore -t citizen")
 
-    assert "Exploring using saved snippet : citizen" in captured.stdout
     assert "sql.widgets.table_widget.table_widget.TableWidget object" in captured.stdout

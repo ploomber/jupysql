@@ -9,7 +9,6 @@ import math
 from sql import util
 from IPython.core.display import HTML
 import uuid
-from sql.store import store
 
 
 def _get_inspector(conn):
@@ -241,7 +240,11 @@ class TableDescription(DatabaseInspection):
 
         columns_query_result = sql.run.raw_run(
             Connection.current,
-            str(store.render(f"SELECT * FROM {table_name} WHERE 1=0", with_=with_)),
+            str(
+                Connection.current._prepare_query(
+                    f"SELECT * FROM {table_name} WHERE 1=0", with_=with_
+                )
+            ),
         )
         if Connection.is_dbapi_connection():
             columns = [i[0] for i in columns_query_result.description]
@@ -261,7 +264,7 @@ class TableDescription(DatabaseInspection):
                 result = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
                         )
                     ),
@@ -282,7 +285,7 @@ class TableDescription(DatabaseInspection):
                 result_col_freq_values = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
                     GROUP BY top ORDER BY frequency Desc""",
@@ -304,7 +307,7 @@ class TableDescription(DatabaseInspection):
                 result_value_values = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f"""SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
                     COUNT({column}) AS count
@@ -331,7 +334,7 @@ class TableDescription(DatabaseInspection):
                 result_value_values = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f""" SELECT
                     COUNT(DISTINCT {column}) AS unique_count
                     FROM {table_name}
@@ -349,7 +352,7 @@ class TableDescription(DatabaseInspection):
                 results_avg = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f""" SELECT AVG({column}) AS avg
                     FROM {table_name}
                     WHERE {column} IS NOT NULL""",
@@ -372,7 +375,7 @@ class TableDescription(DatabaseInspection):
                 result = sql.run.raw_run(
                     Connection.current,
                     str(
-                        store.render(
+                        Connection.current._prepare_query(
                             f""" SELECT
                         stddev_pop({column}) as key_std,
                         percentile_disc(0.25) WITHIN GROUP

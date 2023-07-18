@@ -6,6 +6,7 @@ from sql.telemetry import telemetry
 from sql.error_message import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
+import sql.util
 
 import math
 
@@ -794,3 +795,57 @@ SELECT * FROM second_cte"""
     )
     assert isinstance(out.error_in_exec, UsageError)
     assert CTE_MSG in str(out.error_in_exec)
+
+
+@pytest.mark.parametrize(
+    "table, offset, n_rows, expected_rows, expected_columns, ip_with_dynamic_db",
+    [
+        ("number_table", 0, 0, [], ["x", "y"]),
+        ("number_table", 5, 0, [], ["x", "y"]),
+        ("number_table", 50, 0, [], ["x", "y"]),
+        ("number_table", 50, 10, [], ["x", "y"]),
+        (
+            "number_table",
+            2,
+            10,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
+            ["x", "y"],
+        ),
+        (
+            "number_table",
+            2,
+            100,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3), (-4, 2), (2, -5), (4, 3)],
+            ["x", "y"],
+        ),
+        ("number_table", 0, 2, [(4, -2), (-5, 0)], ["x", "y"]),
+        ("number_table", 2, 2, [(2, 4), (0, 2)], ["x", "y"]),
+        (
+            "number_table",
+            2,
+            5,
+            [(2, 4), (0, 2), (-5, -1), (-2, -3), (-2, -3)],
+            ["x", "y"],
+        ),
+        ("empty_table", 2, 5, [], ["column", "another"]),
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_explore_table(
+    table,
+    offset,
+    n_rows,
+    sort_by,
+    order_by,
+    expected_rows,
+    expected_columns,
+    ip_with_dynamic_db,
+    request,
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    rows, columns = sql.util.fetch_sql_with_pagination(
+        table, offset, n_rows, sort_by, order_by
+    )
+
+    assert rows == expected_rows
+    assert columns == expected_columns

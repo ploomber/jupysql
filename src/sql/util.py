@@ -296,7 +296,7 @@ def fetch_sql_with_pagination(
 
     order_by = "" if not sort_column else f"ORDER BY {sort_column} {sort_order}"
     query = str(
-        store.render(
+        Connection.current._prepare_query(
             f""" SELECT * FROM {table} {order_by}
     LIMIT {n_rows} OFFSET {offset}""",
             with_=with_,
@@ -308,7 +308,7 @@ def fetch_sql_with_pagination(
     columns = sql.run.raw_run(
         Connection.current,
         str(
-            store.render(
+            Connection.current._prepare_query(
                 f""" SELECT * FROM {table} WHERE 1=0""",
                 with_=with_,
             )
@@ -408,14 +408,8 @@ def is_saved_snippet_or_table_exists(table, schema=None, task=None):
         name of the snippet
     """
     with_ = None
-
-    task_messages = {"explore": "Exploring", "profile": "Profiling", "plot": "Plotting"}
-
-    msg = task_messages.get(task, "Analyzing")
-
     if is_saved_snippet(table):
         with_ = [table]
-        print(f"{msg} using saved snippet : {table}")
     else:
         is_table_exists(table, schema)
     return with_

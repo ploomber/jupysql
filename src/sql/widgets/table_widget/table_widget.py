@@ -8,7 +8,6 @@ from sql.util import (
     parse_sql_results_to_json,
     is_saved_snippet_or_table_exists,
 )
-from sql.store import store
 
 from sql.widgets import utils
 from sql.telemetry import telemetry
@@ -65,7 +64,7 @@ class TableWidget:
         rows = parse_sql_results_to_json(rows, columns)
 
         query = str(
-            store.render(
+            Connection.current._prepare_query(
                 f""" SELECT count(*) FROM {table}""",
                 with_=self.with_,
             )
