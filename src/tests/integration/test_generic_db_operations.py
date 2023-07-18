@@ -798,7 +798,7 @@ SELECT * FROM second_cte"""
 
 
 @pytest.mark.parametrize(
-    "table, offset, n_rows, expected_rows, expected_columns, ip_with_dynamic_db",
+    "table, offset, n_rows, expected_rows, expected_columns",
     [
         ("number_table", 0, 0, [], ["x", "y"]),
         ("number_table", 5, 0, [], ["x", "y"]),
