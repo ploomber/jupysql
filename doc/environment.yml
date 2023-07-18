@@ -1,3 +1,4 @@
+# documentation dependencies
 name: jupysql-doc
 
 channels:
