@@ -835,17 +835,13 @@ def test_sql_explore_table(
     table,
     offset,
     n_rows,
-    sort_by,
-    order_by,
     expected_rows,
     expected_columns,
     ip_with_dynamic_db,
     request,
 ):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    rows, columns = sql.util.fetch_sql_with_pagination(
-        table, offset, n_rows, sort_by, order_by
-    )
+    rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
 
     assert rows == expected_rows
     assert columns == expected_columns
