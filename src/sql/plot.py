@@ -24,7 +24,6 @@ except ModuleNotFoundError:
 import sql.connection
 from sql.telemetry import telemetry
 import warnings
-from sql import util
 
 
 def _summary_stats(conn, table, column, with_=None):
@@ -32,7 +31,10 @@ def _summary_stats(conn, table, column, with_=None):
 
     if not conn:
         conn = sql.connection.Connection.current
-    driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
+    if conn.name == "duckdb":
+        driver = "duckdb"
+    else:
+        driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
 
     template = Template(
         """
@@ -46,6 +48,7 @@ def _summary_stats(conn, table, column, with_=None):
     )
 
     query = template.render(table=table, column=column)
+    query = conn._transpile_query(query)
 
     try:
         values = conn.execute(query, with_).fetchone()
@@ -142,7 +145,7 @@ def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
         conn = sql.connection.Connection.current
 
     # calculating stats might fail on other DBs (percentile_disc)
-    util.support_only_sql_alchemy_connection("boxplot")
+    # util.support_only_sql_alchemy_connection("boxplot")
 
     def _compute_conf_interval(N, med, iqr):
         notch_min = med - 1.57 * iqr / np.sqrt(N)
@@ -556,6 +559,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         query = template.render(table=table, column=column, filter_query=filter_query)
 
+    query = conn._transpile_query(query)
     data = conn.execute(query, with_).fetchall()
 
     bin_, height = zip(*data)
@@ -610,6 +614,7 @@ def _histogram_stacked(
         cases=cases,
     )
 
+    query = conn._transpile_query(query)
     data = conn.execute(query, with_).fetchall()
 
     return data

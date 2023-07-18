@@ -552,6 +552,10 @@ class Connection:
             Available dialect in sqlglot package, see more:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
+
+        if self.name == "duckdb":
+            return "duckdb"
+
         connection_info = self._get_curr_sqlalchemy_connection_info()
         if not connection_info:
             return None
