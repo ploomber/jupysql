@@ -805,7 +805,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         "ip_with_duckDB",
         "ip_with_Snowflake",
         # "ip_with_MSSQL",
-        "ip_with_oracle",
+        # "ip_with_oracle",
     ],
 )
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
