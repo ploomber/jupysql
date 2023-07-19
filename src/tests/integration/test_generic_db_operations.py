@@ -766,20 +766,23 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
 )
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
-    "ip_with_postgreSQL",
-    "ip_with_mySQL",
-    "ip_with_mariaDB",
-    "ip_with_SQLite",
-    "ip_with_duckDB_native",
-    "ip_with_duckDB",
-    pytest.param(
-        "ip_with_MSSQL",
-        marks=pytest.mark.xfail(
-            reason="We need to close any pending results for this to work"
+    [
+        "ip_with_dynamic_db",
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(
+                reason="We need to close any pending results for this to work"
+            ),
         ),
-    ),
-    "ip_with_Snowflake",
-    "ip_with_oracle",
+        "ip_with_Snowflake",
+        "ip_with_oracle",
+    ],
 )
 def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
