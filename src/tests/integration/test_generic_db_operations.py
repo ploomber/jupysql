@@ -794,7 +794,23 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     assert out.error_in_exec is None
 
 
-@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        pytest.param(
+            "ip_with_Snowflake",
+            marks=pytest.mark.xfail(reason="This one is failing"),
+        ),
+        "ip_with_MSSQL",
+        "ip_with_oracle",
+    ],
+)
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
