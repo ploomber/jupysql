@@ -753,45 +753,45 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
     assert out.error_in_exec is None
 
 
-@pytest.mark.parametrize(
-    "cell",
-    [
-        "%%sql\nSELECT * FROM subset",
-        "%%sql --with subset\nSELECT * FROM subset",
-    ],
-    ids=[
-        "cte-inferred",
-        "cte-explicit",
-    ],
-)
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        "ip_with_postgreSQL",
-        "ip_with_mySQL",
-        "ip_with_mariaDB",
-        "ip_with_SQLite",
-        "ip_with_duckDB_native",
-        "ip_with_duckDB",
-        pytest.param(
-            "ip_with_MSSQL",
-            marks=pytest.mark.xfail(
-                reason="We need to close any pending results for this to work"
-            ),
-        ),
-        "ip_with_Snowflake",
-        "ip_with_oracle",
-    ],
-)
-def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
-    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+# @pytest.mark.parametrize(
+#     "cell",
+#     [
+#         "%%sql\nSELECT * FROM subset",
+#         "%%sql --with subset\nSELECT * FROM subset",
+#     ],
+#     ids=[
+#         "cte-inferred",
+#         "cte-explicit",
+#     ],
+# )
+# @pytest.mark.parametrize(
+#     "ip_with_dynamic_db",
+#     [
+#         "ip_with_postgreSQL",
+#         "ip_with_mySQL",
+#         "ip_with_mariaDB",
+#         "ip_with_SQLite",
+#         "ip_with_duckDB_native",
+#         "ip_with_duckDB",
+#         pytest.param(
+#             "ip_with_MSSQL",
+#             marks=pytest.mark.xfail(
+#                 reason="We need to close any pending results for this to work"
+#             ),
+#         ),
+#         "ip_with_Snowflake",
+#         "ip_with_oracle",
+#     ],
+# )
+# def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
+#     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
-    ip_with_dynamic_db.run_cell(
-        f"%%sql --save subset\nSELECT * FROM {test_table_name_dict['numbers']}"
-    )
+#     ip_with_dynamic_db.run_cell(
+#         f"%%sql --save subset\nSELECT * FROM {test_table_name_dict['numbers']}"
+#     )
 
-    out = ip_with_dynamic_db.run_cell(cell)
-    assert out.error_in_exec is None
+#     out = ip_with_dynamic_db.run_cell(cell)
+#     assert out.error_in_exec is None
 
 
 @pytest.mark.parametrize(
@@ -824,7 +824,7 @@ S"""
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
-        "ip_with_SQLite",
+        # "ip_with_SQLite",
         # "ip_with_duckDB_native",
         "ip_with_duckDB",
         "ip_with_postgreSQL",

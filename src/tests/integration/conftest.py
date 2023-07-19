@@ -209,6 +209,16 @@ def setup_SQLite(test_table_name_dict, skip_on_live_mode):
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
     yield engine
+
+    # from sql.run import ResultSet
+    # from sql.connection import Connection
+
+    # for rs in ResultSet.LAST_BY_CONNECTION.values():
+    #     rs._sqlaproxy.close()
+
+    # for conn in Connection.connections.values():
+    #     conn.close()
+
     tear_down_generic_testing_data(engine, test_table_name_dict)
     engine.dispose()
 
