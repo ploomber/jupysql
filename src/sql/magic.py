@@ -402,7 +402,7 @@ class SqlMagic(Magics, Configurable):
             if with_:
                 command.set_sql_with(with_)
                 display.message(
-                    f"Generating CTE with stored snippets : {pretty_print(with_)}"
+                    f"Generating CTE with stored snippets: {pretty_print(with_)}"
                 )
             else:
                 with_ = None
