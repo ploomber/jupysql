@@ -207,6 +207,9 @@ class Connection:
 
         self.connections[alias or self.url] = self
         self.connect_args = None
+
+        self._result_sets = []
+
         Connection.current = self
 
     @classmethod
@@ -460,7 +463,7 @@ class Connection:
         )
 
     @classmethod
-    def close(cls, descriptor):
+    def close(cls, descriptor=None):
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -480,6 +483,12 @@ class Connection:
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
             conn.session.close()
+
+    def close_this(self):
+        for rs in self._result_sets:
+            rs._sqlaproxy.close()
+
+        self.session.close()
 
     @classmethod
     def close_all(cls, verbose=False):

@@ -240,6 +240,10 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 
+    from sql import connection
+
+    connection.Connection.current.close_this()
+
 
 @pytest.fixture(scope="session")
 def setup_duckDB_native(test_table_name_dict, skip_on_live_mode):
