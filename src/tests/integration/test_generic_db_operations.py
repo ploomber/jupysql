@@ -767,7 +767,6 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
-        "ip_with_dynamic_db",
         "ip_with_postgreSQL",
         "ip_with_mySQL",
         "ip_with_mariaDB",
