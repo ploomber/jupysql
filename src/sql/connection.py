@@ -357,7 +357,6 @@ class Connection:
         determine which connection to use (either use an existing one or open a new one)
         """
         connect_args = connect_args or {}
-
         if descriptor:
             is_dbapi_connection_ = Connection.is_dbapi_connection(descriptor)
             if isinstance(descriptor, Connection):
@@ -377,6 +376,8 @@ class Connection:
                 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
                 # if same alias found
                 if existing and existing.alias == alias:
+                    if existing.alias is None: display.message(f"Switching to connection {descriptor}")
+                    else: display.message(f"Switching to connection {alias}")
                     cls.current = existing
                 # if just switching connections
                 elif existing and alias is None:
