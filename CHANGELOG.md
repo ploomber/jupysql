@@ -2,6 +2,8 @@
 
 ## 0.8.1dev
 
+* [Fix] Showing feedback when switching connections (#727)
+
 ## 0.8.0 (2023-07-18)
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs ([#459](https://github.com/ploomber/jupysql/issues/459))

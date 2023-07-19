@@ -380,6 +380,7 @@ class Connection:
                     cls.current = existing
                 # if just switching connections
                 elif existing and alias is None:
+                    display.message(f"Switching to connection {descriptor}")
                     cls.current = existing
                 # if new alias connection
                 elif existing is None or existing.alias != alias:
