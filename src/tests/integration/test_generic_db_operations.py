@@ -803,10 +803,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         "ip_with_SQLite",
         "ip_with_duckDB_native",
         "ip_with_duckDB",
-        pytest.param(
-            "ip_with_Snowflake",
-            marks=pytest.mark.xfail(reason="This one is failing"),
-        ),
+        "ip_with_Snowflake",
         "ip_with_MSSQL",
         "ip_with_oracle",
     ],
@@ -817,7 +814,7 @@ def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     out = ip_with_dynamic_db.run_cell(
         """
     %%sql
-SELECT * FROM some_cte_that_doesnt_exist"""
+SELECT * FROMX"""
     )
     assert isinstance(out.error_in_exec, UsageError)
     assert out.error_in_exec.error_type == "RuntimeError"
