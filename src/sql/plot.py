@@ -297,7 +297,7 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
-    min_, max_ = con.execute(query, with_, read="mysql").fetchone()
+    min_, max_ = con.execute(query, with_=with_, read="mysql").fetchone()
     return min_, max_
 
 

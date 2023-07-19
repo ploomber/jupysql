@@ -646,11 +646,11 @@ class Connection:
 
         return query
 
-    def execute(self, query, with_=None):
+    def execute(self, query, with_=None, read=None):
         """
         Executes SQL query on a given connection
         """
-        query = self._prepare_query(query, with_)
+        query = self._prepare_query(query, with_, read)
         return self.session.execute(query)
 
 
