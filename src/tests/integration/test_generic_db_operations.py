@@ -825,8 +825,8 @@ S"""
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
-        # "ip_with_SQLite",
-        # "ip_with_duckDB_native",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
         "ip_with_duckDB",
         "ip_with_postgreSQL",
     ],
@@ -875,9 +875,9 @@ select * from my_table;
         "ip_with_SQLite",
         "ip_with_duckDB_native",
         "ip_with_duckDB",
-        # "ip_with_Snowflake",
-        # "ip_with_MSSQL",
-        # "ip_with_oracle",
+        "ip_with_Snowflake",
+        "ip_with_MSSQL",
+        "ip_with_oracle",
     ],
 )
 def test_results_sets_are_closed(ip_with_dynamic_db, request, test_table_name_dict):
