@@ -552,12 +552,12 @@ class Connection:
             Available dialect in sqlglot package, see more:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
-        connection_info = self._get_curr_sqlalchemy_connection_info()
-        if not connection_info:
+
+        if not self.dialect:
             return None
 
         return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
-            connection_info["dialect"], connection_info["dialect"]
+            self.dialect, self.dialect
         )
 
     def is_use_backtick_template(self):
