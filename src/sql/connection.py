@@ -553,7 +553,7 @@ class Connection:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
 
-        if self.name == "duckdb":
+        if _check_if_duckdb_dbapi_connection(self.session.engine):
             return "duckdb"
 
         connection_info = self._get_curr_sqlalchemy_connection_info()

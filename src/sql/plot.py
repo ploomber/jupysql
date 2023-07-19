@@ -31,8 +31,6 @@ def _summary_stats(conn, table, column, with_=None):
 
     if not conn:
         conn = sql.connection.Connection.current
-    if conn.name == "duckdb":
-        driver = "duckdb"
     else:
         driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
 
@@ -48,7 +46,6 @@ def _summary_stats(conn, table, column, with_=None):
     )
 
     query = template.render(table=table, column=column)
-    query = conn._transpile_query(query)
 
     try:
         values = conn.execute(query, with_).fetchone()
@@ -559,7 +556,6 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         query = template.render(table=table, column=column, filter_query=filter_query)
 
-    query = conn._transpile_query(query)
     data = conn.execute(query, with_).fetchall()
 
     bin_, height = zip(*data)
@@ -614,7 +610,6 @@ def _histogram_stacked(
         cases=cases,
     )
 
-    query = conn._transpile_query(query)
     data = conn.execute(query, with_).fetchall()
 
     return data
