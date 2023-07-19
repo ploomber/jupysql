@@ -57,7 +57,7 @@ def test_infer_dependencies(ip, capsys):
     )
 
     assert result == expected
-    assert "Generating CTE with stored snippets : 'author_sub'" in out
+    assert "Generating CTE with stored snippets: 'author_sub'" in out
 
 
 TABLE_NAME_TYPO_ERR_MSG = """
@@ -127,7 +127,7 @@ def test_snippets_delete(ip, capsys):
     )
 
     out, _ = capsys.readouterr()
-    assert "Generating CTE with stored snippets : 'another_orders'" in out
+    assert "Generating CTE with stored snippets: 'another_orders'" in out
     result_del = ip.run_cell(
         "%sqlcmd snippets --delete-force-all another_orders"
     ).result

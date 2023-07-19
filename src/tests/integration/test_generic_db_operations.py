@@ -794,3 +794,30 @@ SELECT * FROM second_cte"""
     )
     assert isinstance(out.error_in_exec, UsageError)
     assert CTE_MSG in str(out.error_in_exec)
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_SQLite",
+        # "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        "ip_with_postgreSQL",
+    ],
+)
+def test_temp_table(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(
+        """%%sql
+create temp table my_table as select 42;
+select * from my_table;
+"""
+    )
+
+    assert out.error_in_exec is None
+    assert list(out.result) == [(42,)]
+
+
+# def test_temp_table_listed_as_table():
+#     out_tables = ip.run_cell("%sqlcmd tables")
+#     assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
