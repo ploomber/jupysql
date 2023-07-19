@@ -720,6 +720,9 @@ class DBAPIConnection(Connection):
         self.alias = alias
         Connection.current = self
 
+        # TODO: create an abstract class
+        self._result_sets = []
+
 
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
