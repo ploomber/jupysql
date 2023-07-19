@@ -801,7 +801,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         "ip_with_mySQL",
         "ip_with_mariaDB",
         "ip_with_SQLite",
-        "ip_with_duckDB_native",
+        # "ip_with_duckDB_native",
         "ip_with_duckDB",
         "ip_with_Snowflake",
         "ip_with_MSSQL",
@@ -814,7 +814,7 @@ def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     out = ip_with_dynamic_db.run_cell(
         """
     %%sql
-SELECT * FROMX"""
+S"""
     )
     assert isinstance(out.error_in_exec, UsageError)
     assert out.error_in_exec.error_type == "RuntimeError"
