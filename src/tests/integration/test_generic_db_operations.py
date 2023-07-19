@@ -734,37 +734,43 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
 @pytest.mark.parametrize(
     "cell",
     [
-        "%%sql\nSELECT * FROM test_numbers WHERE 0=1",
-        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
-        "%%sql\nSELECT *\n-- %one $another\nFROM test_numbers WHERE 0=1",
+        "%%sql\nSELECT * FROM numbers WHERE 0=1",
+        "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
     ],
     ids=[
         "simple-query",
-        "cte",
         "interpolation-like-comment",
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
-    CREATE TABLE test_numbers (value_one, value_two);
-    INSERT INTO test_numbers VALUES (0, 1);
-    INSERT INTO test_numbers VALUES (0, 0);
-    INSERT INTO test_numbers VALUES (5, 2);
-    INSERT INTO test_numbers VALUES (6, 3);
-    """
-    )
-    ip_with_dynamic_db.run_cell(
-        """%%sql --save subset --no-execute
-SELECT * FROM numbers WHERE 1=0
-"""
-    )
 
     if "numbers" in cell:
         cell = cell.replace("numbers", test_table_name_dict["numbers"])
+
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT * FROM subset",
+        "%%sql --with subset\nSELECT * FROM subset",
+    ],
+    ids=[
+        "cte-inferred",
+        "cte-explicit",
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell(
+        f"%%sql --save subset\nSELECT * FROM {test_table_name_dict['numbers']}"
+    )
 
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
@@ -818,6 +824,23 @@ select * from my_table;
     assert list(out.result) == [(42,)]
 
 
-# def test_temp_table_listed_as_table():
-#     out_tables = ip.run_cell("%sqlcmd tables")
-#     assert set(tables) == set(r[0] for r in out_tables.result._table.rows)
+# @pytest.mark.parametrize(
+#     "ip_with_dynamic_db",
+#     [
+#         "ip_with_SQLite",
+#         # "ip_with_duckDB_native",
+#         "ip_with_duckDB",
+#         "ip_with_postgreSQL",
+#     ],
+# )
+# def test_temp_table_listed_as_table(ip_with_dynamic_db, request):
+#     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+#     ip_with_dynamic_db.run_cell(
+#         """%%sql
+# create temp table my_table as select 42;
+# select * from my_table;
+# """
+#     )
+
+#     out_tables = ip_with_dynamic_db.run_cell("%sqlcmd tables")
+#     assert "my_table" in set(r[0] for r in out_tables.result._table.rows)
