@@ -110,7 +110,7 @@ class SqlMagic(Magics, Configurable):
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        sql.run.DEFAULT_DISPLAYLIMIT_VALUE,
+        10,
         config=True,
         allow_none=True,
         help=(
@@ -168,7 +168,7 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            print("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message("displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
@@ -188,7 +188,9 @@ class SqlMagic(Magics, Configurable):
             other = "autopolars" if change["name"] == "autopandas" else "autopandas"
             if getattr(self, other):
                 setattr(self, other, False)
-                print(f"Disabled '{other}' since '{change['name']}' was enabled.")
+                display.message(
+                    f"Disabled '{other}' since '{change['name']}' was enabled."
+                )
 
     def check_random_arguments(self, line="", cell=""):
         # check only for cell magic
@@ -411,7 +413,7 @@ class SqlMagic(Magics, Configurable):
             interactive_dict = {}
             for key in args.interact:
                 interactive_dict[key] = local_ns[key]
-            print(
+            display.message(
                 "Interactive mode, please interact with below "
                 "widget(s) to control the variable"
             )
@@ -527,7 +529,7 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    print(
+                    display.message(
                         "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
@@ -607,9 +609,7 @@ class SqlMagic(Magics, Configurable):
             if_exists = "fail"
 
         try:
-            frame.to_sql(
-                table_name, conn.session.engine, if_exists=if_exists, index=index
-            )
+            frame.to_sql(table_name, conn.session, if_exists=if_exists, index=index)
         except ValueError:
             raise exceptions.ValueError(
                 f"""Table {table_name!r} already exists. Consider using \
