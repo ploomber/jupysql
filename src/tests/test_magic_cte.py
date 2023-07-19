@@ -176,5 +176,5 @@ def test_query_syntax_error(ip):
             "SELECT last_name FROM author_sub;",
         )
 
-    assert excinfo.value.error_type == "UsageError"
+    assert excinfo.value.error_type == "RuntimeError"
     assert CTE_MSG.strip() in str(excinfo.value)

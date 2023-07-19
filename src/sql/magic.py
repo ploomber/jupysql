@@ -222,7 +222,7 @@ class SqlMagic(Magics, Configurable):
         detailed_msg = detail(e)
         if self.short_errors:
             if detailed_msg is not None:
-                raise exceptions.RuntimeError(detailed_msg)
+                raise exceptions.RuntimeError(detailed_msg) from e
                 # TODO: move to error_messages.py
                 # Added here due to circular dependency issue (#545)
             elif "no such table" in str(e):
@@ -236,7 +236,7 @@ class SqlMagic(Magics, Configurable):
                         suggestions_message = get_suggestions_message(suggestions)
                         raise exceptions.TableNotFoundError(
                             f"{err_message}{suggestions_message}"
-                        )
+                        ) from e
 
             raise RuntimeError(str(e)) from e
         else:
