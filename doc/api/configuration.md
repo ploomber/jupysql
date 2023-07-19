@@ -241,3 +241,22 @@ print(res)
 res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
+
+## `persist_snippets`
+
+Default: `False`
+
+Stores the snippets as SQL files
+
+```{code-cell} ipython3
+%config SqlMagic.persist_snippets = True
+```
+
+```{code-cell} ipython3
+%%sql --save rated_high
+select * from languages where rating > 10.5
+```
+
+The sql file will be saved in 
+`jupysql-snippets/rated_high.sql` 
+

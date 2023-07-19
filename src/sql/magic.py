@@ -1,8 +1,5 @@
 import json
 import re
-from pathlib import Path
-import glob
-import os
 
 try:
     from ipywidgets import interact
@@ -29,6 +26,8 @@ import sql.run
 from sql.parse import _option_strings_from_parser
 from sql import display, exceptions
 from sql.store import store
+from sql.store import store_snippet_as_sql
+from sql.store import load_snippet_from_sql
 from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
@@ -203,20 +202,21 @@ class SqlMagic(Magics, Configurable):
         """Load the saved snippets from the sql files
         whenever
         """
-        snippets_dir = "jupysql-snippets/"
-        if os.path.exists(snippets_dir) and os.path.isdir(snippets_dir):
-            snippet_files = glob.glob(snippets_dir + "*.sql")
-            snippet_names = [
-                filename[len(snippets_dir) : -4] for filename in snippet_files
-            ]
-            for name, filename in zip(snippet_names, snippet_files):
-                with open(filename, "r") as file:
-                    snippet_content = file.read()
-                    key = query_util.extract_tables_from_query(snippet_content)
-                    dependencies = self._store.infer_dependencies(
-                        snippet_content, key=key
-                    )
-                    self._store.store(name, snippet_content, with_=dependencies)
+        # snippets_dir = "jupysql-snippets/"
+        # if os.path.exists(snippets_dir) and os.path.isdir(snippets_dir):
+        #     snippet_files = glob.glob(snippets_dir + "*.sql")
+        #     snippet_names = [
+        #         filename[len(snippets_dir) : -4] for filename in snippet_files
+        #     ]
+        #     for name, filename in zip(snippet_names, snippet_files):
+        #         with open(filename, "r") as file:
+        #             snippet_content = file.read()
+        #             key = query_util.extract_tables_from_query(snippet_content)
+        #             dependencies = self._store.infer_dependencies(
+        #                 snippet_content, key=key
+        #             )
+        #             self._store.store(name, snippet_content, with_=dependencies)
+        load_snippet_from_sql(self._store)
 
     def check_random_arguments(self, line="", cell=""):
         # check only for cell magic
@@ -532,17 +532,7 @@ class SqlMagic(Magics, Configurable):
                     FutureWarning,
                 )
             if self.persist_snippets:
-                snippets_dir = "jupysql-snippets"
-                snippet_path = Path(snippets_dir) / f"{args.save}.sql"
-                snippet_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(snippet_path, "w") as file:
-                    file.write(command.sql_original)
-                print(
-                    """ Note: Manual editing of .sql files may not be reflected when
-                reopening the notebook. \n Please edit snippets directly in the notebook
-                to ensure consistency
-                """
-                )
+                store_snippet_as_sql(command.sql_original, args.save)
 
             self._store.store(args.save, command.sql_original, with_=with_)
 
