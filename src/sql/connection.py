@@ -542,7 +542,6 @@ class Connection:
             "server_version_info": getattr(engine.dialect, "server_version_info", None),
         }
 
-    # TODO: we have self.dialect and we also have this, which is confusing, see #732
     def _get_curr_sqlglot_dialect(self):
         """Get the dialect name in sqlglot package scope
 
