@@ -1,5 +1,6 @@
 import pytest
 from IPython.core.error import UsageError
+from sql.error_message import CTE_MSG
 
 
 def test_trailing_semicolons_removed_from_cte(ip):
@@ -25,9 +26,7 @@ SELECT * FROM positive_y;
 """
     )
 
-    cell_final_query = ip.run_cell(
-        "%sqlrender final --with positive_x --with positive_y"
-    )
+    cell_final_query = ip.run_cell("%sqlcmd snippets final")
 
     assert cell_execution.success
     assert cell_final_query.result == (
@@ -51,36 +50,14 @@ def test_infer_dependencies(ip, capsys):
         "SELECT last_name FROM author_sub;",
     )
     out, _ = capsys.readouterr()
-    result = ip.run_cell("%sqlrender final").result
+    result = ip.run_cell("%sqlcmd snippets final").result
     expected = (
         "WITH `author_sub` AS (\nSELECT last_name FROM author "
         "WHERE year_of_death > 1900)\nSELECT last_name FROM author_sub;"
     )
 
     assert result == expected
-    assert "Generating CTE with stored snippets : author_sub" in out
-
-
-def test_deprecation_warning(ip):
-    ip.run_cell_magic(
-        "sql",
-        "--save author_sub",
-        "SELECT last_name FROM author WHERE year_of_death > 1900",
-    )
-
-    with pytest.warns(FutureWarning) as record:
-        ip.run_cell_magic(
-            "sql",
-            "--with author_sub --save final",
-            "SELECT last_name FROM author_sub;",
-        )
-        assert len(record) == 1
-        assert (
-            "CTE dependencies are now automatically inferred,"
-            " you can omit the --with arguments. Using --with will "
-            "raise an exception in the next major release so please "
-            "remove it." in record[0].message.args[0]
-        )
+    assert "Generating CTE with stored snippets : 'author_sub'" in out
 
 
 TABLE_NAME_TYPO_ERR_MSG = """
@@ -150,7 +127,7 @@ def test_snippets_delete(ip, capsys):
     )
 
     out, _ = capsys.readouterr()
-    assert "Generating CTE with stored snippets : another_orders" in out
+    assert "Generating CTE with stored snippets : 'another_orders'" in out
     result_del = ip.run_cell(
         "%sqlcmd snippets --delete-force-all another_orders"
     ).result
@@ -168,7 +145,7 @@ def test_snippets_delete(ip, capsys):
         INNER JOIN customers ON o.customer_id=customers.customer_id;
         """,
     )
-    result = ip.run_cell("%sqlrender final").result
+    result = ip.run_cell("%sqlcmd snippets final").result
     expected = (
         "SELECT o.order_id, customers.name, "
         "o.order_value\n        "
@@ -200,4 +177,4 @@ def test_query_syntax_error(ip):
         )
 
     assert excinfo.value.error_type == "UsageError"
-    assert SYNTAX_ERROR_MESSAGE.strip() in str(excinfo.value)
+    assert CTE_MSG.strip() in str(excinfo.value)

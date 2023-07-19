@@ -7,7 +7,7 @@ from jinja2 import Template
 
 from sql.util import flatten
 from sqlalchemy.exc import ProgrammingError
-from sql import exceptions
+from sql import exceptions, display
 
 try:
     import matplotlib.pyplot as plt
@@ -664,7 +664,7 @@ def _bar(table, column, with_=None, conn=None):
         x_ = column[0]
         height_ = column[1]
 
-        print(f"Removing NULLs, if there exists any from {x_} and {height_}")
+        display.message(f"Removing NULLs, if there exists any from {x_} and {height_}")
         template_ = """
             select "{{x_}}" as x,
             "{{height_}}" as height
@@ -683,7 +683,7 @@ def _bar(table, column, with_=None, conn=None):
         query = template.render(table=table, x_=x_, height_=height_)
 
     else:
-        print(f"Removing NULLs, if there exists any from {column}")
+        display.message(f"Removing NULLs, if there exists any from {column}")
         template_ = """
                 select "{{column}}" as x,
                 count("{{column}}") as height
@@ -848,7 +848,9 @@ def _pie(table, column, with_=None, conn=None):
         labels_ = column[0]
         size_ = column[1]
 
-        print(f"Removing NULLs, if there exists any from {labels_} and {size_}")
+        display.message(
+            f"Removing NULLs, if there exists any from {labels_} and {size_}"
+        )
         template_ = """
                 select "{{labels_}}" as labels,
                 "{{size_}}" as size
@@ -863,7 +865,7 @@ def _pie(table, column, with_=None, conn=None):
         query = template.render(table=table, labels_=labels_, size_=size_)
 
     else:
-        print(f"Removing NULLs, if there exists any from {column}")
+        display.message(f"Removing NULLs, if there exists any from {column}")
         template_ = """
                 select "{{column}}" as x,
                 count("{{column}}") as height
