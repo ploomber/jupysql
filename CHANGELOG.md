@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.7.10dev
+## 0.8.0dev
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs (#459)
 * [Feature] Support flexible spacing `myvar=<<` operator ([#525](https://github.com/ploomber/jupysql/issues/525))
@@ -8,7 +8,7 @@
 * [Feature] Moved `%sqlrender` feature to `%sqlcmd snippets` (#647)
 * [Feature] Added tables listing stored snippets when `%sqlcmd snippets` is called (#648)
 * [Doc] Modified integrations content to ensure they're all consistent (#523)
-* [Doc] Document --persist-replace in API section (#539)
+* [Doc] Document `--persist-replace` in API section (#539)
 * [Fix] Fixed CI issue by updating `invalid_connection_string_duckdb` in `test_magic.py` (#631)
 * [Fix] Refactored `ResultSet` to lazy loading (#470)
 * [Fix] Removed `WITH` when a snippet does not have a dependency (#657)
@@ -16,6 +16,9 @@
 * [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
 * [Fix] Adding `--with` back because of issues with sqlglot query parser (#684)
 * [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
+* [Feature] Better performance when using DuckDB native connection and converting to `pandas.DataFrame` or `polars.DataFrame`
+* [Fix] Improving `<<` parsing logic (#610)
+* [Fix] Migrate user feedback to use display module (#548)
 
 ## 0.7.9 (2023-06-19)
 
