@@ -302,6 +302,7 @@ def test_telemetry_execute_command_has_connection_info(
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
     # clean current Axes
     is_snowflake = ip_with_dynamic_db == "ip_with_Snowflake"
+    # Special handling for Snowflake table name, it's case-sensitive
     plot_table_name = (
         test_table_name_dict["plot_something"]
         if not is_snowflake
