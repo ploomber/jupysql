@@ -463,7 +463,8 @@ class Connection:
         )
 
     @classmethod
-    def close(cls, descriptor=None):
+    def close_connection_with_descriptor(cls, descriptor):
+        """Close a connection with the given descriptor"""
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -484,7 +485,8 @@ class Connection:
             )
             conn.session.close()
 
-    def close_this(self):
+    def close(self):
+        """Close the current connection"""
         for rs in self._result_sets:
             rs._sqlaproxy.close()
 
@@ -492,13 +494,13 @@ class Connection:
 
     @classmethod
     def close_all(cls, verbose=False):
-        """Close all active connections"""
+        """Close all connections"""
         connections = Connection.connections.copy()
-        for key, conn in connections.items():
-            conn.close(key)
+        for name, conn in connections.items():
+            conn.close()
 
             if verbose:
-                display.message(f"Closing {key}")
+                display.message(f"Closing {name}")
 
         cls.connections = {}
 

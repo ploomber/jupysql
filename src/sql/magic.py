@@ -422,7 +422,9 @@ class SqlMagic(Magics, Configurable):
         if args.connections:
             return sql.connection.Connection.connections_table()
         elif args.close:
-            return sql.connection.Connection.close(args.close)
+            return sql.connection.Connection.close_connection_with_descriptor(
+                args.close
+            )
 
         connect_arg = command.connection
 

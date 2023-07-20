@@ -234,7 +234,7 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 
-    connection.Connection.current.close_this()
+    connection.Connection.current.close()
 
 
 @pytest.fixture(scope="session")
