@@ -23,6 +23,7 @@ from sql.connection import PLOOMBER_DOCS_LINK_STR
 from ploomber_core.exceptions import COMMUNITY
 
 COMMUNITY = COMMUNITY.strip()
+SNIPPETS_DIR = "jupysql-snippets/"
 
 
 def test_memory_db(ip):
@@ -1300,3 +1301,82 @@ def test_interact_and_missing_ipywidgets_installed(ip):
             "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
         )
         assert isinstance(out.error_in_exec, ModuleNotFoundError)
+
+
+def test_save_snippet_as_sql(ip):
+    """Test if SqlMagic.persist_snippets = True saves
+    the snippet in a .sql file
+    """
+    ip.run_line_magic("config", "SqlMagic.persist_snippets = True")
+    # First Query
+    ip.run_cell(
+        """
+        %%sql duckdb://
+        CREATE TABLE people (name varchar(50), number int, country varchar(50));
+        INSERT INTO people VALUES ('joe', 82, 'usa');
+        INSERT INTO people VALUES ('paula', 93, 'uk');
+        INSERT INTO people VALUES ('sam', 77, 'canada');
+        INSERT INTO people VALUES ('emily', 65, 'usa');
+        INSERT INTO people VALUES ('michael', 89, 'usa');
+        INSERT INTO people VALUES ('sarah', 81, 'uk');
+        INSERT INTO people VALUES ('james', 76, 'usa');
+        INSERT INTO people VALUES ('angela', 88, 'usa');
+        INSERT INTO people VALUES ('robert', 82, 'usa');
+        INSERT INTO people VALUES ('lisa', 92, 'uk');
+        INSERT INTO people VALUES ('mark', 77, 'usa');
+        INSERT INTO people VALUES ('jennifer', 68, 'australia');
+        """
+    )
+    ip.run_cell(
+        """
+        %%sql --save citizen
+        select * from people where country = 'usa'
+        """
+    )
+    ip.run_cell(
+        """
+        %%sql --save citizen_1
+        select * from citizen where number = 82
+        """
+    )
+    citizen_sql_path = os.path.join(SNIPPETS_DIR, "citizen.sql")
+    citizen_1_sql_path = os.path.join(SNIPPETS_DIR, "citizen_1.sql")
+
+    assert os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR)
+    assert os.path.exists(citizen_sql_path)
+    assert os.path.exists(citizen_1_sql_path)
+
+    with open(citizen_sql_path, "r") as file:
+        content = file.read().strip()
+        expected_content = "select * from people where country = 'usa'"
+        assert content == expected_content
+
+    with open(citizen_1_sql_path, "r") as file:
+        content = file.read().strip()
+        expected_content = "select * from citizen where number = 82"
+        assert content == expected_content
+
+
+def test_load_snippet_from_sql(ip, capsys):
+    """Test if the stored snippet.sql files
+    are loaded automatically into SQLstore
+    as snippets
+    """
+    ip.run_line_magic("config", "SqlMagic.persist_snippets = True")
+
+    check_table = ip.run_cell(
+        """
+        %sql SELECT * FROM people
+        """
+    )
+    ip.run_cell("%sqlcmd snippets")
+    snippets_output, _ = capsys.readouterr()
+
+    check_snippet_content = ip.run_cell(
+        """
+        %sqlcmd snippets citizen
+        """
+    )
+    assert check_table.result is None
+    assert "citizen" and "citizen_1" in snippets_output
+    assert "select * from people where country = 'usa'" in check_snippet_content.result

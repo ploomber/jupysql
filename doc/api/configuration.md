@@ -244,6 +244,9 @@ print(res)
 
 ## `persist_snippets`
 
+```{versionadded} 0.8.1
+```
+
 Default: `False`
 
 Stores the snippets as SQL files
@@ -257,6 +260,10 @@ Stores the snippets as SQL files
 select * from languages where rating > 10.5
 ```
 
-The sql file will be saved in 
+The sql file will be saved at
 `jupysql-snippets/rated_high.sql` 
+
+with the following contents  
+
+`select * from languages where rating > 10.5`
 

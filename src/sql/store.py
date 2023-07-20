@@ -4,12 +4,14 @@ from jinja2 import Template
 from ploomber_core.exceptions import modify_exceptions
 import sql.connection
 import difflib
-from IPython.core.display import display, HTML
 import glob
 import os
 from sql import exceptions
 from sql import query_util
 from pathlib import Path
+from sql import display
+
+SNIPPETS_DIR = "jupysql-snippets/"
 
 
 class SQLStore(MutableMapping):
@@ -187,32 +189,27 @@ def store_snippet_as_sql(sql_command, snippet_name):
     command : str
         query to be saved as the snippet .
 
-    saved_snippet : str
+    snippet_name : str
         Name of the saved snippet
     """
 
-    snippets_dir = "jupysql-snippets"
-    snippet_path = Path(snippets_dir) / f"{snippet_name}.sql"
+    snippet_path = Path(SNIPPETS_DIR) / f"{snippet_name}.sql"
     snippet_path.parent.mkdir(parents=True, exist_ok=True)
     with open(snippet_path, "w") as file:
         file.write(sql_command)
     message = (
-        """<div style="border: 2px solid #e8e8e8; padding: 10px; margin: 5px 0; """
-        """background-color: #f7f7f7; font-family: Arial, sans-serif;">"""
-        """<strong>Note:</strong> Manual editing of .sql files may not be """
-        """reflected when reopening the notebook. <br>Please edit snippets directly """
-        """ in the notebook to ensure consistency."""
-        """</div>"""
+        """Manual editing of .sql files may not be """
+        """reflected when reopening the notebook. Please edit snippets directly """
+        """in the notebook to ensure consistency."""
     )
 
-    display(HTML(message))
+    display.message(message)
 
 
 def load_snippet_from_sql(store):
-    snippets_dir = "jupysql-snippets/"
-    if os.path.exists(snippets_dir) and os.path.isdir(snippets_dir):
-        snippet_files = glob.glob(snippets_dir + "*.sql")
-        snippet_names = [filename[len(snippets_dir) : -4] for filename in snippet_files]
+    if os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR):
+        snippet_files = glob.glob(SNIPPETS_DIR + "*.sql")
+        snippet_names = [filename[len(SNIPPETS_DIR) : -4] for filename in snippet_files]
         for name, filename in zip(snippet_names, snippet_files):
             with open(filename, "r") as file:
                 snippet_content = file.read()
