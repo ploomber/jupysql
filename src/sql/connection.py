@@ -228,6 +228,58 @@ class ConnectionMixin:
 
         return is_dbapi_connection_
 
+    def _transpile_query(self, query):
+        """Translate the given SQL clause that's compatible to current connected
+        dialect by sqlglot
+
+        Parameters
+        ----------
+        query : str
+            Original SQL clause
+
+        Returns
+        -------
+        str
+            SQL clause that's compatible to current connected dialect
+        """
+        write_dialect = self._get_curr_sqlglot_dialect()
+        try:
+            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
+        finally:
+            return query
+
+    def _prepare_query(self, query, with_=None) -> str:
+        """
+        Returns a textual representation of a query based
+        on the current connection
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        with_ : string, default None
+            The key to use in with sql clause
+        """
+        if with_:
+            query = str(store.render(query, with_=with_))
+
+        query = self._transpile_query(query)
+
+        if self.is_dbapi_connection():
+            query = str(query)
+        else:
+            query = sqlalchemy.sql.text(query)
+
+        return query
+
+    def execute(self, query, with_=None):
+        """
+        Executes SQL query on a given connection
+        """
+        query = self._prepare_query(query, with_)
+        return self.session.execute(query)
+
 
 class ConnectionManager:
     # all connections
@@ -546,58 +598,6 @@ class Connection(ConnectionMixin):
             pass
 
         return identifiers
-
-    def _transpile_query(self, query):
-        """Translate the given SQL clause that's compatible to current connected
-        dialect by sqlglot
-
-        Parameters
-        ----------
-        query : str
-            Original SQL clause
-
-        Returns
-        -------
-        str
-            SQL clause that's compatible to current connected dialect
-        """
-        write_dialect = self._get_curr_sqlglot_dialect()
-        try:
-            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
-        finally:
-            return query
-
-    def _prepare_query(self, query, with_=None) -> str:
-        """
-        Returns a textual representation of a query based
-        on the current connection
-
-        Parameters
-        ----------
-        query : str
-            SQL query
-
-        with_ : string, default None
-            The key to use in with sql clause
-        """
-        if with_:
-            query = str(store.render(query, with_=with_))
-
-        query = self._transpile_query(query)
-
-        if self.is_dbapi_connection():
-            query = str(query)
-        else:
-            query = sqlalchemy.sql.text(query)
-
-        return query
-
-    def execute(self, query, with_=None):
-        """
-        Executes SQL query on a given connection
-        """
-        query = self._prepare_query(query, with_)
-        return self.session.execute(query)
 
 
 atexit.register(ConnectionManager.close_all, verbose=True)

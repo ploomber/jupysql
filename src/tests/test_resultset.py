@@ -57,8 +57,6 @@ def test_resultset_dicts(result_set):
 
 
 def test_resultset_dataframe(result_set, monkeypatch):
-    monkeypatch.setattr(run_module.Connection, "current", Mock())
-
     assert result_set.DataFrame().equals(pd.DataFrame({"x": range(3)}))
 
 
