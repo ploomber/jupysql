@@ -1,7 +1,9 @@
 # CHANGELOG
 
 ## 0.8.1dev
+
 * [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
+* [Fix] Fix error that was incorrectly converted into a print message
 
 ## 0.8.0 (2023-07-18)
 
