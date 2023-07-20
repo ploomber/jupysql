@@ -465,6 +465,7 @@ class Connection:
     @classmethod
     def close_connection_with_descriptor(cls, descriptor):
         """Close a connection with the given descriptor"""
+
         if isinstance(descriptor, Connection):
             conn = descriptor
         else:
@@ -483,7 +484,8 @@ class Connection:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.session.close()
+
+        conn.close()
 
     def close(self):
         """Close the current connection"""

@@ -856,37 +856,36 @@ select * from my_table;
     assert list(out.result) == [(42,)]
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        "ip_with_postgreSQL",
-        "ip_with_mySQL",
-        "ip_with_mariaDB",
-        "ip_with_SQLite",
-        "ip_with_duckDB_native",
-        "ip_with_duckDB",
-        "ip_with_Snowflake",
-        "ip_with_MSSQL",
-        "ip_with_oracle",
-    ],
-)
-def test_results_sets_are_closed(ip_with_dynamic_db, request, test_table_name_dict):
-    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+def test_results_sets_are_closed(tmp_empty, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.displaylimit = 3")
 
-    ip_with_dynamic_db.run_cell(
-        f"""%%sql
-CREATE TABLE my_numbers AS SELECT * FROM {test_table_name_dict['numbers']}
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias first-conn"
+    )
+
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias second-conn"
+    )
+
+    ip_empty.run_cell(
+        """%%sql first-conn
+CREATE TABLE numbers (
+    x INT PRIMARY KEY
+);
+
+INSERT INTO numbers (x)
+VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
+"""
+    )
+
+    ip_empty.run_cell("%sql SELECT * FROM numbers")
+
+    ip_empty.run_cell("%sql --close first-conn")
+
+    result = ip_empty.run_cell(
+        """%%sql second-conn
+DROP TABLE numbers
         """
     )
 
-    ip_with_dynamic_db.run_cell(
-        """%%sql
-SELECT * FROM my_numbers
-        """
-    ).result
-
-    ip_with_dynamic_db.run_cell(
-        """%%sql
-DROP TABLE my_numbers
-        """
-    )
+    assert result.error_in_exec is None
