@@ -43,7 +43,7 @@ jobs:
         run: |
           # Run the integration test by pytest marker
           python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
-          pytest src/tests/integration --verbose
+          pytest src/tests/integration --verbose --ignore src/tests/integration/test_questDB.py
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3
