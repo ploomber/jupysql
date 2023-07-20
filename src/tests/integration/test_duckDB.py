@@ -19,7 +19,7 @@ from sql.warnings import JupySQLDataFramePerformanceWarning
         ),
         (
             "ip_with_duckDB_native",
-            "'DBAPISession' object has no attribute 'execute_options'",
+            "'DBAPISession' object has no attribute 'execution_options'",
         ),
     ],
 )
