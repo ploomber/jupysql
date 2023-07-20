@@ -57,7 +57,7 @@ def test_auto_commit_mode_off(ip, caplog, request):
 
 
 def test_dbapi_connection_sets_right_dialect(ip_with_duckDB_native):
-    assert ConnectionManager.current.is_dbapi_connection()
+    assert ConnectionManager.current.is_dbapi_connection
     assert ConnectionManager.current.dialect == "duckdb"
 
 

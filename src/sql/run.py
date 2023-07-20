@@ -10,7 +10,6 @@ import html
 import prettytable
 import sqlalchemy
 import sqlparse
-from sql.connection import Connection
 from sqlalchemy.exc import ResourceClosedError
 from sql import exceptions, display
 from .column_guesser import ColumnGuesserMixin
@@ -157,7 +156,7 @@ class ResultSet(ColumnGuesserMixin):
         # the last ResultSet. To fix this, we have to re-issue the query
         is_last_result = ResultSet.LAST_BY_CONNECTION.get(self._conn) is self
         is_duckdb_sqlalchemy = (
-            self._dialect == "duckdb" and not self._conn.is_dbapi_connection()
+            self._dialect == "duckdb" and not self._conn.is_dbapi_connection
         )
 
         if (
@@ -659,10 +658,9 @@ def run(conn, sql, config):
         # regular query
         else:
             manual_commit = set_autocommit(conn, config)
-            is_dbapi_connection = Connection.is_dbapi_connection(conn)
 
             # if regular sqlalchemy, pass a text object
-            if not is_dbapi_connection:
+            if not conn.is_dbapi_connection:
                 statement = sqlalchemy.sql.text(statement)
 
             result = conn.session.execute(statement)

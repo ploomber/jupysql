@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
-from sql.connection import Connection, ConnectionManager
+from sql.connection import ConnectionManager
 from sql.telemetry import telemetry
 from sql import exceptions
 import sql.run
@@ -239,7 +239,7 @@ class TableDescription(DatabaseInspection):
         columns_query_result = sql.run.raw_run(
             ConnectionManager.current, f"SELECT * FROM {table_name} WHERE 1=0"
         )
-        if Connection.is_dbapi_connection():
+        if ConnectionManager.current.is_dbapi_connection:
             columns = [i[0] for i in columns_query_result.description]
         else:
             columns = columns_query_result.keys()

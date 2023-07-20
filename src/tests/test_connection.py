@@ -5,8 +5,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
 
+
+import duckdb
 import sql.connection
-from sql.connection import Connection, DBAPIConnection, ConnectionManager
+from sql.connection import (
+    Connection,
+    ConnectionManager,
+    is_pep249_compliant,
+)
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
@@ -328,42 +334,27 @@ def test_properties(mock_postgres):
     assert conn.session
 
 
-class dummy_connection:
-    def __init__(self):
-        self.engine_name = "dummy_engine"
-
-    def close(self):
-        pass
-
-
 @pytest.mark.parametrize(
     "conn, expected",
     [
         [sqlite3.connect(""), True],
-        [
-            DBAPIConnection(engine=sqlalchemy.create_engine("sqlite://")),
-            True,
-        ],
-        [
-            Connection(engine=sqlalchemy.create_engine("sqlite://")),
-            False,
-        ],
-        [dummy_connection(), False],
+        [duckdb.connect(""), True],
+        [create_engine("sqlite://"), False],
+        [object(), False],
         ["not_a_valid_connection", False],
         [0, False],
     ],
     ids=[
-        "sqlite3_connection",
-        "dbapi_connection",
-        "normal_connection",
-        "dummy_connection",
-        "str",
+        "sqlite3-connection",
+        "duckdb-connection",
+        "sqlalchemy-engine",
+        "dummy-object",
+        "string",
         "int",
     ],
 )
-def test_dbapi_connection(conn, expected):
-    is_custom = Connection.is_dbapi_connection(conn)
-    assert is_custom == expected
+def test_is_pep249_compliant(conn, expected):
+    assert is_pep249_compliant(conn) is expected
 
 
 def test_close_all(ip_empty):

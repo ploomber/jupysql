@@ -9,6 +9,7 @@ from IPython.core.error import UsageError
 import difflib
 import sqlglot
 
+
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
@@ -124,29 +125,6 @@ def rough_dict_get(dct, sought, default=None):
     return default
 
 
-def is_pep249_compliant(conn):
-    """
-    Checks if given connection object complies with PEP 249
-    """
-    pep249_methods = [
-        "close",
-        "commit",
-        # "rollback",
-        # "cursor",
-        # PEP 249 doesn't require the connection object to have
-        # a cursor method strictly
-        # ref: https://peps.python.org/pep-0249/#id52
-    ]
-
-    for method_name in pep249_methods:
-        # Checking whether the connection object has the method
-        # and if it is callable
-        if not hasattr(conn, method_name) or not callable(getattr(conn, method_name)):
-            return False
-
-    return True
-
-
 class ConnectionMixin:
     """Shared functionality between SQLAlchemy and DBAPI connections"""
 
@@ -206,30 +184,6 @@ class ConnectionMixin:
 
         self.session.close()
 
-    def is_dbapi_connection(conn=None) -> bool:
-        """
-        Checks if given connection is custom
-        """
-        is_dbapi_connection_ = False
-
-        if conn is None:
-            if not ConnectionManager.current:
-                raise exceptions.RuntimeError("No active connection")
-            else:
-                conn = ConnectionManager.current.session
-
-        if isinstance(conn, (DBAPIConnection, DBAPISession)):
-            is_dbapi_connection_ = True
-        else:
-            if isinstance(
-                conn, (sqlalchemy.engine.base.Connection, Connection)
-            ) or not (is_pep249_compliant(conn)):
-                is_dbapi_connection_ = False
-            else:
-                is_dbapi_connection_ = True
-
-        return is_dbapi_connection_
-
     def _transpile_query(self, query):
         """Translate the given SQL clause that's compatible to current connected
         dialect by sqlglot
@@ -268,7 +222,7 @@ class ConnectionMixin:
 
         query = self._transpile_query(query)
 
-        if self.is_dbapi_connection():
+        if self.is_dbapi_connection:
             query = str(query)
         else:
             query = sqlalchemy.sql.text(query)
@@ -343,12 +297,11 @@ class ConnectionManager:
         connect_args = connect_args or {}
 
         if descriptor:
-            is_dbapi_connection_ = Connection.is_dbapi_connection(descriptor)
             if isinstance(descriptor, Connection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
                 cls.current = Connection(descriptor, alias=alias)
-            elif is_dbapi_connection_:
+            elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
@@ -552,6 +505,8 @@ class Connection(ConnectionMixin):
         A SQLAlchemy session object
     """
 
+    is_dbapi_connection = False
+
     def __init__(self, engine, alias=None):
         self.engine = engine
         self.name = self.assign_name(engine)
@@ -637,6 +592,8 @@ class DBAPIConnection(ConnectionMixin):
     """
     A connection object for generic DBAPI connections
     """
+
+    is_dbapi_connection = True
 
     @telemetry.log_call("DBAPIConnection", payload=True)
     def __init__(self, payload, engine=None, alias=None):
@@ -730,3 +687,26 @@ def _suggest_fix(env_var, connect_str=None):
     options.append(PLOOMBER_DOCS_LINK_STR)
 
     return "\n\n".join(options)
+
+
+def is_pep249_compliant(conn):
+    """
+    Checks if given connection object complies with PEP 249
+    """
+    pep249_methods = [
+        "close",
+        "commit",
+        # "rollback",
+        # "cursor",
+        # PEP 249 doesn't require the connection object to have
+        # a cursor method strictly
+        # ref: https://peps.python.org/pep-0249/#id52
+    ]
+
+    for method_name in pep249_methods:
+        # Checking whether the connection object has the method
+        # and if it is callable
+        if not hasattr(conn, method_name) or not callable(getattr(conn, method_name)):
+            return False
+
+    return True

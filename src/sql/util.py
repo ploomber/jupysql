@@ -2,7 +2,7 @@ import warnings
 import sql
 from sql import inspect
 import difflib
-from sql.connection import Connection, ConnectionManager
+from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
@@ -102,7 +102,7 @@ def is_table_exists(
 
     if not _is_exist:
         if not ignore_error:
-            try_find_suggestions = not Connection.is_dbapi_connection(conn)
+            try_find_suggestions = not conn.is_dbapi_connection
             expected = []
             existing_schemas = []
             existing_tables = []
@@ -250,7 +250,7 @@ def support_only_sql_alchemy_connection(command):
     """
     Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
-    if Connection.is_dbapi_connection():
+    if ConnectionManager.current.is_dbapi_connection:
         raise exceptions.RuntimeError(
             f"{command} is only supported with SQLAlchemy "
             "connections, not with DBAPI connections"
