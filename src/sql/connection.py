@@ -282,8 +282,28 @@ class ConnectionMixin:
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
 
+    def is_use_backtick_template(self):
+        """Get if the dialect support backtick (`) syntax as identifier
+
+        Returns
+        -------
+        bool
+            Indicate if the dialect can use backtick identifier in the SQL clause
+        """
+        cur_dialect = self._get_curr_sqlglot_dialect()
+        if not cur_dialect:
+            return False
+        try:
+            return (
+                "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
+            )
+        except (ValueError, AttributeError, TypeError):
+            return False
+
 
 class ConnectionManager:
+    """A class to manage and create database connections"""
+
     # all connections
     connections = {}
 
@@ -558,24 +578,6 @@ class Connection(ConnectionMixin):
     def assign_name(cls, engine):
         name = "%s@%s" % (engine.url.username or "", engine.url.database)
         return name
-
-    def is_use_backtick_template(self):
-        """Get if the dialect support backtick (`) syntax as identifier
-
-        Returns
-        -------
-        bool
-            Indicate if the dialect can use backtick identifier in the SQL clause
-        """
-        cur_dialect = self._get_curr_sqlglot_dialect()
-        if not cur_dialect:
-            return False
-        try:
-            return (
-                "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
-            )
-        except (ValueError, AttributeError, TypeError):
-            return False
 
     def get_curr_identifiers(self) -> list:
         """

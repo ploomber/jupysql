@@ -1,5 +1,5 @@
 import pytest
-from sql.connection import Connection
+from sql.connection import Connection, ConnectionManager
 from IPython.core.error import UsageError
 from sql.store import SQLStore, SQLQuery
 from sqlalchemy import create_engine
@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 
 @pytest.fixture(autouse=True)
 def setup_no_current_connect(monkeypatch):
-    monkeypatch.setattr(Connection, "current", None)
+    monkeypatch.setattr(ConnectionManager, "current", None)
 
 
 def test_sqlstore_setitem():
