@@ -795,7 +795,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
 
-    
+
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
@@ -892,7 +892,7 @@ DROP TABLE numbers
 
     assert result.error_in_exec is None
 
-    
+
 @pytest.mark.parametrize(
     "table, offset, n_rows, expected_rows, expected_columns",
     [
@@ -963,5 +963,3 @@ def test_explore_fetch_sql_with_pagination(
     rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
     assert rows == expected_rows
     assert columns == expected_columns
-
-    
