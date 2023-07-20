@@ -542,7 +542,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     else:
         template_ = """
         select
-            "{{column}}" as col, count ({{column}})
+            "{{column}}" as col, count ("{{column}}")
         from "{{table}}"
         {{filter_query}}
         group by col
