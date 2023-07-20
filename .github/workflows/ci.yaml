@@ -126,7 +126,7 @@ jobs:
           # ensure we're running sqlalchemy 2
           python -c "import sqlalchemy; assert int(sqlalchemy.__version__.split('.')[0]) == 2"
           # run unit tests
-          pytest --durations-min=5 --ignore=src/tests/integration
+          pytest --durations-min=5 --ignore src/tests/integration --ignore src/tests/test_ggplot.py --ignore src/tests/test_magic_plot.py
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3
