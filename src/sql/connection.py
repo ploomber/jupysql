@@ -669,7 +669,7 @@ class Connection:
 atexit.register(Connection.close_all, verbose=True)
 
 
-class DBAPISession(sqlalchemy.engine.base.Connection):
+class DBAPISession:
     """
     A session object for generic DBAPI connections
     """
@@ -690,6 +690,9 @@ class DBAPISession(sqlalchemy.engine.base.Connection):
         cur = self.engine.cursor()
         cur.execute(query)
         return cur
+
+    def close(self):
+        pass
 
 
 class DBAPIConnection(Connection):
