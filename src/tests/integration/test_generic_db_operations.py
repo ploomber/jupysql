@@ -882,6 +882,7 @@ VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
 
     ip_empty.run_cell("%sql --close first-conn")
 
+    # if the close command above doesn't close all results, this drop will fail
     result = ip_empty.run_cell(
         """%%sql second-conn
 DROP TABLE numbers
