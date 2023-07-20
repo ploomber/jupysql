@@ -1,8 +1,10 @@
 # CHANGELOG
 
 ## 0.8.1dev
+
 * [Fix] Added support for `profile` and `explore` commands with saved snippets (#658)
-  
+* [Fix] Fix error that was incorrectly converted into a print message
+
 ## 0.8.0 (2023-07-18)
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs ([#459](https://github.com/ploomber/jupysql/issues/459))
