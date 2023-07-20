@@ -609,7 +609,11 @@ class DBAPIConnection(ConnectionMixin):
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(engine)
         connection_name_ = "duckdb" if _is_duckdb_native else "custom_driver"
 
-        self.url = str(engine)
+        if _is_duckdb_native:
+            self.url = "duckdb"
+        else:
+            self.url = str(engine)
+
         self.name = connection_name_
         self.dialect = connection_name_
         self.session = DBAPISession(self, engine)
