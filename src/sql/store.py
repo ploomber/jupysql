@@ -207,6 +207,16 @@ def store_snippet_as_sql(sql_command, snippet_name):
 
 
 def load_snippet_from_sql(store):
+    """
+    Load the snippets saved in .sql files
+    as snippets in SQLStore.
+
+    Parameters
+    ----------
+    store : SQLStore
+        SQLStore of the current session .
+
+    """
     if os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR):
         snippet_files = glob.glob(SNIPPETS_DIR + "*.sql")
         snippet_names = [filename[len(SNIPPETS_DIR) : -4] for filename in snippet_files]

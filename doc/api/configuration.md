@@ -249,7 +249,7 @@ print(res)
 
 Default: `False`
 
-Stores the snippets as SQL files
+Stores the snippet in a SQL file.
 
 ```{code-cell} ipython3
 %config SqlMagic.persist_snippets = True
@@ -260,10 +260,14 @@ Stores the snippets as SQL files
 select * from languages where rating > 10.5
 ```
 
-The sql file will be saved at
+The sql file will be saved at: 
+
 `jupysql-snippets/rated_high.sql` 
 
-with the following contents  
+with the following content: 
 
 `select * from languages where rating > 10.5`
 
+
+JupySql will automatically load the snippets from the SQL files when re-initializing the magic.
+It will remain readily available for future use.
