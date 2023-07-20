@@ -310,7 +310,7 @@ def _get_bar_width(ax, bins):
     Return a single bar width based on number of bins
     If bins values are str, calculate value based on figure size.
     """
-    if len(bins) > 1 and _are_numeric_values(bins[-1], bins[-2]):
+    if _are_numeric_values(bins[-1], bins[-2]):
         width = bins[-1] - bins[-2]
     else:
         fig = plt.gcf()
