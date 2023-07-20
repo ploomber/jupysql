@@ -811,7 +811,9 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         pytest.param(
             "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
         ),
-        "ip_with_oracle",
+        pytest.param(
+            "ip_with_oracle", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
     ],
 )
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
