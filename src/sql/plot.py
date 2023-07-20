@@ -510,7 +510,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
     filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
-    bin_size = None
+    bin_size = 1
 
     if _are_numeric_values(min_, max_):
         if not isinstance(bins, int):
