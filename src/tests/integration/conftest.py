@@ -166,6 +166,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
         + alias
     )
     yield ip_empty
+
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 

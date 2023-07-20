@@ -802,11 +802,16 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
         "ip_with_mySQL",
         "ip_with_mariaDB",
         "ip_with_SQLite",
-        # "ip_with_duckDB_native",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
+        ),
         "ip_with_duckDB",
         "ip_with_Snowflake",
-        # "ip_with_MSSQL",
-        # "ip_with_oracle",
+        pytest.param(
+            "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
+        "ip_with_oracle",
     ],
 )
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
@@ -826,7 +831,12 @@ S"""
     "ip_with_dynamic_db",
     [
         "ip_with_SQLite",
-        "ip_with_duckDB_native",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(
+                reason="We're currently running each command in a new cursor"
+            ),
+        ),
         "ip_with_duckDB",
         "ip_with_postgreSQL",
     ],
@@ -842,28 +852,6 @@ select * from my_table;
 
     assert out.error_in_exec is None
     assert list(out.result) == [(42,)]
-
-
-# @pytest.mark.parametrize(
-#     "ip_with_dynamic_db",
-#     [
-#         "ip_with_SQLite",
-#         # "ip_with_duckDB_native",
-#         "ip_with_duckDB",
-#         "ip_with_postgreSQL",
-#     ],
-# )
-# def test_temp_table_listed_as_table(ip_with_dynamic_db, request):
-#     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-#     ip_with_dynamic_db.run_cell(
-#         """%%sql
-# create temp table my_table as select 42;
-# select * from my_table;
-# """
-#     )
-
-#     out_tables = ip_with_dynamic_db.run_cell("%sqlcmd tables")
-#     assert "my_table" in set(r[0] for r in out_tables.result._table.rows)
 
 
 @pytest.mark.parametrize(
