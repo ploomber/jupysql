@@ -6,7 +6,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
 
 import sql.connection
-from sql.connection import Connection, DBAPIConnection
+from sql.connection import Connection, DBAPIConnection, ConnectionManager
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
@@ -16,7 +16,7 @@ import sqlite3
 @pytest.fixture
 def cleanup():
     yield
-    Connection.connections = {}
+    ConnectionManager.connections = {}
 
 
 @pytest.fixture
@@ -33,24 +33,26 @@ def mock_postgres(monkeypatch, cleanup):
 
 
 def test_password_isnt_displayed(mock_postgres):
-    Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    ConnectionManager.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
 
-    table = Connection.connections_table()
+    table = ConnectionManager.connections_table()
 
     assert "topsecret" not in str(table)
     assert "topsecret" not in table._repr_html_()
 
 
 def test_connection_name(mock_postgres):
-    conn = Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    conn = ConnectionManager.from_connect_str(
+        "postgresql://user:topsecret@somedomain.com/db"
+    )
 
     assert conn.name == "user@db"
 
 
 def test_alias(cleanup):
-    Connection.from_connect_str("sqlite://", alias="some-alias")
+    ConnectionManager.from_connect_str("sqlite://", alias="some-alias")
 
-    assert list(Connection.connections) == ["some-alias"]
+    assert list(ConnectionManager.connections) == ["some-alias"]
 
 
 def test_get_curr_sqlalchemy_connection_info():
@@ -222,7 +224,7 @@ def test_missing_duckdb_dependencies(cleanup, monkeypatch):
         sys.modules["duckdb-engine"] = None
 
         with pytest.raises(UsageError) as excinfo:
-            Connection.from_connect_str("duckdb://")
+            ConnectionManager.from_connect_str("duckdb://")
 
         assert excinfo.value.error_type == "MissingPackageError"
         assert "try to install package: duckdb-engine" + str(excinfo.value)
@@ -260,7 +262,7 @@ def test_missing_driver(
     with patch.dict(sys.modules):
         sys.modules[missing_pkg] = None
         with pytest.raises(UsageError) as excinfo:
-            Connection.from_connect_str(connect_str)
+            ConnectionManager.from_connect_str(connect_str)
 
         assert excinfo.value.error_type == "MissingPackageError"
         assert "try to install package: " + missing_pkg in str(excinfo.value)
@@ -278,7 +280,7 @@ def test_get_connections():
     Connection(engine=create_engine("sqlite://"))
     Connection(engine=create_engine("duckdb://"))
 
-    assert Connection._get_connections() == [
+    assert ConnectionManager._get_connections() == [
         {
             "url": "duckdb://",
             "current": True,
@@ -298,7 +300,7 @@ def test_get_connections():
 
 def test_display_current_connection(capsys):
     Connection(engine=create_engine("duckdb://"))
-    Connection.display_current_connection()
+    ConnectionManager.display_current_connection()
 
     captured = capsys.readouterr()
     assert captured.out == "Running query in 'duckdb://'\n"
@@ -308,13 +310,15 @@ def test_connections_table():
     Connection(engine=create_engine("sqlite://"))
     Connection(engine=create_engine("duckdb://"))
 
-    connections = Connection.connections_table()
+    connections = ConnectionManager.connections_table()
     assert connections._headers == ["current", "url", "alias"]
     assert connections._rows == [["*", "duckdb://", ""], ["", "sqlite://", ""]]
 
 
 def test_properties(mock_postgres):
-    conn = Connection.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    conn = ConnectionManager.from_connect_str(
+        "postgresql://user:topsecret@somedomain.com/db"
+    )
 
     assert "topsecret" not in conn.url
     assert "***" in conn.url
@@ -366,9 +370,9 @@ def test_close_all(ip_empty):
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql sqlite://")
 
-    connections_copy = Connection.connections.copy()
+    connections_copy = ConnectionManager.connections.copy()
 
-    Connection.close_all()
+    ConnectionManager.close_all()
 
     with pytest.raises(ResourceClosedError):
         connections_copy["sqlite://"].execute("").fetchall()
@@ -376,7 +380,7 @@ def test_close_all(ip_empty):
     with pytest.raises(ResourceClosedError):
         connections_copy["duckdb://"].execute("").fetchall()
 
-    assert not Connection.connections
+    assert not ConnectionManager.connections
 
 
 @pytest.mark.parametrize(
@@ -400,4 +404,4 @@ def test_new_connection_with_alias(ip_empty, old_alias, new_alias):
         connection = table[new_alias]
         assert connection
         assert connection.url == "duckdb://"
-        assert connection == connection.current
+        assert connection == ConnectionManager.current

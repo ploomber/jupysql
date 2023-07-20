@@ -5,7 +5,7 @@ import pytest
 import polars as pl
 import pandas as pd
 
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
@@ -19,7 +19,7 @@ from sql.warnings import JupySQLDataFramePerformanceWarning
         ),
         (
             "ip_with_duckDB_native",
-            "'DBAPISession' object has no attribute '_has_events'",
+            "'DBAPISession' object has no attribute 'execution_options'",
         ),
     ],
 )
@@ -57,8 +57,8 @@ def test_auto_commit_mode_off(ip, caplog, request):
 
 
 def test_dbapi_connection_sets_right_dialect(ip_with_duckDB_native):
-    assert Connection.current.is_dbapi_connection()
-    assert Connection.current.dialect == "duckdb"
+    assert ConnectionManager.current.is_dbapi_connection()
+    assert ConnectionManager.current.dialect == "duckdb"
 
 
 @pytest.mark.parametrize(

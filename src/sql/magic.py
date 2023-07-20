@@ -420,9 +420,9 @@ class SqlMagic(Magics, Configurable):
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections_table()
+            return sql.connection.ConnectionManager.connections_table()
         elif args.close:
-            return sql.connection.Connection.close_connection_with_descriptor(
+            return sql.connection.ConnectionManager.close_connection_with_descriptor(
                 args.close
             )
 
@@ -452,7 +452,7 @@ class SqlMagic(Magics, Configurable):
 
         # this creates a new connection or use an existing one
         # depending on the connect_arg value
-        conn = sql.connection.Connection.set(
+        conn = sql.connection.ConnectionManager.set(
             connect_arg,
             displaycon=self.displaycon,
             connect_args=args.connection_arguments,

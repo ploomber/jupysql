@@ -5,7 +5,7 @@ from sqlalchemy.engine import Engine
 
 from sql import parse
 from sql.store import store
-from sql.connection import Connection
+from sql.connection import Connection, ConnectionManager
 
 
 class SQLPlotCommand:
@@ -45,7 +45,7 @@ class SQLCommand:
             line_for_command = self.args.line
             add_conn = False
 
-        if one_arg and self.args.line[0] in Connection.connections:
+        if one_arg and self.args.line[0] in ConnectionManager.connections:
             line_for_command = []
             add_alias = True
         else:

@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
-from sql.connection import Connection
+from sql.connection import Connection, ConnectionManager
 from sql.telemetry import telemetry
 from sql import exceptions
 import sql.run
@@ -15,10 +15,10 @@ def _get_inspector(conn):
     if conn:
         return inspect(conn)
 
-    if not Connection.current:
+    if not ConnectionManager.current:
         raise exceptions.RuntimeError("No active connection")
     else:
-        return inspect(Connection.current.session)
+        return inspect(ConnectionManager.current.session)
 
 
 class DatabaseInspection:
@@ -237,7 +237,7 @@ class TableDescription(DatabaseInspection):
             table_name = f"{schema}.{table_name}"
 
         columns_query_result = sql.run.raw_run(
-            Connection.current, f"SELECT * FROM {table_name} WHERE 1=0"
+            ConnectionManager, f"SELECT * FROM {table_name} WHERE 1=0"
         )
         if Connection.is_dbapi_connection():
             columns = [i[0] for i in columns_query_result.description]
@@ -255,7 +255,7 @@ class TableDescription(DatabaseInspection):
             # check the datatype of a column
             try:
                 result = sql.run.raw_run(
-                    Connection.current, f"""SELECT {column} FROM {table_name} LIMIT 1"""
+                    ConnectionManager, f"""SELECT {column} FROM {table_name} LIMIT 1"""
                 ).fetchone()
 
                 value = result[0]
@@ -271,7 +271,7 @@ class TableDescription(DatabaseInspection):
             # Note: index is reserved word in sqlite
             try:
                 result_col_freq_values = sql.run.raw_run(
-                    Connection.current,
+                    ConnectionManager,
                     f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
                     GROUP BY top ORDER BY frequency Desc""",
@@ -288,7 +288,7 @@ class TableDescription(DatabaseInspection):
             try:
                 # get all non None values, min, max and avg.
                 result_value_values = sql.run.raw_run(
-                    Connection.current,
+                    ConnectionManager,
                     f"""
                     SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
@@ -312,7 +312,7 @@ class TableDescription(DatabaseInspection):
             try:
                 # get unique values
                 result_value_values = sql.run.raw_run(
-                    Connection.current,
+                    ConnectionManager,
                     f"""
                     SELECT
                     COUNT(DISTINCT {column}) AS unique_count
@@ -327,7 +327,7 @@ class TableDescription(DatabaseInspection):
 
             try:
                 results_avg = sql.run.raw_run(
-                    Connection.current,
+                    ConnectionManager,
                     f"""
                                 SELECT AVG({column}) AS avg
                                 FROM {table_name}
@@ -347,7 +347,7 @@ class TableDescription(DatabaseInspection):
             try:
                 # Note: stddev_pop and PERCENTILE_DISC will work only on DuckDB
                 result = sql.run.raw_run(
-                    Connection.current,
+                    ConnectionManager,
                     f"""
                     SELECT
                         stddev_pop({column}) as key_std,
@@ -428,8 +428,8 @@ class TableDescription(DatabaseInspection):
             warning_background = "white"
             warning_title = ""
 
-        database = Connection.current.url
-        db_driver = Connection.current._get_curr_sqlalchemy_connection_info()["driver"]
+        database = ConnectionManager.url
+        db_driver = ConnectionManager._get_curr_sqlalchemy_connection_info()["driver"]
         if "duckdb" in database:
             db_message = ""
         else:
