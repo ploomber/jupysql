@@ -6,6 +6,8 @@ import pandas as pd
 import urllib.request
 import requests
 from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
+from sql.connection import ConnectionManager
+
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 from sql.connection import DBAPIConnection, DBAPISession
 from IPython.core.error import UsageError
@@ -605,13 +607,13 @@ def test_dbapi_connection(ip_questdb, alias):
     assert connection.name is expected_connection_name
     assert connection.dialect is expected_connection_name
     assert connection.alias is alias
-    assert len(connection.connections) > 0
+    assert len(ConnectionManager.connections) > 0
     assert isinstance(connection.session, DBAPISession)
 
     if alias:
-        stored_connection = connection.connections[alias]
+        stored_connection = ConnectionManager.connections[alias]
     else:
-        stored_connection = connection.connections[expected_connection_name]
+        stored_connection = ConnectionManager.connections[expected_connection_name]
 
     assert isinstance(stored_connection, DBAPIConnection)
 

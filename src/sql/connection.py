@@ -300,6 +300,30 @@ class ConnectionMixin:
         except (ValueError, AttributeError, TypeError):
             return False
 
+    def get_curr_identifiers(self) -> list:
+        """
+        Returns list of identifiers for current connection
+
+        Default identifiers are : ["", '"']
+        """
+        identifiers = ["", '"']
+        try:
+            connection_info = self._get_curr_sqlalchemy_connection_info()
+            if connection_info:
+                cur_dialect = connection_info["dialect"]
+                identifiers_ = sqlglot.Dialect.get_or_raise(
+                    cur_dialect
+                ).Tokenizer.IDENTIFIERS
+
+                identifiers = [*set(identifiers + identifiers_)]
+        except ValueError:
+            pass
+        except AttributeError:
+            # this might be a DBAPI connection
+            pass
+
+        return identifiers
+
 
 class ConnectionManager:
     """A class to manage and create database connections"""
@@ -578,30 +602,6 @@ class Connection(ConnectionMixin):
     def assign_name(cls, engine):
         name = "%s@%s" % (engine.url.username or "", engine.url.database)
         return name
-
-    def get_curr_identifiers(self) -> list:
-        """
-        Returns list of identifiers for current connection
-
-        Default identifiers are : ["", '"']
-        """
-        identifiers = ["", '"']
-        try:
-            connection_info = self._get_curr_sqlalchemy_connection_info()
-            if connection_info:
-                cur_dialect = connection_info["dialect"]
-                identifiers_ = sqlglot.Dialect.get_or_raise(
-                    cur_dialect
-                ).Tokenizer.IDENTIFIERS
-
-                identifiers = [*set(identifiers + identifiers_)]
-        except ValueError:
-            pass
-        except AttributeError:
-            # this might be a DBAPI connection
-            pass
-
-        return identifiers
 
 
 atexit.register(ConnectionManager.close_all, verbose=True)
