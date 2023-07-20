@@ -1,9 +1,14 @@
+import os
+from pathlib import Path
 import shutil
 import pandas as pd
 import pytest
 from sqlalchemy import MetaData, Table, create_engine
-from sql import _testing
 import uuid
+import duckdb
+
+from sql import _testing
+from sql import connection
 
 
 def pytest_addoption(parser):
@@ -161,6 +166,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
         + alias
     )
     yield ip_empty
+
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 
@@ -197,10 +203,16 @@ def ip_with_mariaDB(ip_empty, setup_mariaDB):
 
 @pytest.fixture(scope="session")
 def setup_SQLite(test_table_name_dict, skip_on_live_mode):
+    config = _testing.DatabaseConfigHelper.get_database_config("SQLite")
+
+    if Path(config["database"]).exists():
+        Path(config["database"]).unlink()
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("SQLite"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
     yield engine
+
     tear_down_generic_testing_data(engine, test_table_name_dict)
     engine.dispose()
 
@@ -208,7 +220,8 @@ def setup_SQLite(test_table_name_dict, skip_on_live_mode):
 @pytest.fixture
 def ip_with_SQLite(ip_empty, setup_SQLite):
     configKey = "SQLite"
-    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    alias = config["alias"]
 
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell(
@@ -221,9 +234,64 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
 
+    connection.Connection.current.close()
+
+
+@pytest.fixture(scope="session")
+def setup_duckDB_native(test_table_name_dict, skip_on_live_mode):
+    engine = duckdb.connect(database=":memory:", read_only=False)
+    return engine
+
+
+def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell("import pandas as pd")
+    ip.run_cell(
+        f"""{test_table_name_dict['taxi']} = pd.DataFrame({{'taxi_driver_name':
+          ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}} )"""
+    )
+    ip.run_cell(
+        f"""{test_table_name_dict['plot_something']} = pd.DataFrame(
+            {{"x": range(0, 5), "y": range(5, 10)}} )"""
+    )
+    ip.run_cell(
+        f"""{test_table_name_dict['numbers']} = pd.DataFrame(
+            {{"numbers_elements": [1, 2, 3] * 20}} )"""
+    )
+    return ip
+
+
+def teardown_generic_testing_data_duckdb_native(ip, test_table_name_dict):
+    ip.run_cell(f"del {test_table_name_dict['taxi']}")
+    ip.run_cell(f"del {test_table_name_dict['plot_something']}")
+    ip.run_cell(f"del {test_table_name_dict['numbers']}")
+    return ip
+
+
+@pytest.fixture
+def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
+    configKey = "duckDB"
+    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+
+    engine = setup_duckDB_native
+    ip_empty.push({"conn": engine})
+
+    ip_empty.run_cell("%sql conn" + " --alias " + alias)
+    ip_empty = load_generic_testing_data_duckdb_native(ip_empty, test_table_name_dict)
+    yield ip_empty
+
+    ip_empty = teardown_generic_testing_data_duckdb_native(
+        ip_empty, test_table_name_dict
+    )
+    ip_empty.run_cell("%sql --close " + alias)
+
 
 @pytest.fixture(scope="session")
 def setup_duckDB(test_table_name_dict, skip_on_live_mode):
+    config = _testing.DatabaseConfigHelper.get_database_config("duckDB")
+
+    if Path(config["database"]).exists():
+        Path(config["database"]).unlink()
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("duckDB"))
     # Load pre-defined datasets
     load_generic_testing_data(engine, test_table_name_dict)
@@ -235,7 +303,8 @@ def setup_duckDB(test_table_name_dict, skip_on_live_mode):
 @pytest.fixture
 def ip_with_duckDB(ip_empty, setup_duckDB):
     configKey = "duckDB"
-    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    alias = config["alias"]
 
     # Select database engine, use different sqlite database endpoint
     ip_empty.run_cell(
@@ -247,6 +316,21 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + alias)
+
+
+@pytest.fixture
+def ip_with_duckdb_native_empty(tmp_empty, ip_empty_testing):
+    ip_empty_testing.run_cell("import duckdb; conn = duckdb.connect('my.db')")
+    ip_empty_testing.run_cell("%sql conn --alias duck")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("conn.close()")
+
+
+@pytest.fixture
+def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
+    ip_empty_testing.run_cell("%sql duckdb:///my.db --alias duckdb")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("%sql --close duckdb")
 
 
 @pytest.fixture(scope="session")
@@ -279,6 +363,15 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
 
 @pytest.fixture(scope="session")
 def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
+    username = os.getenv("SF_USERNAME")
+    password = os.getenv("SF_PASSWORD")
+
+    if username is None:
+        raise ValueError("SF_USERNAME is required to run snowflake integration tests")
+
+    if password is None:
+        raise ValueError("SF_PASSWORD is required to run snowflake integration tests")
+
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("Snowflake"))
     engine.connect()
     # Load pre-defined datasets

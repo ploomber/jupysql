@@ -3,7 +3,9 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
+from sql.error_message import CTE_MSG
 from unittest.mock import ANY, Mock
+from IPython.core.error import UsageError
 
 import math
 
@@ -12,6 +14,7 @@ ALL_DATABASES = [
     "ip_with_mySQL",
     "ip_with_mariaDB",
     "ip_with_SQLite",
+    "ip_with_duckDB_native",
     "ip_with_duckDB",
     "ip_with_MSSQL",
     "ip_with_Snowflake",
@@ -35,7 +38,6 @@ def mock_log_api(monkeypatch):
     yield mock_log_api
 
 
-# Query
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected",
     [
@@ -43,14 +45,16 @@ def mock_log_api(monkeypatch):
         ("ip_with_mySQL", 3),
         ("ip_with_mariaDB", 3),
         ("ip_with_SQLite", 3),
+        ("ip_with_duckDB_native", 3),
         ("ip_with_duckDB", 3),
         ("ip_with_Snowflake", 3),
     ],
 )
 def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out = ip_with_dynamic_db.run_line_magic(
-        "sql", f"SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
+
+    out = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
     )
 
     # Test query with --with & --save
@@ -62,11 +66,51 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         "%sql --with taxi_subset SELECT * FROM taxi_subset"
     )
 
-    assert len(out) == expected
+    assert len(out.result) == expected
     assert len(out_query_with_save_arg.result) == expected
 
 
-# Create
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB",
+        "ip_with_duckDB_native",
+        "ip_with_Snowflake",
+    ],
+)
+def test_handle_multiple_open_result_sets(
+    ip_with_dynamic_db, request, test_table_name_dict
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    taxi_table = test_table_name_dict["taxi"]
+    numbers_table = test_table_name_dict["numbers"]
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.displaylimit = 2")
+
+    taxi = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {taxi_table} LIMIT 5"
+    ).result
+
+    numbers = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {numbers_table} LIMIT 5"
+    ).result
+
+    # NOTE: we do not check the value of the indexes because snowflake does not support
+    # them
+    assert taxi.dict()["taxi_driver_name"] == (
+        "Eric Ken",
+        "John Smith",
+        "Kevin Kelly",
+        "Eric Ken",
+        "John Smith",
+    )
+    assert numbers.dict()["numbers_elements"] == (1, 2, 3, 1, 2)
+
+
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected, limit",
     [
@@ -75,6 +119,14 @@ def test_query_count(ip_with_dynamic_db, expected, request, test_table_name_dict
         ("ip_with_mariaDB", 15, 15),
         ("ip_with_SQLite", 15, 15),
         ("ip_with_duckDB", 15, 15),
+        pytest.param(
+            "ip_with_duckDB_native",
+            15,
+            15,
+            marks=pytest.mark.xfail(
+                reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
+            ),
+        ),
         # Snowflake doesn't support index, skip that
     ],
 )
@@ -87,8 +139,9 @@ def test_create_table_with_indexed_df(
     ip_with_dynamic_db.run_cell("%config SqlMagic.displaylimit = 0")
 
     ip_with_dynamic_db.run_cell(
-        f"%sql DROP TABLE {test_table_name_dict['new_table_from_df']}"
+        f"%sql DROP TABLE IF EXISTS {test_table_name_dict['new_table_from_df']}"
     )
+
     # Prepare DF
     ip_with_dynamic_db.run_cell(
         f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
@@ -111,12 +164,13 @@ def test_create_table_with_indexed_df(
     )
     assert persist_out.error_in_exec is None and out_df.error_in_exec is None
     assert len(out_df.result) == expected
-    assert expected_df.result.DataFrame().equals(
-        out_df.result.DataFrame().loc[:, out_df.result.DataFrame().columns != "level_0"]
-    )
+
+    expected_df_ = expected_df.result.DataFrame()
+    out_df_ = out_df.result.DataFrame()
+
+    assert expected_df_.equals(out_df_.loc[:, out_df_.columns != "level_0"])
 
 
-# Connection
 def get_connection_count(ip_with_dynamic_db):
     out = ip_with_dynamic_db.run_line_magic("sql", "-l")
     print("Current connections:", out)
@@ -124,7 +178,6 @@ def get_connection_count(ip_with_dynamic_db):
     return connections_count
 
 
-# Test - Number of active connection
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected",
     [
@@ -133,6 +186,7 @@ def get_connection_count(ip_with_dynamic_db):
         ("ip_with_mariaDB", 1),
         ("ip_with_SQLite", 1),
         ("ip_with_duckDB", 1),
+        ("ip_with_duckDB_native", 1),
         ("ip_with_MSSQL", 1),
         ("ip_with_Snowflake", 1),
     ],
@@ -150,6 +204,7 @@ def test_active_connection_number(ip_with_dynamic_db, expected, request):
         ("ip_with_mariaDB", "mariaDB"),
         ("ip_with_SQLite", "SQLite"),
         ("ip_with_duckDB", "duckDB"),
+        ("ip_with_duckDB_native", "duckDB"),
         ("ip_with_MSSQL", "MSSQL"),
         ("ip_with_Snowflake", "Snowflake"),
         ("ip_with_oracle", "oracle"),
@@ -173,8 +228,6 @@ def test_close_and_connect(
     assert get_connection_count(ip_with_dynamic_db) == 1
 
 
-# Telemetry
-# Test - Number of active connection
 @pytest.mark.parametrize(
     "ip_with_dynamic_db, expected_dialect, expected_driver",
     [
@@ -183,6 +236,7 @@ def test_close_and_connect(
         ("ip_with_mariaDB", "mysql", "pymysql"),
         ("ip_with_SQLite", "sqlite", "pysqlite"),
         ("ip_with_duckDB", "duckdb", "duckdb_engine"),
+        ("ip_with_duckDB_native", None, None),
         ("ip_with_MSSQL", "mssql", "pyodbc"),
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
@@ -237,6 +291,7 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_duckDB_native"),
         pytest.param(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
@@ -293,6 +348,10 @@ BOX_PLOT_FAIL_REASON = (
         pytest.param("ip_with_postgreSQL"),
         pytest.param("ip_with_duckDB"),
         pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Custom driver not supported"),
+        ),
+        pytest.param(
             "ip_with_mySQL", marks=pytest.mark.xfail(reason=BOX_PLOT_FAIL_REASON)
         ),
         pytest.param(
@@ -331,6 +390,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
@@ -368,6 +428,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         pytest.param(
             "ip_with_Snowflake",
@@ -401,6 +462,7 @@ def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_duckDB_native"),
         ("ip_with_MSSQL"),
         pytest.param(
             "ip_with_Snowflake",
@@ -531,6 +593,25 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
             None,
         ),
         (
+            "ip_with_duckDB_native",
+            "taxi",
+            ["index", "taxi_driver_name"],
+            {
+                "count": [45, 45],
+                "mean": [22.0, math.nan],
+                "min": [0, "Eric Ken"],
+                "max": [44, "Kevin Kelly"],
+                "unique": [45, 3],
+                "freq": [1, 15],
+                "top": [0, "Eric Ken"],
+                "std": ["1.299e+01", math.nan],
+                "25%": [11.0, math.nan],
+                "50%": [22.0, math.nan],
+                "75%": [33.0, math.nan],
+            },
+            None,
+        ),
+        (
             "ip_with_MSSQL",
             "taxi",
             ["taxi_driver_name"],
@@ -602,7 +683,22 @@ def test_profile_query(
         "numbers",
     ],
 )
-@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Bug #428"),
+        ),
+        ("ip_with_MSSQL"),
+        ("ip_with_Snowflake"),
+    ],
+)
 def test_sqlcmd_tables_columns(
     ip_with_dynamic_db, table, request, test_table_name_dict
 ):
@@ -613,7 +709,22 @@ def test_sqlcmd_tables_columns(
     assert out.result
 
 
-@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        ("ip_with_postgreSQL"),
+        ("ip_with_mySQL"),
+        ("ip_with_mariaDB"),
+        ("ip_with_SQLite"),
+        ("ip_with_duckDB"),
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Bug #428"),
+        ),
+        ("ip_with_MSSQL"),
+        ("ip_with_Snowflake"),
+    ],
+)
 def test_sqlcmd_tables(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     out = ip_with_dynamic_db.run_cell("%sqlcmd tables")
@@ -624,22 +735,158 @@ def test_sqlcmd_tables(ip_with_dynamic_db, request):
     "cell",
     [
         "%%sql\nSELECT * FROM numbers WHERE 0=1",
-        "%%sql --with subset\nSELECT * FROM subset WHERE 0=1",
         "%%sql\nSELECT *\n-- %one $another\nFROM numbers WHERE 0=1",
     ],
     ids=[
         "simple-query",
-        "cte",
         "interpolation-like-comment",
     ],
 )
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
-def test_sql_query(ip_with_dynamic_db, cell, request):
+def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    ip_with_dynamic_db.run_cell(
-        """%%sql --save subset --no-execute
-SELECT * FROM numbers WHERE 1=0
-"""
-    )
+
+    if "numbers" in cell:
+        cell = cell.replace("numbers", test_table_name_dict["numbers"])
+
     out = ip_with_dynamic_db.run_cell(cell)
     assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%%sql\nSELECT * FROM subset",
+        "%%sql --with subset\nSELECT * FROM subset",
+    ],
+    ids=[
+        "cte-inferred",
+        "cte-explicit",
+    ],
+)
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(
+                reason="We need to close any pending results for this to work"
+            ),
+        ),
+        "ip_with_Snowflake",
+        "ip_with_oracle",
+    ],
+)
+def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell(
+        "%%sql --save subset --no-execute \n"
+        f"SELECT * FROM {test_table_name_dict['numbers']}"
+    )
+
+    out = ip_with_dynamic_db.run_cell(cell)
+    assert out.error_in_exec is None
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="Not yet implemented"),
+        ),
+        "ip_with_duckDB",
+        "ip_with_Snowflake",
+        pytest.param(
+            "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
+        pytest.param(
+            "ip_with_oracle", marks=pytest.mark.xfail(reason="Not yet implemented")
+        ),
+    ],
+)
+def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    out = ip_with_dynamic_db.run_cell(
+        """
+    %%sql
+S"""
+    )
+    assert isinstance(out.error_in_exec, UsageError)
+    assert out.error_in_exec.error_type == "RuntimeError"
+    assert CTE_MSG in str(out.error_in_exec)
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_SQLite",
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(
+                reason="We're currently running each command in a new cursor"
+            ),
+        ),
+        "ip_with_duckDB",
+        "ip_with_postgreSQL",
+    ],
+)
+def test_temp_table(ip_with_dynamic_db, request):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    out = ip_with_dynamic_db.run_cell(
+        """%%sql
+create temp table my_table as select 42;
+select * from my_table;
+"""
+    )
+
+    assert out.error_in_exec is None
+    assert list(out.result) == [(42,)]
+
+
+def test_results_sets_are_closed(tmp_empty, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.displaylimit = 3")
+
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias first-conn"
+    )
+
+    ip_empty.run_cell(
+        "%sql sqlite:///test_results_sets_are_closed.db --alias second-conn"
+    )
+
+    ip_empty.run_cell(
+        """%%sql first-conn
+CREATE TABLE numbers (
+    x INT PRIMARY KEY
+);
+
+INSERT INTO numbers (x)
+VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
+"""
+    )
+
+    ip_empty.run_cell("%sql SELECT * FROM numbers")
+
+    ip_empty.run_cell("%sql --close first-conn")
+
+    # if the close command above doesn't close all results, this drop will fail
+    result = ip_empty.run_cell(
+        """%%sql second-conn
+DROP TABLE numbers
+        """
+    )
+
+    assert result.error_in_exec is None
