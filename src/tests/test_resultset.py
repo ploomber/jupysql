@@ -12,7 +12,6 @@ import sqlalchemy
 
 from sql.connection import DBAPIConnection, Connection
 from sql.run import ResultSet
-from sql import run as run_module
 
 
 @pytest.fixture
