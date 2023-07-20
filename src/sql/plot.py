@@ -31,7 +31,7 @@ def _summary_stats(conn, table, column, with_=None):
     """Compute percentiles and mean for boxplot"""
 
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
 
     template = Template(
@@ -63,7 +63,7 @@ def _summary_stats(conn, table, column, with_=None):
 
 def _whishi(conn, table, column, hival, with_=None):
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     template = Template(
         """
 SELECT COUNT(*), MAX("{{column}}")
@@ -84,7 +84,7 @@ FROM (
 
 def _whislo(conn, table, column, loval, with_=None):
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     template = Template(
         """
 SELECT COUNT(*), MIN("{{column}}")
@@ -105,7 +105,7 @@ FROM (
 
 def _percentile(conn, table, column, pct, with_=None):
     if not conn:
-        conn = sql.connection.Connection.current.session
+        conn = sql.connection.ConnectionManager.current.session
     template = Template(
         """
 SELECT
@@ -139,7 +139,7 @@ OR  "{{column}}" > {{whishi}}
 def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
     """Compute statistics required to create a boxplot"""
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     # calculating stats might fail on other DBs (percentile_disc)
     util.support_only_sql_alchemy_connection("boxplot")
@@ -258,7 +258,7 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     .. plot:: ../examples/plot_boxplot_many.py
     """
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
 
@@ -285,7 +285,7 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
 
 def _min_max(con, table, column, with_=None, use_backticks=False):
     if not con:
-        con = sql.connection.Connection.current
+        con = sql.connection.ConnectionManager.current
     template_ = """
 SELECT
     MIN("{{column}}"),
@@ -379,7 +379,7 @@ def histogram(
     .. plot:: ../examples/plot_histogram_many.py
     """
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
@@ -497,7 +497,7 @@ def histogram(
 def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     """Compute bins and heights"""
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
     # FIXME: we're computing all the with elements twice
@@ -576,7 +576,7 @@ def _histogram_stacked(
 ):
     """Compute the corresponding heights of each bin based on the category"""
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     cases = []
     for bin in bins:
@@ -651,7 +651,7 @@ def _filter_aggregate(*filter_queries):
 def _bar(table, column, with_=None, conn=None):
     """get x and height for bar plot"""
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
     if isinstance(column, list):
@@ -760,7 +760,7 @@ def bar(
     """
 
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
@@ -835,7 +835,7 @@ def bar(
 def _pie(table, column, with_=None, conn=None):
     """get x and height for pie chart"""
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
     if isinstance(column, list):
@@ -932,7 +932,7 @@ def pie(
     """
 
     if not conn:
-        conn = sql.connection.Connection.current
+        conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()

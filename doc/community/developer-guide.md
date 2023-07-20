@@ -120,9 +120,9 @@ In our codebase, we manage connections to databases with a `Connection` object, 
 ```
 
 ```{code-cell} ipython3
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 
-conn = Connection.current.session
+conn = ConnectionManager.current.session
 conn
 ```
  

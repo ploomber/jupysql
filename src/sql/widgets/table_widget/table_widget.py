@@ -1,4 +1,4 @@
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from IPython import get_ipython
 import math
 import sqlalchemy
@@ -62,7 +62,7 @@ class TableWidget:
         rows = parse_sql_results_to_json(rows, columns)
 
         query = f"SELECT count(*) FROM {table}"
-        n_total = Connection.current.session.execute(
+        n_total = ConnectionManager.current.session.execute(
             sqlalchemy.sql.text(query)
         ).fetchone()[0]
         table_name = table.strip('"').strip("'")

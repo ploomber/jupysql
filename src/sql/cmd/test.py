@@ -161,7 +161,7 @@ def test(others):
             "or equal to arguments at the same time."
         )
 
-    conn = sql.connection.Connection.current.session
+    conn = sql.connection.ConnectionManager.current.session
     result_dict = run_each_individually(args, conn)
 
     if any(len(rows) > 1 for rows in list(result_dict.values())):
