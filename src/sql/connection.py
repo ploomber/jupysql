@@ -148,6 +148,8 @@ def is_pep249_compliant(conn):
 
 
 class ConnectionMixin:
+    """Shared functionality between SQLAlchemy and DBAPI connections"""
+
     def __init__(self, alias):
         self.alias = alias
 
