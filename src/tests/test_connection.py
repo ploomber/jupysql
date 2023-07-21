@@ -74,7 +74,7 @@ def test_get_database_information():
 
 def test_get_sqlglot_dialect_no_curr_connection(mock_database, monkeypatch):
     conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
-    monkeypatch.setattr(conn, "_get_database_information", lambda: None)
+    monkeypatch.setattr(conn, "_get_database_information", lambda: {"dialect": None})
     assert conn._get_sqlglot_dialect() is None
 
 
