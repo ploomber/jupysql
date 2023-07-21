@@ -483,7 +483,6 @@ class Connection(ConnectionMixin):
     is_dbapi_connection = False
 
     def __init__(self, engine, alias=None):
-        self.engine = engine
         self.name = self.assign_name(engine)
 
         self.url = (

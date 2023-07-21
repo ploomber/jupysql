@@ -319,7 +319,6 @@ def test_properties(mock_postgres):
     assert "topsecret" not in conn.url
     assert "***" in conn.url
     assert conn.name == "user@db"
-    assert isinstance(conn.engine, Engine)
     assert conn.dialect
     assert conn.connection_sqlalchemy
     assert conn.connection
