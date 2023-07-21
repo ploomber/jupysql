@@ -2,7 +2,6 @@ import logging
 import warnings
 
 import sqlalchemy
-from sqlalchemy.orm import Session
 import sqlparse
 
 from sql import exceptions, display
@@ -77,7 +76,6 @@ def display_affected_rowcount(rowcount):
 
 def _commit(conn, config, manual_commit):
     """Issues a commit, if appropriate for current config and dialect"""
-
     _should_commit = (
         config.autocommit
         and all(
@@ -88,8 +86,7 @@ def _commit(conn, config, manual_commit):
 
     if _should_commit:
         try:
-            with Session(conn.connection) as session:
-                session.commit()
+            conn.connection.commit()
         except sqlalchemy.exc.OperationalError:
             display.message("The database does not support the COMMIT command")
 
@@ -116,7 +113,10 @@ def set_sqlalchemy_autocommit_option(conn, config):
         return False
     if config.autocommit:
         if conn.is_dbapi_connection:
-            logging.debug("AUTOCOMMIT is not supported for DBAPI connections")
+            logging.debug(
+                "SQLALCHEMY AUTOCOMMIT is not supported for DBAPI connections"
+            )
+            return True
         else:
             connection_sqlalchemy = conn.connection_sqlalchemy
 
