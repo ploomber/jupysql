@@ -505,7 +505,7 @@ def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
     mock.displaylimit = 10
     mock.autolimit = 0
 
-    statement = text("SELECT * FROM numbers")
+    statement = "SELECT * FROM numbers"
     first_set = ResultSet(
         first.raw_execute(statement), mock, statement=statement, conn=first
     )
@@ -513,7 +513,7 @@ def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
     original_id = id(first_set._sqlaproxy)
 
     # create a new resultset so the other one is no longer the latest one
-    statement = text("SELECT * FROM characters")
+    statement = "SELECT * FROM characters"
     ResultSet(first.raw_execute(statement), mock, statement=statement, conn=first)
 
     # force fetching data, this should trigger a refresh
@@ -565,15 +565,13 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
     statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.raw_execute(text(statement)), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     statement = "SELECT * FROM characters"
-    ResultSet(
-        second.raw_execute(text(statement)), mock, statement=statement, conn=second
-    )
+    ResultSet(second.raw_execute(statement), mock, statement=statement, conn=second)
 
     # force fetching data
     list(first_set)

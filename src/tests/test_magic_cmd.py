@@ -406,6 +406,11 @@ def test_table_profile_store(ip, tmp_empty):
             "Referenced column 'something' not found!",
         ],
     ],
+    ids=[
+        "no_comparator",
+        "no_column",
+        "no_column_name",
+    ],
 )
 def test_test_error(ip, cell, error_type, error_message):
     ip.run_cell(

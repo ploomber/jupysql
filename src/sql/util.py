@@ -291,8 +291,8 @@ def fetch_sql_with_pagination(
 
     rows = ConnectionManager.current.execute(query).fetchall()
 
-    columns = sql.run.raw_run(
-        ConnectionManager.current, f"SELECT * FROM {table} WHERE 1=0"
+    columns = ConnectionManager.current.raw_execute(
+        f"SELECT * FROM {table} WHERE 1=0"
     ).keys()
 
     return rows, columns

@@ -665,10 +665,6 @@ def run(conn, sql, config):
         else:
             manual_commit = set_autocommit(conn, config)
 
-            # if regular sqlalchemy, pass a text object
-            if not conn.is_dbapi_connection:
-                statement = sqlalchemy.sql.text(statement)
-
             result = conn.raw_execute(statement)
             _commit(conn=conn, config=config, manual_commit=manual_commit)
 
@@ -678,10 +674,6 @@ def run(conn, sql, config):
 
     resultset = ResultSet(result, config, statement, conn)
     return select_df_type(resultset, config)
-
-
-def raw_run(conn, sql):
-    return conn.raw_execute(sqlalchemy.sql.text(sql))
 
 
 class CustomPrettyTable(prettytable.PrettyTable):

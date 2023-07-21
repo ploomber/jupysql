@@ -199,11 +199,6 @@ class ConnectionMixin:
 
         query = self._transpile_query(query)
 
-        if self.is_dbapi_connection:
-            query = str(query)
-        else:
-            query = sqlalchemy.sql.text(query)
-
         return query
 
     def execute(self, query, with_=None):
@@ -211,10 +206,10 @@ class ConnectionMixin:
         Executes SQL query on a given connection
         """
         query = self._prepare_query(query, with_)
-        return self.connection.execute(query)
+        return self.raw_execute(query)
 
     def raw_execute(self, query):
-        return self.connection.execute(query)
+        return self.connection.execute(sqlalchemy.text(query))
 
     def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
@@ -572,25 +567,6 @@ class Connection(ConnectionMixin):
 atexit.register(ConnectionManager.close_all, verbose=True)
 
 
-class DBAPISession:
-    """
-    A session object for generic DBAPI connections
-    """
-
-    def __init__(self, connection, engine):
-        self.engine = engine
-
-    # TODO: this will fail when using a duck native connection and a tmp
-    # table since the table will only be visible to the cursor
-    def execute(self, query):
-        cur = self.engine.cursor()
-        cur.execute(query)
-        return cur
-
-    def close(self):
-        pass
-
-
 class DBAPIConnection(ConnectionMixin):
     """
     A connection object for generic DBAPI connections
@@ -604,21 +580,21 @@ class DBAPIConnection(ConnectionMixin):
     is_dbapi_connection = True
 
     @telemetry.log_call("DBAPIConnection", payload=True)
-    def __init__(self, payload, engine, alias=None):
+    def __init__(self, payload, connection, alias=None):
         try:
-            payload["engine"] = type(engine)
+            payload["engine"] = type(connection)
         except Exception as e:
             payload["engine_parsing_error"] = str(e)
 
         # detect if the engine is a native duckdb connection
-        _is_duckdb_native = _check_if_duckdb_dbapi_connection(engine)
-        identifier = type(engine).__name__
+        _is_duckdb_native = _check_if_duckdb_dbapi_connection(connection)
+        identifier = type(connection).__name__
 
         self.url = identifier
         self.name = identifier
         self.dialect = "duckdb" if _is_duckdb_native else None
 
-        self._connection = DBAPISession(self, engine)
+        self._connection = connection
 
         # calling init from ConnectionMixin must be the last thing we do as it
         # register the connection
@@ -630,6 +606,7 @@ class DBAPIConnection(ConnectionMixin):
             "This feature is only available for SQLAlchemy connections"
         )
 
+    # TODO: delete this, execution must be done via .execute
     @property
     def connection(self):
         return self._connection
@@ -640,6 +617,11 @@ class DBAPIConnection(ConnectionMixin):
             "driver": self.name,
             "server_version_info": None,
         }
+
+    def raw_execute(self, query):
+        cur = self.connection.cursor()
+        cur.execute(query)
+        return cur
 
 
 def _check_if_duckdb_dbapi_connection(conn):
