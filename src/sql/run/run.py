@@ -1,7 +1,3 @@
-import logging
-import warnings
-
-import sqlalchemy
 import sqlparse
 
 from sql import exceptions, display
@@ -44,7 +40,6 @@ def run_statements(conn, sql, config):
 
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
-        manual_commit_call_required = False
 
         # attempting to run a transaction
         if first_word == "begin":
@@ -56,10 +51,8 @@ def run_statements(conn, sql, config):
 
         # regular query
         else:
-            manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
-
             result = conn.raw_execute(statement)
-            _commit(conn=conn, config=config, manual_commit=manual_commit_call_required)
+            _apply_commit(conn=conn, config=config)
 
             if result and config.feedback:
                 if hasattr(result, "rowcount"):
@@ -74,64 +67,29 @@ def display_affected_rowcount(rowcount):
         display.message_success(f"{rowcount} rows affected.")
 
 
-def _commit(conn, config, manual_commit):
+def _apply_commit(conn, config):
     """Issues a commit, if appropriate for current config and dialect"""
-    _should_commit = (
-        config.autocommit
-        and all(
-            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
-        )
-        and manual_commit
+
+    # TODO: maybe remove this?
+    _should_commit = config.autocommit and all(
+        dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
     )
 
     if _should_commit:
+        conn_ = conn.connection
+
         try:
-            conn.connection.commit()
-        except sqlalchemy.exc.OperationalError:
-            display.message("The database does not support the COMMIT command")
+            conn_.commit()
+        except Exception:
+            display.message(
+                "The database does not support the COMMIT command. "
+                "You can disable autocommit with %config SqlMagic.autocommit=False"
+            )
 
 
 def is_postgres_or_redshift(dialect):
     """Checks if dialect is postgres or redshift"""
     return "postgres" in str(dialect) or "redshift" in str(dialect)
-
-
-def is_pytds(dialect):
-    """Checks if driver is pytds"""
-    return "pytds" in str(dialect)
-
-
-# TODO: can we set this when the connection starts? there's no point in running it over
-# and over again. also, this gives errors if we're in the middle of a transaction, so
-# it's best to call it just once
-def set_sqlalchemy_autocommit_option(conn, config):
-    """Sets the autocommit setting for a database connection."""
-    if is_pytds(conn.dialect):
-        warnings.warn(
-            "Autocommit is not supported for pytds, thus is automatically disabled"
-        )
-        return False
-    if config.autocommit:
-        if conn.is_dbapi_connection:
-            logging.debug(
-                "SQLALCHEMY AUTOCOMMIT is not supported for DBAPI connections"
-            )
-            return True
-        else:
-            connection_sqlalchemy = conn.connection_sqlalchemy
-
-            try:
-                connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
-            except Exception as e:
-                logging.debug(
-                    f"The database driver doesn't support such "
-                    f"AUTOCOMMIT execution option"
-                    f"\nPerhaps you can try running a manual COMMIT command"
-                    f"\nMessage from the database driver\n\t"
-                    f"Exception:  {e}\n",  # noqa: F841
-                )
-                return True
-    return False
 
 
 def select_df_type(resultset, config):

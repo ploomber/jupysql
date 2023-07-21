@@ -193,3 +193,6 @@ def test_autocommit_with_dbapi_connection(setup_postgreSQL):
 
     run_statements(conn_one, f"CREATE TABLE {name} (id int)", ConfigAutocommit)
     run_statements(conn_two, f"SELECT * FROM {name}", ConfigAutocommit)
+
+
+# TODO: do not commit if on blacklist
