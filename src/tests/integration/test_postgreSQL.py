@@ -32,5 +32,8 @@ def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
     )
 
 
-# def test_pgspecial(ip_with_postgreSQL):
-#     ip_with_postgreSQL.run_cell("%sql \\t")
+# 'pgspecial<2'
+def test_pgspecial(ip_with_postgreSQL):
+    out = ip_with_postgreSQL.run_cell("%sql \l").result
+
+    assert set(out.dict()["Name"]) == {"db", "postgres", "template0", "template1"}
