@@ -30,3 +30,7 @@ def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
         "If you need help solving this issue, "
         "send us a message: https://ploomber.io/community" in str(out.error_in_exec)
     )
+
+
+# def test_pgspecial(ip_with_postgreSQL):
+#     ip_with_postgreSQL.run_cell("%sql \\t")

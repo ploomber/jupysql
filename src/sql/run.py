@@ -12,7 +12,7 @@ import sqlalchemy
 import sqlparse
 from sqlalchemy.exc import ResourceClosedError
 from sql import exceptions, display
-from .column_guesser import ColumnGuesserMixin
+from sql.column_guesser import ColumnGuesserMixin
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
 try:
@@ -113,26 +113,23 @@ class ResultSet(ColumnGuesserMixin):
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
         ResultSet.LAST_BY_CONNECTION[conn] = self
 
-        self.config = config
-        self.truncated = False
-        self.statement = statement
-
+        self._config = config
+        self._statement = statement
         self._sqlaproxy = sqlaproxy
         self._conn = conn
         self._dialect = conn._get_sqlglot_dialect()
         self._keys = None
         self._field_names = None
         self._results = []
-
         # https://peps.python.org/pep-0249/#description
-        self.is_dbapi_results = hasattr(sqlaproxy, "description")
+        self._is_dbapi_results = hasattr(sqlaproxy, "description")
 
         # note that calling this will fetch the keys
-        self.pretty_table = self._init_table()
+        self._pretty_table = self._init_table()
 
         self._mark_fetching_as_done = False
 
-        if self.config.autolimit == 1:
+        if self._config.autolimit == 1:
             # if autolimit is 1, we only want to fetch one row
             self.fetchmany(size=1)
             self._done_fetching()
@@ -166,7 +163,7 @@ class ResultSet(ColumnGuesserMixin):
             and is_duckdb_sqlalchemy
             and not is_last_result
         ):
-            self._sqlaproxy = self._conn.raw_execute(self.statement)
+            self._sqlaproxy = self._conn.raw_execute(self._statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
 
             ResultSet.LAST_BY_CONNECTION[self._conn] = self
@@ -175,9 +172,9 @@ class ResultSet(ColumnGuesserMixin):
 
     def _extend_results(self, elements):
         """Store the DB fetched results into the internal list of results"""
-        to_add = self.config.displaylimit - len(self._results)
+        to_add = self._config.displaylimit - len(self._results)
         self._results.extend(elements)
-        self.pretty_table.add_rows(elements[:to_add])
+        self._pretty_table.add_rows(elements[:to_add])
 
     def mark_fetching_as_done(self):
         self._mark_fetching_as_done = True
@@ -202,7 +199,7 @@ class ResultSet(ColumnGuesserMixin):
         if self._keys is not None:
             return self._keys
 
-        if not self.is_dbapi_results:
+        if not self._is_dbapi_results:
             try:
                 self._keys = self.sqlaproxy.keys()
             # sqlite raises this error when running a script that doesn't return rows
@@ -223,7 +220,7 @@ class ResultSet(ColumnGuesserMixin):
 
         _cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
 
-        result = self.pretty_table.get_html_string()
+        result = self._pretty_table.get_html_string()
 
         HTML = (
             "%s\n<span style='font-style:italic;font-size:11px'>"
@@ -239,7 +236,7 @@ class ResultSet(ColumnGuesserMixin):
         result = html.unescape(result)
         result = _cell_with_spaces_pattern.sub(_nonbreaking_spaces, result)
 
-        if self.config.displaylimit != 0 and not self._done_fetching():
+        if self._config.displaylimit != 0 and not self._done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
                 "Truncated to displaylimit of %d</span>"
@@ -249,7 +246,7 @@ class ResultSet(ColumnGuesserMixin):
                 '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
                 " configuration</span>"
             )
-            result = HTML % (result, self.config.displaylimit)
+            result = HTML % (result, self._config.displaylimit)
         return result
 
     def __len__(self):
@@ -265,7 +262,7 @@ class ResultSet(ColumnGuesserMixin):
 
     def __str__(self):
         self.fetch_for_repr_if_needed()
-        return str(self.pretty_table)
+        return str(self._pretty_table)
 
     def __repr__(self) -> str:
         return str(self)
@@ -466,17 +463,17 @@ class ResultSet(ColumnGuesserMixin):
                 self.mark_fetching_as_done()
 
             if (
-                self.config.autolimit is not None
-                and self.config.autolimit != 0
-                and len(self._results) >= self.config.autolimit
+                self._config.autolimit is not None
+                and self._config.autolimit != 0
+                and len(self._results) >= self._config.autolimit
             ):
                 self.mark_fetching_as_done()
 
     def fetch_for_repr_if_needed(self):
-        if self.config.displaylimit == 0:
+        if self._config.displaylimit == 0:
             self.fetchall()
 
-        missing = self.config.displaylimit - len(self._results)
+        missing = self._config.displaylimit - len(self._results)
 
         if missing > 0:
             self.fetchmany(missing)
@@ -489,8 +486,8 @@ class ResultSet(ColumnGuesserMixin):
     def _init_table(self):
         pretty = CustomPrettyTable(self.field_names)
 
-        if isinstance(self.config.style, str):
-            _style = prettytable.__dict__[self.config.style.upper()]
+        if isinstance(self._config.style, str):
+            _style = prettytable.__dict__[self._config.style.upper()]
             pretty.set_style(_style)
 
         return pretty
