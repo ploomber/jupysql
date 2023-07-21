@@ -138,7 +138,7 @@ def test_get_sqlglot_dialect(
         lambda: sqlalchemy_connection_info,
     )
     monkeypatch.setattr(
-        sql.connection,
+        sql.connection.connection,
         "DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING",
         {"sqlalchemy_mock_dialect_name": "sqlglot_mock_dialect"},
     )
