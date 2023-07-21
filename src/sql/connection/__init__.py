@@ -132,7 +132,7 @@ class ConnectionMixin:
         self.alias = alias
 
         ConnectionManager.current = self
-        ConnectionManager.connections[self.alias or self.url] = self
+        ConnectionManager.connections[alias] = self
 
         self._result_sets = []
 
@@ -483,29 +483,35 @@ class Connection(ConnectionMixin):
     is_dbapi_connection = False
 
     def __init__(self, engine, alias=None):
-        self.name = self.assign_name(engine)
-
-        # TODO: this is only used as a default alias, we can delete the property
-        self.url = (
-            repr(sqlalchemy.MetaData(bind=engine).bind.url)
-            if IS_SQLALCHEMY_ONE
-            else repr(engine.url)
-        )
-
         if IS_SQLALCHEMY_ONE:
             self._metadata = sqlalchemy.MetaData(bind=engine)
         else:
             self._metadata = None
 
+        # this returns a url with the password replaced by ***
+        self._url = (
+            repr(sqlalchemy.MetaData(bind=engine).bind.url)
+            if IS_SQLALCHEMY_ONE
+            else repr(engine.url)
+        )
+
         self._connection_sqlalchemy = self._start_sqlalchemy_connection(
-            engine, self.url
+            engine, self._url
         )
 
         self.dialect = self._get_database_information()["dialect"]
 
+        # TODO: delete. and when you delete it, check that you remove the print
+        # statement that uses this
+        self.name = default_alias_for_engine(engine)
+
         # calling init from ConnectionMixin must be the last thing we do as it
         # register the connection
-        super().__init__(alias=alias)
+        super().__init__(alias=alias or self._url)
+
+    @property
+    def url(self):
+        return self._url
 
     @property
     def connection_sqlalchemy(self):
@@ -538,11 +544,6 @@ class Connection(ConnectionMixin):
         )
         err.modify_exception = True
         return err
-
-    @classmethod
-    def assign_name(cls, engine):
-        name = "%s@%s" % (engine.url.username or "", engine.url.database)
-        return name
 
     def _get_database_information(self):
         """Get the dialect, driver, and database server version info of current
@@ -588,17 +589,19 @@ class DBAPIConnection(ConnectionMixin):
 
         # detect if the engine is a native duckdb connection
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(connection)
-        identifier = type(connection).__name__
 
-        self.url = identifier
-        self.name = identifier
         self.dialect = "duckdb" if _is_duckdb_native else None
 
         self._connection = connection
+        self._connection_class_name = type(connection).__name__
 
         # calling init from ConnectionMixin must be the last thing we do as it
         # register the connection
-        super().__init__(alias=alias)
+        super().__init__(alias=alias or self._connection_class_name)
+
+    @property
+    def url(self):
+        return None
 
     @property
     def connection_sqlalchemy(self):
@@ -614,7 +617,7 @@ class DBAPIConnection(ConnectionMixin):
     def _get_database_information(self):
         return {
             "dialect": self.dialect,
-            "driver": self.name,
+            "driver": self._connection_class_name,
             "server_version_info": None,
         }
 
@@ -716,3 +719,11 @@ def is_pep249_compliant(conn):
             return False
 
     return True
+
+
+def default_alias_for_engine(engine):
+    if not engine.url.username:
+        # keeping this for compatibility
+        return str(engine.url)
+
+    return f"{engine.url.username}@{engine.url.database}"

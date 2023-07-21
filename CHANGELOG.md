@@ -2,6 +2,7 @@
 
 ## 0.8.1dev
 * [Fix] Fix error that was incorrectly converted into a print message
+* [API Change] A shorter name is now assigned as an alias by default
 
 ## 0.8.0 (2023-07-18)
 

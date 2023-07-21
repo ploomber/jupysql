@@ -9,61 +9,47 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
 
 
 @pytest.mark.parametrize(
-    "dynamic_db, Constructor, alias, name, dialect, url",
+    "dynamic_db, Constructor, alias, dialect",
     [
         [
             "setup_postgreSQL",
             Connection,
-            None,
-            "ploomber_app@db",
-            "postgresql",
             "postgresql://ploomber_app:***@localhost:5432/db",
+            "postgresql",
         ],
         [
             "setup_duckDB_native",
             DBAPIConnection,
-            None,
             "DuckDBPyConnection",
             "duckdb",
-            "DuckDBPyConnection",
         ],
         [
             "setup_duckDB",
             Connection,
-            None,
-            "@/tmp/db-duckdb",
-            "duckdb",
             "duckdb:////tmp/db-duckdb",
+            "duckdb",
         ],
         [
             "setup_postgreSQL",
             partial(Connection, alias="some-postgres"),
             "some-postgres",
-            "ploomber_app@db",
             "postgresql",
-            "postgresql://ploomber_app:***@localhost:5432/db",
         ],
         [
             "setup_duckDB_native",
             partial(DBAPIConnection, alias="some-duckdb"),
             "some-duckdb",
-            "DuckDBPyConnection",
             "duckdb",
-            "DuckDBPyConnection",
         ],
     ],
 )
-def test_connection_properties(
-    dynamic_db, request, Constructor, alias, name, dialect, url
-):
+def test_connection_properties(dynamic_db, request, Constructor, alias, dialect):
     dynamic_db = request.getfixturevalue(dynamic_db)
 
     conn = Constructor(dynamic_db)
 
     assert conn.alias == alias
-    assert conn.name == name
     assert conn.dialect == dialect
-    assert conn.url == url
 
 
 @pytest.mark.parametrize(
@@ -74,8 +60,16 @@ def test_connection_properties(
             Connection,
             "postgresql://ploomber_app:***@localhost:5432/db",
         ],
-        ["setup_duckDB", Connection, "duckdb:////tmp/db-duckdb"],
-        ["setup_duckDB_native", DBAPIConnection, "DuckDBPyConnection"],
+        [
+            "setup_duckDB",
+            Connection,
+            "duckdb:////tmp/db-duckdb",
+        ],
+        [
+            "setup_duckDB_native",
+            DBAPIConnection,
+            "DuckDBPyConnection",
+        ],
         [
             "setup_duckDB",
             partial(Connection, alias="some-alias"),

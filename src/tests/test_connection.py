@@ -12,6 +12,7 @@ from sql.connection import (
     Connection,
     ConnectionManager,
     is_pep249_compliant,
+    default_alias_for_engine,
 )
 from IPython.core.error import UsageError
 import sqlglot
@@ -280,14 +281,14 @@ def test_get_connections():
         {
             "url": "duckdb://",
             "current": True,
-            "alias": None,
+            "alias": "duckdb://",
             "key": "duckdb://",
             "connection": ANY,
         },
         {
             "url": "sqlite://",
             "current": False,
-            "alias": None,
+            "alias": "sqlite://",
             "key": "sqlite://",
             "connection": ANY,
         },
@@ -308,7 +309,10 @@ def test_connections_table():
 
     connections = ConnectionManager.connections_table()
     assert connections._headers == ["current", "url", "alias"]
-    assert connections._rows == [["*", "duckdb://", ""], ["", "sqlite://", ""]]
+    assert connections._rows == [
+        ["*", "duckdb://", "duckdb://"],
+        ["", "sqlite://", "sqlite://"],
+    ]
 
 
 def test_properties(mock_postgres):
@@ -386,3 +390,54 @@ def test_new_connection_with_alias(ip_empty, old_alias, new_alias):
         assert connection
         assert connection.url == "duckdb://"
         assert connection == ConnectionManager.current
+
+
+@pytest.mark.parametrize(
+    "url, expected",
+    [
+        [
+            "postgresql+psycopg2://scott:tiger@localhost:5432/mydatabase",
+            "scott@mydatabase",
+        ],
+        ["duckdb://tmp/my.db", "duckdb://tmp/my.db"],
+        ["duckdb:///my.db", "duckdb:///my.db"],
+    ],
+)
+def test_default_alias_for_engine(url, expected):
+    engine = create_engine(url)
+    assert default_alias_for_engine(engine) == expected
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "duckdb://",
+        "sqlite://",
+    ],
+)
+def test_create_connection_from_url(monkeypatch, url):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    conn = ConnectionManager.set(url, displaycon=False)
+
+    assert connections == {url: conn}
+    assert ConnectionManager.current == conn
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "duckdb://",
+        "sqlite://",
+    ],
+)
+def test_set_existing_connection(monkeypatch, url):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    ConnectionManager.set(url, displaycon=False)
+    conn = ConnectionManager.set(url, displaycon=False)
+
+    assert connections == {url: conn}
+    assert ConnectionManager.current == conn
