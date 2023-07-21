@@ -599,6 +599,9 @@ class DBAPIConnection(ConnectionMixin):
         # register the connection
         super().__init__(alias=alias or self._connection_class_name)
 
+        # TODO: delete this
+        self.name = self._connection_class_name
+
     @property
     def url(self):
         return None
