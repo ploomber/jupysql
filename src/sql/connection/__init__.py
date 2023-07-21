@@ -1,3 +1,4 @@
+import abc
 import os
 from difflib import get_close_matches
 import atexit
@@ -123,135 +124,6 @@ def rough_dict_get(dct, sought, default=None):
         if not any(s.lower() not in key.lower() for s in sought):
             return val
     return default
-
-
-class ConnectionMixin:
-    """Shared functionality between SQLAlchemy and DBAPI connections"""
-
-    def __init__(self, alias):
-        self.alias = alias
-
-        ConnectionManager.current = self
-        ConnectionManager.connections[alias] = self
-
-        self._result_sets = []
-
-    def _get_sqlglot_dialect(self):
-        """
-        Get the sqlglot dialect, this is similar to the dialect property except it
-        maps some dialects to their sqlglot equivalent. This method should only be
-        used for the transpilation process, for any other purposes, use the dialect
-        property.
-
-        Returns
-        -------
-        str
-            Available dialect in sqlglot package, see more:
-            https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
-        """
-        connection_info = self._get_database_information()
-        return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
-            connection_info["dialect"], connection_info["dialect"]
-        )
-
-    def close(self):
-        """Close the connection"""
-        for rs in self._result_sets:
-            rs._sqlaproxy.close()
-
-        self.connection.close()
-
-    def _transpile_query(self, query):
-        """Translate the given SQL clause that's compatible to current connected
-        dialect by sqlglot
-
-        Parameters
-        ----------
-        query : str
-            Original SQL clause
-
-        Returns
-        -------
-        str
-            SQL clause that's compatible to current connected dialect
-        """
-        write_dialect = self._get_sqlglot_dialect()
-        try:
-            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
-        finally:
-            return query
-
-    def _prepare_query(self, query, with_=None) -> str:
-        """
-        Returns a textual representation of a query based
-        on the current connection
-
-        Parameters
-        ----------
-        query : str
-            SQL query
-
-        with_ : string, default None
-            The key to use in with sql clause
-        """
-        if with_:
-            query = str(store.render(query, with_=with_))
-
-        query = self._transpile_query(query)
-
-        return query
-
-    def execute(self, query, with_=None):
-        """
-        Executes SQL query on a given connection
-        """
-        query = self._prepare_query(query, with_)
-        return self.raw_execute(query)
-
-    def raw_execute(self, query):
-        return self.connection.execute(sqlalchemy.text(query))
-
-    def is_use_backtick_template(self):
-        """Get if the dialect support backtick (`) syntax as identifier
-
-        Returns
-        -------
-        bool
-            Indicate if the dialect can use backtick identifier in the SQL clause
-        """
-        cur_dialect = self._get_sqlglot_dialect()
-        if not cur_dialect:
-            return False
-        try:
-            return (
-                "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
-            )
-        except (ValueError, AttributeError, TypeError):
-            return False
-
-    def get_curr_identifiers(self) -> list:
-        """
-        Returns list of identifiers for current connection
-
-        Default identifiers are : ["", '"']
-        """
-        identifiers = ["", '"']
-        try:
-            connection_info = self._get_database_information()
-            if connection_info:
-                cur_dialect = connection_info["dialect"]
-                identifiers_ = sqlglot.Dialect.get_or_raise(
-                    cur_dialect
-                ).Tokenizer.IDENTIFIERS
-
-                identifiers = [*set(identifiers + identifiers_)]
-        except ValueError:
-            pass
-        except AttributeError:
-            # this might be a DBAPI connection
-            pass
-
-        return identifiers
 
 
 class ConnectionManager:
@@ -441,37 +313,157 @@ class ConnectionManager:
         return connection
 
 
-class Connection(ConnectionMixin):
+class AbstractConnection(abc.ABC):
+    """The abstract base class for all connections"""
+
+    def __init__(self, alias):
+        self.alias = alias
+
+        ConnectionManager.current = self
+        ConnectionManager.connections[alias] = self
+
+        self._result_sets = []
+
+    @abc.abstractproperty
+    def dialect(self):
+        """Returns a string with the SQL dialect name"""
+        pass
+
+    @abc.abstractmethod
+    def raw_execute(self, query):
+        """Run the query without any pre-processing"""
+        pass
+
+    @abc.abstractmethod
+    def _get_database_information(self):
+        """
+        Get the dialect, driver, and database server version info of current
+        connection
+        """
+        pass
+
+    def close(self):
+        """Close the connection"""
+        for rs in self._result_sets:
+            rs._sqlaproxy.close()
+
+        self.connection.close()
+
+    def _get_sqlglot_dialect(self):
+        """
+        Get the sqlglot dialect, this is similar to the dialect property except it
+        maps some dialects to their sqlglot equivalent. This method should only be
+        used for the transpilation process, for any other purposes, use the dialect
+        property.
+
+        Returns
+        -------
+        str
+            Available dialect in sqlglot package, see more:
+            https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
+        """
+        connection_info = self._get_database_information()
+        return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
+            connection_info["dialect"], connection_info["dialect"]
+        )
+
+    def _transpile_query(self, query):
+        """Translate the given SQL clause that's compatible to current connected
+        dialect by sqlglot
+
+        Parameters
+        ----------
+        query : str
+            Original SQL clause
+
+        Returns
+        -------
+        str
+            SQL clause that's compatible to current connected dialect
+        """
+        write_dialect = self._get_sqlglot_dialect()
+        try:
+            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
+        finally:
+            return query
+
+    def _prepare_query(self, query, with_=None) -> str:
+        """
+        Returns a textual representation of a query based
+        on the current connection
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        with_ : string, default None
+            The key to use in with sql clause
+        """
+        if with_:
+            query = str(store.render(query, with_=with_))
+
+        query = self._transpile_query(query)
+
+        return query
+
+    def execute(self, query, with_=None):
+        """
+        Executes SQL query on a given connection
+        """
+        query = self._prepare_query(query, with_)
+        return self.raw_execute(query)
+
+    def is_use_backtick_template(self):
+        """Get if the dialect support backtick (`) syntax as identifier
+
+        Returns
+        -------
+        bool
+            Indicate if the dialect can use backtick identifier in the SQL clause
+        """
+        cur_dialect = self._get_sqlglot_dialect()
+        if not cur_dialect:
+            return False
+        try:
+            return (
+                "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
+            )
+        except (ValueError, AttributeError, TypeError):
+            return False
+
+    def get_curr_identifiers(self) -> list:
+        """
+        Returns list of identifiers for current connection
+
+        Default identifiers are : ["", '"']
+        """
+        identifiers = ["", '"']
+        try:
+            connection_info = self._get_database_information()
+            if connection_info:
+                cur_dialect = connection_info["dialect"]
+                identifiers_ = sqlglot.Dialect.get_or_raise(
+                    cur_dialect
+                ).Tokenizer.IDENTIFIERS
+
+                identifiers = [*set(identifiers + identifiers_)]
+        except ValueError:
+            pass
+        except AttributeError:
+            # this might be a DBAPI connection
+            pass
+
+        return identifiers
+
+
+class Connection(AbstractConnection):
     """Manages connections to databases
 
     Parameters
     ----------
     engine: sqlalchemy.engine.Engine
         The SQLAlchemy engine to use
-
-    Attributes
-    ----------
-    alias : str or None
-        The alias passed in the constructor
-
-    engine : sqlalchemy.engine.Engine
-        The SQLAlchemy engine passed to the constructor
-
-    name : str
-        A name to identify the connection: {user}@{database_name}
-
-    metadata : Metadata or None
-        An SQLAlchemy Metadata object (if using SQLAlchemy 2, this is None),
-        used to retrieve connection information
-
-    url : str
-        An obfuscated connection string (password hidden)
-
-    dialect : str
-        A string identiying the dialect
-
-    session : sqlalchemy session
-        A SQLAlchemy session object
     """
 
     is_dbapi_connection = False
@@ -493,15 +485,32 @@ class Connection(ConnectionMixin):
             engine, self._url
         )
 
-        self.dialect = self._get_database_information()["dialect"]
+        self._dialect = self._get_database_information()["dialect"]
 
         # TODO: delete. and when you delete it, check that you remove the print
         # statement that uses this
         self.name = default_alias_for_engine(engine)
 
-        # calling init from ConnectionMixin must be the last thing we do as it
+        # calling init from AbstractConnection must be the last thing we do as it
         # register the connection
         super().__init__(alias=alias or self._url)
+
+    @property
+    def dialect(self):
+        return self._dialect
+
+    def raw_execute(self, query):
+        return self.connection.execute(sqlalchemy.text(query))
+
+    def _get_database_information(self):
+        dialect = self.connection_sqlalchemy.dialect
+
+        return {
+            "dialect": getattr(dialect, "name", None),
+            "driver": getattr(dialect, "driver", None),
+            # NOTE: this becomes available after calling engine.connect()
+            "server_version_info": getattr(dialect, "server_version_info", None),
+        }
 
     @property
     def url(self):
@@ -542,38 +551,9 @@ class Connection(ConnectionMixin):
         err.modify_exception = True
         return err
 
-    def _get_database_information(self):
-        """Get the dialect, driver, and database server version info of current
-        connected dialect
 
-        Returns
-        -------
-        dict
-            The dictionary which contains the SQLAlchemy-based dialect
-            information, or None if there is no current connection.
-        """
-        dialect = self.connection_sqlalchemy.dialect
-
-        return {
-            "dialect": getattr(dialect, "name", None),
-            "driver": getattr(dialect, "driver", None),
-            # NOTE: this becomes available after calling engine.connect()
-            "server_version_info": getattr(dialect, "server_version_info", None),
-        }
-
-
-atexit.register(ConnectionManager.close_all, verbose=True)
-
-
-class DBAPIConnection(ConnectionMixin):
-    """
-    A connection object for generic DBAPI connections
-
-    Attributes
-    ----------
-    dialect : str, None
-        The dialect name, None if unknown
-    """
+class DBAPIConnection(AbstractConnection):
+    """A connection object for generic DBAPI connections"""
 
     is_dbapi_connection = True
 
@@ -587,17 +567,33 @@ class DBAPIConnection(ConnectionMixin):
         # detect if the engine is a native duckdb connection
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(connection)
 
-        self.dialect = "duckdb" if _is_duckdb_native else None
+        self._dialect = "duckdb" if _is_duckdb_native else None
 
         self._connection = connection
         self._connection_class_name = type(connection).__name__
 
-        # calling init from ConnectionMixin must be the last thing we do as it
+        # calling init from AbstractConnection must be the last thing we do as it
         # register the connection
         super().__init__(alias=alias or self._connection_class_name)
 
         # TODO: delete this
         self.name = self._connection_class_name
+
+    @property
+    def dialect(self):
+        return self._dialect
+
+    def raw_execute(self, query):
+        cur = self.connection.cursor()
+        cur.execute(query)
+        return cur
+
+    def _get_database_information(self):
+        return {
+            "dialect": self.dialect,
+            "driver": self._connection_class_name,
+            "server_version_info": None,
+        }
 
     @property
     def url(self):
@@ -618,18 +614,6 @@ class DBAPIConnection(ConnectionMixin):
     @property
     def connection(self):
         return self._connection
-
-    def _get_database_information(self):
-        return {
-            "dialect": self.dialect,
-            "driver": self._connection_class_name,
-            "server_version_info": None,
-        }
-
-    def raw_execute(self, query):
-        cur = self.connection.cursor()
-        cur.execute(query)
-        return cur
 
 
 def _check_if_duckdb_dbapi_connection(conn):
@@ -732,3 +716,6 @@ def default_alias_for_engine(engine):
         return str(engine.url)
 
     return f"{engine.url.username}@{engine.url.database}"
+
+
+atexit.register(ConnectionManager.close_all, verbose=True)
