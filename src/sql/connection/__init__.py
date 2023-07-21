@@ -478,8 +478,8 @@ class Connection(ConnectionMixin):
     url : str
         An obfuscated connection string (password hidden)
 
-    dialect : sqlalchemy dialect
-        A SQLAlchemy dialect object
+    dialect : str
+        A string identiying the dialect
 
     session : sqlalchemy session
         A SQLAlchemy session object
@@ -497,9 +497,6 @@ class Connection(ConnectionMixin):
             else repr(engine.url)
         )
 
-        # TODO: does this return the same as _get_curr_sqlalchemy_connection_info?
-        self.dialect = engine.url.get_dialect()
-
         if IS_SQLALCHEMY_ONE:
             self._metadata = sqlalchemy.MetaData(bind=engine)
         else:
@@ -508,6 +505,8 @@ class Connection(ConnectionMixin):
         self._connection_sqlalchemy = self._start_sqlalchemy_connection(
             engine, self.url
         )
+
+        self.dialect = self._get_curr_sqlalchemy_connection_info()["dialect"]
 
         # calling init from ConnectionMixin must be the last thing we do as it
         # register the connection
@@ -560,11 +559,13 @@ class Connection(ConnectionMixin):
             The dictionary which contains the SQLAlchemy-based dialect
             information, or None if there is no current connection.
         """
+        dialect = self.connection_sqlalchemy.dialect
+
         return {
-            "dialect": getattr(self.dialect, "name", None),
-            "driver": getattr(self.dialect, "driver", None),
+            "dialect": getattr(dialect, "name", None),
+            "driver": getattr(dialect, "driver", None),
             # NOTE: this becomes available after calling engine.connect()
-            "server_version_info": getattr(self.dialect, "server_version_info", None),
+            "server_version_info": getattr(dialect, "server_version_info", None),
         }
 
 
@@ -578,13 +579,6 @@ class DBAPISession:
 
     def __init__(self, connection, engine):
         self.engine = engine
-        self.dialect = dict(
-            {
-                "name": connection.dialect,
-                "driver": connection.dialect,
-                "server_version_info": connection.dialect,
-            }
-        )
 
     # TODO: this will fail when using a duck native connection and a tmp
     # table since the table will only be visible to the cursor

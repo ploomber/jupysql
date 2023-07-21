@@ -2,8 +2,6 @@ from functools import partial
 
 
 import pytest
-from sqlalchemy.dialects.postgresql.psycopg2 import PGDialect_psycopg2
-import duckdb_engine
 
 
 from sql.connection import Connection, DBAPIConnection, ConnectionManager
@@ -17,7 +15,7 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
             Connection,
             None,
             "ploomber_app@db",
-            PGDialect_psycopg2,
+            "postgresql",
             "postgresql://ploomber_app:***@localhost:5432/db",
         ],
         [
@@ -33,7 +31,7 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
             Connection,
             None,
             "@/tmp/db-duckdb",
-            duckdb_engine.Dialect,
+            "duckdb",
             "duckdb:////tmp/db-duckdb",
         ],
         [
@@ -41,7 +39,7 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
             partial(Connection, alias="some-postgres"),
             "some-postgres",
             "ploomber_app@db",
-            PGDialect_psycopg2,
+            "postgresql",
             "postgresql://ploomber_app:***@localhost:5432/db",
         ],
         [
@@ -112,7 +110,7 @@ def test_connection_identifiers(
             {
                 "dialect": "postgresql",
                 "driver": "psycopg2",
-                "server_version_info": None,
+                "server_version_info": (15, 2),
             },
         ],
         [
@@ -121,7 +119,7 @@ def test_connection_identifiers(
             {
                 "dialect": "duckdb",
                 "driver": "duckdb_engine",
-                "server_version_info": None,
+                "server_version_info": (8, 0),
             },
         ],
         [
