@@ -507,14 +507,14 @@ def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
 
     statement = text("SELECT * FROM numbers")
     first_set = ResultSet(
-        first.session.execute(statement), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     # create a new resultset so the other one is no longer the latest one
     statement = text("SELECT * FROM characters")
-    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+    ResultSet(first.raw_execute(statement), mock, statement=statement, conn=first)
 
     # force fetching data, this should trigger a refresh
     list(first_set)
@@ -535,14 +535,14 @@ def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
 
     statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.session.execute(statement), mock, statement=statement, conn=first
+        first.raw_execute(statement), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     # create a new resultset so the other one is no longer the latest one
     statement = "SELECT * FROM characters"
-    ResultSet(first.session.execute(statement), mock, statement=statement, conn=first)
+    ResultSet(first.raw_execute(statement), mock, statement=statement, conn=first)
 
     # force fetching data, this should not trigger a refresh
     list(first_set)
@@ -565,14 +565,14 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
     statement = "SELECT * FROM numbers"
     first_set = ResultSet(
-        first.session.execute(text(statement)), mock, statement=statement, conn=first
+        first.raw_execute(text(statement)), mock, statement=statement, conn=first
     )
 
     original_id = id(first_set._sqlaproxy)
 
     statement = "SELECT * FROM characters"
     ResultSet(
-        second.session.execute(text(statement)), mock, statement=statement, conn=second
+        second.raw_execute(text(statement)), mock, statement=statement, conn=second
     )
 
     # force fetching data

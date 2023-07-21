@@ -238,6 +238,9 @@ class ConnectionMixin:
         query = self._prepare_query(query, with_)
         return self.session.execute(query)
 
+    def raw_execute(self, query):
+        return self.session.execute(query)
+
     def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
 

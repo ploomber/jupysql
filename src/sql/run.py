@@ -166,7 +166,7 @@ class ResultSet(ColumnGuesserMixin):
             and is_duckdb_sqlalchemy
             and not is_last_result
         ):
-            self._sqlaproxy = self._conn.session.execute(self.statement)
+            self._sqlaproxy = self._conn.raw_execute(self.statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
 
             ResultSet.LAST_BY_CONNECTION[self._conn] = self
@@ -663,7 +663,7 @@ def run(conn, sql, config):
             if not conn.is_dbapi_connection:
                 statement = sqlalchemy.sql.text(statement)
 
-            result = conn.session.execute(statement)
+            result = conn.raw_execute(statement)
             _commit(conn=conn, config=config, manual_commit=manual_commit)
 
             if result and config.feedback:
@@ -675,7 +675,7 @@ def run(conn, sql, config):
 
 
 def raw_run(conn, sql):
-    return conn.session.execute(sqlalchemy.sql.text(sql))
+    return conn.raw_execute(sqlalchemy.sql.text(sql))
 
 
 class CustomPrettyTable(prettytable.PrettyTable):

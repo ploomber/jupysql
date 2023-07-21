@@ -62,7 +62,7 @@ class TableWidget:
         rows = parse_sql_results_to_json(rows, columns)
 
         query = f"SELECT count(*) FROM {table}"
-        n_total = ConnectionManager.current.session.execute(
+        n_total = ConnectionManager.current.raw_execute(
             sqlalchemy.sql.text(query)
         ).fetchone()[0]
         table_name = table.strip('"').strip("'")

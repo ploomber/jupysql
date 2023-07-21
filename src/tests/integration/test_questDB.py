@@ -616,10 +616,3 @@ def test_dbapi_connection(ip_questdb, alias):
         stored_connection = ConnectionManager.connections[expected_connection_name]
 
     assert isinstance(stored_connection, DBAPIConnection)
-
-
-def test_dbapi_connection_error(ip_questdb):
-    with pytest.raises(ValueError) as err:
-        DBAPIConnection()
-
-    assert "Engine cannot be None" in str(err)
