@@ -27,6 +27,8 @@ def isolate_connections(monkeypatch):
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+    yield
+    connection.ConnectionManager.close_all()
 
 
 def path_to_tests():
