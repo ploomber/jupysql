@@ -24,7 +24,7 @@ import shlex
 from difflib import get_close_matches
 import sql.connection
 import sql.parse
-import sql.run
+from sql.run.run import run
 from sql.parse import _option_strings_from_parser
 from sql import display, exceptions
 from sql.store import store
@@ -514,7 +514,7 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = sql.run.run.run(conn, command.sql, self)
+            result = run(conn, command.sql, self)
 
             if (
                 result is not None

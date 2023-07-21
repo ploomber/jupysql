@@ -2,12 +2,17 @@ import os
 import sys
 from unittest.mock import ANY, Mock, patch
 import pytest
+
+
+from IPython.core.error import UsageError
+import duckdb
+import sqlglot
+import sqlalchemy
+import sqlite3
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
 
-
-import duckdb
 import sql.connection
 from sql.connection import (
     Connection,
@@ -15,12 +20,6 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
 )
-
-
-from IPython.core.error import UsageError
-import sqlglot
-import sqlalchemy
-import sqlite3
 
 
 @pytest.fixture
@@ -229,7 +228,7 @@ def test_is_use_backtick_template_sqlglot_empty_identifiers(mock_database, monke
 def test_missing_duckdb_dependencies(cleanup, monkeypatch):
     with patch.dict(sys.modules):
         sys.modules["duckdb"] = None
-        sys.modules["duckdb-engine"] = None
+        sys.modules["duckdb_engine"] = None
 
         with pytest.raises(UsageError) as excinfo:
             ConnectionManager.from_connect_str("duckdb://")
