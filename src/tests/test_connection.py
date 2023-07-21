@@ -15,7 +15,8 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
 )
-from sql.exceptions import UsageError
+
+
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
