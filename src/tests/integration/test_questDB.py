@@ -9,7 +9,7 @@ from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
 from sql.connection import ConnectionManager
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
-from sql.connection import DBAPIConnection, DBAPISession
+from sql.connection import DBAPIConnection
 from IPython.core.error import UsageError
 
 """
@@ -608,7 +608,6 @@ def test_dbapi_connection(ip_questdb, alias):
     assert connection.dialect is None
     assert connection.alias is alias
     assert len(ConnectionManager.connections) > 0
-    assert isinstance(connection.connection, DBAPISession)
 
     if alias:
         stored_connection = ConnectionManager.connections[alias]

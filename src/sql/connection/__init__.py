@@ -485,6 +485,7 @@ class Connection(ConnectionMixin):
     def __init__(self, engine, alias=None):
         self.name = self.assign_name(engine)
 
+        # TODO: this is only used as a default alias, we can delete the property
         self.url = (
             repr(sqlalchemy.MetaData(bind=engine).bind.url)
             if IS_SQLALCHEMY_ONE
