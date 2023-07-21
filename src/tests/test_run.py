@@ -15,7 +15,6 @@ from sql.run.run import (
     run_statements,
     is_postgres_or_redshift,
     select_df_type,
-    set_sqlalchemy_autocommit_option,
     display_affected_rowcount,
 )
 from sql.run.pgspecial import handle_postgres_special
@@ -89,28 +88,6 @@ def test_handle_postgres_special(mock_conns):
         handle_postgres_special(mock_conns, "\\")
 
     assert "pgspecial not installed" in str(excinfo.value)
-
-
-def test_set_sqlalchemy_autocommit_option(mock_conns, caplog):
-    caplog.set_level(logging.DEBUG)
-
-    output = set_sqlalchemy_autocommit_option(mock_conns, Config)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-
-    assert "The database driver doesn't support such " in caplog.records[0].msg
-    assert output is True
-
-
-def test_pytds_autocommit(pytds_conns):
-    with warnings.catch_warnings(record=True) as w:
-        output = set_sqlalchemy_autocommit_option(pytds_conns, Config)
-        assert (
-            str(w[-1].message)
-            == "Autocommit is not supported for pytds, thus is automatically disabled"
-        )
-        assert output is False
 
 
 def test_select_df_type_is_pandas(mock_resultset):
