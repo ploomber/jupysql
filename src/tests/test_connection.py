@@ -441,3 +441,75 @@ def test_set_existing_connection(monkeypatch, url):
 
     assert connections == {url: conn}
     assert ConnectionManager.current == conn
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "duckdb://",
+        "sqlite://",
+    ],
+)
+def test_set_engine(monkeypatch, url):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    engine = create_engine(url)
+
+    conn = ConnectionManager.set(engine, displaycon=False)
+
+    assert connections == {url: conn}
+    assert ConnectionManager.current == conn
+
+
+@pytest.mark.parametrize(
+    "callable_, key",
+    [
+        [sqlite3.connect, "Connection"],
+        [duckdb.connect, "DuckDBPyConnection"],
+    ],
+)
+def test_set_dbapi(monkeypatch, callable_, key):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    conn = ConnectionManager.set(callable_(""), displaycon=False)
+
+    assert connections == {key: conn}
+    assert ConnectionManager.current == conn
+
+
+def test_set_with_alias(monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    conn = ConnectionManager.set("sqlite://", displaycon=False, alias="some-sqlite-db")
+
+    assert connections == {"some-sqlite-db": conn}
+    assert ConnectionManager.current == conn
+
+
+def test_set_and_load_with_alias(monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    ConnectionManager.set("sqlite://", displaycon=False, alias="some-sqlite-db")
+    conn = ConnectionManager.set("some-sqlite-db", displaycon=False)
+
+    assert connections == {"some-sqlite-db": conn}
+    assert ConnectionManager.current == conn
+
+
+def test_set_same_url_different_alias(monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    some = ConnectionManager.set("sqlite://", displaycon=False, alias="some-sqlite-db")
+    another = ConnectionManager.set(
+        "sqlite://", displaycon=False, alias="another-sqlite-db"
+    )
+    conn = ConnectionManager.set("some-sqlite-db", displaycon=False)
+
+    assert connections == {"some-sqlite-db": some, "another-sqlite-db": another}
+    assert ConnectionManager.current == conn
+    assert some is conn
