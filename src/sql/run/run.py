@@ -48,8 +48,11 @@ def run_statements(conn, sql, config):
 
         # regular query
         else:
+            manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
             result = conn.raw_execute(statement)
-            _commit_if_needed(conn=conn, config=config)
+
+            if manual_commit_call_required:
+                _commit_if_needed(conn=conn, config=config)
 
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
                 display.message_success(f"{result.rowcount} rows affected.")
@@ -93,3 +96,30 @@ def select_df_type(resultset, config):
         return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
     else:
         return resultset
+
+
+# TODO: can we set this when the connection starts? there's no point in running it over
+# and over again. also, this gives errors if we're in the middle of a transaction, so
+# it's best to call it just once
+# NOTE: we need to keep this, as it offers better handling for edge cases than calling
+# .commit() directly
+def set_sqlalchemy_autocommit_option(conn, config):
+    """Sets the autocommit setting for a database connection."""
+    if is_pytds(conn.dialect):
+        return False
+    if config.autocommit:
+        if conn.is_dbapi_connection:
+            return True
+        else:
+            connection_sqlalchemy = conn.connection_sqlalchemy
+
+            try:
+                connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
+            except Exception:
+                return True
+    return False
+
+
+def is_pytds(dialect):
+    """Checks if driver is pytds"""
+    return "pytds" in str(dialect)

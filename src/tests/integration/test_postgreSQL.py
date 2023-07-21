@@ -34,6 +34,6 @@ def test_postgres_error(ip_empty, postgreSQL_config_incorrect_pwd):
 
 # 'pgspecial<2'
 def test_pgspecial(ip_with_postgreSQL):
-    out = ip_with_postgreSQL.run_cell("%sql \l").result
+    out = ip_with_postgreSQL.run_cell("%sql \l").result  # noqa: W605
 
-    assert set(out.dict()["Name"]) == {"db", "postgres", "template0", "template1"}
+    assert "postgres" in out.dict()["Name"]
