@@ -15,7 +15,7 @@ class Config:
     displaylimit = 10
 
 
-def test_resultset():
+def test_resultset(setup_postgreSQL):
     import psycopg2
 
     config = _testing.DatabaseConfigHelper.get_database_config("postgreSQL")
