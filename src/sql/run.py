@@ -119,7 +119,7 @@ class ResultSet(ColumnGuesserMixin):
 
         self._sqlaproxy = sqlaproxy
         self._conn = conn
-        self._dialect = conn._get_curr_sqlglot_dialect()
+        self._dialect = conn._get_sqlglot_dialect()
         self._keys = None
         self._field_names = None
         self._results = []
@@ -310,7 +310,7 @@ class ResultSet(ColumnGuesserMixin):
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
         """Returns a Pandas DataFrame instance built from the result set."""
-        payload["connection_info"] = self._conn._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = self._conn._get_database_information()
         import pandas as pd
 
         kwargs = {"columns": (self and self.keys) or []}

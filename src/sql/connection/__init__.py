@@ -136,9 +136,12 @@ class ConnectionMixin:
 
         self._result_sets = []
 
-    # TODO: we have self.dialect and we also have this, which is confusing, see #732
-    def _get_curr_sqlglot_dialect(self):
-        """Get the dialect name in sqlglot package scope
+    def _get_sqlglot_dialect(self):
+        """
+        Get the sqlglot dialect, this is similar to the dialect property except it
+        maps some dialects to their sqlglot equivalent. This method should only be
+        used for the transpilation process, for any other purposes, use the dialect
+        property.
 
         Returns
         -------
@@ -146,10 +149,7 @@ class ConnectionMixin:
             Available dialect in sqlglot package, see more:
             https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dialect.py
         """
-        connection_info = self._get_curr_sqlalchemy_connection_info()
-        if not connection_info:
-            return None
-
+        connection_info = self._get_database_information()
         return DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING.get(
             connection_info["dialect"], connection_info["dialect"]
         )
@@ -175,7 +175,7 @@ class ConnectionMixin:
         str
             SQL clause that's compatible to current connected dialect
         """
-        write_dialect = self._get_curr_sqlglot_dialect()
+        write_dialect = self._get_sqlglot_dialect()
         try:
             query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
@@ -224,7 +224,7 @@ class ConnectionMixin:
         bool
             Indicate if the dialect can use backtick identifier in the SQL clause
         """
-        cur_dialect = self._get_curr_sqlglot_dialect()
+        cur_dialect = self._get_sqlglot_dialect()
         if not cur_dialect:
             return False
         try:
@@ -242,7 +242,7 @@ class ConnectionMixin:
         """
         identifiers = ["", '"']
         try:
-            connection_info = self._get_curr_sqlalchemy_connection_info()
+            connection_info = self._get_database_information()
             if connection_info:
                 cur_dialect = connection_info["dialect"]
                 identifiers_ = sqlglot.Dialect.get_or_raise(
@@ -506,7 +506,7 @@ class Connection(ConnectionMixin):
             engine, self.url
         )
 
-        self.dialect = self._get_curr_sqlalchemy_connection_info()["dialect"]
+        self.dialect = self._get_database_information()["dialect"]
 
         # calling init from ConnectionMixin must be the last thing we do as it
         # register the connection
@@ -549,7 +549,7 @@ class Connection(ConnectionMixin):
         name = "%s@%s" % (engine.url.username or "", engine.url.database)
         return name
 
-    def _get_curr_sqlalchemy_connection_info(self):
+    def _get_database_information(self):
         """Get the dialect, driver, and database server version info of current
         connected dialect
 
@@ -634,7 +634,7 @@ class DBAPIConnection(ConnectionMixin):
     def connection(self):
         return self._connection
 
-    def _get_curr_sqlalchemy_connection_info(self):
+    def _get_database_information(self):
         return {
             "dialect": self.dialect,
             "driver": self.name,

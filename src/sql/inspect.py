@@ -430,9 +430,7 @@ class TableDescription(DatabaseInspection):
             warning_title = ""
 
         database = ConnectionManager.current.url
-        db_driver = ConnectionManager.current._get_curr_sqlalchemy_connection_info()[
-            "driver"
-        ]
+        db_driver = ConnectionManager.current._get_database_information()["driver"]
         if "duckdb" in database:
             db_message = ""
         else:

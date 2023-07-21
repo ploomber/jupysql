@@ -459,7 +459,7 @@ class SqlMagic(Magics, Configurable):
             creator=args.creator,
             alias=args.alias,
         )
-        payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = conn._get_database_information()
 
         if args.persist_replace and args.append:
             raise exceptions.UsageError(

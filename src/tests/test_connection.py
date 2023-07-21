@@ -61,21 +61,21 @@ def test_alias(cleanup):
     assert list(ConnectionManager.connections) == ["some-alias"]
 
 
-def test_get_curr_sqlalchemy_connection_info():
+def test_get_database_information():
     engine = create_engine("sqlite://")
     conn = Connection(engine=engine)
 
-    assert conn._get_curr_sqlalchemy_connection_info() == {
+    assert conn._get_database_information() == {
         "dialect": "sqlite",
         "driver": "pysqlite",
         "server_version_info": ANY,
     }
 
 
-def test_get_curr_sqlglot_dialect_no_curr_connection(mock_database, monkeypatch):
+def test_get_sqlglot_dialect_no_curr_connection(mock_database, monkeypatch):
     conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
-    monkeypatch.setattr(conn, "_get_curr_sqlalchemy_connection_info", lambda: None)
-    assert conn._get_curr_sqlglot_dialect() is None
+    monkeypatch.setattr(conn, "_get_database_information", lambda: None)
+    assert conn._get_sqlglot_dialect() is None
 
 
 @pytest.mark.parametrize(
@@ -116,7 +116,7 @@ def test_get_curr_sqlglot_dialect_no_curr_connection(mock_database, monkeypatch)
         ),
     ],
 )
-def test_get_curr_sqlglot_dialect(
+def test_get_sqlglot_dialect(
     monkeypatch, sqlalchemy_connection_info, expected_sqlglot_dialect, mock_database
 ):
     """To test if we can get the dialect name in sqlglot package scope
@@ -130,7 +130,7 @@ def test_get_curr_sqlglot_dialect(
 
     monkeypatch.setattr(
         conn,
-        "_get_curr_sqlalchemy_connection_info",
+        "_get_database_information",
         lambda: sqlalchemy_connection_info,
     )
     monkeypatch.setattr(
@@ -138,7 +138,7 @@ def test_get_curr_sqlglot_dialect(
         "DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING",
         {"sqlalchemy_mock_dialect_name": "sqlglot_mock_dialect"},
     )
-    assert conn._get_curr_sqlglot_dialect() == expected_sqlglot_dialect
+    assert conn._get_sqlglot_dialect() == expected_sqlglot_dialect
 
 
 @pytest.mark.parametrize(
@@ -162,7 +162,7 @@ def test_is_use_backtick_template(
     """
     # conn = Connection(engine=create_engine(sqlalchemy_url))
     conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
-    monkeypatch.setattr(conn, "_get_curr_sqlglot_dialect", lambda: cur_dialect)
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: cur_dialect)
     assert conn.is_use_backtick_template() == expected_support_backtick
 
 
@@ -174,9 +174,7 @@ def test_is_use_backtick_template_sqlglot_missing_dialect_ValueError(
     """
     conn = Connection(engine=create_engine("sqlite://"))
 
-    monkeypatch.setattr(
-        conn, "_get_curr_sqlglot_dialect", lambda: "something_weird_dialect"
-    )
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "something_weird_dialect")
     assert conn.is_use_backtick_template() is False
 
 
@@ -188,7 +186,7 @@ def test_is_use_backtick_template_sqlglot_missing_tokenizer_AttributeError(
     """
     conn = Connection(engine=create_engine("sqlite://"))
 
-    monkeypatch.setattr(conn, "_get_curr_sqlglot_dialect", lambda: "mysql")
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(sqlglot.Dialect.get_or_raise("mysql"), "Tokenizer", None)
 
     assert conn.is_use_backtick_template() is False
@@ -202,7 +200,7 @@ def test_is_use_backtick_template_sqlglot_missing_identifiers_TypeError(
     """
     conn = Connection(engine=create_engine("sqlite://"))
 
-    monkeypatch.setattr(conn, "_get_curr_sqlglot_dialect", lambda: "mysql")
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(
         sqlglot.Dialect.get_or_raise("mysql").Tokenizer, "IDENTIFIERS", None
     )
@@ -215,7 +213,7 @@ def test_is_use_backtick_template_sqlglot_empty_identifiers(mock_database, monke
     """
     conn = Connection(engine=create_engine("sqlite://"))
 
-    monkeypatch.setattr(conn, "_get_curr_sqlglot_dialect", lambda: "mysql")
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(
         sqlglot.Dialect.get_or_raise("mysql").Tokenizer, "IDENTIFIERS", []
     )

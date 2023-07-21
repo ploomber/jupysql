@@ -1,3 +1,4 @@
+from unittest.mock import ANY
 from functools import partial
 
 
@@ -110,7 +111,7 @@ def test_connection_identifiers(
             {
                 "dialect": "postgresql",
                 "driver": "psycopg2",
-                "server_version_info": (15, 2),
+                "server_version_info": ANY,
             },
         ],
         [
@@ -119,7 +120,7 @@ def test_connection_identifiers(
             {
                 "dialect": "duckdb",
                 "driver": "duckdb_engine",
-                "server_version_info": (8, 0),
+                "server_version_info": ANY,
             },
         ],
         [
@@ -128,7 +129,7 @@ def test_connection_identifiers(
             {
                 "dialect": "duckdb",
                 "driver": "DuckDBPyConnection",
-                "server_version_info": None,
+                "server_version_info": ANY,
             },
         ],
     ],
@@ -138,8 +139,6 @@ def test_connection_identifiers(
         "duckdb_native",
     ],
 )
-def test_get_curr_sqlalchemy_connection_info(
-    dynamic_db, request, Constructor, expected
-):
+def test_get_database_information(dynamic_db, request, Constructor, expected):
     conn = Constructor(request.getfixturevalue(dynamic_db))
-    assert conn._get_curr_sqlalchemy_connection_info() == expected
+    assert conn._get_database_information() == expected

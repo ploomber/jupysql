@@ -32,7 +32,7 @@ def _summary_stats(conn, table, column, with_=None):
 
     if not conn:
         conn = sql.connection.ConnectionManager.current
-    driver = conn._get_curr_sqlalchemy_connection_info()["driver"]
+    driver = conn._get_database_information()["driver"]
 
     template = Template(
         """
@@ -260,7 +260,7 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
-    payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+    payload["connection_info"] = conn._get_database_information()
 
     ax = plt.gca()
     vert = orient == "v"
@@ -382,7 +382,7 @@ def histogram(
         conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
-    payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+    payload["connection_info"] = conn._get_database_information()
     if category:
         if isinstance(column, list):
             if len(column) > 1:
@@ -763,7 +763,7 @@ def bar(
         conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
-    payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+    payload["connection_info"] = conn._get_database_information()
 
     if column is None:
         raise exceptions.UsageError("Column name has not been specified")
@@ -935,7 +935,7 @@ def pie(
         conn = sql.connection.ConnectionManager.current
 
     ax = ax or plt.gca()
-    payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+    payload["connection_info"] = conn._get_database_information()
 
     if column is None:
         raise exceptions.UsageError("Column name has not been specified")
