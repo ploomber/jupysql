@@ -11,10 +11,22 @@ from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql.connection import ConnectionManager
+from sql import connection
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
 PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def isolate_connections(monkeypatch):
+    """
+    Fixture to ensure connections are isolated between tests, preventing tests
+    from accidentally closing connections created by other tests.
+    """
+    connections = {}
+    monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
+    monkeypatch.setattr(connection.ConnectionManager, "current", None)
 
 
 def path_to_tests():

@@ -45,7 +45,7 @@ def run(conn, sql, config):
 
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
-        manual_commit = False
+        manual_commit_call_required = False
 
         # attempting to run a transaction
         if first_word == "begin":
@@ -57,10 +57,10 @@ def run(conn, sql, config):
 
         # regular query
         else:
-            manual_commit = set_sqlalchemy_autocommit_option(conn, config)
+            manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
 
             result = conn.raw_execute(statement)
-            _commit(conn=conn, config=config, manual_commit=manual_commit)
+            _commit(conn=conn, config=config, manual_commit=manual_commit_call_required)
 
             if result and config.feedback:
                 if hasattr(result, "rowcount"):
@@ -104,6 +104,9 @@ def is_pytds(dialect):
     return "pytds" in str(dialect)
 
 
+# TODO: can we set this when the connection starts? there's no point in running it over
+# and over again. also, this gives errors if we're in the middle of a transaction, so
+# it's best to call it just once
 def set_sqlalchemy_autocommit_option(conn, config):
     """Sets the autocommit setting for a database connection."""
     if is_pytds(conn.dialect):

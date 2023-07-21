@@ -155,6 +155,12 @@ def test_display_affected_rowcount(capsys, n, message):
         DBAPIConnection(duckdb.connect()),
         DBAPIConnection(sqlite3.connect("")),
     ],
+    ids=[
+        "duckdb-sqlalchemy",
+        "sqlite-sqlalchemy",
+        "duckdb",
+        "sqlite",
+    ],
 )
 @pytest.mark.parametrize(
     "config, expected_type",
@@ -177,5 +183,25 @@ def test_run(connection, config, expected_type, sql):
     assert isinstance(out, expected_type)
 
 
-def test_run_calls_commit():
-    pass
+def test_enable_sqlalchemy_autocommit():
+    conn = Connection(create_engine("sqlite://"))
+    conn.connection_sqlalchemy.execution_options = Mock()
+
+    run(conn, "SELECT 1", Config)
+
+    conn.connection_sqlalchemy.execution_options.assert_called_once_with(
+        isolation_level="AUTOCOMMIT"
+    )
+
+    # TODO: test .commit not called!
+
+
+def test_do_not_fail_if_sqlalchemy_autocommit_not_supported():
+    conn = Connection(create_engine("sqlite://"))
+    conn.connection_sqlalchemy.execution_options = Mock(
+        side_effect=Exception("AUTOCOMMIT not supported!")
+    )
+
+    run(conn, "SELECT 1", Config)
+
+    # TODO: test .commit called or not depending on config!
