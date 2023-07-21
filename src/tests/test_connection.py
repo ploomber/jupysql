@@ -403,7 +403,9 @@ def test_new_connection_with_alias(ip_empty, old_alias, new_alias):
         ["duckdb:///my.db", "duckdb:///my.db"],
     ],
 )
-def test_default_alias_for_engine(url, expected):
+def test_default_alias_for_engine(url, expected, monkeypatch):
+    monkeypatch.setitem(sys.modules, "psycopg2", Mock())
+
     engine = create_engine(url)
     assert default_alias_for_engine(engine) == expected
 

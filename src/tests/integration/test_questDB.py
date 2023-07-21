@@ -592,7 +592,10 @@ def test_sqlplot_not_supported_error(
 # Utils
 @pytest.mark.parametrize(
     "alias",
-    [None, "test_alias"],
+    [
+        "Connection",
+        "test_alias",
+    ],
 )
 def test_dbapi_connection(ip_questdb, alias):
     import psycopg as pg

@@ -155,7 +155,7 @@ class ConnectionMixin:
         )
 
     def close(self):
-        """Close the current connection"""
+        """Close the connection"""
         for rs in self._result_sets:
             rs._sqlaproxy.close()
 
@@ -511,14 +511,17 @@ class Connection(ConnectionMixin):
 
     @property
     def url(self):
+        """Returns an obfuscated connection string (password hidden)"""
         return self._url
 
     @property
     def connection_sqlalchemy(self):
+        """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
 
     @property
     def connection(self):
+        """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
 
     @classmethod
@@ -604,10 +607,15 @@ class DBAPIConnection(ConnectionMixin):
 
     @property
     def url(self):
+        """Returns None since DBAPI connections don't have a url"""
         return None
 
     @property
     def connection_sqlalchemy(self):
+        """
+        Raises NotImplementedError since DBAPI connections don't have a SQLAlchemy
+        connection object
+        """
         raise NotImplementedError(
             "This feature is only available for SQLAlchemy connections"
         )
