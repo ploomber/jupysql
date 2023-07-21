@@ -591,31 +591,29 @@ class DBAPISession:
 class DBAPIConnection(ConnectionMixin):
     """
     A connection object for generic DBAPI connections
+
+    Attributes
+    ----------
+    dialect : str, None
+        The dialect name, None if unknown
     """
 
     is_dbapi_connection = True
 
     @telemetry.log_call("DBAPIConnection", payload=True)
-    def __init__(self, payload, engine=None, alias=None):
+    def __init__(self, payload, engine, alias=None):
         try:
             payload["engine"] = type(engine)
         except Exception as e:
             payload["engine_parsing_error"] = str(e)
 
-        if engine is None:
-            raise ValueError("Engine cannot be None")
-
         # detect if the engine is a native duckdb connection
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(engine)
-        connection_name_ = "duckdb" if _is_duckdb_native else "custom_driver"
+        identifier = type(engine).__name__
 
-        if _is_duckdb_native:
-            self.url = "duckdb"
-        else:
-            self.url = str(engine)
-
-        self.name = connection_name_
-        self.dialect = connection_name_
+        self.url = identifier
+        self.name = identifier
+        self.dialect = "duckdb" if _is_duckdb_native else None
         self.session = DBAPISession(self, engine)
 
         super().__init__(alias=alias)

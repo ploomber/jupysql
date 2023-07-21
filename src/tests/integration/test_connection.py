@@ -24,9 +24,9 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
             "setup_duckDB_native",
             DBAPIConnection,
             None,
+            "DuckDBPyConnection",
             "duckdb",
-            "duckdb",
-            "duckdb",
+            "DuckDBPyConnection",
         ],
         [
             "setup_duckDB",
@@ -48,9 +48,9 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
             "setup_duckDB_native",
             partial(DBAPIConnection, alias="some-duckdb"),
             "some-duckdb",
+            "DuckDBPyConnection",
             "duckdb",
-            "duckdb",
-            "duckdb",
+            "DuckDBPyConnection",
         ],
     ],
 )
@@ -76,7 +76,7 @@ def test_connection_properties(
             "postgresql://ploomber_app:***@localhost:5432/db",
         ],
         ["setup_duckDB", Connection, "duckdb:////tmp/db-duckdb"],
-        ["setup_duckDB_native", DBAPIConnection, "duckdb"],
+        ["setup_duckDB_native", DBAPIConnection, "DuckDBPyConnection"],
         [
             "setup_duckDB",
             partial(Connection, alias="some-alias"),
