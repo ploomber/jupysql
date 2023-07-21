@@ -7,7 +7,6 @@ import html
 from collections.abc import Iterable
 
 import prettytable
-from sqlalchemy.exc import ResourceClosedError
 
 from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
@@ -117,9 +116,11 @@ class ResultSet(ColumnGuesserMixin):
         if not self._is_dbapi_results:
             try:
                 self._keys = self.sqlaproxy.keys()
-            # sqlite raises this error when running a script that doesn't return rows
-            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
-            except ResourceClosedError:
+            # sqlite with sqlalchemy raises sqlalchemy.exc.ResourceClosedError,
+            # psycopg2 raises psycopg2.ProgrammingError error when running a script
+            # that doesn't return rows e.g, 'CREATE TABLE' but others don't
+            # (e.g., duckdb), so here we catch all
+            except Exception:
                 self._keys = []
                 return self._keys
 
@@ -366,9 +367,11 @@ class ResultSet(ColumnGuesserMixin):
         if not self._done_fetching():
             try:
                 returned = self.sqlaproxy.fetchmany(size=size)
-            # sqlite raises this error when running a script that doesn't return rows
-            # e.g, 'CREATE TABLE' but others don't (e.g., duckdb)
-            except ResourceClosedError:
+            # sqlite with sqlalchemy raises sqlalchemy.exc.ResourceClosedError,
+            # psycopg2 raises psycopg2.ProgrammingError error when running a script
+            # that doesn't return rows e.g, 'CREATE TABLE' but others don't
+            # (e.g., duckdb), so here we catch all
+            except Exception:
                 self.mark_fetching_as_done()
                 return
 
