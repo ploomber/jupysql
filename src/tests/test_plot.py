@@ -47,6 +47,9 @@ class DictOfFloats(Mapping):
 
 
 def test_boxplot_stats(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
@@ -62,6 +65,9 @@ def test_boxplot_stats(chinook_db, ip_empty):
 
 
 def test_boxplot_stats_exception(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
@@ -94,6 +100,10 @@ x, y
 9, 9
 """
     )
+
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
@@ -104,6 +114,9 @@ x, y
 
 
 def test_summary_stats_missing_file(chinook_db, ip_empty):
+    # there's some werid behavior in duckdb-engine that will cause the
+    # table not to be found if we call commit
+    ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
     ip_empty.run_cell("%sql commit")
