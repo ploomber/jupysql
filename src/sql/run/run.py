@@ -5,8 +5,7 @@ from sql.run.resultset import ResultSet
 from sql.run.pgspecial import handle_postgres_special
 
 
-# some dialects have autocommit
-# specific dialects break when commit is used:
+# some dialects have autocommit specific dialects break when commit is used
 _COMMIT_BLACKLIST_DIALECTS = (
     "athena",
     "bigquery",
@@ -25,7 +24,7 @@ def run_statements(conn, sql, config):
 
     Parameters
     ----------
-    conn : sql.connection.Connection
+    conn : sql.connection.AbstractConnection
         The connection to use
 
     sql : str
@@ -35,13 +34,11 @@ def run_statements(conn, sql, config):
         Configuration object
     """
     if not sql.strip():
-        # returning only when sql is empty string
         return "Connected: %s" % conn.name
 
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
 
-        # attempting to run a transaction
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
 
@@ -52,22 +49,15 @@ def run_statements(conn, sql, config):
         # regular query
         else:
             result = conn.raw_execute(statement)
-            _apply_commit(conn=conn, config=config)
+            _commit_if_needed(conn=conn, config=config)
 
-            if result and config.feedback:
-                if hasattr(result, "rowcount"):
-                    display_affected_rowcount(result.rowcount)
+            if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
+                display.message_success(f"{result.rowcount} rows affected.")
 
-    resultset = ResultSet(result, config, statement, conn)
-    return select_df_type(resultset, config)
+    return select_df_type(ResultSet(result, config, statement, conn), config)
 
 
-def display_affected_rowcount(rowcount):
-    if rowcount > 0:
-        display.message_success(f"{rowcount} rows affected.")
-
-
-def _apply_commit(conn, config):
+def _commit_if_needed(conn, config):
     """Issues a commit, if appropriate for current config and dialect"""
 
     # TODO: maybe remove this?
