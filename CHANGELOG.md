@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.8.1dev
+## 0.9.0dev
 * [Fix] Fix error that was incorrectly converted into a print message
 * [API Change] A shorter name is now assigned as an alias by default
 
