@@ -1,6 +1,4 @@
 import sqlite3
-import warnings
-import logging
 from unittest.mock import Mock
 
 from IPython.core.error import UsageError
