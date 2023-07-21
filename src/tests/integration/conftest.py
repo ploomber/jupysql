@@ -11,6 +11,17 @@ from sql import _testing
 from sql import connection
 
 
+@pytest.fixture(scope="function", autouse=True)
+def isolate_connections(monkeypatch):
+    """
+    Fixture to ensure connections are isolated between tests, preventing tests
+    from accidentally closing connections created by other tests.
+    """
+    connections = {}
+    monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
+    monkeypatch.setattr(connection.ConnectionManager, "current", None)
+
+
 def pytest_addoption(parser):
     parser.addoption("--live", action="store_true")
 

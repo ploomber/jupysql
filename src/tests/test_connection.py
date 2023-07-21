@@ -353,7 +353,10 @@ def test_is_pep249_compliant(conn, expected):
     assert is_pep249_compliant(conn) is expected
 
 
-def test_close_all(ip_empty):
+def test_close_all(ip_empty, monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql sqlite://")
 
