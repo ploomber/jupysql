@@ -23,10 +23,10 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
-def run(conn, sql, config):
+def run_statements(conn, sql, config):
     """
-    Run a SQL query with the given connection. This is the function that's called
-    when executing SQL magic.
+    Run a SQL query (supports running multiple SQL statements) with the given
+    connection. This is the function that's called when executing SQL magic.
 
     Parameters
     ----------

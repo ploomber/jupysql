@@ -12,7 +12,7 @@ import duckdb
 
 from sql.connection import Connection, DBAPIConnection
 from sql.run.run import (
-    run,
+    run_statements,
     is_postgres_or_redshift,
     select_df_type,
     set_sqlalchemy_autocommit_option,
@@ -125,13 +125,13 @@ def test_select_df_type_is_polars(mock_resultset):
 
 def test_sql_starts_with_begin(mock_conns):
     with pytest.raises(UsageError, match="does not support transactions") as excinfo:
-        run(mock_conns, "BEGIN", Config)
+        run_statements(mock_conns, "BEGIN", Config)
 
     assert excinfo.value.error_type == "RuntimeError"
 
 
 def test_sql_is_empty(mock_conns):
-    assert run(mock_conns, "  ", Config) == "Connected: %s" % mock_conns.name
+    assert run_statements(mock_conns, "  ", Config) == "Connected: %s" % mock_conns.name
 
 
 @pytest.mark.parametrize(
@@ -179,7 +179,7 @@ def test_display_affected_rowcount(capsys, n, message):
     ids=["single", "multiple"],
 )
 def test_run(connection, config, expected_type, sql):
-    out = run(connection, sql, config)
+    out = run_statements(connection, sql, config)
     assert isinstance(out, expected_type)
 
 
@@ -187,7 +187,7 @@ def test_enable_sqlalchemy_autocommit():
     conn = Connection(create_engine("sqlite://"))
     conn.connection_sqlalchemy.execution_options = Mock()
 
-    run(conn, "SELECT 1", Config)
+    run_statements(conn, "SELECT 1", Config)
 
     conn.connection_sqlalchemy.execution_options.assert_called_once_with(
         isolation_level="AUTOCOMMIT"
@@ -202,6 +202,6 @@ def test_do_not_fail_if_sqlalchemy_autocommit_not_supported():
         side_effect=Exception("AUTOCOMMIT not supported!")
     )
 
-    run(conn, "SELECT 1", Config)
+    run_statements(conn, "SELECT 1", Config)
 
     # TODO: test .commit called or not depending on config!
