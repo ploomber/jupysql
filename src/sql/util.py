@@ -1,5 +1,4 @@
 import warnings
-import sql
 from sql import inspect
 import difflib
 from sql.connection import ConnectionManager

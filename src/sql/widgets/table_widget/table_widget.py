@@ -1,7 +1,6 @@
 from sql.connection import ConnectionManager
 from IPython import get_ipython
 import math
-import sqlalchemy
 import time
 from sql.util import (
     fetch_sql_with_pagination,

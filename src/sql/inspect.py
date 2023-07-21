@@ -4,7 +4,6 @@ from ploomber_core.exceptions import modify_exceptions
 from sql.connection import ConnectionManager
 from sql.telemetry import telemetry
 from sql import exceptions
-import sql.run
 import math
 from sql import util
 from IPython.core.display import HTML
