@@ -1,3 +1,4 @@
+import os
 import sys
 from unittest.mock import ANY, Mock, patch
 import pytest
@@ -14,6 +15,7 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
 )
+from sql.exceptions import UsageError
 from IPython.core.error import UsageError
 import sqlglot
 import sqlalchemy
@@ -515,3 +517,38 @@ def test_set_same_url_different_alias(monkeypatch):
     assert connections == {"some-sqlite-db": some, "another-sqlite-db": another}
     assert ConnectionManager.current == conn
     assert some is conn
+
+
+# NOTE: not sure what the use case for this one is but adding it since the logic
+# is implemented this way
+def test_same_alias(monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    conn = ConnectionManager.set("sqlite://", displaycon=False, alias="mydb")
+    second = ConnectionManager.set("mydb", displaycon=False, alias="mydb")
+
+    assert connections == {"mydb": conn}
+    assert ConnectionManager.current == conn
+    assert second is conn
+
+
+def test_set_no_descriptor_and_no_active_connection(monkeypatch):
+    connections = {}
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    with pytest.raises(UsageError) as excinfo:
+        ConnectionManager.set(descriptor=None, displaycon=False, alias=None)
+
+    assert "No active connection." in str(excinfo.value)
+
+
+def test_set_no_descriptor_database_url(monkeypatch):
+    connections = {}
+    monkeypatch.setitem(os.environ, "DATABASE_URL", "sqlite://")
+    monkeypatch.setattr(ConnectionManager, "connections", connections)
+
+    conn = ConnectionManager.set(descriptor=None, displaycon=False)
+
+    assert connections == {"sqlite://": conn}
+    assert ConnectionManager.current == conn

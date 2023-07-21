@@ -280,20 +280,13 @@ class ConnectionManager:
                 cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-                # NOTE: I added one indentation level, otherwise
-                # the "existing" variable would not exist if
-                # passing an engine object as descriptor.
-                # Since I never saw this breaking, my guess
-                # is that we're missing some unit tests
-                # when descriptor is a connection object
-                # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#custom-dbapi-connect-arguments # noqa
-                # if same alias found
+
                 if existing and existing.alias == alias:
                     cls.current = existing
-                # if just switching connections
+                # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
                     cls.current = existing
-                # if new alias connection
+                # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
@@ -315,6 +308,7 @@ class ConnectionManager:
                 )
             else:
                 raise cls._error_no_connection()
+
         return cls.current
 
     @classmethod
