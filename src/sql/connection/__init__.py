@@ -132,6 +132,8 @@ class ConnectionMixin:
         self.alias = alias
 
         ConnectionManager.current = self
+        ConnectionManager.connections[self.alias or self.url] = self
+
         self._result_sets = []
 
     def _get_curr_sqlalchemy_connection_info(self):
@@ -149,7 +151,7 @@ class ConnectionMixin:
             return None
 
         try:
-            engine = self.metadata.bind if IS_SQLALCHEMY_ONE else self.session
+            engine = self._metadata.bind if IS_SQLALCHEMY_ONE else self.session
         except Exception:
             engine = self.session
 
@@ -511,11 +513,6 @@ class Connection(ConnectionMixin):
         self.engine = engine
         self.name = self.assign_name(engine)
 
-        if IS_SQLALCHEMY_ONE:
-            self.metadata = sqlalchemy.MetaData(bind=engine)
-        else:
-            self.metadata = None
-
         self.url = (
             repr(sqlalchemy.MetaData(bind=engine).bind.url)
             if IS_SQLALCHEMY_ONE
@@ -525,9 +522,12 @@ class Connection(ConnectionMixin):
         self.dialect = engine.url.get_dialect()
         self.session = self._create_session(engine, self.url)
 
-        ConnectionManager.connections[alias or self.url] = self
-
         super().__init__(alias=alias)
+
+        if IS_SQLALCHEMY_ONE:
+            self._metadata = sqlalchemy.MetaData(bind=engine)
+        else:
+            self._metadata = None
 
     @classmethod
     @modify_exceptions
@@ -617,7 +617,6 @@ class DBAPIConnection(ConnectionMixin):
         self.name = connection_name_
         self.dialect = connection_name_
         self.session = DBAPISession(self, engine)
-        ConnectionManager.connections[alias or connection_name_] = self
 
         super().__init__(alias=alias)
 
