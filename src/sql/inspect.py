@@ -18,7 +18,7 @@ def _get_inspector(conn):
     if not ConnectionManager.current:
         raise exceptions.RuntimeError("No active connection")
     else:
-        return inspect(ConnectionManager.current.session)
+        return inspect(ConnectionManager.current.connection_sqlalchemy)
 
 
 class DatabaseInspection:

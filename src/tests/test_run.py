@@ -22,7 +22,7 @@ from sql.run import (
 @pytest.fixture
 def mock_conns():
     conn = Connection(Mock())
-    conn.session.execution_options.side_effect = ValueError
+    conn.connection_sqlalchemy.execution_options.side_effect = ValueError
     return conn
 
 

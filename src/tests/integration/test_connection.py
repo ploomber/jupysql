@@ -101,3 +101,47 @@ def test_connection_identifiers(
 
     assert len(connections) == 1
     assert set(connections) == {expected}
+
+
+@pytest.mark.parametrize(
+    "dynamic_db, Constructor, expected",
+    [
+        [
+            "setup_postgreSQL",
+            Connection,
+            {
+                "dialect": "postgresql",
+                "driver": "psycopg2",
+                "server_version_info": None,
+            },
+        ],
+        [
+            "setup_duckDB",
+            Connection,
+            {
+                "dialect": "duckdb",
+                "driver": "duckdb_engine",
+                "server_version_info": None,
+            },
+        ],
+        [
+            "setup_duckDB_native",
+            DBAPIConnection,
+            {
+                "dialect": "duckdb",
+                "driver": "DuckDBPyConnection",
+                "server_version_info": None,
+            },
+        ],
+    ],
+    ids=[
+        "postgresql",
+        "duckdb",
+        "duckdb_native",
+    ],
+)
+def test_get_curr_sqlalchemy_connection_info(
+    dynamic_db, request, Constructor, expected
+):
+    conn = Constructor(request.getfixturevalue(dynamic_db))
+    assert conn._get_curr_sqlalchemy_connection_info() == expected

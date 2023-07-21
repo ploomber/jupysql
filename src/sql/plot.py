@@ -105,7 +105,7 @@ FROM (
 
 def _percentile(conn, table, column, pct, with_=None):
     if not conn:
-        conn = sql.connection.ConnectionManager.current.session
+        conn = sql.connection.ConnectionManager.current.connection
     template = Template(
         """
 SELECT

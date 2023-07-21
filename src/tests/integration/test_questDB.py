@@ -608,7 +608,7 @@ def test_dbapi_connection(ip_questdb, alias):
     assert connection.dialect is None
     assert connection.alias is alias
     assert len(ConnectionManager.connections) > 0
-    assert isinstance(connection.session, DBAPISession)
+    assert isinstance(connection.connection, DBAPISession)
 
     if alias:
         stored_connection = ConnectionManager.connections[alias]

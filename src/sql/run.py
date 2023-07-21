@@ -561,7 +561,7 @@ def _commit(conn, config, manual_commit):
 
     if _should_commit:
         try:
-            with Session(conn.session) as session:
+            with Session(conn.connection_sqlalchemy) as session:
                 session.commit()
         except sqlalchemy.exc.OperationalError:
             display.message("The database does not support the COMMIT command")
@@ -583,9 +583,10 @@ def handle_postgres_special(conn, statement):
         raise exceptions.MissingPackageError("pgspecial not installed")
 
     pgspecial = PGSpecial()
-    _, cur, headers, _ = pgspecial.execute(conn.session.connection.cursor(), statement)[
-        0
-    ]
+    # TODO: support for raw psycopg2 connections
+    _, cur, headers, _ = pgspecial.execute(
+        conn.connection_sqlalchemy.connection.cursor(), statement
+    )[0]
     return FakeResultProxy(cur, headers)
 
 
@@ -598,7 +599,7 @@ def set_autocommit(conn, config):
         return False
     if config.autocommit:
         try:
-            conn.session.execution_options(isolation_level="AUTOCOMMIT")
+            conn.connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
         except Exception as e:
             logging.debug(
                 f"The database driver doesn't support such "

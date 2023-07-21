@@ -136,31 +136,6 @@ class ConnectionMixin:
 
         self._result_sets = []
 
-    def _get_curr_sqlalchemy_connection_info(self):
-        """Get the dialect, driver, and database server version info of current
-        connected dialect
-
-        Returns
-        -------
-        dict
-            The dictionary which contains the SQLAlchemy-based dialect
-            information, or None if there is no current connection.
-        """
-
-        if not self.session:
-            return None
-
-        try:
-            engine = self._metadata.bind if IS_SQLALCHEMY_ONE else self.session
-        except Exception:
-            engine = self.session
-
-        return {
-            "dialect": getattr(engine.dialect, "name", None),
-            "driver": getattr(engine.dialect, "driver", None),
-            "server_version_info": getattr(engine.dialect, "server_version_info", None),
-        }
-
     # TODO: we have self.dialect and we also have this, which is confusing, see #732
     def _get_curr_sqlglot_dialect(self):
         """Get the dialect name in sqlglot package scope
@@ -184,7 +159,7 @@ class ConnectionMixin:
         for rs in self._result_sets:
             rs._sqlaproxy.close()
 
-        self.session.close()
+        self.connection.close()
 
     def _transpile_query(self, query):
         """Translate the given SQL clause that's compatible to current connected
@@ -236,10 +211,10 @@ class ConnectionMixin:
         Executes SQL query on a given connection
         """
         query = self._prepare_query(query, with_)
-        return self.session.execute(query)
+        return self.connection.execute(query)
 
     def raw_execute(self, query):
-        return self.session.execute(query)
+        return self.connection.execute(query)
 
     def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
@@ -421,7 +396,7 @@ class ConnectionManager:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.session.close()
+            conn.connection.close()
 
     @classmethod
     def connections_table(cls):
@@ -522,22 +497,36 @@ class Connection(ConnectionMixin):
             else repr(engine.url)
         )
 
+        # TODO: does this return the same as _get_curr_sqlalchemy_connection_info?
         self.dialect = engine.url.get_dialect()
-        self.session = self._create_session(engine, self.url)
-
-        super().__init__(alias=alias)
 
         if IS_SQLALCHEMY_ONE:
             self._metadata = sqlalchemy.MetaData(bind=engine)
         else:
             self._metadata = None
 
+        self._connection_sqlalchemy = self._start_sqlalchemy_connection(
+            engine, self.url
+        )
+
+        # calling init from ConnectionMixin must be the last thing we do as it
+        # register the connection
+        super().__init__(alias=alias)
+
+    @property
+    def connection_sqlalchemy(self):
+        return self._connection_sqlalchemy
+
+    @property
+    def connection(self):
+        return self._connection_sqlalchemy
+
     @classmethod
     @modify_exceptions
-    def _create_session(cls, engine, connect_str):
+    def _start_sqlalchemy_connection(cls, engine, connect_str):
         try:
-            session = engine.connect()
-            return session
+            connection = engine.connect()
+            return connection
         except OperationalError as e:
             detailed_msg = detail(e)
             if detailed_msg is not None:
@@ -560,6 +549,23 @@ class Connection(ConnectionMixin):
     def assign_name(cls, engine):
         name = "%s@%s" % (engine.url.username or "", engine.url.database)
         return name
+
+    def _get_curr_sqlalchemy_connection_info(self):
+        """Get the dialect, driver, and database server version info of current
+        connected dialect
+
+        Returns
+        -------
+        dict
+            The dictionary which contains the SQLAlchemy-based dialect
+            information, or None if there is no current connection.
+        """
+        return {
+            "dialect": getattr(self.dialect, "name", None),
+            "driver": getattr(self.dialect, "driver", None),
+            # NOTE: this becomes available after calling engine.connect()
+            "server_version_info": getattr(self.dialect, "server_version_info", None),
+        }
 
 
 atexit.register(ConnectionManager.close_all, verbose=True)
@@ -617,9 +623,29 @@ class DBAPIConnection(ConnectionMixin):
         self.url = identifier
         self.name = identifier
         self.dialect = "duckdb" if _is_duckdb_native else None
-        self.session = DBAPISession(self, engine)
 
+        self._connection = DBAPISession(self, engine)
+
+        # calling init from ConnectionMixin must be the last thing we do as it
+        # register the connection
         super().__init__(alias=alias)
+
+    @property
+    def connection_sqlalchemy(self):
+        raise NotImplementedError(
+            "This feature is only available for SQLAlchemy connections"
+        )
+
+    @property
+    def connection(self):
+        return self._connection
+
+    def _get_curr_sqlalchemy_connection_info(self):
+        return {
+            "dialect": self.dialect,
+            "driver": self.name,
+            "server_version_info": None,
+        }
 
 
 def _check_if_duckdb_dbapi_connection(conn):

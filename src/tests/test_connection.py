@@ -274,14 +274,6 @@ def test_missing_driver(
         assert "try to install package: " + missing_pkg in str(excinfo.value)
 
 
-def test_no_current_connection_and_get_info(monkeypatch, mock_database):
-    engine = create_engine("sqlite://")
-    conn = Connection(engine=engine)
-
-    monkeypatch.setattr(conn, "session", None)
-    assert conn._get_curr_sqlalchemy_connection_info() is None
-
-
 def test_get_connections():
     Connection(engine=create_engine("sqlite://"))
     Connection(engine=create_engine("duckdb://"))
@@ -331,7 +323,8 @@ def test_properties(mock_postgres):
     assert conn.name == "user@db"
     assert isinstance(conn.engine, Engine)
     assert conn.dialect
-    assert conn.session
+    assert conn.connection_sqlalchemy
+    assert conn.connection
 
 
 @pytest.mark.parametrize(
