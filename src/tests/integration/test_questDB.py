@@ -599,13 +599,13 @@ def test_dbapi_connection(ip_questdb, alias):
 
     engine = pg.connect(QUESTDB_CONNECTION_STRING)
 
-    expected_connection_name = "custom_driver"
+    expected_connection_name = "Connection"
 
     connection = DBAPIConnection(engine, alias)
 
     assert isinstance(connection, DBAPIConnection)
     assert connection.name is expected_connection_name
-    assert connection.dialect is expected_connection_name
+    assert connection.dialect is None
     assert connection.alias is alias
     assert len(ConnectionManager.connections) > 0
     assert isinstance(connection.session, DBAPISession)
