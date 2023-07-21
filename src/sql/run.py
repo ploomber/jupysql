@@ -561,7 +561,7 @@ def _commit(conn, config, manual_commit):
 
     if _should_commit:
         try:
-            with Session(conn.connection_sqlalchemy) as session:
+            with Session(conn.connection) as session:
                 session.commit()
         except sqlalchemy.exc.OperationalError:
             display.message("The database does not support the COMMIT command")
@@ -598,17 +598,22 @@ def set_autocommit(conn, config):
         )
         return False
     if config.autocommit:
-        try:
-            conn.connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
-        except Exception as e:
-            logging.debug(
-                f"The database driver doesn't support such "
-                f"AUTOCOMMIT execution option"
-                f"\nPerhaps you can try running a manual COMMIT command"
-                f"\nMessage from the database driver\n\t"
-                f"Exception:  {e}\n",  # noqa: F841
-            )
-            return True
+        if conn.is_dbapi_connection:
+            logging.debug("AUTOCOMMIT is not supported for DBAPI connections")
+        else:
+            connection_sqlalchemy = conn.connection_sqlalchemy
+
+            try:
+                connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
+            except Exception as e:
+                logging.debug(
+                    f"The database driver doesn't support such "
+                    f"AUTOCOMMIT execution option"
+                    f"\nPerhaps you can try running a manual COMMIT command"
+                    f"\nMessage from the database driver\n\t"
+                    f"Exception:  {e}\n",  # noqa: F841
+                )
+                return True
     return False
 
 

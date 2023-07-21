@@ -10,30 +10,35 @@ from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
 @pytest.mark.parametrize(
-    "ip, exp",
+    "ip, exp, message",
     [
         (
             "ip_with_duckDB",
             "'duckdb.DuckDBPyConnection' object has no attribute "
             "'set_isolation_level'\n",
+            "The database driver doesn't support such AUTOCOMMIT",
         ),
         (
             "ip_with_duckDB_native",
-            "'DBAPISession' object has no attribute 'execution_options'",
+            "AUTOCOMMIT is not supported for DBAPI connections",
+            "AUTOCOMMIT is not supported for DBAPI connections",
         ),
     ],
+    ids=[
+        "duckdb",
+        "duckdb_native",
+    ],
 )
-def test_auto_commit_mode_on(ip, exp, caplog, request):
+def test_auto_commit_mode_on(ip, exp, caplog, request, message):
     ip = request.getfixturevalue(ip)
+
     with caplog.at_level(logging.DEBUG):
         ip.run_cell("%config SqlMagic.autocommit=True")
         ip.run_cell("%sql CREATE TABLE weather4 (city VARCHAR,);")
+
     assert caplog.record_tuples[0][0] == "root"
     assert caplog.record_tuples[0][1] == logging.DEBUG
-    assert (
-        "The database driver doesn't support such AUTOCOMMIT"
-        in caplog.record_tuples[0][2]
-    )
+    assert message in caplog.record_tuples[0][2]
     assert exp in caplog.record_tuples[0][2]
 
 
