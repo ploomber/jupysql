@@ -11,7 +11,7 @@ import polars as pl
 import sqlalchemy
 
 from sql.connection import DBAPIConnection, Connection
-from sql.run import ResultSet
+from sql.run.resultset import ResultSet
 
 
 @pytest.fixture

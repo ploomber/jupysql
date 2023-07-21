@@ -1,104 +1,19 @@
-import codecs
-import csv
-import operator
-import os.path
+import warnings
 import re
+import operator
 from functools import reduce
 from io import StringIO
 import html
-
-import prettytable
-import sqlalchemy
-import sqlparse
-from sqlalchemy.exc import ResourceClosedError
-from sql import exceptions, display
-from sql.column_guesser import ColumnGuesserMixin
-from sql.warnings import JupySQLDataFramePerformanceWarning
-
-try:
-    from pgspecial.main import PGSpecial
-except ModuleNotFoundError:
-    PGSpecial = None
-from sqlalchemy.orm import Session
-
-from sql.telemetry import telemetry
-import logging
-import warnings
 from collections.abc import Iterable
 
+import prettytable
+from sqlalchemy.exc import ResourceClosedError
 
-def unduplicate_field_names(field_names):
-    """Append a number to duplicate field names to make them unique."""
-    res = []
-    for k in field_names:
-        if k in res:
-            i = 1
-            while k + "_" + str(i) in res:
-                i += 1
-            k += "_" + str(i)
-        res.append(k)
-    return res
-
-
-class UnicodeWriter(object):
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
-
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, row):
-        _row = row
-        self.writer.writerow(_row)
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-        self.queue.seek(0)
-
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
-
-
-class CsvResultDescriptor(object):
-    """
-    Provides IPython Notebook-friendly output for the
-    feedback after a ``.csv`` called.
-    """
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-
-    def __repr__(self):
-        return "CSV results at %s" % os.path.join(os.path.abspath("."), self.file_path)
-
-    def _repr_html_(self):
-        return '<a href="%s">CSV results</a>' % os.path.join(
-            ".", "files", self.file_path
-        )
-
-
-def _nonbreaking_spaces(match_obj):
-    """
-    Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
-
-    Call with a ``re`` match object.  Retain group 1, replace group 2
-    with nonbreaking spaces.
-    """
-    spaces = "&nbsp;" * len(match_obj.group(2))
-    return "%s%s" % (match_obj.group(1), spaces)
-
-
-_cell_with_spaces_pattern = re.compile(r"(<td>)( {2,})")
+from sql.column_guesser import ColumnGuesserMixin
+from sql.run.csv import CSVWriter, CSVResultDescriptor
+from sql.telemetry import telemetry
+from sql.run.table import CustomPrettyTable
+from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
 class ResultSet(ColumnGuesserMixin):
@@ -436,13 +351,13 @@ class ResultSet(ColumnGuesserMixin):
         else:
             outfile = StringIO()
 
-        writer = UnicodeWriter(outfile, **format_params)
+        writer = CSVWriter(outfile, **format_params)
         writer.writerow(self.field_names)
         for row in self:
             writer.writerow(row)
         if filename:
             outfile.close()
-            return CsvResultDescriptor(filename)
+            return CSVResultDescriptor(filename)
         else:
             return outfile.getvalue()
 
@@ -493,202 +408,17 @@ class ResultSet(ColumnGuesserMixin):
         return pretty
 
 
-def display_affected_rowcount(rowcount):
-    if rowcount > 0:
-        display.message_success(f"{rowcount} rows affected.")
-
-
-class FakeResultProxy(object):
-    """A fake class that pretends to behave like the ResultProxy from
-    SqlAlchemy.
-    """
-
-    def __init__(self, cursor, headers):
-        if cursor is None:
-            cursor = []
-            headers = []
-        if isinstance(cursor, list):
-            self.from_list(source_list=cursor)
-        else:
-            self.fetchall = cursor.fetchall
-            self.fetchmany = cursor.fetchmany
-            self.rowcount = cursor.rowcount
-        self.keys = lambda: headers
-        self.returns_rows = True
-
-    def from_list(self, source_list):
-        "Simulates SQLA ResultProxy from a list."
-
-        self.fetchall = lambda: source_list
-        self.rowcount = len(source_list)
-
-        def fetchmany(size):
-            pos = 0
-            while pos < len(source_list):
-                yield source_list[pos : pos + size]
-                pos += size
-
-        self.fetchmany = fetchmany
-
-
-# some dialects have autocommit
-# specific dialects break when commit is used:
-
-_COMMIT_BLACKLIST_DIALECTS = (
-    "athena",
-    "bigquery",
-    "clickhouse",
-    "ingres",
-    "mssql",
-    "teradata",
-    "vertica",
-)
-
-
-def _commit(conn, config, manual_commit):
-    """Issues a commit, if appropriate for current config and dialect"""
-
-    _should_commit = (
-        config.autocommit
-        and all(
-            dialect not in str(conn.dialect) for dialect in _COMMIT_BLACKLIST_DIALECTS
-        )
-        and manual_commit
-    )
-
-    if _should_commit:
-        try:
-            with Session(conn.connection) as session:
-                session.commit()
-        except sqlalchemy.exc.OperationalError:
-            display.message("The database does not support the COMMIT command")
-
-
-def is_postgres_or_redshift(dialect):
-    """Checks if dialect is postgres or redshift"""
-    return "postgres" in str(dialect) or "redshift" in str(dialect)
-
-
-def is_pytds(dialect):
-    """Checks if driver is pytds"""
-    return "pytds" in str(dialect)
-
-
-def handle_postgres_special(conn, statement):
-    """Execute a PostgreSQL special statement using PGSpecial module."""
-    if not PGSpecial:
-        raise exceptions.MissingPackageError("pgspecial not installed")
-
-    pgspecial = PGSpecial()
-    # TODO: support for raw psycopg2 connections
-    _, cur, headers, _ = pgspecial.execute(
-        conn.connection_sqlalchemy.connection.cursor(), statement
-    )[0]
-    return FakeResultProxy(cur, headers)
-
-
-def set_autocommit(conn, config):
-    """Sets the autocommit setting for a database connection."""
-    if is_pytds(conn.dialect):
-        warnings.warn(
-            "Autocommit is not supported for pytds, thus is automatically disabled"
-        )
-        return False
-    if config.autocommit:
-        if conn.is_dbapi_connection:
-            logging.debug("AUTOCOMMIT is not supported for DBAPI connections")
-        else:
-            connection_sqlalchemy = conn.connection_sqlalchemy
-
-            try:
-                connection_sqlalchemy.execution_options(isolation_level="AUTOCOMMIT")
-            except Exception as e:
-                logging.debug(
-                    f"The database driver doesn't support such "
-                    f"AUTOCOMMIT execution option"
-                    f"\nPerhaps you can try running a manual COMMIT command"
-                    f"\nMessage from the database driver\n\t"
-                    f"Exception:  {e}\n",  # noqa: F841
-                )
-                return True
-    return False
-
-
-def select_df_type(resultset, config):
-    """
-    Converts the input resultset to either a Pandas DataFrame
-    or Polars DataFrame based on the config settings.
-    """
-    if config.autopandas:
-        return resultset.DataFrame()
-    elif config.autopolars:
-        return resultset.PolarsDataFrame(**config.polars_dataframe_kwargs)
-    else:
-        return resultset
-    # returning only last result, intentionally
-
-
-def run(conn, sql, config):
-    """Run a SQL query with the given connection
-
-    Parameters
-    ----------
-    conn : sql.connection.Connection
-        The connection to use
-
-    sql : str
-        SQL query to execution
-
-    config
-        Configuration object
-    """
-    if not sql.strip():
-        # returning only when sql is empty string
-        return "Connected: %s" % conn.name
-
-    for statement in sqlparse.split(sql):
-        first_word = sql.strip().split()[0].lower()
-        manual_commit = False
-
-        # attempting to run a transaction
-        if first_word == "begin":
-            raise exceptions.RuntimeError("JupySQL does not support transactions")
-
-        # postgres metacommand
-        if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
-            result = handle_postgres_special(conn, statement)
-
-        # regular query
-        else:
-            manual_commit = set_autocommit(conn, config)
-
-            result = conn.raw_execute(statement)
-            _commit(conn=conn, config=config, manual_commit=manual_commit)
-
-            if result and config.feedback:
-                if hasattr(result, "rowcount"):
-                    display_affected_rowcount(result.rowcount)
-
-    resultset = ResultSet(result, config, statement, conn)
-    return select_df_type(resultset, config)
-
-
-class CustomPrettyTable(prettytable.PrettyTable):
-    def add_rows(self, data):
-        for row in data:
-            formatted_row = []
-            for cell in row:
-                if isinstance(cell, str) and cell.startswith("http"):
-                    formatted_row.append("<a href={}>{}</a>".format(cell, cell))
-                else:
-                    formatted_row.append(cell)
-            self.add_row(formatted_row)
-
-
-def _statement_is_select(statement):
-    statement_ = statement.lower().strip()
-    # duckdb also allows FROM without SELECT
-    return statement_.startswith("select") or statement_.startswith("from")
+def unduplicate_field_names(field_names):
+    """Append a number to duplicate field names to make them unique."""
+    res = []
+    for k in field_names:
+        if k in res:
+            i = 1
+            while k + "_" + str(i) in res:
+                i += 1
+            k += "_" + str(i)
+        res.append(k)
+    return res
 
 
 def _convert_to_data_frame(
@@ -703,10 +433,10 @@ def _convert_to_data_frame(
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
         # statements
-        is_select = _statement_is_select(result_set.statement)
+        is_select = _statement_is_select(result_set._statement)
 
         if is_select:
-            result_set.sqlaproxy.execute(result_set.statement)
+            result_set.sqlaproxy.execute(result_set._statement)
 
         return getattr(result_set.sqlaproxy, converter_name)()
     else:
@@ -738,3 +468,20 @@ def _convert_to_data_frame(
             )
 
         return frame
+
+
+def _nonbreaking_spaces(match_obj):
+    """
+    Make spaces visible in HTML by replacing all `` `` with ``&nbsp;``
+
+    Call with a ``re`` match object.  Retain group 1, replace group 2
+    with nonbreaking spaces.
+    """
+    spaces = "&nbsp;" * len(match_obj.group(2))
+    return "%s%s" % (match_obj.group(1), spaces)
+
+
+def _statement_is_select(statement):
+    statement_ = statement.lower().strip()
+    # duckdb also allows FROM without SELECT
+    return statement_.startswith("select") or statement_.startswith("from")

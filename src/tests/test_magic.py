@@ -15,7 +15,7 @@ from sqlalchemy import create_engine
 from IPython.core.error import UsageError
 from sql.connection import ConnectionManager
 from sql.magic import SqlMagic
-from sql.run import ResultSet
+from sql.run.resultset import ResultSet
 from sql import magic
 
 from conftest import runsql
