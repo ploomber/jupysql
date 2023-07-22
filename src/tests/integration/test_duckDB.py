@@ -1,5 +1,4 @@
 from unittest.mock import Mock
-import logging
 import pytest
 
 import polars as pl
