@@ -1,4 +1,6 @@
 import uuid
+from functools import partial
+
 import pytest
 from sqlalchemy import create_engine
 import sqlalchemy
@@ -6,6 +8,22 @@ import sqlalchemy
 from sql.connection import Connection, DBAPIConnection
 from sql.run.run import run_statements
 from sql import _testing
+
+
+@pytest.fixture
+def psycopg2_factory():
+    import psycopg2
+
+    config = _testing.DatabaseConfigHelper.get_database_config("postgreSQL")
+
+    return partial(
+        psycopg2.connect,
+        database=config["database"],
+        user=config["username"],
+        password=config["password"],
+        host=config["host"],
+        port=config["port"],
+    )
 
 
 class ConfigAutocommit:
@@ -49,30 +67,15 @@ def test_duckdb_sqlalchemy_doesnt_commit_by_default(tmp_empty):
     assert f"Table with name {name} does not exist!" in str(excinfo.value)
 
 
-def test_postgres_dbapi_doesnt_commit_by_default(setup_postgreSQL):
+def test_postgres_dbapi_doesnt_commit_by_default(setup_postgreSQL, psycopg2_factory):
     """
     This test checks that postgres doesn't commit by default so we're sure that the
     commit behavior comes from our code
     """
     import psycopg2
 
-    config = _testing.DatabaseConfigHelper.get_database_config("postgreSQL")
-
-    conn_one = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
-
-    conn_two = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
+    conn_one = psycopg2_factory()
+    conn_two = psycopg2_factory()
 
     name = gen_name()
 
@@ -108,7 +111,8 @@ def test_autocommit_off_with_sqlalchemy_connection(tmp_empty):
     assert f"Table with name {name} does not exist!" in str(excinfo.value)
 
 
-def test_autocommit_with_sqlalchemy_connection(tmp_empty):
+def test_autocommit_with_sqlalchemy_connection_manual_commit(tmp_empty):
+    """Test case when we manually call .commit() on the connection"""
     url = "duckdb:///my.db"
 
     engine_one = create_engine(url)
@@ -124,6 +128,7 @@ def test_autocommit_with_sqlalchemy_connection(tmp_empty):
 
 
 def test_autocommit_with_sqlalchemy_that_supports_isolation_level(setup_postgreSQL):
+    """Test case when we use sqlalchemy to set the isolation level for autocommit"""
     url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
 
     conn_one = Connection(create_engine(url))
@@ -136,27 +141,11 @@ def test_autocommit_with_sqlalchemy_that_supports_isolation_level(setup_postgreS
 
 
 # TODO: add create table test to generic operations
-# TODO: add test for native psycopg2 connection
-def test_autocommit_off_with_dbapi_connection(setup_postgreSQL):
+def test_autocommit_off_with_dbapi_connection(setup_postgreSQL, psycopg2_factory):
     import psycopg2
 
-    config = _testing.DatabaseConfigHelper.get_database_config("postgreSQL")
-
-    conn_raw_one = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
-    conn_raw_two = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
-
+    conn_raw_one = psycopg2_factory()
+    conn_raw_two = psycopg2_factory()
     conn_one = DBAPIConnection(conn_raw_one)
     conn_two = DBAPIConnection(conn_raw_two)
 
@@ -168,25 +157,9 @@ def test_autocommit_off_with_dbapi_connection(setup_postgreSQL):
         run_statements(conn_two, f"SELECT * FROM {name}", ConfigNoAutocommit)
 
 
-def test_autocommit_with_dbapi_connection(setup_postgreSQL):
-    import psycopg2
-
-    config = _testing.DatabaseConfigHelper.get_database_config("postgreSQL")
-
-    conn_raw_one = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
-    conn_raw_two = psycopg2.connect(
-        database=config["database"],
-        user=config["username"],
-        password=config["password"],
-        host=config["host"],
-        port=config["port"],
-    )
+def test_autocommit_with_dbapi_connection(setup_postgreSQL, psycopg2_factory):
+    conn_raw_one = psycopg2_factory()
+    conn_raw_two = psycopg2_factory()
 
     conn_one = DBAPIConnection(conn_raw_one)
     conn_two = DBAPIConnection(conn_raw_two)
