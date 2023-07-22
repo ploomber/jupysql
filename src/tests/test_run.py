@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import create_engine
 import duckdb
 
-from sql.connection import Connection, DBAPIConnection
+from sql.connection import SQLAlchemyConnection, DBAPIConnection
 from sql.run.run import (
     run_statements,
     is_postgres_or_redshift,
@@ -20,7 +20,7 @@ from sql.run.resultset import ResultSet
 
 @pytest.fixture
 def mock_conns():
-    conn = Connection(Mock())
+    conn = SQLAlchemyConnection(Mock())
     conn.connection_sqlalchemy.execution_options.side_effect = ValueError
     return conn
 
@@ -124,8 +124,8 @@ def test_sql_is_empty(mock_conns):
 @pytest.mark.parametrize(
     "connection",
     [
-        Connection(create_engine("duckdb://")),
-        Connection(create_engine("sqlite://")),
+        SQLAlchemyConnection(create_engine("duckdb://")),
+        SQLAlchemyConnection(create_engine("sqlite://")),
         DBAPIConnection(duckdb.connect()),
         DBAPIConnection(sqlite3.connect("")),
     ],
@@ -158,7 +158,7 @@ def test_run(connection, config, expected_type, sql):
 
 
 def test_do_not_fail_if_sqlalchemy_autocommit_not_supported():
-    conn = Connection(create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
     conn.connection_sqlalchemy.execution_options = Mock(
         side_effect=Exception("AUTOCOMMIT not supported!")
     )

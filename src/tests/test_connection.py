@@ -15,7 +15,7 @@ from sqlalchemy.exc import ResourceClosedError
 
 import sql.connection
 from sql.connection import (
-    Connection,
+    SQLAlchemyConnection,
     ConnectionManager,
     is_pep249_compliant,
     default_alias_for_engine,
@@ -66,7 +66,7 @@ def test_alias(cleanup):
 
 def test_get_database_information():
     engine = create_engine("sqlite://")
-    conn = Connection(engine=engine)
+    conn = SQLAlchemyConnection(engine=engine)
 
     assert conn._get_database_information() == {
         "dialect": "sqlite",
@@ -76,7 +76,7 @@ def test_get_database_information():
 
 
 def test_get_sqlglot_dialect_no_curr_connection(mock_database, monkeypatch):
-    conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
+    conn = SQLAlchemyConnection(engine=sqlalchemy.create_engine("someurl://"))
     monkeypatch.setattr(conn, "_get_database_information", lambda: {"dialect": None})
     assert conn._get_sqlglot_dialect() is None
 
@@ -129,7 +129,7 @@ def test_get_sqlglot_dialect(
         sqlalchemy_connection_info (dict): The metadata about the current dialect
         expected_sqlglot_dialect (str): Expected sqlglot dialect name
     """
-    conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
+    conn = SQLAlchemyConnection(engine=sqlalchemy.create_engine("someurl://"))
 
     monkeypatch.setattr(
         conn,
@@ -164,7 +164,7 @@ def test_is_use_backtick_template(
         if the dialect supports backtick identifier
     """
     # conn = Connection(engine=create_engine(sqlalchemy_url))
-    conn = Connection(engine=sqlalchemy.create_engine("someurl://"))
+    conn = SQLAlchemyConnection(engine=sqlalchemy.create_engine("someurl://"))
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: cur_dialect)
     assert conn.is_use_backtick_template() == expected_support_backtick
 
@@ -175,7 +175,7 @@ def test_is_use_backtick_template_sqlglot_missing_dialect_ValueError(
     """Since accessing missing dialect will raise ValueError from sqlglot, we assume
     that's not support case
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "something_weird_dialect")
     assert conn.is_use_backtick_template() is False
@@ -187,7 +187,7 @@ def test_is_use_backtick_template_sqlglot_missing_tokenizer_AttributeError(
     """Since accessing the dialect without Tokenizer Class will raise AttributeError
     from sqlglot, we assume that's not support case
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(sqlglot.Dialect.get_or_raise("mysql"), "Tokenizer", None)
@@ -201,7 +201,7 @@ def test_is_use_backtick_template_sqlglot_missing_identifiers_TypeError(
     """Since accessing the IDENTIFIERS list of the dialect's Tokenizer Class
     will raise TypeError from sqlglot, we assume that's not support case
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(
@@ -214,7 +214,7 @@ def test_is_use_backtick_template_sqlglot_empty_identifiers(mock_database, monke
     """Since looking up the "`" symbol in IDENTIFIERS list of the dialect's
     Tokenizer Class will raise TypeError from sqlglot, we assume that's not support case
     """
-    conn = Connection(engine=create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "mysql")
     monkeypatch.setattr(
@@ -276,8 +276,8 @@ def test_missing_driver(
 
 
 def test_get_connections():
-    Connection(engine=create_engine("sqlite://"))
-    Connection(engine=create_engine("duckdb://"))
+    SQLAlchemyConnection(engine=create_engine("sqlite://"))
+    SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
     assert ConnectionManager._get_connections() == [
         {
@@ -298,7 +298,7 @@ def test_get_connections():
 
 
 def test_display_current_connection(capsys):
-    Connection(engine=create_engine("duckdb://"))
+    SQLAlchemyConnection(engine=create_engine("duckdb://"))
     ConnectionManager.display_current_connection()
 
     captured = capsys.readouterr()
@@ -306,8 +306,8 @@ def test_display_current_connection(capsys):
 
 
 def test_connections_table():
-    Connection(engine=create_engine("sqlite://"))
-    Connection(engine=create_engine("duckdb://"))
+    SQLAlchemyConnection(engine=create_engine("sqlite://"))
+    SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
     connections = ConnectionManager.connections_table()
     assert connections._headers == ["current", "url", "alias"]

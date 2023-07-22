@@ -144,10 +144,10 @@ class ConnectionManager:
         connect_args = connect_args or {}
 
         if descriptor:
-            if isinstance(descriptor, Connection):
+            if isinstance(descriptor, SQLAlchemyConnection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
-                cls.current = Connection(descriptor, alias=alias)
+                cls.current = SQLAlchemyConnection(descriptor, alias=alias)
             elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
@@ -239,7 +239,7 @@ class ConnectionManager:
     @classmethod
     def close_connection_with_descriptor(cls, descriptor):
         """Close a connection with the given descriptor"""
-        if isinstance(descriptor, Connection):
+        if isinstance(descriptor, SQLAlchemyConnection):
             conn = descriptor
         else:
             conn = cls.connections.get(descriptor) or cls.connections.get(
@@ -307,7 +307,7 @@ class ConnectionManager:
         except Exception as e:
             raise cls._error_invalid_connection_info(e, connect_str) from e
 
-        connection = Connection(engine, alias=alias)
+        connection = SQLAlchemyConnection(engine, alias=alias)
         connection.connect_args = connect_args
 
         return connection
@@ -457,7 +457,7 @@ class AbstractConnection(abc.ABC):
         return identifiers
 
 
-class Connection(AbstractConnection):
+class SQLAlchemyConnection(AbstractConnection):
     """Manages connections to databases
 
     Parameters

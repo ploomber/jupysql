@@ -10,7 +10,7 @@ import pandas as pd
 import polars as pl
 import sqlalchemy
 
-from sql.connection import DBAPIConnection, Connection
+from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
 
 
@@ -134,13 +134,13 @@ def results(ip_empty):
 
 @pytest.fixture
 def duckdb_sqlalchemy(ip_empty):
-    conn = Connection(create_engine("duckdb://"))
+    conn = SQLAlchemyConnection(create_engine("duckdb://"))
     yield conn
 
 
 @pytest.fixture
 def sqlite_sqlalchemy(ip_empty):
-    conn = Connection(create_engine("sqlite://"))
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
     yield conn
 
 
@@ -495,7 +495,7 @@ def test_no_displaylimit_message(results, displaylimit):
 
 
 def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
-    first = Connection(create_engine("duckdb://"))
+    first = SQLAlchemyConnection(create_engine("duckdb://"))
     first.execute("CREATE TABLE numbers (x INTEGER)")
     first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
     first.execute("CREATE TABLE characters (c VARCHAR)")
@@ -551,11 +551,11 @@ def test_doesnt_refresh_sqlaproxy_for_if_not_sqlalchemy_and_duckdb():
 
 
 def test_doesnt_refresh_sqlaproxy_if_different_connection():
-    first = Connection(create_engine("duckdb://"))
+    first = SQLAlchemyConnection(create_engine("duckdb://"))
     first.execute("CREATE TABLE numbers (x INTEGER)")
     first.execute("INSERT INTO numbers VALUES (1), (2), (3), (4), (5)")
 
-    second = Connection(create_engine("duckdb://"))
+    second = SQLAlchemyConnection(create_engine("duckdb://"))
     second.execute("CREATE TABLE characters (c VARCHAR)")
     second.execute("INSERT INTO characters VALUES ('a'), ('b'), ('c'), ('d'), ('e')")
 

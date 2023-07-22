@@ -1,6 +1,6 @@
 from sql.connection.connection import (
     ConnectionManager,
-    Connection,
+    SQLAlchemyConnection,
     DBAPIConnection,
     is_pep249_compliant,
     PLOOMBER_DOCS_LINK_STR,
@@ -10,7 +10,7 @@ from sql.connection.connection import (
 
 __all__ = [
     "ConnectionManager",
-    "Connection",
+    "SQLAlchemyConnection",
     "DBAPIConnection",
     "is_pep249_compliant",
     "PLOOMBER_DOCS_LINK_STR",

@@ -1,6 +1,6 @@
 from pathlib import Path
 import urllib.request
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 
 from sql import plot
 
@@ -11,6 +11,6 @@ if not Path("iris.csv").is_file():
         "iris.csv",
     )
 
-conn = Connection.from_connect_str("duckdb://")
+conn = SQLAlchemyConnection.from_connect_str("duckdb://")
 
 plot.boxplot("iris.csv", "petal width", conn=conn)

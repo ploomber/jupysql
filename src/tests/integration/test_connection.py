@@ -5,7 +5,7 @@ from functools import partial
 import pytest
 
 
-from sql.connection import Connection, DBAPIConnection, ConnectionManager
+from sql.connection import SQLAlchemyConnection, DBAPIConnection, ConnectionManager
 
 
 @pytest.mark.parametrize(
@@ -13,7 +13,7 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
     [
         [
             "setup_postgreSQL",
-            Connection,
+            SQLAlchemyConnection,
             "postgresql://ploomber_app:***@localhost:5432/db",
             "postgresql",
         ],
@@ -25,13 +25,13 @@ from sql.connection import Connection, DBAPIConnection, ConnectionManager
         ],
         [
             "setup_duckDB",
-            Connection,
+            SQLAlchemyConnection,
             "duckdb:////tmp/db-duckdb",
             "duckdb",
         ],
         [
             "setup_postgreSQL",
-            partial(Connection, alias="some-postgres"),
+            partial(SQLAlchemyConnection, alias="some-postgres"),
             "some-postgres",
             "postgresql",
         ],
@@ -57,12 +57,12 @@ def test_connection_properties(dynamic_db, request, Constructor, alias, dialect)
     [
         [
             "setup_postgreSQL",
-            Connection,
+            SQLAlchemyConnection,
             "postgresql://ploomber_app:***@localhost:5432/db",
         ],
         [
             "setup_duckDB",
-            Connection,
+            SQLAlchemyConnection,
             "duckdb:////tmp/db-duckdb",
         ],
         [
@@ -72,7 +72,7 @@ def test_connection_properties(dynamic_db, request, Constructor, alias, dialect)
         ],
         [
             "setup_duckDB",
-            partial(Connection, alias="some-alias"),
+            partial(SQLAlchemyConnection, alias="some-alias"),
             "some-alias",
         ],
         [
@@ -101,7 +101,7 @@ def test_connection_identifiers(
     [
         [
             "setup_postgreSQL",
-            Connection,
+            SQLAlchemyConnection,
             {
                 "dialect": "postgresql",
                 "driver": "psycopg2",
@@ -110,7 +110,7 @@ def test_connection_identifiers(
         ],
         [
             "setup_duckDB",
-            Connection,
+            SQLAlchemyConnection,
             {
                 "dialect": "duckdb",
                 "driver": "duckdb_engine",

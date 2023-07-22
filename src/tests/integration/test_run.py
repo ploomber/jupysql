@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine
 import sqlalchemy
 
-from sql.connection import Connection, DBAPIConnection
+from sql.connection import SQLAlchemyConnection, DBAPIConnection
 from sql.run.run import run_statements
 from sql import _testing
 
@@ -98,8 +98,8 @@ def test_autocommit_off_with_sqlalchemy_connection(tmp_empty):
     engine_one = create_engine(url)
     engine_two = create_engine(url)
 
-    conn_one = Connection(engine_one)
-    conn_two = Connection(engine_two)
+    conn_one = SQLAlchemyConnection(engine_one)
+    conn_two = SQLAlchemyConnection(engine_two)
 
     name = gen_name()
 
@@ -118,8 +118,8 @@ def test_autocommit_with_sqlalchemy_connection_manual_commit(tmp_empty):
     engine_one = create_engine(url)
     engine_two = create_engine(url)
 
-    conn_one = Connection(engine_one)
-    conn_two = Connection(engine_two)
+    conn_one = SQLAlchemyConnection(engine_one)
+    conn_two = SQLAlchemyConnection(engine_two)
 
     name = gen_name()
 
@@ -131,8 +131,8 @@ def test_autocommit_with_sqlalchemy_that_supports_isolation_level(setup_postgreS
     """Test case when we use sqlalchemy to set the isolation level for autocommit"""
     url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
 
-    conn_one = Connection(create_engine(url))
-    conn_two = Connection(create_engine(url))
+    conn_one = SQLAlchemyConnection(create_engine(url))
+    conn_two = SQLAlchemyConnection(create_engine(url))
 
     name = gen_name()
 
