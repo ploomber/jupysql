@@ -98,13 +98,13 @@ def select_df_type(resultset, config):
         return resultset
 
 
-# TODO: can we set this when the connection starts? there's no point in running it over
-# and over again. also, this gives errors if we're in the middle of a transaction, so
-# it's best to call it just once
-# NOTE: we need to keep this, as it offers better handling for edge cases than calling
-# .commit() directly
+# TODO: move this logic to SQLAlchemyConnection
 def set_sqlalchemy_autocommit_option(conn, config):
-    """Sets the autocommit setting for a database connection."""
+    """
+    Sets the autocommit setting for a database connection using SQLAlchemy.
+    This better handles some edge cases than calling .commit() on the connection but
+    not all drivers support it.
+    """
     if is_pytds(conn.dialect):
         return False
     if config.autocommit:
