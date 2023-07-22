@@ -179,9 +179,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
         + alias
     )
     yield ip_empty
-
-    # Disconnect database
-    ip_empty.run_cell("%sql -x " + alias)
+    connection.ConnectionManager.close_all()
 
 
 @pytest.fixture(scope="session")
@@ -210,8 +208,7 @@ def ip_with_mariaDB(ip_empty, setup_mariaDB):
         + alias
     )
     yield ip_empty
-    # Disconnect database
-    ip_empty.run_cell("%sql -x " + alias)
+    connection.ConnectionManager.close_all()
 
 
 @pytest.fixture(scope="session")
