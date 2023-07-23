@@ -964,8 +964,8 @@ CREATE_TEMPORARY_TABLE = "CREATE TEMPORARY TABLE __TABLE_NAME__ (number INT)"
         ("ip_with_MSSQL", CREATE_TABLE),
         # TODO: MSSQL with temp table
         # "ip_with_duckDB_native",
-        # "ip_with_Snowflake",
-        # "ip_with_oracle",
+        ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+        ("ip_with_oracle", CREATE_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_single_cell(
@@ -1008,8 +1008,8 @@ SELECT * FROM {__TABLE_NAME__};
         ("ip_with_MSSQL", CREATE_TABLE),
         # TODO: MSSQL with temp table
         # "ip_with_duckDB_native",
-        # "ip_with_Snowflake",
-        # "ip_with_oracle",
+        ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+        ("ip_with_oracle", CREATE_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_multiple_cells(
