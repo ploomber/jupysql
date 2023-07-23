@@ -1,3 +1,4 @@
+from uuid import uuid4
 import shutil
 from matplotlib import pyplot as plt
 import pytest
@@ -832,33 +833,6 @@ S"""
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
-        "ip_with_SQLite",
-        pytest.param(
-            "ip_with_duckDB_native",
-            marks=pytest.mark.xfail(
-                reason="We're currently running each command in a new cursor"
-            ),
-        ),
-        "ip_with_duckDB",
-        "ip_with_postgreSQL",
-    ],
-)
-def test_temp_table(ip_with_dynamic_db, request):
-    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out = ip_with_dynamic_db.run_cell(
-        """%%sql
-create temp table my_table as select 42;
-select * from my_table;
-"""
-    )
-
-    assert out.error_in_exec is None
-    assert list(out.result) == [(42,)]
-
-
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
         "ip_with_postgreSQL",
         "ip_with_mySQL",
         "ip_with_mariaDB",
@@ -909,9 +883,9 @@ DROP TABLE my_numbers
 @pytest.mark.parametrize(
     "cell",
     [
-        "%sql SELECT * FROM __TABLE_NAME__ LIMIT 5",
+        "%sql SELECT * FROM __TABLE_NAME__",
         (
-            "%sql WITH something AS (SELECT * FROM __TABLE_NAME__ LIMIT 5) "
+            "%sql WITH something AS (SELECT * FROM __TABLE_NAME__) "
             "SELECT * FROM something"
         ),
     ],
@@ -936,11 +910,11 @@ def test_autocommit_retrieve_existing_resultssets(
     ).result
 
     another = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT * FROM {test_table_name_dict['numbers']} LIMIT 5"
+        f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
     ).result
 
-    assert len(result) == 5
-    assert len(another) == 5
+    assert len(result) == 60
+    assert len(another) == 60
 
 
 @pytest.mark.parametrize(
@@ -969,9 +943,101 @@ def test_autocommit_retrieve_existing_resultssets_duckdb_from(
     assert len(another) == 5
 
 
-def test_autocommit_create_table_single_cell():
-    pass
+CREATE_TABLE = "CREATE TABLE __TABLE_NAME__ (number INT)"
+CREATE_TEMP_TABLE = "CREATE TEMP TABLE __TABLE_NAME__ (number INT)"
+CREATE_TEMPORARY_TABLE = "CREATE TEMPORARY TABLE __TABLE_NAME__ (number INT)"
 
 
-def test_autocommit_create_table_multiple_cells():
-    pass
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, create_table_statement",
+    [
+        ("ip_with_postgreSQL", CREATE_TABLE),
+        ("ip_with_postgreSQL", CREATE_TEMP_TABLE),
+        ("ip_with_mySQL", CREATE_TABLE),
+        ("ip_with_mySQL", CREATE_TEMPORARY_TABLE),
+        ("ip_with_mariaDB", CREATE_TABLE),
+        ("ip_with_mariaDB", CREATE_TEMPORARY_TABLE),
+        ("ip_with_SQLite", CREATE_TABLE),
+        ("ip_with_SQLite", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB", CREATE_TABLE),
+        ("ip_with_duckDB", CREATE_TEMP_TABLE),
+        ("ip_with_MSSQL", CREATE_TABLE),
+        # TODO: MSSQL with temp table
+        # "ip_with_duckDB_native",
+        # "ip_with_Snowflake",
+        # "ip_with_oracle",
+    ],
+)
+def test_autocommit_create_table_single_cell(
+    ip_with_dynamic_db,
+    request,
+    create_table_statement,
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+    __TABLE_NAME__ = f"table_{str(uuid4())[:8]}"
+
+    create_table_statement = create_table_statement.replace(
+        "__TABLE_NAME__", __TABLE_NAME__
+    )
+
+    result = ip_with_dynamic_db.run_cell(
+        f"""%%sql
+{create_table_statement};
+INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
+SELECT * FROM {__TABLE_NAME__};
+"""
+    ).result
+
+    assert len(result) == 3
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, create_table_statement",
+    [
+        ("ip_with_postgreSQL", CREATE_TABLE),
+        ("ip_with_postgreSQL", CREATE_TEMP_TABLE),
+        ("ip_with_mySQL", CREATE_TABLE),
+        ("ip_with_mySQL", CREATE_TEMPORARY_TABLE),
+        ("ip_with_mariaDB", CREATE_TABLE),
+        ("ip_with_mariaDB", CREATE_TEMPORARY_TABLE),
+        ("ip_with_SQLite", CREATE_TABLE),
+        ("ip_with_SQLite", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB", CREATE_TABLE),
+        ("ip_with_duckDB", CREATE_TEMP_TABLE),
+        ("ip_with_MSSQL", CREATE_TABLE),
+        # TODO: MSSQL with temp table
+        # "ip_with_duckDB_native",
+        # "ip_with_Snowflake",
+        # "ip_with_oracle",
+    ],
+)
+def test_autocommit_create_table_multiple_cells(
+    ip_with_dynamic_db, request, create_table_statement
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+    __TABLE_NAME__ = f"table_{str(uuid4())[:8]}"
+    create_table_statement = create_table_statement.replace(
+        "__TABLE_NAME__", __TABLE_NAME__
+    )
+
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+{create_table_statement}
+"""
+    )
+
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
+"""
+    )
+
+    result = ip_with_dynamic_db.run_cell(
+        f"""%%sql
+SELECT * FROM {__TABLE_NAME__};
+"""
+    ).result
+
+    assert len(result) == 3
