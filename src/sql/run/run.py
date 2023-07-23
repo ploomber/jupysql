@@ -41,7 +41,9 @@ def run_statements(conn, sql, config):
 
         # maybe only apply it for duckdb?
         # TODO: add test case when statement starts with "FROM"
-        # TODO: add test case when usign WITH
+        # TODO: add test case when using WITH
+        # TODO: checking for with isn't the best idea because it doesn't guarantee
+        # that the final one is a select statement
         first_word_statement = statement.strip().split()[0].lower()
         is_select = first_word_statement in {"select", "with"}
 
