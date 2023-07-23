@@ -39,6 +39,10 @@ def run_statements(conn, sql, config):
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
 
+        # maybe only apply it for duckdb?
+        # TODO: add test case when statement starts with "FROM"
+        is_select = statement.strip().split()[0].lower() == "select"
+
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
 
@@ -51,7 +55,7 @@ def run_statements(conn, sql, config):
             manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
             result = conn.raw_execute(statement)
 
-            if manual_commit_call_required:
+            if manual_commit_call_required and not is_select:
                 _commit_if_needed(conn=conn, config=config)
 
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
