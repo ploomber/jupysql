@@ -890,3 +890,88 @@ SELECT * FROM my_numbers
 DROP TABLE my_numbers
         """
     )
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        "ip_with_Snowflake",
+        "ip_with_MSSQL",
+        "ip_with_oracle",
+    ],
+)
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sql SELECT * FROM __TABLE_NAME__ LIMIT 5",
+        (
+            "%sql WITH something AS (SELECT * FROM __TABLE_NAME__ LIMIT 5) "
+            "SELECT * FROM something"
+        ),
+    ],
+)
+def test_autocommit_retrieve_existing_resultssets(
+    ip_with_dynamic_db, request, test_table_name_dict, cell
+):
+    """
+    duckdb-engine causes existing result cursor to become empty if we call
+    connection.commit(), this test ensures that we correctly handle that edge
+    case for duckdb and potentially other drivers.
+
+    See: https://github.com/Mause/duckdb_engine/issues/734
+    """
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+
+    result = ip_with_dynamic_db.run_cell(
+        cell.replace("__TABLE_NAME__", test_table_name_dict["numbers"])
+    ).result
+
+    another = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['numbers']} LIMIT 5"
+    ).result
+
+    assert len(result) == 5
+    assert len(another) == 5
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+    ],
+)
+def test_autocommit_retrieve_existing_resultssets_duckdb_from(
+    ip_with_dynamic_db, request, test_table_name_dict
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+
+    result = ip_with_dynamic_db.run_cell(
+        f'%sql FROM {test_table_name_dict["numbers"]} LIMIT 5'
+    ).result
+
+    another = ip_with_dynamic_db.run_cell(
+        f"%sql FROM {test_table_name_dict['numbers']} LIMIT 5"
+    ).result
+
+    assert len(result) == 5
+    assert len(another) == 5
+
+
+def test_autocommit_create_table_single_cell():
+    pass
+
+
+def test_autocommit_create_table_multiple_cells():
+    pass

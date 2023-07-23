@@ -39,13 +39,12 @@ def run_statements(conn, sql, config):
     for statement in sqlparse.split(sql):
         first_word = sql.strip().split()[0].lower()
 
-        # maybe only apply it for duckdb?
-        # TODO: add test case when statement starts with "FROM"
-        # TODO: add test case when using WITH
         # TODO: checking for with isn't the best idea because it doesn't guarantee
         # that the final one is a select statement
         first_word_statement = statement.strip().split()[0].lower()
-        is_select = first_word_statement in {"select", "with"}
+
+        # in duckdb db "from TABLE_NAME" is valid
+        is_select = first_word_statement in {"select", "with", "from"}
 
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
@@ -59,7 +58,14 @@ def run_statements(conn, sql, config):
             manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
             result = conn.raw_execute(statement)
 
-            if manual_commit_call_required and not is_select:
+            if (
+                manual_commit_call_required
+                and not is_select
+                # the only driver where we've found that calling connectio.commit()
+                # is problematic is duckdb.
+                # see: https://github.com/Mause/duckdb_engine/issues/734
+                and conn.dialect == "duckdb"
+            ):
                 _commit_if_needed(conn=conn, config=config)
 
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
@@ -79,9 +85,12 @@ def _commit_if_needed(conn, config):
     if _should_commit:
         conn_ = conn.connection
 
+        # TODO: in sqlalchemy 1.x, connection has no commit attribute
+        # so this message will be printed out every time
         try:
             conn_.commit()
-        except Exception:
+        except Exception as e:
+            print(e)
             display.message(
                 "The database does not support the COMMIT command. "
                 "You can disable autocommit with %config SqlMagic.autocommit=False"
