@@ -21,7 +21,11 @@ def isolate_connections(monkeypatch):
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
     yield
-    connection.ConnectionManager.close_all()
+
+    # FIXME: cannot close connections because some of them are shared across tests
+    # e.g., setup_duckdb, we need to isolate them and then we'll be able to close them
+    # here
+    # connection.ConnectionManager.close_all()
 
 
 def pytest_addoption(parser):

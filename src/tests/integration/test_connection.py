@@ -85,15 +85,12 @@ def test_connection_properties(dynamic_db, request, Constructor, alias, dialect)
 def test_connection_identifiers(
     dynamic_db, request, monkeypatch, Constructor, expected
 ):
-    connections = {}
-    monkeypatch.setattr(ConnectionManager, "connections", connections)
-
     dynamic_db = request.getfixturevalue(dynamic_db)
 
     Constructor(dynamic_db)
 
-    assert len(connections) == 1
-    assert set(connections) == {expected}
+    assert len(ConnectionManager.connections) == 1
+    assert set(ConnectionManager.connections) == {expected}
 
 
 @pytest.mark.parametrize(

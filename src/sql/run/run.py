@@ -41,7 +41,9 @@ def run_statements(conn, sql, config):
 
         # maybe only apply it for duckdb?
         # TODO: add test case when statement starts with "FROM"
-        is_select = statement.strip().split()[0].lower() == "select"
+        # TODO: add test case when usign WITH
+        first_word_statement = statement.strip().split()[0].lower()
+        is_select = first_word_statement in {"select", "with"}
 
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
