@@ -973,11 +973,36 @@ CREATE_GLOBAL_TEMPORARY_TABLE = (
         ("ip_with_SQLite", CREATE_TEMP_TABLE),
         ("ip_with_duckDB", CREATE_TABLE),
         ("ip_with_duckDB", CREATE_TEMP_TABLE),
-        ("ip_with_MSSQL", CREATE_TABLE),
-        # TODO: MSSQL with temp table
-        # "ip_with_duckDB_native",
+        ("ip_with_duckDB_native", CREATE_TABLE),
+        pytest.param(
+            "ip_with_duckDB_native",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We're executing operations in different cursors"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        ("ip_with_oracle", CREATE_TABLE),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_GLOBAL_TEMPORARY_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        ("ip_with_Snowflake", CREATE_TABLE),
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
-        ("ip_with_oracle", CREATE_GLOBAL_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_single_cell(
@@ -1017,11 +1042,36 @@ SELECT * FROM {__TABLE_NAME__};
         ("ip_with_SQLite", CREATE_TEMP_TABLE),
         ("ip_with_duckDB", CREATE_TABLE),
         ("ip_with_duckDB", CREATE_TEMP_TABLE),
-        ("ip_with_MSSQL", CREATE_TABLE),
-        # TODO: MSSQL with temp table
-        # "ip_with_duckDB_native",
+        ("ip_with_duckDB_native", CREATE_TABLE),
+        pytest.param(
+            "ip_with_duckDB_native",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We're executing operations in different cursors"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        ("ip_with_oracle", CREATE_TABLE),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_GLOBAL_TEMPORARY_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        ("ip_with_Snowflake", CREATE_TABLE),
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
-        ("ip_with_oracle", CREATE_GLOBAL_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_multiple_cells(
