@@ -1,4 +1,3 @@
-from pathlib import Path
 from os import environ
 
 import nox
