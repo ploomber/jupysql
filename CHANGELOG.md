@@ -2,7 +2,7 @@
 
 ## 0.8.1dev
 * [Fix] Fix error that was incorrectly converted into a print message
-
+* [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
 * [Fix] Fixed vertical color breaks in histograms (#702)
 
 ## 0.8.0 (2023-07-18)
