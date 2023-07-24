@@ -25,7 +25,6 @@ INTEGRATION_CONDA_DEPENDENCIES = [
     "pyarrow",
     "psycopg2",
     "pymysql",
-    "snowflake-sqlalchemy",
     "oracledb",
     "pip",
 ]
@@ -37,40 +36,61 @@ INTEGRATION_PIP_DEPENDENCIES = [
 ]
 
 
-def _install(session, api=False, doc=False, postgres=False):
+def _install(session, integration=False):
     session.install("--editable", ".[dev]")
-    session.install(*INTEGRATION_PIP_DEPENDENCIES)
-    session.conda_install("--channel", "conda-forge", *INTEGRATION_CONDA_DEPENDENCIES)
 
-    # session.run(
-    #     "python",
-    #     "-m",
-    #     "bash_kernel.install",
-    #     "--sys-prefix",
-    #     "--conda-activate",
-    #     DEV_ENV_NAME,
-    # )
+    if integration:
+        session.install(*INTEGRATION_PIP_DEPENDENCIES)
+        session.conda_install(
+            "--channel", "conda-forge", *INTEGRATION_CONDA_DEPENDENCIES
+        )
 
 
 @nox.session(venv_backend="conda", name=DEV_ENV_NAME)
 def setup(session):
     print("Installing requirements...")
-    _install(session)
+    _install(session, integration=False)
 
 
 @nox.session(venv_backend="conda")
 def test_unit(session):
-    pass
+    """Run unit tests (SQLAlchemy 2.x)"""
+    _install(session, integration=False)
+
+    # TODO: check sqlalchemy version
+
+    session.run(
+        "pytest",
+        "src/tests/",
+        "--ignore src/tests/integration",
+        "--ignore src/tests/test_ggplot.py",
+        "--ignore src/tests/test_magic_plot.py",
+    )
+
+
+@nox.session(venv_backend="conda")
+def test_unit(session):
+    """Run unit tests (SQLAlchemy 1.x)"""
+    _install(session, integration=False)
+    session.install("sqlalchemy<2")
+
+    # TODO: check sqlalchemy version
 
 
 @nox.session(venv_backend="conda")
 def test_snowflake(session):
-    pass
+    """
+    Run snowflake tests (NOTE: the sqlalchemy-snowflake driver only works with
+    SQLAlchemy 1.x)
+    """
+    _install(session, integration=False)
+    session.install("snowflake-sqlalchemy")
 
 
 @nox.session(venv_backend="conda")
 def test_postgres(session):
-    _install(session)
+    """Run integration tests (to check compatibility with databases)"""
+    _install(session, integration=True)
     session.run(
         "pytest",
         "src/tests/integration/test_generic_db_operations.py",
