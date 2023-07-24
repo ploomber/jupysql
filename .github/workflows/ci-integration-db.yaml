@@ -44,8 +44,7 @@ jobs:
 
       - name: Integration Test
         run: |
-
-        nox --session test_integration --no-install --reuse-existing-virtualenvs
+          nox --session test_integration --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3
