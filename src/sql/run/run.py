@@ -56,16 +56,16 @@ def run_statements(conn, sql, config):
         # regular query
         else:
             manual_commit_call_required = set_sqlalchemy_autocommit_option(conn, config)
+
+            # calling connection.commit() when using duckdb-engine will yield
+            # empty results if we commit after a SELECT statement
+            # see: https://github.com/Mause/duckdb_engine/issues/734
+            if is_select and conn.dialect == "duckdb":
+                manual_commit_call_required = False
+
             result = conn.raw_execute(statement)
 
-            if (
-                manual_commit_call_required
-                and not is_select
-                # the only driver where we've found that calling connectio.commit()
-                # is problematic is duckdb.
-                # see: https://github.com/Mause/duckdb_engine/issues/734
-                and conn.dialect == "duckdb"
-            ):
+            if manual_commit_call_required:
                 _commit_if_needed(conn=conn, config=config)
 
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
