@@ -18,7 +18,7 @@ else:
     print("CONDA_PREFIX not found, creating envs in default location...")
 
 
-DEV_ENV_NAME = "jupysql-integration"
+DEV_ENV_NAME = "jupysql-env"
 
 
 INTEGRATION_CONDA_DEPENDENCIES = [
@@ -63,27 +63,37 @@ def _run_unit(session, skip_image_tests):
     args = [
         "pytest",
         "src/tests/",
-        "--ignore src/tests/integration",
+        "--ignore",
+        "src/tests/integration",
     ]
 
     if skip_image_tests:
         args.extend(
             [
-                "--ignore src/tests/test_ggplot.py",
-                "--ignore src/tests/test_magic_plot.py",
+                "--ignore",
+                "src/tests/test_ggplot.py",
+                "--ignore",
+                "src/tests/test_magic_plot.py",
             ]
         )
 
     session.run(*args)
 
 
-@nox.session(venv_backend="conda", name=DEV_ENV_NAME)
+@nox.session(
+    venv_backend="conda",
+    name=DEV_ENV_NAME,
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
 def setup(session):
     print("Installing requirements...")
     _install(session, integration=False)
 
 
-@nox.session(venv_backend="conda")
+@nox.session(
+    venv_backend="conda",
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
 def test_unit(session):
     """Run unit tests (SQLAlchemy 2.x)"""
     SKIP_IMAGE_TEST = "--skip-image-tests" in session.posargs
@@ -91,10 +101,13 @@ def test_unit(session):
     _install(session, integration=False)
     session.install("sqlalchemy>=2")
     _check_sqlalchemy(session, version=2)
-    _run_unit(skip_image_tests=SKIP_IMAGE_TEST)
+    _run_unit(session, skip_image_tests=SKIP_IMAGE_TEST)
 
 
-@nox.session(venv_backend="conda")
+@nox.session(
+    venv_backend="conda",
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
 def test_unit_sqlalchemy_one(session):
     """Run unit tests (SQLAlchemy 1.x)"""
     SKIP_IMAGE_TEST = "--skip-image-tests" in session.posargs
@@ -102,10 +115,13 @@ def test_unit_sqlalchemy_one(session):
     _install(session, integration=False)
     session.install("sqlalchemy<2")
     _check_sqlalchemy(session, version=1)
-    _run_unit(skip_image_tests=SKIP_IMAGE_TEST)
+    _run_unit(session, skip_image_tests=SKIP_IMAGE_TEST)
 
 
-@nox.session(venv_backend="conda")
+@nox.session(
+    venv_backend="conda",
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
 def test_integration_snowflake(session):
     """
     Run snowflake tests (NOTE: the sqlalchemy-snowflake driver only works with
@@ -116,7 +132,10 @@ def test_integration_snowflake(session):
     session.run("pytest", "src/tests/integration", "-k", "snowflake")
 
 
-@nox.session(venv_backend="conda")
+@nox.session(
+    venv_backend="conda",
+    python=environ.get("PYTHON_VERSION", "3.11"),
+)
 def test_integration(session):
     """Run integration tests (to check compatibility with databases)"""
     _install(session, integration=True)

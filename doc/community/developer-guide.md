@@ -110,7 +110,7 @@ In our codebase, we manage connections to databases with a `Connection` object, 
 
 ### Working with connections
 
-`Connection` should be exclusively used to manage database connections on the user's behalf and to obtain the current SQLAlchemy connection. We can access the current SQLAlchemy connection using `current.session`.
+`ConnectionManager` should be exclusively used to manage database connections on the user's behalf and to obtain the current connection. We can access the current connection using `current`.
 
 ```{code-cell} ipython3
 :tags: [remove-output]
@@ -122,11 +122,11 @@ In our codebase, we manage connections to databases with a `Connection` object, 
 ```{code-cell} ipython3
 from sql.connection import ConnectionManager
 
-conn = ConnectionManager.current.session
+conn = ConnectionManager.current
 conn
 ```
  
-Functions that expect a `conn` (sometimes named `con`) input variable should only use SQLAlchemy connections.
+Functions that expect a `conn` (sometimes named `con`) input variable should only use connections.
 
 ```python
 def histogram(payload, table, column, bins, with_=None, conn=None):
