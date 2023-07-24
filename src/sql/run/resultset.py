@@ -35,7 +35,7 @@ class ResultSetsManager:
 
     def is_last_for_key(self, key, result):
         """
-        Check if the passed result is the last one for teh given key,
+        Check if the passed result is the last one for the given key,
         returns True if there are no results for the key
         """
         results_for_key = self._results[key]
