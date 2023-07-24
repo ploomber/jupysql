@@ -917,9 +917,9 @@ def test_autocommit_retrieve_existing_resultssets(
         f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
     ).result
 
-    first.fetchone()
-    second.fetchone()
-    third.fetchone()
+    first.fetchmany(size=1)
+    second.fetchmany(size=1)
+    third.fetchmany(size=1)
 
     assert len(first) == 60
     assert len(second) == 60
