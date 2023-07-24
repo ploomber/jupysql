@@ -905,16 +905,25 @@ def test_autocommit_retrieve_existing_resultssets(
 
     ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
 
-    result = ip_with_dynamic_db.run_cell(
+    first = ip_with_dynamic_db.run_cell(
         cell.replace("__TABLE_NAME__", test_table_name_dict["numbers"])
     ).result
 
-    another = ip_with_dynamic_db.run_cell(
+    second = ip_with_dynamic_db.run_cell(
         f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
     ).result
 
-    assert len(result) == 60
-    assert len(another) == 60
+    third = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
+    ).result
+
+    first.fetchone()
+    second.fetchone()
+    third.fetchone()
+
+    assert len(first) == 60
+    assert len(second) == 60
+    assert len(third) == 60
 
 
 @pytest.mark.parametrize(

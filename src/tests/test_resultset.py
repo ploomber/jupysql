@@ -11,7 +11,7 @@ import polars as pl
 import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
-from sql.run.resultset import ResultSet
+from sql.run.resultset import ResultSet, ResultSetsManager
 
 
 @pytest.fixture
@@ -577,3 +577,38 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
+
+
+def test_manager_append():
+    m = ResultSetsManager()
+    first = object()
+    second = object()
+
+    m.append_to_key("first", first)
+    assert m._results == {"first": [first]}
+
+    m.append_to_key("second", second)
+    assert m._results == {"first": [first], "second": [second]}
+
+    final = object()
+    m.append_to_key("first", final)
+    assert m._results == {"first": [first, final], "second": [second]}
+
+    # if it already exists, appending should move it to the end
+    m.append_to_key("first", first)
+    assert m._results == {"first": [final, first], "second": [second]}
+
+
+def test_manager_is_last_for_key():
+    m = ResultSetsManager()
+    first = object()
+    second = object()
+
+    m.append_to_key("first", first)
+
+    assert m.is_last_for_key("unknown-key", object()) is True
+    assert m.is_last_for_key("first", first) is True
+
+    m.append_to_key("first", second)
+    assert m.is_last_for_key("first", first) is False
+    assert m.is_last_for_key("first", second) is True
