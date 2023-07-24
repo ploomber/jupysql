@@ -36,7 +36,8 @@ def get_database_config_helper():
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):
     """
-    Create the temporary folder to keep some static database storage files & destroy later
+    Create the temporary folder to keep some static database storage files & destroy
+    later
     """
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp(_testing.DatabaseConfigHelper.get_tmp_dir())
