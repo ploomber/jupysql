@@ -127,7 +127,10 @@ def test_integration_snowflake(session):
     Run snowflake tests (NOTE: the sqlalchemy-snowflake driver only works with
     SQLAlchemy 1.x)
     """
-    _install(session, integration=False)
+
+    # TODO: do not require integrationt test dependencies if only running snowflake
+    # tests
+    _install(session, integration=True)
     session.install("snowflake-sqlalchemy")
     session.run("pytest", "src/tests/integration", "-k", "snowflake")
 
