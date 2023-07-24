@@ -1,6 +1,3 @@
-"""
-nox --session jupysql-integration
-"""
 from pathlib import Path
 from os import environ
 
@@ -9,13 +6,6 @@ import nox
 
 # list non-setup sessions here
 nox.options.sessions = ["test_postgres"]
-
-CONDA_PREFIX = environ.get("CONDA_PREFIX")
-
-if CONDA_PREFIX:
-    nox.options.envdir = str(Path(CONDA_PREFIX).parent)
-else:
-    print("CONDA_PREFIX not found, creating envs in default location...")
 
 
 DEV_ENV_NAME = "jupysql-env"
@@ -35,17 +25,13 @@ INTEGRATION_PIP_DEPENDENCIES = [
     "pyodbc==4.0.34",
 ]
 
-# TODO: ensure it's actually installing the different python versions
-
 
 def _install(session, integration):
     session.install("--editable", ".[dev]")
 
     if integration:
         session.install(*INTEGRATION_PIP_DEPENDENCIES)
-        session.conda_install(
-            "--channel", "conda-forge", *INTEGRATION_CONDA_DEPENDENCIES
-        )
+        session.install(*INTEGRATION_CONDA_DEPENDENCIES)
 
 
 def _check_sqlalchemy(session, version):
@@ -81,7 +67,6 @@ def _run_unit(session, skip_image_tests):
 
 
 @nox.session(
-    venv_backend="conda",
     name=DEV_ENV_NAME,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
@@ -91,7 +76,6 @@ def setup(session):
 
 
 @nox.session(
-    venv_backend="conda",
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_unit(session):
@@ -105,7 +89,6 @@ def test_unit(session):
 
 
 @nox.session(
-    venv_backend="conda",
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_unit_sqlalchemy_one(session):
@@ -119,7 +102,6 @@ def test_unit_sqlalchemy_one(session):
 
 
 @nox.session(
-    venv_backend="conda",
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_integration_snowflake(session):
@@ -136,7 +118,6 @@ def test_integration_snowflake(session):
 
 
 @nox.session(
-    venv_backend="conda",
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
 def test_integration(session):
