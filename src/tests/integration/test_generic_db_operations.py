@@ -955,6 +955,9 @@ def test_autocommit_retrieve_existing_resultssets_duckdb_from(
 CREATE_TABLE = "CREATE TABLE __TABLE_NAME__ (number INT)"
 CREATE_TEMP_TABLE = "CREATE TEMP TABLE __TABLE_NAME__ (number INT)"
 CREATE_TEMPORARY_TABLE = "CREATE TEMPORARY TABLE __TABLE_NAME__ (number INT)"
+CREATE_GLOBAL_TEMPORARY_TABLE = (
+    "CREATE GLOBAL TEMPORARY TABLE __TABLE_NAME__ (number INT)"
+)
 
 
 @pytest.mark.parametrize(
@@ -974,7 +977,7 @@ CREATE_TEMPORARY_TABLE = "CREATE TEMPORARY TABLE __TABLE_NAME__ (number INT)"
         # TODO: MSSQL with temp table
         # "ip_with_duckDB_native",
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
-        ("ip_with_oracle", CREATE_TEMPORARY_TABLE),
+        ("ip_with_oracle", CREATE_GLOBAL_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_single_cell(
@@ -1018,7 +1021,7 @@ SELECT * FROM {__TABLE_NAME__};
         # TODO: MSSQL with temp table
         # "ip_with_duckDB_native",
         ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
-        ("ip_with_oracle", CREATE_TEMPORARY_TABLE),
+        ("ip_with_oracle", CREATE_GLOBAL_TEMPORARY_TABLE),
     ],
 )
 def test_autocommit_create_table_multiple_cells(
