@@ -28,36 +28,16 @@ def isolate_connections(monkeypatch):
     # connection.ConnectionManager.close_all()
 
 
-def pytest_addoption(parser):
-    parser.addoption("--live", action="store_true")
-
-
-# Skip the test case when live mode is on (with --live arg)
-@pytest.fixture(scope="session")
-def skip_on_live_mode(pytestconfig):
-    if pytestconfig.getoption("live"):
-        pytest.skip("Skip on live mode")
-
-
-# Skip the test case when live mode is off (without --live arg)
-@pytest.fixture(scope="session")
-def skip_on_local_mode(pytestconfig):
-    if not pytestconfig.getoption("live"):
-        pytest.skip("Skip on local mode")
-
-
 @pytest.fixture
 def get_database_config_helper():
     return _testing.DatabaseConfigHelper
 
 
-"""
-Create the temporary folder to keep some static database storage files & destroy later
-"""
-
-
 @pytest.fixture(autouse=True)
 def run_around_tests(tmpdir_factory):
+    """
+    Create the temporary folder to keep some static database storage files & destroy later
+    """
     # Create tmp folder
     my_tmpdir = tmpdir_factory.mktemp(_testing.DatabaseConfigHelper.get_tmp_dir())
     yield my_tmpdir
@@ -119,7 +99,7 @@ def tear_down_generic_testing_data(engine, test_table_name_dict):
 
 
 @pytest.fixture(scope="session")
-def setup_postgreSQL(test_table_name_dict, skip_on_live_mode):
+def setup_postgreSQL(test_table_name_dict):
     with _testing.postgres():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
@@ -158,7 +138,7 @@ def postgreSQL_config_incorrect_pwd(ip_empty, setup_postgreSQL):
 
 
 @pytest.fixture(scope="session")
-def setup_mySQL(test_table_name_dict, skip_on_live_mode):
+def setup_mySQL(test_table_name_dict):
     with _testing.mysql():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("mySQL"),
@@ -187,7 +167,7 @@ def ip_with_mySQL(ip_empty, setup_mySQL):
 
 
 @pytest.fixture(scope="session")
-def setup_mariaDB(test_table_name_dict, skip_on_live_mode):
+def setup_mariaDB(test_table_name_dict):
     with _testing.mariadb():
         engine = create_engine(
             _testing.DatabaseConfigHelper.get_database_url("mariaDB")
@@ -216,7 +196,7 @@ def ip_with_mariaDB(ip_empty, setup_mariaDB):
 
 
 @pytest.fixture(scope="session")
-def setup_SQLite(test_table_name_dict, skip_on_live_mode):
+def setup_SQLite(test_table_name_dict):
     config = _testing.DatabaseConfigHelper.get_database_config("SQLite")
 
     if Path(config["database"]).exists():
@@ -252,7 +232,7 @@ def ip_with_SQLite(ip_empty, setup_SQLite):
 
 
 @pytest.fixture(scope="session")
-def setup_duckDB_native(test_table_name_dict, skip_on_live_mode):
+def setup_duckDB_native(test_table_name_dict):
     engine = duckdb.connect(database=":memory:", read_only=False)
     return engine
 
@@ -300,7 +280,7 @@ def ip_with_duckDB_native(ip_empty, setup_duckDB_native, test_table_name_dict):
 
 
 @pytest.fixture(scope="session")
-def setup_duckDB(test_table_name_dict, skip_on_live_mode):
+def setup_duckDB(test_table_name_dict):
     config = _testing.DatabaseConfigHelper.get_database_config("duckDB")
 
     if Path(config["database"]).exists():
@@ -348,7 +328,7 @@ def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
 
 
 @pytest.fixture(scope="session")
-def setup_MSSQL(test_table_name_dict, skip_on_live_mode):
+def setup_MSSQL(test_table_name_dict):
     with _testing.mssql():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("MSSQL"))
         # Load pre-defined datasets
@@ -376,7 +356,7 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
 
 
 @pytest.fixture(scope="session")
-def setup_Snowflake(test_table_name_dict, skip_on_local_mode):
+def setup_Snowflake(test_table_name_dict):
     username = os.getenv("SF_USERNAME")
     password = os.getenv("SF_PASSWORD")
 
@@ -412,7 +392,7 @@ def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
 
 
 @pytest.fixture(scope="session")
-def setup_oracle(test_table_name_dict, skip_on_live_mode):
+def setup_oracle(test_table_name_dict):
     with _testing.oracle():
         engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("oracle"))
         engine.connect()
