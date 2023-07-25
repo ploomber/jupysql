@@ -382,7 +382,7 @@ Our `sql.SQLAlchemyConnection._transpile_query` will automatically detect the di
 ```{code-cell} ipython3
 # Prepare connection
 from sqlglot import select, condition
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
 conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
@@ -416,7 +416,7 @@ We may provide `sqlglot.parse_one({source_sql_clause}, read={source_database_dia
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 import sqlglot
 
@@ -441,7 +441,7 @@ conn._transpile_query(input_sql)
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
 conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
