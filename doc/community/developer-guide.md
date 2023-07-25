@@ -106,7 +106,7 @@ Currently, these common errors are handled by providing more meaningful error me
 
 ## Managing Connections
 
-In our codebase, we manage connections to databases with a `Connection` object, this is required for the `%%sql magic` to work. Internally, this connection object has a sqlalchemy connection.
+In our codebase, we manage connections to databases with a `SQLAlchemy` and `DBAPIConnection` objects, this is required for the `%%sql magic` to work.
 
 ### Working with connections
 
