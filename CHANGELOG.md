@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## 0.8.1dev
+* [Fix] Fix error that was incorrectly converted into a print message
+
+* [Fix] Fixed vertical color breaks in histograms (#702)
 
 * [Fix] Showing feedback when switching connections (#727)
 
