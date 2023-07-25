@@ -139,9 +139,9 @@ When creating data for tests, we should use `sqlalchemy.create_engine` and avoid
 
 ```{code-cell} ipython3
 from sqlalchemy import create_engine
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 
-conn = Connection(engine=create_engine("sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine("sqlite://"))
 
 conn.execute("CREATE TABLE some_table (name, age)")
 ```
