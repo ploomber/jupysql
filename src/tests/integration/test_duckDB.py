@@ -4,7 +4,7 @@ import pytest
 import polars as pl
 import pandas as pd
 
-from sql.connection import ConnectionManager
+
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
