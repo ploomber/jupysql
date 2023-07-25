@@ -10,6 +10,9 @@ from sql.run.run import run_statements
 from sql import _testing
 
 
+SQLALCHEMY_VERSION = int(sqlalchemy.__version__.split(".")[0])
+
+
 @pytest.fixture
 def psycopg2_factory():
     import psycopg2
@@ -47,7 +50,9 @@ def gen_name():
     return f"table_{str(uuid.uuid4())[:8]}"
 
 
-@pytest.mark.xfail(reason="this is failing with sqlalchemy 1.x")
+@pytest.mark.skipif(
+    SQLALCHEMY_VERSION == 1, reason="this is failing with sqlalchemy 1.x"
+)
 def test_duckdb_sqlalchemy_doesnt_commit_by_default(tmp_empty):
     """
     This test checks that duckdb doesn't commit by default so we're sure that the
