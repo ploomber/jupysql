@@ -185,3 +185,17 @@ def test_connection_identifiers(
 def test_get_database_information(dynamic_db, request, Constructor, expected):
     conn = Constructor(request.getfixturevalue(dynamic_db))
     assert conn._get_database_information() == expected
+
+
+@pytest.mark.parametrize(
+    "dynamic_db, dialect",
+    [
+        ("ip_with_duckDB_native", "duckdb"),
+        ("ip_with_sqlite_native_empty", None),
+    ],
+)
+def test_dbapi_connection_sets_right_dialect(dynamic_db, dialect, request):
+    request.getfixturevalue(dynamic_db)
+
+    assert ConnectionManager.current.is_dbapi_connection
+    assert ConnectionManager.current.dialect == dialect

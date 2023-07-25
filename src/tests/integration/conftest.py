@@ -328,6 +328,14 @@ def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
     ip_empty_testing.run_cell("%sql --close duckdb")
 
 
+@pytest.fixture
+def ip_with_sqlite_native_empty(tmp_empty, ip_empty_testing):
+    ip_empty_testing.run_cell("import sqlite3; conn = sqlite3.connect('')")
+    ip_empty_testing.run_cell("%sql conn --alias sqlite")
+    yield ip_empty_testing
+    ip_empty_testing.run_cell("conn.close()")
+
+
 @pytest.fixture(scope="session")
 def setup_MSSQL(test_table_name_dict):
     with _testing.mssql():
