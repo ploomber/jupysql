@@ -108,19 +108,6 @@ def test_sql_is_empty(mock_conns):
     assert run_statements(mock_conns, "  ", Config) == "Connected: %s" % mock_conns.name
 
 
-# @pytest.mark.parametrize(
-#     "n, message",
-#     [
-#         [1, "1 rows affected.\n"],
-#         [0, ""],
-#     ],
-# )
-# def test_display_affected_rowcount(capsys, n, message):
-#     display_affected_rowcount(n)
-#     captured = capsys.readouterr()
-#     assert captured.out == message
-
-
 @pytest.mark.parametrize(
     "connection",
     [
