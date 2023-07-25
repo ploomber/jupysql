@@ -375,7 +375,7 @@ We can use [SQLGlot](https://sqlglot.com/sqlglot.html) to build the general sql 
 
 Then transpile to the sql which is supported by current connected dialect.
 
-Our `sql.connection.Connection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
+Our `sql.SQLAlchemyConnection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
 
 #### Example
 
@@ -385,7 +385,7 @@ from sqlglot import select, condition
 from sql import connection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ```{code-cell} ipython3
@@ -420,7 +420,7 @@ from sql import connection
 from sqlalchemy import create_engine
 import sqlglot
 
-conn = connection.Connection(engine=create_engine(url="duckdb://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="duckdb://"))
 ```
 
 ##### Prepare SQL clause based on duckdb syntax
@@ -444,7 +444,7 @@ conn._transpile_query(input_sql)
 from sql import connection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ##### Prepare SQL clause based on sqlite
