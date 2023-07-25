@@ -41,6 +41,7 @@ from sql.connection import SQLAlchemyConnection, DBAPIConnection, ConnectionMana
             "some-duckdb",
             "duckdb",
         ],
+        # TODO: add test for DBAPIConnection where we cannot detect the dialect
     ],
 )
 def test_connection_properties(dynamic_db, request, Constructor, alias, dialect):
@@ -123,11 +124,62 @@ def test_connection_identifiers(
                 "server_version_info": ANY,
             },
         ],
+        [
+            "setup_SQLite",
+            SQLAlchemyConnection,
+            {
+                "dialect": "sqlite",
+                "driver": "pysqlite",
+                "server_version_info": ANY,
+            },
+        ],
+        [
+            "setup_mySQL",
+            SQLAlchemyConnection,
+            {
+                "dialect": "mysql",
+                "driver": "pymysql",
+                "server_version_info": ANY,
+            },
+        ],
+        [
+            "setup_mariaDB",
+            SQLAlchemyConnection,
+            {
+                "dialect": "mysql",
+                "driver": "pymysql",
+                "server_version_info": ANY,
+            },
+        ],
+        [
+            "setup_MSSQL",
+            SQLAlchemyConnection,
+            {
+                "dialect": "mssql",
+                "driver": "pyodbc",
+                "server_version_info": ANY,
+            },
+        ],
+        [
+            "setup_Snowflake",
+            SQLAlchemyConnection,
+            {
+                "dialect": "snowflake",
+                "driver": "snowflake",
+                "server_version_info": ANY,
+            },
+        ],
+        # TODO: add oracle (cannot run it locally yet)
     ],
     ids=[
-        "postgresql",
-        "duckdb",
-        "duckdb_native",
+        "postgresql-sqlalchemy",
+        "duckdb-sqlalchemy",
+        "duckdb-dbapi",
+        "sqlite-sqlalchemy",
+        "mysql-sqlalchemy",
+        "mariadb-sqlalchemy",
+        "mssql-sqlalchemy",
+        "snowflake-sqlalchemy",
     ],
 )
 def test_get_database_information(dynamic_db, request, Constructor, expected):
