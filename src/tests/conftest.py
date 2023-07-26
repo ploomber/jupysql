@@ -49,6 +49,7 @@ def chinook_db():
     return str(path)
 
 
+# TODO: this is legacy code, we need to remove it
 def runsql(ip_session, statements):
     if isinstance(statements, str):
         statements = [statements]

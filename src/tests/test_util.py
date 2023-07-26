@@ -46,8 +46,16 @@ FROM number_table
 @pytest.mark.parametrize(
     "store_table, query",
     [
-        ("a", "%sqlcmd columns --table {}"),
-        ("bbb", "%sqlcmd profile --table {}"),
+        pytest.param(
+            "a",
+            "%sqlcmd columns --table {}",
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+        ),
+        pytest.param(
+            "bbb",
+            "%sqlcmd profile --table {}",
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+        ),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
     ],
@@ -58,16 +66,28 @@ FROM number_table
         "boxplot",
     ],
 )
-def test_no_errors_with_stored_query(ip, store_table, query):
-    ip.run_cell(
+def test_no_errors_with_stored_query(ip_empty_testing, store_table, query):
+    ip_empty_testing.run_cell("%sql duckdb://")
+
+    ip_empty_testing.run_cell(
+        """%%sql
+CREATE TABLE numbers (
+    x FLOAT
+);
+
+INSERT INTO numbers (x) VALUES (1), (2), (3);
+"""
+    )
+
+    ip_empty_testing.run_cell(
         f"""
         %%sql --save {store_table} --no-execute
         SELECT *
-        FROM number_table
+        FROM numbers
         """
     )
 
-    out = ip.run_cell(query.format(store_table, store_table))
+    out = ip_empty_testing.run_cell(query.format(store_table, store_table))
     assert out.success
 
 

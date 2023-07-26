@@ -27,7 +27,10 @@ def test_sqlstore_getitem_success():
     [
         (
             "second",
-            '"second" is not a valid snippet identifier. Valid identifiers are "first".',
+            (
+                '"second" is not a valid snippet identifier.'
+                ' Valid identifiers are "first".'
+            ),
         ),
         (
             "firs",
