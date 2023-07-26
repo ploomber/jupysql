@@ -96,7 +96,9 @@ def test_postgres_dbapi_doesnt_commit_by_default(setup_postgreSQL, psycopg2_fact
 # a database that does (but first verify that this is the case)
 
 
-@pytest.mark.xfail(reason="this is failing with sqlalchemy 1.x")
+@pytest.mark.skipif(
+    SQLALCHEMY_VERSION == 1, reason="this is failing with sqlalchemy 1.x"
+)
 def test_autocommit_off_with_sqlalchemy_connection(tmp_empty):
     url = "duckdb:///my.db"
 
