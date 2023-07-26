@@ -14,21 +14,12 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ResourceClosedError
 
 import sql.connection
-<<<<<<< HEAD
-from sql.connection import Connection, DBAPIConnection
-from IPython.core.error import UsageError
-import sqlglot
-import sqlalchemy
-import sqlite3
-from sql import display
-=======
 from sql.connection import (
     SQLAlchemyConnection,
     ConnectionManager,
     is_pep249_compliant,
     default_alias_for_engine,
 )
->>>>>>> master
 
 
 @pytest.fixture
@@ -403,35 +394,6 @@ def test_new_connection_with_alias(ip_empty, old_alias, new_alias):
         connection = table[new_alias]
         assert connection
         assert connection.url == "duckdb://"
-<<<<<<< HEAD
-        assert connection == connection.current
-
-
-def test_set_with_display_module(ip_empty, capsys):
-    ip_empty.run_cell("%load_ext sql")
-    ip_empty.run_cell("%sql duckdb:// --alias one")
-    ip_empty.run_cell("%sql duckdb:// --alias two")
-    ip_empty.run_cell("%sql one")
-
-    message = display.Message("Switching to connection one")
-    captured = capsys.readouterr()
-
-    assert str(message) in captured.out
-
-
-def test_set_with_display_module_no_alias(ip_empty, capsys):
-    ip_empty.run_cell("%load_ext sql")
-    ip_empty.run_cell("%sql duckdb:// --alias one")
-    ip_empty.run_cell("%sql duckdb:// --alias two")
-    ip_empty.run_cell("%sql duckdb://")
-    ip_empty.run_cell("%sql two")
-    ip_empty.run_cell("%sql duckdb://")
-
-    message = display.Message("Switching to connection duckdb://")
-    captured = capsys.readouterr()
-
-    assert str(message) in captured.out
-=======
         assert connection == ConnectionManager.current
 
 
@@ -593,4 +555,3 @@ def test_set_no_descriptor_database_url(monkeypatch):
 
     assert connections == {"sqlite://": conn}
     assert ConnectionManager.current == conn
->>>>>>> master
