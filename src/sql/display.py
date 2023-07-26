@@ -82,9 +82,9 @@ class Message:
         return self._message
 
 
-def message(message):
+def message(message, style=None):
     """Display a generic message"""
-    display(Message(message))
+    display(Message(message, style))
 
 
 def message_success(message):

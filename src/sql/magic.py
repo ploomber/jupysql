@@ -206,20 +206,6 @@ class SqlMagic(Magics, Configurable):
         """Load the saved snippets from the sql files
         whenever
         """
-        # snippets_dir = "jupysql-snippets/"
-        # if os.path.exists(snippets_dir) and os.path.isdir(snippets_dir):
-        #     snippet_files = glob.glob(snippets_dir + "*.sql")
-        #     snippet_names = [
-        #         filename[len(snippets_dir) : -4] for filename in snippet_files
-        #     ]
-        #     for name, filename in zip(snippet_names, snippet_files):
-        #         with open(filename, "r") as file:
-        #             snippet_content = file.read()
-        #             key = query_util.extract_tables_from_query(snippet_content)
-        #             dependencies = self._store.infer_dependencies(
-        #                 snippet_content, key=key
-        #             )
-        #             self._store.store(name, snippet_content, with_=dependencies)
         load_snippet_from_sql(self._store)
 
     def check_random_arguments(self, line="", cell=""):

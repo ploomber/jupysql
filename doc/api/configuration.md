@@ -269,5 +269,5 @@ with the following content:
 `select * from languages where rating > 10.5`
 
 
-JupySql will automatically load the snippets from the SQL files when re-initializing the magic.
+JupySqL will automatically load the snippets from the SQL files when re-initializing the magic.
 It will remain readily available for future use.

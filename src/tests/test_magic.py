@@ -26,6 +26,14 @@ COMMUNITY = COMMUNITY.strip()
 SNIPPETS_DIR = "jupysql-snippets/"
 
 
+def _assert_file_content(filepath, expected_content):
+    """Helper function to read the file content and compare
+    it to the expected content."""
+    with open(filepath, "r") as file:
+        content = file.read().strip()
+    assert content == expected_content
+
+
 def test_memory_db(ip):
     assert runsql(ip, "SELECT * FROM test;")[0][0] == 1
     assert runsql(ip, "SELECT * FROM test;")[1][1] == "bar"
@@ -39,6 +47,47 @@ def test_html(ip):
 def test_print(ip):
     result = runsql(ip, "SELECT * FROM test;")
     assert re.search(r"1\s+\|\s+foo", str(result))
+
+
+@pytest.fixture
+def ip_snip(ip, tmp_empty):
+    """Set up a session with a table loaded
+    and snippets saved in .sql files
+    """
+    ip.run_cell(
+        """
+        %%sql duckdb://
+        CREATE TABLE people (name varchar(50), number int, country varchar(50));
+        INSERT INTO people VALUES ('joe', 82, 'usa');
+        INSERT INTO people VALUES ('paula', 93, 'uk');
+        INSERT INTO people VALUES ('sam', 77, 'canada');
+        INSERT INTO people VALUES ('emily', 65, 'usa');
+        INSERT INTO people VALUES ('michael', 89, 'usa');
+        INSERT INTO people VALUES ('sarah', 81, 'uk');
+        INSERT INTO people VALUES ('james', 76, 'usa');
+        INSERT INTO people VALUES ('angela', 88, 'usa');
+        INSERT INTO people VALUES ('robert', 82, 'usa');
+        INSERT INTO people VALUES ('lisa', 92, 'uk');
+        INSERT INTO people VALUES ('mark', 77, 'usa');
+        INSERT INTO people VALUES ('jennifer', 68, 'australia');
+        """
+    )
+
+    ip.run_line_magic("config", "SqlMagic.persist_snippets = True")
+
+    ip.run_cell(
+        """
+        %%sql --save citizen
+        select * from people where country = 'usa'
+        """
+    )
+    ip.run_cell(
+        """
+        %%sql --save citizen_another
+        select * from citizen where number = 82
+        """
+    )
+    yield ip
 
 
 @pytest.mark.parametrize(
@@ -1308,28 +1357,33 @@ def test_interact_and_missing_ipywidgets_installed(ip):
         assert isinstance(out.error_in_exec, ModuleNotFoundError)
 
 
-def test_save_snippet_as_sql(ip):
+def test_save_snippet_as_sql(ip_snip):
     """Test if SqlMagic.persist_snippets = True saves
     the snippet in a .sql file
     """
-    ip.run_line_magic("config", "SqlMagic.persist_snippets = True")
-    # First Query
+    citizen_sql_path = os.path.join(SNIPPETS_DIR, "citizen.sql")
+    citizen_another_sql_path = os.path.join(SNIPPETS_DIR, "citizen_another.sql")
+
+    assert os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR)
+    assert os.path.exists(citizen_sql_path)
+    assert os.path.exists(citizen_another_sql_path)
+    _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
+    _assert_file_content(
+        citizen_another_sql_path, "select * from citizen where number = 82"
+    )
+
+
+def test_snippet_not_saved(ip, tmp_empty):
+    """Test if SqlMagic.persist_snippets = False does not
+    save the snippet in a .sql file
+    """
+
     ip.run_cell(
         """
         %%sql duckdb://
         CREATE TABLE people (name varchar(50), number int, country varchar(50));
         INSERT INTO people VALUES ('joe', 82, 'usa');
         INSERT INTO people VALUES ('paula', 93, 'uk');
-        INSERT INTO people VALUES ('sam', 77, 'canada');
-        INSERT INTO people VALUES ('emily', 65, 'usa');
-        INSERT INTO people VALUES ('michael', 89, 'usa');
-        INSERT INTO people VALUES ('sarah', 81, 'uk');
-        INSERT INTO people VALUES ('james', 76, 'usa');
-        INSERT INTO people VALUES ('angela', 88, 'usa');
-        INSERT INTO people VALUES ('robert', 82, 'usa');
-        INSERT INTO people VALUES ('lisa', 92, 'uk');
-        INSERT INTO people VALUES ('mark', 77, 'usa');
-        INSERT INTO people VALUES ('jennifer', 68, 'australia');
         """
     )
     ip.run_cell(
@@ -1338,50 +1392,118 @@ def test_save_snippet_as_sql(ip):
         select * from people where country = 'usa'
         """
     )
-    ip.run_cell(
-        """
-        %%sql --save citizen_1
-        select * from citizen where number = 82
-        """
-    )
     citizen_sql_path = os.path.join(SNIPPETS_DIR, "citizen.sql")
-    citizen_1_sql_path = os.path.join(SNIPPETS_DIR, "citizen_1.sql")
-
-    assert os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR)
-    assert os.path.exists(citizen_sql_path)
-    assert os.path.exists(citizen_1_sql_path)
-
-    with open(citizen_sql_path, "r") as file:
-        content = file.read().strip()
-        expected_content = "select * from people where country = 'usa'"
-        assert content == expected_content
-
-    with open(citizen_1_sql_path, "r") as file:
-        content = file.read().strip()
-        expected_content = "select * from citizen where number = 82"
-        assert content == expected_content
+    assert os.path.exists(SNIPPETS_DIR) is False
+    assert os.path.exists(citizen_sql_path) is False
 
 
-def test_load_snippet_from_sql(ip, capsys):
+def test_load_snippet_from_sql(ip_snip, capsys):
     """Test if the stored snippet.sql files
-    are loaded automatically into SQLstore
-    as snippets
+    are loaded into SQLstore as snippets
     """
-    ip.run_line_magic("config", "SqlMagic.persist_snippets = True")
-
-    check_table = ip.run_cell(
+    ip_snip.run_cell(
         """
         %sql SELECT * FROM people
         """
     )
-    ip.run_cell("%sqlcmd snippets")
+    ip_snip.run_cell("%sqlcmd snippets")
     snippets_output, _ = capsys.readouterr()
 
-    check_snippet_content = ip.run_cell(
+    check_snippet_content = ip_snip.run_cell(
         """
         %sqlcmd snippets citizen
         """
     )
-    assert check_table.result is None
-    assert "citizen" and "citizen_1" in snippets_output
+
+    run_snippet = ip_snip.run_cell("%sql SELECT * FROM citizen")
+    assert "usa" in str(run_snippet.result)
+    assert "uk" not in str(run_snippet.result)
+    assert "australia" not in str(run_snippet.result)
+    assert isinstance(run_snippet.error_in_exec, UsageError) is False
+    assert "citizen" and "citizen_another" in snippets_output
     assert "select * from people where country = 'usa'" in check_snippet_content.result
+
+
+def test_load_snippet_no_table(ip_snip, capsys):
+    """Test when a snippet is loaded but the
+    table is missing.
+    """
+    ip_snip.run_line_magic("config", "SqlMagic.persist_snippets = True")
+
+    ip_snip.run_cell(
+        """
+        %sql DROP TABLE people;
+        """
+    )
+    ip_snip.run_cell("%sqlcmd snippets")
+    snippets_output, _ = capsys.readouterr()
+
+    check_snippet_content = ip_snip.run_cell(
+        """
+        %sqlcmd snippets citizen
+        """
+    )
+    assert "citizen" and "citizen_another" in snippets_output
+    assert "select * from people where country = 'usa'" in check_snippet_content.result
+
+
+def test_snippet_sql_not_overriden(ip_snip):
+    """Test if the stored snippet in .sql files is
+    unchanged when SqlMagic.persist_snippets is set to False
+    and snippet is overwritten.
+    """
+    ip_snip.run_line_magic("config", "SqlMagic.persist_snippets = False")
+
+    ip_snip.run_cell(
+        """
+        %%sql --save citizen
+        select * from people where country = 'australia'
+        """
+    )
+    ip_snip.run_cell(
+        """
+        %%sql --save citizen_another
+        select * from citizen where number = 50
+        """
+    )
+
+    citizen_sql_path = os.path.join(SNIPPETS_DIR, "citizen.sql")
+    citizen_another_sql_path = os.path.join(SNIPPETS_DIR, "citizen_another.sql")
+
+    assert os.path.exists(citizen_sql_path)
+    assert os.path.exists(citizen_another_sql_path)
+    _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
+    _assert_file_content(
+        citizen_another_sql_path, "select * from citizen where number = 82"
+    )
+
+
+@pytest.mark.parametrize(
+    "per_snippets, query, snippet_name, expected_in_output",
+    [
+        (False, "select * from people where country = 'australia'", "citizen", False),
+        (True, "select * from citizen where number = 50", "citizen_another", True),
+    ],
+)
+def test_snippet_sql_message(
+    ip_snip, capsys, per_snippets, query, snippet_name, expected_in_output
+):
+    """Test if the user message is displayed only when
+    storing snippets in .sql files
+    """
+
+    ip_snip.run_line_magic("config", f"SqlMagic.persist_snippets = {per_snippets}")
+
+    ip_snip.run_cell(
+        f"""
+        %%sql --save {snippet_name}
+        {query}
+        """
+    )
+
+    snippets_output, _ = capsys.readouterr()
+    message = "Manual editing of .sql files may not be"
+    if expected_in_output:
+        assert message in snippets_output
+    else:
+        assert message not in snippets_output
