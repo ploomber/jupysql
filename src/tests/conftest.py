@@ -88,7 +88,7 @@ def ip_empty():
     # disables the history recording.
     # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
     c.HistoryAccessor.enabled = False
-    ip_session = InteractiveShell(config=c)
+    ip_session = TestingShell(config=c)
 
     ip_session.register_magics(SqlMagic)
     ip_session.register_magics(RenderMagic)

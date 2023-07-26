@@ -1074,10 +1074,10 @@ Set the environment variable $DATABASE_URL
 
 
 def test_error_on_invalid_connection_string(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql some invalid connection string")
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql some invalid connection string")
 
-    assert invalid_connection_string.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    assert invalid_connection_string.strip() == str(excinfo.value)
 
 
 invalid_connection_string_format = f"""\
@@ -1092,18 +1092,19 @@ Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 
 def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql something://")
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    assert invalid_connection_string_format.strip() == str(excinfo.value)
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
-    result = ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql something://")
+
+    assert invalid_connection_string_format.strip() == str(excinfo.value)
 
 
 invalid_connection_string_with_possible_typo = f"""
@@ -1118,12 +1119,11 @@ Perhaps you meant to use driver the dialect: "sqlite"
 
 def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_conns):
     ip_empty.run_cell("%sql sqlite://")
-    result = ip_empty.run_cell("%sql sqlit://")
 
-    assert invalid_connection_string_with_possible_typo.strip() == str(
-        result.error_in_exec
-    )
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql sqlit://")
+
+    assert invalid_connection_string_with_possible_typo.strip() == str(excinfo.value)
 
 
 invalid_connection_string_duckdb = f"""
@@ -1146,9 +1146,10 @@ Pass a valid connection string:
 
 
 def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
-    result = ip_empty.run_cell("%sql duckdb://invalid_db")
-    assert invalid_connection_string_duckdb.strip() == str(result.error_in_exec)
-    assert isinstance(result.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql duckdb://invalid_db")
+
+    assert invalid_connection_string_duckdb.strip() == str(excinfo.value)
 
 
 def test_jupysql_alias():
