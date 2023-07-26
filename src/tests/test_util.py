@@ -51,6 +51,12 @@ FROM number_table
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
     ],
+    ids=[
+        "columns",
+        "profile",
+        "histogram",
+        "boxplot",
+    ],
 )
 def test_no_errors_with_stored_query(ip, store_table, query):
     ip.run_cell(
@@ -59,15 +65,10 @@ def test_no_errors_with_stored_query(ip, store_table, query):
         SELECT *
         FROM number_table
         """
-    ).result
+    )
 
-    query = query.format(store_table, store_table)
-    out = ip.run_cell(query)
-
-    expected_store_message = EXPECTED_STORE_SUGGESTIONS.format(store_table)
-    error_message = str(out.error_in_exec)
-    assert not isinstance(out.error_in_exec, ValueError)
-    assert str(expected_store_message).lower() not in error_message.lower()
+    out = ip.run_cell(query.format(store_table, store_table))
+    assert out.success
 
 
 @pytest.mark.parametrize(
