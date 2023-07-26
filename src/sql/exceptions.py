@@ -26,7 +26,7 @@ MissingPackageError = exception_factory("MissingPackageError")
 TypeError = exception_factory("TypeError")
 RuntimeError = exception_factory("RuntimeError")
 ValueError = exception_factory("ValueError")
-
+FileNotFoundError = exception_factory("FileNotFoundError")
 
 # The following are internal exceptions that should not be raised directly
 

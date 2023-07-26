@@ -124,12 +124,12 @@ def ip_empty_testing():
 
 
 @pytest.fixture
-def ip(ip_empty):
+def ip(ip_empty_testing):
     """Provides an IPython session in which tables have been created"""
 
     # runsql creates an inmemory sqlitedatabase
     runsql(
-        ip_empty,
+        ip_empty_testing,
         [
             "CREATE TABLE test (n INT, name TEXT)",
             "INSERT INTO test VALUES (1, 'foo')",
@@ -158,14 +158,14 @@ def ip(ip_empty):
             "INSERT INTO number_table VALUES (4, 3)",
         ],
     )
-    yield ip_empty
+    yield ip_empty_testing
 
     ConnectionManager.close_all()
 
-    runsql(ip_empty, "DROP TABLE IF EXISTS test")
-    runsql(ip_empty, "DROP TABLE IF EXISTS author")
-    runsql(ip_empty, "DROP TABLE IF EXISTS website")
-    runsql(ip_empty, "DROP TABLE IF EXISTS number_table")
+    runsql(ip_empty_testing, "DROP TABLE IF EXISTS test")
+    runsql(ip_empty_testing, "DROP TABLE IF EXISTS author")
+    runsql(ip_empty_testing, "DROP TABLE IF EXISTS website")
+    runsql(ip_empty_testing, "DROP TABLE IF EXISTS number_table")
 
 
 @pytest.fixture
