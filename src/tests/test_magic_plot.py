@@ -41,47 +41,44 @@ WHERE x > 2
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
         [
             "%sqlplot someplot -t a -c b",
-            UsageError,
             f"Unknown plot 'someplot'. Must be any of: {plot_str}",
         ],
         [
             "%sqlplot -t a -c b",
-            UsageError,
             f"Missing the first argument, must be any of: {plot_str}",
         ],
     ],
 )
-def test_validate_plot_name(tmp_empty, ip, cell, error_type, error_message):
-    out = ip.run_cell(cell)
+def test_validate_plot_name(tmp_empty, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(error_message).lower() in str(out.error_in_exec).lower()
+    assert excinfo.value.error_type == "UsageError"
+    assert str(error_message).lower() in str(excinfo.value).lower()
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
         [
             "%sqlplot histogram --column a",
-            UsageError,
             "the following arguments are required: -t/--table",
         ],
         [
             "%sqlplot histogram --table a",
-            UsageError,
             "the following arguments are required: -c/--column",
         ],
     ],
 )
-def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
-    out = ip.run_cell(cell)
+def test_validate_arguments(tmp_empty, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(out.error_in_exec) == (error_message)
+    assert str(error_message).lower() in str(excinfo.value).lower()
 
 
 @_cleanup_cm()
