@@ -1,9 +1,12 @@
 # CHANGELOG
 
-## 0.8.1dev
+## 0.9.0dev
 
-* [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
 * [Fix] Fix error that was incorrectly converted into a print message
+* [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
+* [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
+* [Fix] Fixed vertical color breaks in histograms (#702)
+* [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
 
 ## 0.8.0 (2023-07-18)
 
