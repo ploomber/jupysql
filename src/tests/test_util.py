@@ -159,10 +159,10 @@ ATTACH DATABASE 'my.db' AS test_schema
 """
     )
 
-    out = ip.run_cell(query)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query)
 
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
