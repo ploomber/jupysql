@@ -85,12 +85,13 @@ def test_no_errors_with_stored_query(ip, store_table, query):
 )
 def test_bad_table_error_message(ip, table, query, suggestions):
     query = query.format(table)
-    out = ip.run_cell(query)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query)
 
     expected_error_message = EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA.format(table)
 
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
     error_suggestions_arr = error_message.split(EXPECTED_SUGGESTIONS_MESSAGE)
