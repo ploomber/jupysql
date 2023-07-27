@@ -89,7 +89,7 @@ These errors that hide the traceback should only be used in the context of a mag
 
 ### Unit testing custom errors
 
-The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples.
+The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples, and `exceptions.py` for more details.
 
 +++
 
