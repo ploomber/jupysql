@@ -855,7 +855,7 @@ CREATE TABLE my_numbers AS SELECT * FROM {test_table_name_dict['numbers']}
         """%%sql
 SELECT * FROM my_numbers
         """
-    ).result
+    )
 
     ip_with_dynamic_db.run_cell(
         """%%sql
