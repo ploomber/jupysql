@@ -297,12 +297,11 @@ def fetch_sql_with_pagination(
     query = f""" SELECT * FROM {table} {order_by}
     LIMIT {n_rows} OFFSET {offset}"""
 
-
-    rows = ConnectionManager.current.execute(query,with_=with_).fetchall()
+    rows = ConnectionManager.current.execute(query, with_=with_).fetchall()
 
     columns = ConnectionManager.current.execute(
-                f""" SELECT * FROM {table} WHERE 1=0""",
-                with_=with_,
+        f""" SELECT * FROM {table} WHERE 1=0""",
+        with_=with_,
     ).keys()
 
     return rows, columns

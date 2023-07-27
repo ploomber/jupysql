@@ -67,9 +67,7 @@ class TableWidget:
                 with_=self.with_,
             )
         )
-        n_total = ConnectionManager.current.raw_execute(
-            query
-        ).fetchone()[0]
+        n_total = ConnectionManager.current.raw_execute(query).fetchone()[0]
 
         table_name = table.strip('"').strip("'")
 

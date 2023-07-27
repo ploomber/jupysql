@@ -8,7 +8,6 @@ from sql.error_message import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
 import sql.util
-
 import math
 
 ALL_DATABASES = [
@@ -1099,7 +1098,25 @@ def test_autocommit_create_table_multiple_cells(
         "__TABLE_NAME__", __TABLE_NAME__
     )
 
-    assert result.error_in_exec is None
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+{create_table_statement}
+"""
+    )
+
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
+"""
+    )
+
+    result = ip_with_dynamic_db.run_cell(
+        f"""%%sql
+SELECT * FROM {__TABLE_NAME__};
+"""
+    ).result
+
+    assert len(result) == 3
 
 
 @pytest.mark.parametrize(
@@ -1166,29 +1183,8 @@ def test_explore_fetch_sql_with_pagination(
     INSERT INTO test_numbers VALUES (13, 40);
     INSERT INTO test_numbers VALUES (14, 39);
     INSERT INTO test_numbers VALUES (15, 13);
-
     """
     )
     rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
     assert rows == expected_rows
     assert columns == expected_columns
-=======
-    ip_with_dynamic_db.run_cell(
-        f"""%%sql
-{create_table_statement}
-"""
-    )
-
-    ip_with_dynamic_db.run_cell(
-        f"""%%sql
-INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
-"""
-    )
-
-    result = ip_with_dynamic_db.run_cell(
-        f"""%%sql
-SELECT * FROM {__TABLE_NAME__};
-"""
-    ).result
-
-    assert len(result) == 3

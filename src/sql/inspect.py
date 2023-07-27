@@ -8,7 +8,6 @@ import math
 from sql import util
 from IPython.core.display import HTML
 import uuid
-from sql import connection
 
 
 def _get_inspector(conn):
@@ -241,10 +240,10 @@ class TableDescription(DatabaseInspection):
         conn = ConnectionManager.current
 
         columns_query_result = conn.execute(
-                    f"SELECT * FROM {table_name} WHERE 1=0", with_=with_
-                )
+            f"SELECT * FROM {table_name} WHERE 1=0", with_=with_
+        )
 
-        if ConnectionManager.current.is_dbapi_connection():
+        if ConnectionManager.current.is_dbapi_connection:
             columns = [i[0] for i in columns_query_result.description]
         else:
             columns = columns_query_result.keys()
@@ -260,7 +259,7 @@ class TableDescription(DatabaseInspection):
             # check the datatype of a column
             try:
                 result = conn.execute(
-                f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
+                    f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
                 ).fetchone()
 
                 value = result[0]
@@ -299,7 +298,6 @@ class TableDescription(DatabaseInspection):
                     FROM {table_name}
                     WHERE {column} IS NOT NULL""",
                     with_=with_,
-
                 ).fetchall()
 
                 columns_to_include_in_report.update(["count", "min", "max"])
@@ -347,7 +345,7 @@ class TableDescription(DatabaseInspection):
             try:
                 # Note: stddev_pop and PERCENTILE_DISC will work only on DuckDB
                 result = conn.execute(
-                        f""" SELECT
+                    f""" SELECT
                         stddev_pop({column}) as key_std,
                         percentile_disc(0.25) WITHIN GROUP
                         (ORDER BY {column}) as key_25,
@@ -356,7 +354,7 @@ class TableDescription(DatabaseInspection):
                         percentile_disc(0.75) WITHIN GROUP
                         (ORDER BY {column}) as key_75
                     FROM {table_name}""",
-                        with_=with_,
+                    with_=with_,
                 ).fetchall()
 
                 columns_to_include_in_report.update(special_numeric_keys)
