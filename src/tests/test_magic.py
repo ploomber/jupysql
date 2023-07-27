@@ -1474,12 +1474,13 @@ def test_error_on_toml_parsing(tmp_empty, ip, capsys, file_content, error_msg):
     os.makedirs("sub")
     os.chdir("sub")
 
-    exec_result = ip.run_cell("%load_ext sql")
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%load_ext sql")
     out, _ = capsys.readouterr()
 
     assert out.strip() == found_statement
-    assert exec_result.error_in_exec.error_type == "ConfigurationError"
-    assert str(exec_result.error_in_exec) == error_msg
+    assert excinfo.value.error_type == "ConfigurationError"
+    assert str(excinfo.value) == error_msg
 
 
 def test_valid_and_invalid_configs(tmp_empty, ip, capsys):
