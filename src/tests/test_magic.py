@@ -1539,4 +1539,3 @@ def test_snippet_sql_message(
         assert message in snippets_output
     else:
         assert message not in snippets_output
-
