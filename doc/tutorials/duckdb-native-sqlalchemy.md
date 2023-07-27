@@ -128,7 +128,6 @@ To suppress it, add this at the top of your notebook/script:
 ```{code-cell} ipython3
 from sql.warnings import JupySQLDataFramePerformanceWarning
 import warnings
-
 warnings.filterwarnings("ignore", category=JupySQLDataFramePerformanceWarning)
 ```
 
