@@ -29,9 +29,11 @@ SNIPPETS_DIR = "jupysql-snippets/"
 
 def _assert_file_content(filepath, expected_content):
     """Helper function to read the file content and compare
-    it to the expected content."""
+    it to the expected content without considering spaces."""
     with open(filepath, "r") as file:
         content = file.read().strip()
+    content = re.sub(r"\s+", "", content)
+    expected_content = re.sub(r"\s+", "", expected_content)
     assert content == expected_content
 
 
@@ -1405,7 +1407,12 @@ def test_save_snippet_as_sql(ip_snip):
     assert os.path.exists(citizen_another_sql_path)
     _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
     _assert_file_content(
-        citizen_another_sql_path, "select * from citizen where number = 82"
+        citizen_another_sql_path,
+        """WITH citizen AS (
+           select * from people where country = 'usa'
+           )
+           select * from citizen where number = 82
+        """,
     )
 
 
@@ -1510,32 +1517,26 @@ def test_snippet_sql_not_overriden(ip_snip):
     assert os.path.exists(citizen_another_sql_path)
     _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
     _assert_file_content(
-        citizen_another_sql_path, "select * from citizen where number = 82"
+        citizen_another_sql_path,
+        """WITH citizen AS (
+select * from people where country = 'usa')
+select * from citizen where number = 82""",
     )
 
 
 @pytest.mark.parametrize(
-    "per_snippets, query, snippet_name, expected_in_output",
+    "per_snippets, expected_in_output",
     [
-        (False, "select * from people where country = 'australia'", "citizen", False),
-        (True, "select * from citizen where number = 50", "citizen_another", True),
+        (False, False),
+        (True, True),
     ],
 )
-def test_snippet_sql_message(
-    ip_snip, capsys, per_snippets, query, snippet_name, expected_in_output
-):
+def test_snippet_sql_message(ip, capsys, per_snippets, expected_in_output):
     """Test if the user message is displayed only when
-    storing snippets in .sql files
+    config.persist_snippets = True.
     """
 
-    ip_snip.run_line_magic("config", f"SqlMagic.persist_snippets = {per_snippets}")
-
-    ip_snip.run_cell(
-        f"""
-        %%sql --save {snippet_name}
-        {query}
-        """
-    )
+    ip.run_line_magic("config", f"SqlMagic.persist_snippets = {per_snippets}")
 
     snippets_output, _ = capsys.readouterr()
     message = "Manual editing of .sql files may not be"

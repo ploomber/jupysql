@@ -244,7 +244,7 @@ print(res)
 
 ## `persist_snippets`
 
-```{versionadded} 0.8.1
+```{versionadded} 0.9
 ```
 
 Default: `False`
@@ -260,14 +260,29 @@ Stores the snippet in a SQL file.
 select * from languages where rating > 10.5
 ```
 
-The sql file will be saved at: 
+```{code-cell} ipython3
+%%sql --save rated_high_change
+select * from rated_high where change > 1
+```
 
-`jupysql-snippets/rated_high.sql` 
+The sql files will be saved at: 
 
-with the following content: 
+`jupysql-snippets/rated_high.sql`  and 
+`jupysql-snippets/rated_high_change.sql`
 
-`select * from languages where rating > 10.5`
+with the following content:
 
+```{code-cell} ipython3
+with open("jupysql-snippets/rated_high.sql", "r") as file:
+    sql_content = file.read()
+print(sql_content)
+```
+
+```{code-cell} ipython3
+with open("jupysql-snippets/rated_high_change.sql", "r") as file:
+    sql_content = file.read()
+print(sql_content)
+```
 
 JupySqL will automatically load the snippets from the SQL files when re-initializing the magic.
 It will remain readily available for future use.

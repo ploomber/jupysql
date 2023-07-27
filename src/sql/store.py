@@ -9,7 +9,6 @@ import os
 from sql import exceptions
 from sql import query_util
 from pathlib import Path
-from sql import display
 
 SNIPPETS_DIR = "jupysql-snippets/"
 
@@ -197,11 +196,6 @@ def store_snippet_as_sql(sql_command, snippet_name):
     snippet_path.parent.mkdir(parents=True, exist_ok=True)
     with open(snippet_path, "w") as file:
         file.write(sql_command)
-    message = """Manual editing of .sql files may not be reflected when
-    reopening the notebook. Please edit snippets directly in the notebook
-    to ensure consistency."""
-
-    display.message(message, style="font-size: 12px; font-style: italic;")
 
 
 def load_snippet_from_sql(store):

@@ -143,7 +143,7 @@ class SqlMagic(Magics, Configurable):
     persist_snippets = Bool(
         False,
         config=True,
-        help=("Save snippet as a SQL file"),
+        help="Save snippet as a SQL file",
     )
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
@@ -202,9 +202,17 @@ class SqlMagic(Magics, Configurable):
                     f"Disabled '{other}' since '{change['name']}' was enabled."
                 )
 
+    @observe("persist_snippets")
+    def _persist_snippets_message(self, change):
+        if change["new"] is True:
+            message = """Manual editing of .sql files may not be reflected when
+            reopening the notebook. Please edit snippets directly in the notebook
+            to ensure consistency."""
+            display.message(message, style="font-size: 12px; font-style: italic;")
+
     def _load_snippets(self):
         """Load the saved snippets from the sql files
-        whenever
+        when loading the SQL magic.
         """
         load_snippet_from_sql(self._store)
 
@@ -520,10 +528,10 @@ class SqlMagic(Magics, Configurable):
                     + " instead for the save argument.",
                     FutureWarning,
                 )
-            if self.persist_snippets:
-                store_snippet_as_sql(command.sql_original, args.save)
-
             self._store.store(args.save, command.sql_original, with_=with_)
+
+            if self.persist_snippets:
+                store_snippet_as_sql(str(store[args.save]), args.save)
 
         if args.no_execute:
             display.message("Skipping execution...")
