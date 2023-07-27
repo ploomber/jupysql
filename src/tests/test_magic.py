@@ -21,6 +21,7 @@ from sql import magic
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
 from ploomber_core.exceptions import COMMUNITY
+import psutil
 
 COMMUNITY = COMMUNITY.strip()
 
@@ -903,16 +904,48 @@ def test_closed_connections_are_no_longer_listed(ip):
 
 
 def test_close_connection(ip, tmp_empty):
-    # open two connections
+    process = psutil.Process()
+
     ip.run_cell("%sql sqlite:///one.db")
     ip.run_cell("%sql sqlite:///two.db")
 
-    # close them
+    # check files are open
+    assert {Path(f.path).name for f in process.open_files()} >= {"one.db", "two.db"}
+
+    # close connections
     ip.run_cell("%sql -x sqlite:///one.db")
     ip.run_cell("%sql --close sqlite:///two.db")
 
+    # connections should not longer appear
     assert "sqlite:///one.db" not in ConnectionManager.connections
     assert "sqlite:///two.db" not in ConnectionManager.connections
+
+    # files should be closed
+    assert {Path(f.path).name for f in process.open_files()} & {
+        "one.db",
+        "two.db",
+    } == set()
+
+
+@pytest.mark.parametrize(
+    "close_cell",
+    [
+        "%sql -x first",
+        "%sql --close first",
+    ],
+)
+def test_close_connection_with_alias(ip, tmp_empty, close_cell):
+    process = psutil.Process()
+
+    ip.run_cell("%sql sqlite:///one.db --alias first")
+
+    assert {Path(f.path).name for f in process.open_files()} >= {"one.db"}
+
+    ip.run_cell(close_cell)
+
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "one.db" not in {Path(f.path).name for f in process.open_files()}
 
 
 def test_alias(clean_conns, ip_empty, tmp_empty):
@@ -930,21 +963,6 @@ def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
     assert {"one"} == set(ConnectionManager.connections)
-
-
-def test_close_connection_with_alias(ip, tmp_empty):
-    # open two connections
-    ip.run_cell("%sql sqlite:///one.db --alias one")
-    ip.run_cell("%sql sqlite:///two.db --alias two")
-
-    # close them
-    ip.run_cell("%sql -x one")
-    ip.run_cell("%sql --close two")
-
-    assert "sqlite:///one.db" not in ConnectionManager.connections
-    assert "sqlite:///two.db" not in ConnectionManager.connections
-    assert "one" not in ConnectionManager.connections
-    assert "two" not in ConnectionManager.connections
 
 
 def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):

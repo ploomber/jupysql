@@ -239,12 +239,14 @@ class ConnectionManager:
     @classmethod
     def close_connection_with_descriptor(cls, descriptor):
         """Close a connection with the given descriptor"""
+
         if isinstance(descriptor, SQLAlchemyConnection):
             conn = descriptor
         else:
             conn = cls.connections.get(descriptor) or cls.connections.get(
                 descriptor.lower()
             )
+
         if not conn:
             raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
@@ -257,7 +259,8 @@ class ConnectionManager:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.connection.close()
+
+        conn.connection.close()
 
     @classmethod
     def connections_table(cls):
