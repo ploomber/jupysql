@@ -242,6 +242,7 @@ res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
 
+
 ## `persist_snippets`
 
 ```{versionadded} 0.9
@@ -286,3 +287,15 @@ print(sql_content)
 
 JupySqL will automatically load the snippets from the SQL files when re-initializing the magic.
 It will remain readily available for future use.
+
+
+## Loading configuration settings
+
+You can define configurations in a `pyproject.toml` file and automatically load the configurations when you run `%load_ext sql`. If the file is not found in the current or parent directories, default values will be used. A sample `pyproject.toml` could look like this:
+
+```
+[tool.jupysql.SqlMagic]
+feedback = true
+autopandas = true
+```
+
