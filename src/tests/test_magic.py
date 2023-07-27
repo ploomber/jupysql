@@ -1383,10 +1383,14 @@ def test_interact_and_missing_ipywidgets_installed(ip):
     with patch.dict(sys.modules):
         sys.modules["ipywidgets"] = None
         ip.user_global_ns["my_variable"] = 5
-        out = ip.run_cell(
-            "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
-        )
-        assert isinstance(out.error_in_exec, ModuleNotFoundError)
+        with pytest.raises(ModuleNotFoundError) as excinfo:
+            ip.run_cell(
+                "%sql --interact my_variable SELECT * FROM author LIMIT {{my_variable}}"
+            )
+
+    assert "'ipywidgets' is required to use '--interactive argument'" in str(
+        excinfo.value
+    )
 
 
 def test_save_snippet_as_sql(ip_snip):
