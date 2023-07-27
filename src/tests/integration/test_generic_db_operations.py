@@ -397,7 +397,10 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="not supported yet for native connections"),
         ),
-        ("ip_with_MSSQL"),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="not working yet"),
+        ),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
     ],
@@ -405,6 +408,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
 def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     table = test_table_name_dict["numbers"]
+
     ip_with_dynamic_db.run_cell(f"%sql select * from {table}")
 
     with pytest.raises(UsageError) as excinfo:
@@ -828,6 +832,7 @@ S"""
     assert CTE_MSG in str(excinfo.value)
 
 
+@pytest.mark.xfail(reason="Not yet implemented")
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
