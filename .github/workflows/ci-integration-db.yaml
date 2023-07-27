@@ -44,9 +44,7 @@ jobs:
 
       - name: Integration Test
         run: |
-          # Run the integration test by pytest marker
-          python -c "import sqlalchemy; print('Sqlalchemy version ', sqlalchemy.__version__)"
-          pytest src/tests/integration --verbose --ignore src/tests/integration/test_questDB.py
+          nox --session test_integration --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
         uses: actions/upload-artifact@v3

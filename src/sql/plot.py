@@ -335,8 +335,6 @@ def _get_bar_width(ax, bins, bin_size):
         width_inch = bbox.width / fig.dpi
         width = width_inch / len(bins)
 
-    print("bins: ", bins)
-    print("width: ", width)
     return width
 
 
@@ -529,7 +527,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
     filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
-    bin_size = 1
+    bin_size = None
 
     if _are_numeric_values(min_, max_):
         if not isinstance(bins, int):
