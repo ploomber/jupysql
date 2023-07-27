@@ -1,11 +1,17 @@
 import warnings
-import sql
 from sql import inspect
 import difflib
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
+from pathlib import Path
+from ploomber_core.dependencies import requires
+
+try:
+    import toml
+except ModuleNotFoundError:
+    toml = None
 
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
@@ -86,10 +92,10 @@ def is_table_exists(
             return False
         else:
             raise exceptions.UsageError("Table cannot be None")
-    if not Connection.current:
+    if not ConnectionManager.current:
         raise exceptions.RuntimeError("No active connection")
     if not conn:
-        conn = Connection.current
+        conn = ConnectionManager.current
 
     table = strip_multiple_chars(table, "\"'")
 
@@ -102,7 +108,7 @@ def is_table_exists(
 
     if not _is_exist:
         if not ignore_error:
-            try_find_suggestions = not Connection.is_dbapi_connection(conn)
+            try_find_suggestions = not conn.is_dbapi_connection
             expected = []
             existing_schemas = []
             existing_tables = []
@@ -192,7 +198,7 @@ def _is_table_exists(table: str, conn) -> bool:
     Runs a SQL query to check if table exists
     """
     if not conn:
-        conn = Connection.current
+        conn = ConnectionManager.current
 
     identifiers = conn.get_curr_identifiers()
 
@@ -250,7 +256,7 @@ def support_only_sql_alchemy_connection(command):
     """
     Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
-    if Connection.is_dbapi_connection():
+    if ConnectionManager.current.is_dbapi_connection:
         raise exceptions.RuntimeError(
             f"{command} is only supported with SQLAlchemy "
             "connections, not with DBAPI connections"
@@ -289,10 +295,10 @@ def fetch_sql_with_pagination(
     SELECT * FROM {table} {order_by}
     OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
 
-    rows = Connection.current.execute(query).fetchall()
+    rows = ConnectionManager.current.execute(query).fetchall()
 
-    columns = sql.run.raw_run(
-        Connection.current, f"SELECT * FROM {table} WHERE 1=0"
+    columns = ConnectionManager.current.raw_execute(
+        f"SELECT * FROM {table} WHERE 1=0"
     ).keys()
 
     return rows, columns
@@ -366,3 +372,125 @@ def show_deprecation_warning():
         "raise an exception in the next major release so please remove it.",
         FutureWarning,
     )
+
+
+def find_path_from_root(file_name):
+    """
+    Recursively finds an absolute path to file_name starting
+    from current to root directory
+    """
+    current = Path().resolve()
+    while not (current / file_name).exists():
+        if current == current.parent:
+            return None
+
+        current = current.parent
+    display.message(f"Found {file_name} from '{current}'")
+
+    return str(Path(current, file_name))
+
+
+def find_close_match_config(word, possibilities, n=3):
+    """Finds closest matching configurations and displays message"""
+    closest_matches = difflib.get_close_matches(word, possibilities, n=n)
+    if not closest_matches:
+        display.message_html(
+            f"'{word}' is an invalid configuration. Please review our "
+            "<a href='https://jupysql.ploomber.io/en/latest/api/configuration.html#options'>"  # noqa
+            "configuration guideline</a>."
+        )
+    else:
+        display.message(
+            f"'{word}' is an invalid configuration. Did you mean "
+            f"{pretty_print(closest_matches, last_delimiter='or')}?"
+        )
+
+
+def get_line_content_from_toml(file_path, line_number):
+    """
+    Locates a line that error occurs when loading a toml file
+    and returns the line, key, and value
+    """
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+        eline = lines[line_number - 1].strip()
+        ekey, evalue = None, None
+        if "=" in eline:
+            ekey, evalue = map(str.strip, eline.split("="))
+        return eline, ekey, evalue
+
+
+@requires(["toml"])
+def load_toml(file_path):
+    """
+    Returns toml file content in a dictionary format
+    and raises error if it fails to load the toml file
+    """
+    try:
+        with open(file_path, "r") as file:
+            content = file.read()
+            return toml.loads(content)
+    except toml.TomlDecodeError as e:
+        raise parse_toml_error(e, file_path)
+
+
+def parse_toml_error(e, file_path):
+    eline, ekey, evalue = get_line_content_from_toml(file_path, e.lineno)
+    if "Duplicate keys!" in str(e):
+        return exceptions.ConfigurationError(f"Duplicate key found : '{ekey}'")
+    elif "Only all lowercase booleans" in str(e):
+        return exceptions.ConfigurationError(
+            f"Invalid value '{evalue}' in '{eline}'. "
+            "Valid boolean values: true, false"
+        )
+    elif "invalid literal for int()" in str(e):
+        return exceptions.ConfigurationError(
+            f"Invalid value '{evalue}' in '{eline}'. "
+            "To use str value, enclose it with ' or \"."
+        )
+    else:
+        return e
+
+
+def get_user_configs(file_path, section_names):
+    """
+    Returns saved configuration settings in a toml file from given file_path
+
+    Parameters
+    ----------
+    file_path : str
+        file path to a toml file
+    section_names : list
+        section names that contains the configuration settings
+        (e.g., ["tool", "jupysql", "SqlMagic"])
+
+    Returns
+    -------
+    dict
+        saved configuration settings
+    """
+    data = load_toml(file_path)
+    while section_names:
+        section_to_find, sections_from_user = section_names.pop(0), data.keys()
+        if section_to_find not in sections_from_user:
+            close_match = difflib.get_close_matches(section_to_find, sections_from_user)
+            if not close_match:
+                return {}
+            else:
+                raise exceptions.ConfigurationError(
+                    f"{pretty_print(close_match)} is an invalid section name. "
+                    f"Did you mean '{section_to_find}'?"
+                )
+        data = data[section_to_find]
+    return data
+
+
+def get_default_configs(sql):
+    """
+    Returns a dictionary of SqlMagic configuration settings users can set
+    with their default values.
+    """
+    default_configs = sql.trait_defaults()
+    del default_configs["parent"]
+    del default_configs["config"]
+    return default_configs

@@ -5,7 +5,7 @@ from IPython.core.error import UsageError
 from pathlib import Path
 
 from sqlalchemy import create_engine
-from sql.connection import Connection
+from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
@@ -72,45 +72,40 @@ def test_snippet_ip(ip):
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
         [
             "%sqlcmd",
-            UsageError,
             "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd ",
-            UsageError,
             "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd  ",
-            UsageError,
             "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd   ",
-            UsageError,
             "Missing argument for %sqlcmd. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd stuff",
-            UsageError,
             "%sqlcmd has no command: 'stuff'. " f"{VALID_COMMANDS_MESSAGE}",
         ],
         [
             "%sqlcmd columns",
-            UsageError,
             "the following arguments are required: -t/--table",
         ],
     ],
 )
-def test_error(tmp_empty, ip, cell, error_type, error_message):
-    out = ip.run_cell(cell)
+def test_error(tmp_empty, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(out.error_in_exec) == error_message
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == error_message
 
 
 def test_tables(ip):
@@ -121,7 +116,7 @@ def test_tables(ip):
 
 
 def test_tables_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
     conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
@@ -159,7 +154,7 @@ def test_columns(ip, cmd, cols):
 
 
 def test_columns_with_schema(ip, tmp_empty):
-    conn = Connection(engine=create_engine("sqlite:///my.db"))
+    conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
     conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
     ip.run_cell(
@@ -392,22 +387,28 @@ def test_table_profile_store(ip, tmp_empty):
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
-        ["%sqlcmd test -t test_numbers", UsageError, "Please use a valid comparator."],
+        [
+            "%sqlcmd test -t test_numbers",
+            "Please use a valid comparator.",
+        ],
         [
             "%sqlcmd test --t test_numbers --greater 12",
-            UsageError,
             "Please pass a column to test.",
         ],
         [
             "%sqlcmd test --table test_numbers --column something --greater 100",
-            UsageError,
             "Referenced column 'something' not found!",
         ],
     ],
+    ids=[
+        "no_comparator",
+        "no_column",
+        "no_column_name",
+    ],
 )
-def test_test_error(ip, cell, error_type, error_message):
+def test_test_error(ip, cell, error_message):
     ip.run_cell(
         """
     %%sql sqlite://
@@ -419,10 +420,11 @@ def test_test_error(ip, cell, error_type, error_message):
     """
     )
 
-    out = ip.run_cell(cell)
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(out.error_in_exec) == error_message
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == error_message
 
 
 @pytest.mark.parametrize(
@@ -511,9 +513,12 @@ def test_snippet(test_snippet_ip, cmds, result):
 def test_invalid_snippet(ip_snippets, precmd, cmd, err_msg):
     if precmd:
         ip_snippets.run_cell(precmd)
-    out = ip_snippets.run_cell(cmd)
-    assert isinstance(out.error_in_exec, UsageError)
-    assert str(out.error_in_exec) == err_msg
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell(cmd)
+
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == err_msg
 
 
 @pytest.mark.parametrize("arg", ["--delete", "-d"])
@@ -563,12 +568,20 @@ LIMIT 3
     assert "high_price_b_child" not in stored_snippets
 
 
-@pytest.mark.parametrize("arg", ["--delete", "-d"])
+@pytest.mark.parametrize(
+    "arg",
+    [
+        "--delete",
+        "-d",
+    ],
+)
 def test_delete_snippet_error(ip_snippets, arg):
-    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price")
-    assert isinstance(out.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price")
+
+    assert excinfo.value.error_type == "UsageError"
     assert (
-        str(out.error_in_exec) == "The following tables are dependent on high_price: "
+        str(excinfo.value) == "The following tables are dependent on high_price: "
         "high_price_a, high_price_b.\nPass --delete-force to only "
         "delete high_price.\nPass --delete-force-all to delete "
         "high_price_a, high_price_b and high_price"
@@ -576,12 +589,19 @@ def test_delete_snippet_error(ip_snippets, arg):
 
 
 @pytest.mark.parametrize(
-    "arg", ["--delete", "-d", "--delete-force-all", "-A", "--delete-force", "-D"]
+    "arg",
+    [
+        "--delete",
+        "-d",
+        "--delete-force-all",
+        "-A",
+        "--delete-force",
+        "-D",
+    ],
 )
 def test_delete_invalid_snippet(arg, ip_snippets):
-    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} non_existent_snippet")
-    assert isinstance(out.error_in_exec, UsageError)
-    assert (
-        str(out.error_in_exec) == "No such saved snippet found "
-        ": non_existent_snippet"
-    )
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell(f"%sqlcmd snippets {arg} non_existent_snippet")
+
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"

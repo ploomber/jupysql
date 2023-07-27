@@ -1,3 +1,4 @@
+from uuid import uuid4
 import shutil
 from matplotlib import pyplot as plt
 import pytest
@@ -218,7 +219,9 @@ def test_close_and_connect(
     conn_alias = get_database_config_helper.get_database_config(config_key)["alias"]
     database_url = get_database_config_helper.get_database_url(config_key)
     # Disconnect
+
     ip_with_dynamic_db.run_cell("%sql -x " + conn_alias)
+
     assert get_connection_count(ip_with_dynamic_db) == 0
     # Connect, also check there is no error on re-connecting
     with warnings.catch_warnings():
@@ -236,7 +239,7 @@ def test_close_and_connect(
         ("ip_with_mariaDB", "mysql", "pymysql"),
         ("ip_with_SQLite", "sqlite", "pysqlite"),
         ("ip_with_duckDB", "duckdb", "duckdb_engine"),
-        ("ip_with_duckDB_native", None, None),
+        ("ip_with_duckDB_native", "duckdb", "DuckDBPyConnection"),
         ("ip_with_MSSQL", "mssql", "pyodbc"),
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
@@ -390,34 +393,31 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
-        ("ip_with_duckDB_native"),
-        ("ip_with_MSSQL"),
+        pytest.param(
+            "ip_with_duckDB_native",
+            marks=pytest.mark.xfail(reason="not supported yet for native connections"),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            marks=pytest.mark.xfail(reason="not working yet"),
+        ),
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, capsys):
+def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    table = test_table_name_dict["numbers"]
 
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
-    CREATE TABLE test_numbers (value);
-    INSERT INTO test_numbers VALUES (0);
-    INSERT INTO test_numbers VALUES (4);
-    INSERT INTO test_numbers VALUES (5);
-    INSERT INTO test_numbers VALUES (6);
-    """
-    )
+    ip_with_dynamic_db.run_cell(f"%sql select * from {table}")
 
-    ip_with_dynamic_db.run_cell(
-        "%sqlcmd test --table test_numbers --column value" " --less-than 5 --greater 1"
-    )
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            f"%sqlcmd test --table {table} --column numbers_elements "
+            "--less-than 1 --greater 2"
+        )
 
-    _out = capsys.readouterr()
-
-    assert "less_than" in _out.out
-    assert "greater" in _out.out
+    assert "The above values do not match your test requirements." in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -819,74 +819,301 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
-    out = ip_with_dynamic_db.run_cell(
-        """
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            """
     %%sql
 S"""
+        )
+
+    assert excinfo.value.error_type == "RuntimeError"
+    assert CTE_MSG in str(excinfo.value)
+
+
+@pytest.mark.xfail(reason="Not yet implemented")
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
+        "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        "ip_with_Snowflake",
+        "ip_with_MSSQL",
+        "ip_with_oracle",
+    ],
+)
+def test_results_sets_are_closed(ip_with_dynamic_db, request, test_table_name_dict):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+CREATE TABLE my_numbers AS SELECT * FROM {test_table_name_dict['numbers']}
+        """
     )
-    assert isinstance(out.error_in_exec, UsageError)
-    assert out.error_in_exec.error_type == "RuntimeError"
-    assert CTE_MSG in str(out.error_in_exec)
+
+    ip_with_dynamic_db.run_cell(
+        """%%sql
+SELECT * FROM my_numbers
+        """
+    )
+
+    ip_with_dynamic_db.run_cell(
+        """%%sql
+DROP TABLE my_numbers
+        """
+    )
 
 
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
+        "ip_with_postgreSQL",
+        "ip_with_mySQL",
+        "ip_with_mariaDB",
         "ip_with_SQLite",
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+        "ip_with_Snowflake",
         pytest.param(
-            "ip_with_duckDB_native",
+            "ip_with_MSSQL",
             marks=pytest.mark.xfail(
-                reason="We're currently running each command in a new cursor"
+                reason="We need to close existing result sets for this to work"
             ),
         ),
-        "ip_with_duckDB",
-        "ip_with_postgreSQL",
+        "ip_with_oracle",
     ],
 )
-def test_temp_table(ip_with_dynamic_db, request):
+@pytest.mark.parametrize(
+    "cell",
+    [
+        "%sql SELECT * FROM __TABLE_NAME__",
+        (
+            "%sql WITH something AS (SELECT * FROM __TABLE_NAME__) "
+            "SELECT * FROM something"
+        ),
+    ],
+)
+def test_autocommit_retrieve_existing_resultssets(
+    ip_with_dynamic_db, request, test_table_name_dict, cell
+):
+    """
+    duckdb-engine causes existing result cursor to become empty if we call
+    connection.commit(), this test ensures that we correctly handle that edge
+    case for duckdb and potentially other drivers.
+
+    See: https://github.com/Mause/duckdb_engine/issues/734
+    """
+
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-    out = ip_with_dynamic_db.run_cell(
-        """%%sql
-create temp table my_table as select 42;
-select * from my_table;
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+
+    first = ip_with_dynamic_db.run_cell(
+        cell.replace("__TABLE_NAME__", test_table_name_dict["numbers"])
+    ).result
+
+    second = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
+    ).result
+
+    third = ip_with_dynamic_db.run_cell(
+        f"%sql SELECT * FROM {test_table_name_dict['numbers']}"
+    ).result
+
+    first.fetchmany(size=1)
+    second.fetchmany(size=1)
+    third.fetchmany(size=1)
+
+    assert len(first) == 60
+    assert len(second) == 60
+    assert len(third) == 60
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_duckDB_native",
+        "ip_with_duckDB",
+    ],
+)
+def test_autocommit_retrieve_existing_resultssets_duckdb_from(
+    ip_with_dynamic_db, request, test_table_name_dict
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+
+    result = ip_with_dynamic_db.run_cell(
+        f'%sql FROM {test_table_name_dict["numbers"]} LIMIT 5'
+    ).result
+
+    another = ip_with_dynamic_db.run_cell(
+        f"%sql FROM {test_table_name_dict['numbers']} LIMIT 5"
+    ).result
+
+    assert len(result) == 5
+    assert len(another) == 5
+
+
+CREATE_TABLE = "CREATE TABLE __TABLE_NAME__ (number INT)"
+CREATE_TEMP_TABLE = "CREATE TEMP TABLE __TABLE_NAME__ (number INT)"
+CREATE_TEMPORARY_TABLE = "CREATE TEMPORARY TABLE __TABLE_NAME__ (number INT)"
+CREATE_GLOBAL_TEMPORARY_TABLE = (
+    "CREATE GLOBAL TEMPORARY TABLE __TABLE_NAME__ (number INT)"
+)
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, create_table_statement",
+    [
+        ("ip_with_postgreSQL", CREATE_TABLE),
+        ("ip_with_postgreSQL", CREATE_TEMP_TABLE),
+        ("ip_with_mySQL", CREATE_TABLE),
+        ("ip_with_mySQL", CREATE_TEMPORARY_TABLE),
+        ("ip_with_mariaDB", CREATE_TABLE),
+        ("ip_with_mariaDB", CREATE_TEMPORARY_TABLE),
+        ("ip_with_SQLite", CREATE_TABLE),
+        ("ip_with_SQLite", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB", CREATE_TABLE),
+        ("ip_with_duckDB", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB_native", CREATE_TABLE),
+        pytest.param(
+            "ip_with_duckDB_native",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We're executing operations in different cursors"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_GLOBAL_TEMPORARY_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        ("ip_with_Snowflake", CREATE_TABLE),
+        ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+    ],
+)
+def test_autocommit_create_table_single_cell(
+    ip_with_dynamic_db,
+    request,
+    create_table_statement,
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+    __TABLE_NAME__ = f"table_{str(uuid4())[:8]}"
+
+    create_table_statement = create_table_statement.replace(
+        "__TABLE_NAME__", __TABLE_NAME__
+    )
+
+    result = ip_with_dynamic_db.run_cell(
+        f"""%%sql
+{create_table_statement};
+INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
+SELECT * FROM {__TABLE_NAME__};
+"""
+    ).result
+
+    assert len(result) == 3
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, create_table_statement",
+    [
+        ("ip_with_postgreSQL", CREATE_TABLE),
+        ("ip_with_postgreSQL", CREATE_TEMP_TABLE),
+        ("ip_with_mySQL", CREATE_TABLE),
+        ("ip_with_mySQL", CREATE_TEMPORARY_TABLE),
+        ("ip_with_mariaDB", CREATE_TABLE),
+        ("ip_with_mariaDB", CREATE_TEMPORARY_TABLE),
+        ("ip_with_SQLite", CREATE_TABLE),
+        ("ip_with_SQLite", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB", CREATE_TABLE),
+        ("ip_with_duckDB", CREATE_TEMP_TABLE),
+        ("ip_with_duckDB_native", CREATE_TABLE),
+        pytest.param(
+            "ip_with_duckDB_native",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We're executing operations in different cursors"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_MSSQL",
+            CREATE_TEMP_TABLE,
+            marks=pytest.mark.xfail(
+                reason="We need to close all existing result sets for this to work"
+            ),
+        ),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        pytest.param(
+            "ip_with_oracle",
+            CREATE_GLOBAL_TEMPORARY_TABLE,
+            marks=pytest.mark.xfail(reason="Not working yet"),
+        ),
+        ("ip_with_Snowflake", CREATE_TABLE),
+        ("ip_with_Snowflake", CREATE_TEMPORARY_TABLE),
+    ],
+)
+def test_autocommit_create_table_multiple_cells(
+    ip_with_dynamic_db, request, create_table_statement
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell("%config SqlMagic.autocommit=True")
+    __TABLE_NAME__ = f"table_{str(uuid4())[:8]}"
+    create_table_statement = create_table_statement.replace(
+        "__TABLE_NAME__", __TABLE_NAME__
+    )
+
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+{create_table_statement}
 """
     )
 
-    assert out.error_in_exec is None
-    assert list(out.result) == [(42,)]
-
-
-def test_results_sets_are_closed(tmp_empty, ip_empty):
-    ip_empty.run_cell("%config SqlMagic.displaylimit = 3")
-
-    ip_empty.run_cell(
-        "%sql sqlite:///test_results_sets_are_closed.db --alias first-conn"
-    )
-
-    ip_empty.run_cell(
-        "%sql sqlite:///test_results_sets_are_closed.db --alias second-conn"
-    )
-
-    ip_empty.run_cell(
-        """%%sql first-conn
-CREATE TABLE numbers (
-    x INT PRIMARY KEY
-);
-
-INSERT INTO numbers (x)
-VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
+    ip_with_dynamic_db.run_cell(
+        f"""%%sql
+INSERT INTO {__TABLE_NAME__} (number) VALUES (1), (2), (3);
 """
     )
 
-    ip_empty.run_cell("%sql SELECT * FROM numbers")
+    result = ip_with_dynamic_db.run_cell(
+        f"""%%sql
+SELECT * FROM {__TABLE_NAME__};
+"""
+    ).result
 
-    ip_empty.run_cell("%sql --close first-conn")
-
-    # if the close command above doesn't close all results, this drop will fail
-    result = ip_empty.run_cell(
-        """%%sql second-conn
-DROP TABLE numbers
-        """
-    )
-
-    assert result.error_in_exec is None
+    assert len(result) == 3

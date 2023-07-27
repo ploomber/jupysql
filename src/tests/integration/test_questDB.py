@@ -6,8 +6,10 @@ import pandas as pd
 import urllib.request
 import requests
 from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
+from sql.connection import ConnectionManager
+
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
-from sql.connection import DBAPIConnection, DBAPISession
+from sql.connection import DBAPIConnection
 from IPython.core.error import UsageError
 
 """
@@ -530,9 +532,11 @@ NOT_SUPPORTED_SUFFIX = (
 )
 def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
-    out = ip_questdb.run_cell(query)
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_questdb.run_cell(query)
+
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
 
@@ -580,44 +584,39 @@ def test_ggplot_boxplot_not_supported_error(
 def test_sqlplot_not_supported_error(
     ip_questdb, penguins_data, penguins_no_nulls_questdb, query, expected_error_message
 ):
-    ip_questdb.run_cell(query)
-    out = ip_questdb.run_cell(query)
-    error_message = str(out.error_in_exec)
-    assert isinstance(out.error_in_exec, UsageError)
+    with pytest.raises(UsageError) as excinfo:
+        ip_questdb.run_cell(query)
+
+    error_message = str(excinfo.value)
     assert str(expected_error_message).lower() in error_message.lower()
 
 
 # Utils
 @pytest.mark.parametrize(
     "alias",
-    [None, "test_alias"],
+    [
+        "Connection",
+        "test_alias",
+    ],
 )
 def test_dbapi_connection(ip_questdb, alias):
     import psycopg as pg
 
     engine = pg.connect(QUESTDB_CONNECTION_STRING)
 
-    expected_connection_name = "custom_driver"
+    expected_connection_name = "Connection"
 
     connection = DBAPIConnection(engine, alias)
 
     assert isinstance(connection, DBAPIConnection)
     assert connection.name is expected_connection_name
-    assert connection.dialect is expected_connection_name
+    assert connection.dialect is None
     assert connection.alias is alias
-    assert len(connection.connections) > 0
-    assert isinstance(connection.session, DBAPISession)
+    assert len(ConnectionManager.connections) > 0
 
     if alias:
-        stored_connection = connection.connections[alias]
+        stored_connection = ConnectionManager.connections[alias]
     else:
-        stored_connection = connection.connections[expected_connection_name]
+        stored_connection = ConnectionManager.connections[expected_connection_name]
 
     assert isinstance(stored_connection, DBAPIConnection)
-
-
-def test_dbapi_connection_error(ip_questdb):
-    with pytest.raises(ValueError) as err:
-        DBAPIConnection()
-
-    assert "Engine cannot be None" in str(err)

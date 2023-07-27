@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.5
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -31,7 +31,7 @@ You can launch a new github codespace from the green "Code" button on [the JupyS
 Note that setup will take a few minutes to finish after the codespace becomes available (wait for the **postCreateCommand** step to finish).
 ![JupySQL github codespace](../static/github-codespace-setup.png)
 
-After the codespace has finished setting up, you can run `conda activate jupysql` to activate the JupySQL Conda environment. 
+After the codespace has finished setting up, you can run `conda activate jupysql` to activate the JupySQL Conda environment.
 
 +++
 
@@ -54,7 +54,6 @@ message("Some information")
 ```{code-cell} ipython3
 message_success("Some operation finished successfully!")
 ```
-
 
 ## Throwing errors
 
@@ -90,7 +89,7 @@ These errors that hide the traceback should only be used in the context of a mag
 
 ### Unit testing custom errors
 
-The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples.
+The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples, and `exceptions.py` for more details.
 
 +++
 
@@ -106,11 +105,13 @@ Currently, these common errors are handled by providing more meaningful error me
 
 ## Managing Connections
 
-In our codebase, we manage connections to databases with a `Connection` object, this is required for the `%%sql magic` to work. Internally, this connection object has a sqlalchemy connection.
+In our codebase, we establish connections to databases with `SQLAlchemyConnection` and `DBAPIConnection` objects (they have the same interface).
+
+Furthermore, we have a `ConnectionManager` to manage all the connections.
 
 ### Working with connections
 
-`Connection` should be exclusively used to manage database connections on the user's behalf and to obtain the current SQLAlchemy connection. We can access the current SQLAlchemy connection using `current.session`.
+We can access the current connection using `ConnectionManager.current`.
 
 ```{code-cell} ipython3
 :tags: [remove-output]
@@ -120,52 +121,21 @@ In our codebase, we manage connections to databases with a `Connection` object, 
 ```
 
 ```{code-cell} ipython3
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 
-conn = Connection.current.session
+conn = ConnectionManager.current
 conn
 ```
+
  
-Functions that expect a `conn` (sometimes named `con`) input variable should only use SQLAlchemy connections.
+Functions that expect a `conn` (sometimes named `con`) input variable should only use connection objects.
 
 ```python
 def histogram(payload, table, column, bins, with_=None, conn=None):
     pass
 ```
 
-### Tests
-
-When creating data for tests, we should use `sqlalchemy.create_engine` and avoid using native driver functions (e.g. `sqlite3.connect` or `duckdb.connect`) to ensure consistency.
-
-```{code-cell} ipython3
-from sqlalchemy import create_engine
-from sql.connection import Connection
-
-conn = Connection(engine=create_engine("sqlite://"))
-
-conn.execute("CREATE TABLE some_table (name, age)")
-```
-
-### Non SQLAlchemy supported engines
-
-When working with engines that are not supported by SQLAlchemy, e.g. `QuestDB`, we won't be able to use `sqlalchemy.create_engine`.
-Instead, we should initiate an engine using the native method and use the `DBAPIConnection` object.
-
-```python
-import psycopg as pg
-from sql.connection import DBAPIConnection
-
-engine = pg.connect("dbname='qdb' user='admin' host='127.0.0.1' port='8812' password='quest'")
-conn = DBAPIConnection(engine)
-
-plot.histogram("my_table", "column_name", bins=50, conn=conn)
-```
-
-For a full example on how to use JupySQL with a non SQLAlchemy supported engine please see [QuestDB](./../integrations/questdb).
-
-```{note}
-Please be advised that there may be some features/functionalities that won't be fully compatible with JupySQL when using `DBAPIConnection`.
-```
++++
 
 ## Unit testing
 
@@ -191,14 +161,14 @@ This guide will show you the basics of writing unit tests for JupySQL magics. Ma
 
 In the unit testing suite, there are a few pytest fixtures that prepare the environment so you can get started:
 
-- `ip_empty` - Empty IPython session
-- `ip` - IPython session with some sample data
+- `ip_empty` - Empty IPython session (no database connections, no data)
+- `ip` - IPython session with some sample data and a SQLite connection
+- To check the other available fixtures, see the `conftest.py` files
 
 So a typical test will look like this:
 
 ```{code-cell} ipython3
 def test_something(ip):
-    ip.run_cell("%sql sqlite://")
     result = ip.run_cell(
         """%%sql
     SELECT * FROM test
@@ -211,13 +181,13 @@ def test_something(ip):
 To see some sample tests, [click here.](https://github.com/ploomber/jupysql/blob/master/src/tests/test_magic.py)
 
 
-The IPython sessions are created like this:
+The `ip` object is an IPython session that is created like this:
 
 ```{code-cell} ipython3
-from IPython.core.interactiveshell import InteractiveShell
+from sql._testing import TestingShell
 from sql.magic import SqlMagic
 
-ip_session = InteractiveShell()
+ip_session = TestingShell()
 ip_session.register_magics(SqlMagic)
 ```
 
@@ -233,50 +203,7 @@ To test the output:
 assert out.result == 2
 ```
 
-You can also check for execution success:
-
-```{code-cell} ipython3
-assert out.success
-```
-
-```{important}
-Always check for success! Since `run_cell` won't raise an error if the code fails
-```
-
-```{code-cell} ipython3
-try:
-    ip_session.run_cell("1 / 0")
-except Exception as e:
-    print(f"Error: {e}")
-else:
-    print("No error")
-```
-
-Note that the `run_cell` only printed the error but did not raise an exception.
-
-+++
-
-#### Capturing errors
-
-Let's see how to test that the code raises an expected error:
-
-```{code-cell} ipython3
-out = ip_session.run_cell("1 / 0")
-```
-
-```{code-cell} ipython3
-# this returns the raised exception
-out.error_in_exec
-```
-
-```{code-cell} ipython3
-:tags: [raises-exception]
-
-# this raises the error
-out.raise_error()
-```
-
-You can then use pytest to check the error:
+You can then use pytest to check for errors:
 
 ```{code-cell} ipython3
 import pytest
@@ -284,14 +211,14 @@ import pytest
 
 ```{code-cell} ipython3
 with pytest.raises(ZeroDivisionError):
-    out.raise_error()
+    ip_session.run_cell("1 / 0")
 ```
 
 To check the error message:
 
 ```{code-cell} ipython3
 with pytest.raises(ZeroDivisionError) as excinfo:
-    out.raise_error()
+    ip_session.run_cell("1 / 0")
 ```
 
 ```{code-cell} ipython3
@@ -375,17 +302,17 @@ We can use [SQLGlot](https://sqlglot.com/sqlglot.html) to build the general sql 
 
 Then transpile to the sql which is supported by current connected dialect.
 
-Our `sql.connection.Connection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
+Our `sql.SQLAlchemyConnection._transpile_query` will automatically detect the dialect and transpile the SQL clause.
 
 #### Example
 
 ```{code-cell} ipython3
 # Prepare connection
 from sqlglot import select, condition
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ```{code-cell} ipython3
@@ -416,11 +343,11 @@ We may provide `sqlglot.parse_one({source_sql_clause}, read={source_database_dia
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 import sqlglot
 
-conn = connection.Connection(engine=create_engine(url="duckdb://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="duckdb://"))
 ```
 
 ##### Prepare SQL clause based on duckdb syntax
@@ -441,10 +368,10 @@ conn._transpile_query(input_sql)
 ##### Prepare connection
 
 ```{code-cell} ipython3
-from sql import connection
+from sql.connection import SQLAlchemyConnection
 from sqlalchemy import create_engine
 
-conn = connection.Connection(engine=create_engine(url="sqlite://"))
+conn = SQLAlchemyConnection(engine=create_engine(url="sqlite://"))
 ```
 
 ##### Prepare SQL clause based on sqlite
