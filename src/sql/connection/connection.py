@@ -239,7 +239,6 @@ class ConnectionManager:
     @classmethod
     def close_connection_with_descriptor(cls, descriptor):
         """Close a connection with the given descriptor"""
-
         if isinstance(descriptor, SQLAlchemyConnection):
             conn = descriptor
         else:
@@ -260,7 +259,7 @@ class ConnectionManager:
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
 
-        conn.connection.close()
+        conn.close()
 
     @classmethod
     def connections_table(cls):
@@ -529,6 +528,13 @@ class SQLAlchemyConnection(AbstractConnection):
     def connection(self):
         """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
+
+    def close(self):
+        super().close()
+
+        # NOTE: in SQLAlchemy 2.x, we need to call engine.dispose() to completely
+        # close the connection, calling connection.close() is not enough
+        self.connection.engine.dispose()
 
     @classmethod
     @modify_exceptions
