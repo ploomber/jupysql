@@ -3,7 +3,7 @@ from sql import inspect
 import difflib
 from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
-from sql import exceptions
+from sql import exceptions, display
 import json
 from pathlib import Path
 from ploomber_core.dependencies import requires
@@ -410,7 +410,7 @@ def is_saved_snippet_or_table_exists(table, schema=None, task=None):
         is_table_exists(table, schema)
     return with_
 
-  
+
 def find_path_from_root(file_name):
     """
     Recursively finds an absolute path to file_name starting
@@ -531,4 +531,3 @@ def get_default_configs(sql):
     del default_configs["parent"]
     del default_configs["config"]
     return default_configs
-
