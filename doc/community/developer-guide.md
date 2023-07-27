@@ -161,8 +161,9 @@ This guide will show you the basics of writing unit tests for JupySQL magics. Ma
 
 In the unit testing suite, there are a few pytest fixtures that prepare the environment so you can get started:
 
-- `ip_empty` - Empty IPython session
-- `ip` - IPython session with some sample data and a SQLIte connection
+- `ip_empty` - Empty IPython session (no database connections, no data)
+- `ip` - IPython session with some sample data and a SQLite connection
+- To check the other available fixtures, see the `conftest.py` files
 
 So a typical test will look like this:
 
@@ -180,7 +181,7 @@ def test_something(ip):
 To see some sample tests, [click here.](https://github.com/ploomber/jupysql/blob/master/src/tests/test_magic.py)
 
 
-The `ip` object is an IPython sessions that is created like this:
+The `ip` object is an IPython session that is created like this:
 
 ```{code-cell} ipython3
 from sql._testing import TestingShell
