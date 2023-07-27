@@ -219,7 +219,9 @@ def test_close_and_connect(
     conn_alias = get_database_config_helper.get_database_config(config_key)["alias"]
     database_url = get_database_config_helper.get_database_url(config_key)
     # Disconnect
+
     ip_with_dynamic_db.run_cell("%sql -x " + conn_alias)
+
     assert get_connection_count(ip_with_dynamic_db) == 0
     # Connect, also check there is no error on re-connecting
     with warnings.catch_warnings():
