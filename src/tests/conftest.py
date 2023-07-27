@@ -4,13 +4,13 @@ import urllib.request
 from pathlib import Path
 
 import pytest
-from IPython.core.interactiveshell import InteractiveShell
 
 
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql.connection import ConnectionManager
+from sql._testing import TestingShell
 from sql import connection
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
@@ -63,21 +63,6 @@ def clean_conns():
     ConnectionManager.current = None
     ConnectionManager.connections = dict()
     yield
-
-
-class TestingShell(InteractiveShell):
-    """
-    A custom InteractiveShell that raises exceptions instead of silently suppressing
-    them.
-    """
-
-    def run_cell(self, *args, **kwargs):
-        result = super().run_cell(*args, **kwargs)
-
-        if result.error_in_exec is not None:
-            raise result.error_in_exec
-
-        return result
 
 
 @pytest.fixture
