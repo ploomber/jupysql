@@ -12,20 +12,20 @@ from sql import inspect, connection
 
 
 @pytest.fixture
-def sample_db(ip_empty_testing, tmp_empty):
-    ip_empty_testing.run_cell("%sql sqlite:///first.db --alias first")
-    ip_empty_testing.run_cell("%sql CREATE TABLE one (x INT, y TEXT)")
-    ip_empty_testing.run_cell("%sql CREATE TABLE another (i INT, j TEXT)")
-    ip_empty_testing.run_cell("%sql sqlite:///second.db --alias second")
-    ip_empty_testing.run_cell("%sql CREATE TABLE uno (x INT, y TEXT)")
-    ip_empty_testing.run_cell("%sql CREATE TABLE dos (i INT, j TEXT)")
-    ip_empty_testing.run_cell("%sql --close second")
-    ip_empty_testing.run_cell("%sql first")
-    ip_empty_testing.run_cell("%sql ATTACH DATABASE 'second.db' AS schema")
+def sample_db(ip_empty, tmp_empty):
+    ip_empty.run_cell("%sql sqlite:///first.db --alias first")
+    ip_empty.run_cell("%sql CREATE TABLE one (x INT, y TEXT)")
+    ip_empty.run_cell("%sql CREATE TABLE another (i INT, j TEXT)")
+    ip_empty.run_cell("%sql sqlite:///second.db --alias second")
+    ip_empty.run_cell("%sql CREATE TABLE uno (x INT, y TEXT)")
+    ip_empty.run_cell("%sql CREATE TABLE dos (i INT, j TEXT)")
+    ip_empty.run_cell("%sql --close second")
+    ip_empty.run_cell("%sql first")
+    ip_empty.run_cell("%sql ATTACH DATABASE 'second.db' AS schema")
 
     yield
 
-    ip_empty_testing.run_cell("%sql --close first")
+    ip_empty.run_cell("%sql --close first")
     Path("first.db").unlink()
     Path("second.db").unlink()
 

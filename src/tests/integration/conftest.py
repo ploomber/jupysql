@@ -315,26 +315,26 @@ def ip_with_duckDB(ip_empty, setup_duckDB):
 
 
 @pytest.fixture
-def ip_with_duckdb_native_empty(tmp_empty, ip_empty_testing):
-    ip_empty_testing.run_cell("import duckdb; conn = duckdb.connect('my.db')")
-    ip_empty_testing.run_cell("%sql conn --alias duck")
-    yield ip_empty_testing
-    ip_empty_testing.run_cell("conn.close()")
+def ip_with_duckdb_native_empty(tmp_empty, ip_empty):
+    ip_empty.run_cell("import duckdb; conn = duckdb.connect('my.db')")
+    ip_empty.run_cell("%sql conn --alias duck")
+    yield ip_empty
+    ip_empty.run_cell("conn.close()")
 
 
 @pytest.fixture
-def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty_testing):
-    ip_empty_testing.run_cell("%sql duckdb:///my.db --alias duckdb")
-    yield ip_empty_testing
-    ip_empty_testing.run_cell("%sql --close duckdb")
+def ip_with_duckdb_sqlalchemy_empty(tmp_empty, ip_empty):
+    ip_empty.run_cell("%sql duckdb:///my.db --alias duckdb")
+    yield ip_empty
+    ip_empty.run_cell("%sql --close duckdb")
 
 
 @pytest.fixture
-def ip_with_sqlite_native_empty(tmp_empty, ip_empty_testing):
-    ip_empty_testing.run_cell("import sqlite3; conn = sqlite3.connect('')")
-    ip_empty_testing.run_cell("%sql conn --alias sqlite")
-    yield ip_empty_testing
-    ip_empty_testing.run_cell("conn.close()")
+def ip_with_sqlite_native_empty(tmp_empty, ip_empty):
+    ip_empty.run_cell("import sqlite3; conn = sqlite3.connect('')")
+    ip_empty.run_cell("%sql conn --alias sqlite")
+    yield ip_empty
+    ip_empty.run_cell("conn.close()")
 
 
 @pytest.fixture(scope="session")

@@ -105,32 +105,12 @@ def ip_empty():
 
 
 @pytest.fixture
-def ip_empty_testing():
-    c = Config()
-    c.HistoryAccessor.enabled = False
-    ip_session = TestingShell(config=c)
-
-    ip_session.register_magics(SqlMagic)
-    ip_session.register_magics(RenderMagic)
-    ip_session.register_magics(SqlPlotMagic)
-    ip_session.register_magics(SqlCmdMagic)
-
-    # there is some weird bug in ipython that causes this function to hang the pytest
-    # process when all tests have been executed (an internal call to gc.collect()
-    # hangs). This is a workaround.
-    ip_session.displayhook.flush = lambda: None
-
-    yield ip_session
-    ConnectionManager.close_all()
-
-
-@pytest.fixture
-def ip(ip_empty_testing):
+def ip(ip_empty):
     """Provides an IPython session in which tables have been created"""
 
     # runsql creates an inmemory sqlitedatabase
     runsql(
-        ip_empty_testing,
+        ip_empty,
         [
             "CREATE TABLE test (n INT, name TEXT)",
             "INSERT INTO test VALUES (1, 'foo')",
@@ -159,14 +139,14 @@ def ip(ip_empty_testing):
             "INSERT INTO number_table VALUES (4, 3)",
         ],
     )
-    yield ip_empty_testing
+    yield ip_empty
 
     ConnectionManager.close_all()
 
-    runsql(ip_empty_testing, "DROP TABLE IF EXISTS test")
-    runsql(ip_empty_testing, "DROP TABLE IF EXISTS author")
-    runsql(ip_empty_testing, "DROP TABLE IF EXISTS website")
-    runsql(ip_empty_testing, "DROP TABLE IF EXISTS number_table")
+    runsql(ip_empty, "DROP TABLE IF EXISTS test")
+    runsql(ip_empty, "DROP TABLE IF EXISTS author")
+    runsql(ip_empty, "DROP TABLE IF EXISTS website")
+    runsql(ip_empty, "DROP TABLE IF EXISTS number_table")
 
 
 @pytest.fixture
