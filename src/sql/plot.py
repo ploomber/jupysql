@@ -288,8 +288,8 @@ def _min_max(con, table, column, with_=None, use_backticks=False):
         con = sql.connection.ConnectionManager.current
     template_ = """
 SELECT
-    MIN("{{column}}"),
-    MAX("{{column}}")
+    MIN({{column}}),
+    MAX({{column}})
 FROM "{{table}}"
 """
     if use_backticks:
@@ -297,7 +297,8 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
-    min_, max_ = con.execute(query, with_=with_, read="mysql").fetchone()
+    min_, max_ = con.execute(query, with_=with_, read=None).fetchone()
+    print("min_, max_, from func: ", min_, max_)
     return min_, max_
 
 
@@ -521,14 +522,13 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
     # Define all relevant filters here
-    filter_query_1 = f'"{column}" IS NOT NULL'
+    filter_query_1 = f"{column} IS NOT NULL"
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
     filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     bin_size = None
-
     if _are_numeric_values(min_, max_):
         if not isinstance(bins, int):
             raise ValueError(
@@ -541,7 +541,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         bin_size = range_ / (bins - 1)
         template_ = """
             select
-            ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
+            ceiling({{column}}/{{bin_size}} - 0.5)*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
             {{filter_query}}
@@ -574,7 +574,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         query = template.render(table=table, column=column, filter_query=filter_query)
 
-    data = conn.execute(query, with_, read="mysql").fetchall()
+    data = conn.execute(query, with_, read=None).fetchall()
 
     bin_, height = zip(*data)
 
