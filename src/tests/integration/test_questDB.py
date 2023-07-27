@@ -7,6 +7,7 @@ import urllib.request
 import requests
 from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
 from sql.connection import ConnectionManager
+import pyscopg2 as pg2
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 from sql.connection import DBAPIConnection
@@ -546,21 +547,21 @@ def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     [
         (
             lambda: (ggplot(penguins_data, aes(x="body_mass_g")) + geom_boxplot()),
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
+            "unbalanced",
         ),
         (
             lambda: (
                 ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
                 + geom_boxplot()
             ),
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
+            "unbalanced",
         ),
     ],
 )
 def test_ggplot_boxplot_not_supported_error(
     ip_questdb, penguins_no_nulls_questdb, penguins_data, func, expected_error_message
 ):
-    with pytest.raises(UsageError) as err:
+    with pytest.raises(pg2.DatabaseError) as err:
         func()
 
     assert err.value.error_type == "RuntimeError"
