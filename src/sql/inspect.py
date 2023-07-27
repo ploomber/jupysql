@@ -1,10 +1,9 @@
 from sqlalchemy import inspect
 from prettytable import PrettyTable
 from ploomber_core.exceptions import modify_exceptions
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.telemetry import telemetry
 from sql import exceptions
-import sql.run
 import math
 from sql import util
 from IPython.core.display import HTML
@@ -15,10 +14,10 @@ def _get_inspector(conn):
     if conn:
         return inspect(conn)
 
-    if not Connection.current:
+    if not ConnectionManager.current:
         raise exceptions.RuntimeError("No active connection")
     else:
-        return inspect(Connection.current.session)
+        return inspect(ConnectionManager.current.connection_sqlalchemy)
 
 
 class DatabaseInspection:
@@ -457,8 +456,8 @@ class TableDescription(DatabaseInspection):
             warning_background = "white"
             warning_title = ""
 
-        database = Connection.current.url
-        db_driver = Connection.current._get_curr_sqlalchemy_connection_info()["driver"]
+        database = ConnectionManager.current.url
+        db_driver = ConnectionManager.current._get_database_information()["driver"]
         if "duckdb" in database:
             db_message = ""
         else:

@@ -1,11 +1,12 @@
+from pathlib import Path
 from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
 
 from sqlalchemy.engine import Engine
 
-from sql import parse
+from sql import parse, exceptions
 from sql.store import store
-from sql.connection import Connection
+from sql.connection import ConnectionManager, is_pep249_compliant
 
 
 class SQLPlotCommand:
@@ -28,11 +29,14 @@ class SQLCommand:
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
 
-        is_dbapi_connection_ = (
-            Connection.is_dbapi_connection(user_ns.get(self.args.line[0], False))
-            if len(self.args.line) > 0
-            else False
-        )
+        # NOTE: this is only used to determine if what the user passed looks like a
+        # connection, we can simplify it
+        if len(self.args.line) > 0 and self.args.line[0] in user_ns:
+            conn = user_ns[self.args.line[0]]
+
+            is_dbapi_connection_ = is_pep249_compliant(conn)
+        else:
+            is_dbapi_connection_ = False
 
         if (
             one_arg
@@ -45,7 +49,7 @@ class SQLCommand:
             line_for_command = self.args.line
             add_conn = False
 
-        if one_arg and self.args.line[0] in Connection.connections:
+        if one_arg and self.args.line[0] in ConnectionManager.connections:
             line_for_command = []
             add_alias = True
         else:
@@ -54,8 +58,12 @@ class SQLCommand:
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:
-            with open(self.args.file, "r") as infile:
-                self.command_text = infile.read() + "\n" + self.command_text
+            try:
+                file_contents = Path(self.args.file).read_text()
+            except FileNotFoundError as e:
+                raise exceptions.FileNotFoundError(str(e)) from e
+
+            self.command_text = file_contents + "\n" + self.command_text
 
         self.parsed = parse.parse(self.command_text, magic)
 

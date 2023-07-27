@@ -1,9 +1,14 @@
 # CHANGELOG
 
-## 0.8.1dev
 
-* [Fix] Added support for `profile` and `explore` commands with saved snippets (#658)
+## 0.9.0dev
+
 * [Fix] Fix error that was incorrectly converted into a print message
+* [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
+* [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
+* [Fix] Fixed vertical color breaks in histograms (#702)
+* [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
+* [Fix] Added support for `profile` and `explore` commands with saved snippets (#658)
 
 ## 0.8.0 (2023-07-18)
 

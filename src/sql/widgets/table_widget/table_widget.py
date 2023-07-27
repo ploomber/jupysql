@@ -1,7 +1,6 @@
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from IPython import get_ipython
 import math
-import sqlalchemy
 import time
 from sql.util import (
     fetch_sql_with_pagination,
@@ -71,6 +70,7 @@ class TableWidget:
         n_total = Connection.current.session.execute(
             sqlalchemy.sql.text(query)
         ).fetchone()[0]
+
         table_name = table.strip('"').strip("'")
 
         n_pages = math.ceil(n_total / rows_per_page)

@@ -24,7 +24,7 @@ import shlex
 from difflib import get_close_matches
 import sql.connection
 import sql.parse
-import sql.run
+from sql.run.run import run_statements
 from sql.parse import _option_strings_from_parser
 from sql import display, exceptions
 from sql.store import store
@@ -420,9 +420,9 @@ class SqlMagic(Magics, Configurable):
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections_table()
+            return sql.connection.ConnectionManager.connections_table()
         elif args.close:
-            return sql.connection.Connection.close_connection_with_descriptor(
+            return sql.connection.ConnectionManager.close_connection_with_descriptor(
                 args.close
             )
 
@@ -443,8 +443,7 @@ class SqlMagic(Magics, Configurable):
                         raw_args = raw_args[1:-1]
                 args.connection_arguments = json.loads(raw_args)
             except Exception as e:
-                display.message(str(e))
-                raise e
+                raise exceptions.ValueError(str(e)) from e
         else:
             args.connection_arguments = {}
         if args.creator:
@@ -452,14 +451,14 @@ class SqlMagic(Magics, Configurable):
 
         # this creates a new connection or use an existing one
         # depending on the connect_arg value
-        conn = sql.connection.Connection.set(
+        conn = sql.connection.ConnectionManager.set(
             connect_arg,
             displaycon=self.displaycon,
             connect_args=args.connection_arguments,
             creator=args.creator,
             alias=args.alias,
         )
-        payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = conn._get_database_information()
 
         if args.persist_replace and args.append:
             raise exceptions.UsageError(
@@ -514,7 +513,7 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = sql.run.run(conn, command.sql, self)
+            result = run_statements(conn, command.sql, self)
 
             if (
                 result is not None
@@ -611,7 +610,9 @@ class SqlMagic(Magics, Configurable):
             if_exists = "fail"
 
         try:
-            frame.to_sql(table_name, conn.session, if_exists=if_exists, index=index)
+            frame.to_sql(
+                table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index
+            )
         except ValueError:
             raise exceptions.ValueError(
                 f"""Table {table_name!r} already exists. Consider using \
