@@ -8,6 +8,7 @@ import math
 from sql import util
 from IPython.core.display import HTML
 import uuid
+from sql import connection
 
 
 def _get_inspector(conn):
@@ -237,15 +238,13 @@ class TableDescription(DatabaseInspection):
         if schema:
             table_name = f"{schema}.{table_name}"
 
-        columns_query_result = sql.run.raw_run(
-            Connection.current,
-            str(
-                Connection.current._prepare_query(
+        conn = ConnectionManager.current
+
+        columns_query_result = conn.execute(
                     f"SELECT * FROM {table_name} WHERE 1=0", with_=with_
                 )
-            ),
-        )
-        if Connection.is_dbapi_connection():
+
+        if ConnectionManager.current.is_dbapi_connection():
             columns = [i[0] for i in columns_query_result.description]
         else:
             columns = columns_query_result.keys()
@@ -260,13 +259,8 @@ class TableDescription(DatabaseInspection):
 
             # check the datatype of a column
             try:
-                result = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
-                        )
-                    ),
+                result = conn.execute(
+                f"SELECT {column} FROM {table_name} LIMIT 1", with_=with_
                 ).fetchone()
 
                 value = result[0]
@@ -281,16 +275,11 @@ class TableDescription(DatabaseInspection):
                 message_check = True
             # Note: index is reserved word in sqlite
             try:
-                result_col_freq_values = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f"""SELECT DISTINCT {column} as top,
+                result_col_freq_values = conn.execute(
+                    f"""SELECT DISTINCT {column} as top,
                     COUNT({column}) as frequency FROM {table_name}
                     GROUP BY top ORDER BY frequency Desc""",
-                            with_=with_,
-                        )
-                    ),
+                    with_=with_,
                 ).fetchall()
 
                 table_stats[column]["freq"] = result_col_freq_values[0][1]
@@ -303,18 +292,14 @@ class TableDescription(DatabaseInspection):
 
             try:
                 # get all non None values, min, max and avg.
-                result_value_values = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f"""SELECT MIN({column}) AS min,
+                result_value_values = conn.execute(
+                    f"""SELECT MIN({column}) AS min,
                     MAX({column}) AS max,
                     COUNT({column}) AS count
                     FROM {table_name}
                     WHERE {column} IS NOT NULL""",
-                            with_=with_,
-                        )
-                    ),
+                    with_=with_,
+
                 ).fetchall()
 
                 columns_to_include_in_report.update(["count", "min", "max"])
@@ -330,17 +315,12 @@ class TableDescription(DatabaseInspection):
 
             try:
                 # get unique values
-                result_value_values = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f""" SELECT
+                result_value_values = conn.execute(
+                    f""" SELECT
                     COUNT(DISTINCT {column}) AS unique_count
                     FROM {table_name}
                     WHERE {column} IS NOT NULL""",
-                            with_=with_,
-                        )
-                    ),
+                    with_=with_,
                 ).fetchall()
                 table_stats[column]["unique"] = result_value_values[0][0]
                 columns_to_include_in_report.update(["unique"])
@@ -348,16 +328,11 @@ class TableDescription(DatabaseInspection):
                 pass
 
             try:
-                results_avg = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f""" SELECT AVG({column}) AS avg
+                results_avg = conn.execute(
+                    f""" SELECT AVG({column}) AS avg
                     FROM {table_name}
                     WHERE {column} IS NOT NULL""",
-                            with_=with_,
-                        )
-                    ),
+                    with_=with_,
                 ).fetchall()
 
                 columns_to_include_in_report.update(["mean"])
@@ -371,11 +346,8 @@ class TableDescription(DatabaseInspection):
 
             try:
                 # Note: stddev_pop and PERCENTILE_DISC will work only on DuckDB
-                result = sql.run.raw_run(
-                    Connection.current,
-                    str(
-                        Connection.current._prepare_query(
-                            f""" SELECT
+                result = conn.execute(
+                        f""" SELECT
                         stddev_pop({column}) as key_std,
                         percentile_disc(0.25) WITHIN GROUP
                         (ORDER BY {column}) as key_25,
@@ -384,9 +356,7 @@ class TableDescription(DatabaseInspection):
                         percentile_disc(0.75) WITHIN GROUP
                         (ORDER BY {column}) as key_75
                     FROM {table_name}""",
-                            with_=with_,
-                        )
-                    ),
+                        with_=with_,
                 ).fetchall()
 
                 columns_to_include_in_report.update(special_numeric_keys)

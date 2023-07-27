@@ -62,13 +62,13 @@ class TableWidget:
         rows = parse_sql_results_to_json(rows, columns)
 
         query = str(
-            Connection.current._prepare_query(
+            ConnectionManager.current._prepare_query(
                 f""" SELECT count(*) FROM {table}""",
                 with_=self.with_,
             )
         )
-        n_total = Connection.current.session.execute(
-            sqlalchemy.sql.text(query)
+        n_total = ConnectionManager.current.raw_execute(
+            query
         ).fetchone()[0]
 
         table_name = table.strip('"').strip("'")

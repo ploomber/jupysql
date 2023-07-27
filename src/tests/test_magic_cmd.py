@@ -695,4 +695,3 @@ def test_table_explore_with_snippets(ip, tmp_empty):
         ip.run_cell("%sqlcmd explore -t citizen")
 
     assert "sql.widgets.table_widget.table_widget.TableWidget object" in captured.stdout
-
