@@ -1394,7 +1394,7 @@ def test_interact_and_missing_ipywidgets_installed(ip):
         excinfo.value
     )
 
-    
+
 @pytest.mark.parametrize(
     "file_content, expect, revert",
     [
@@ -1574,7 +1574,7 @@ displaycon = false
     # revert back to a default setting
     setattr(sql, "displaycon", True)
 
-   
+
 def test_save_snippet_as_sql(ip_snip):
     """Test if SqlMagic.persist_snippets = True saves
     the snippet in a .sql file
@@ -1724,4 +1724,3 @@ def test_snippet_sql_message(ip, capsys, per_snippets, expected_in_output):
         assert message in snippets_output
     else:
         assert message not in snippets_output
-
