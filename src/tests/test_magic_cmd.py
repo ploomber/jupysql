@@ -658,12 +658,11 @@ def test_delete_snippet_error(ip_snippets, arg):
     ],
 )
 def test_delete_invalid_snippet(arg, ip_snippets):
-    out = ip_snippets.run_cell(f"%sqlcmd snippets {arg} non_existent_snippet")
-    assert isinstance(out.error_in_exec, UsageError)
-    assert (
-        str(out.error_in_exec) == "No such saved snippet found "
-        ": non_existent_snippet"
-    )
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell(f"%sqlcmd snippets {arg} non_existent_snippet")
+
+    assert excinfo.value.error_type == "UsageError"
+    assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"
 
 
 def test_table_explore_with_snippets(ip, tmp_empty):
