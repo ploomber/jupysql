@@ -417,9 +417,7 @@ def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
             "--less-than 1 --greater 2"
         )
 
-    assert "The above values do not not match your test requirements." in str(
-        excinfo.value
-    )
+    assert "The above values do not match your test requirements." in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
