@@ -9,6 +9,7 @@ from sqlalchemy.exc import NoSuchModuleError, OperationalError
 from IPython.core.error import UsageError
 import difflib
 import sqlglot
+import sqlparse
 
 
 from sql.store import store
@@ -396,8 +397,11 @@ class AbstractConnection(abc.ABC):
             SQL clause that's compatible to current connected dialect
         """
         write_dialect = self._get_sqlglot_dialect()
+
         try:
-            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
+            query = ";\n".join(
+                [p.sql(dialect=write_dialect) for p in sqlglot.parse(query)]
+            )
         finally:
             return query
 
@@ -414,6 +418,7 @@ class AbstractConnection(abc.ABC):
         with_ : string, default None
             The key to use in with sql clause
         """
+
         if with_:
             query = str(store.render(query, with_=with_))
 
@@ -471,7 +476,7 @@ class AbstractConnection(abc.ABC):
         return identifiers
 
 
-# some dialects have autocommit specific dialects break when commit is used
+# some dialects break when commit is used
 _COMMIT_BLACKLIST_DIALECTS = (
     "athena",
     "bigquery",
@@ -544,6 +549,10 @@ class SQLAlchemyConnection(AbstractConnection):
         return self._dialect
 
     def raw_execute(self, query):
+        # we do not support multiple statements
+        if len(sqlparse.split(query)) > 1:
+            raise NotImplementedError("Only one statement is supported.")
+
         # TODO: checking for with isn't the best idea because it doesn't guarantee
         # that the final one is a select statement
         words = query.split()

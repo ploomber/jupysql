@@ -576,3 +576,114 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
     captured = capsys.readouterr()
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+
+
+# TODO: check dbapi connection
+def test_raw_execute_doesnt_transpile_sql_query(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    mock = Mock(wraps=conn._connection.execute)
+    monkeypatch.setattr(conn._connection, "execute", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    conn.raw_execute("CREATE TABLE foo (bar INT)")
+    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
+    conn.raw_execute("SELECT * FROM foo LIMIT 1")
+
+    assert len(mock.call_args_list) == 3
+    assert [str(call[0][0]) for call in mock.call_args_list] == [
+        "CREATE TABLE foo (bar INT)",
+        "INSERT INTO foo VALUES (42), (43)",
+        "SELECT * FROM foo LIMIT 1",
+    ]
+
+
+# TODO: check dbapi connection
+def test_execute_transpiles_sql_query(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    mock = Mock(wraps=conn._connection.execute)
+    monkeypatch.setattr(conn._connection, "execute", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    conn.execute("CREATE TABLE foo (bar INT)")
+    conn.execute("INSERT INTO foo VALUES (42), (43)")
+
+    # tihs should fail because it'll try to run a tsql query on duckdb
+    with pytest.raises(sqlalchemy.exc.ProgrammingError):
+        conn.execute("SELECT * FROM foo LIMIT 1")
+
+    assert len(mock.call_args_list) == 3
+    assert [str(call[0][0]) for call in mock.call_args_list] == [
+        "CREATE TABLE foo (bar INTEGER)",
+        "INSERT INTO foo VALUES (42), (43)",
+        # tsql doesn't support LIMIT, so this should change it for TOP
+        "SELECT TOP 1 * FROM foo",
+    ]
+
+
+# TODO: check dbapi connection
+@pytest.mark.parametrize("execute_method", ["execute", "raw_execute"])
+def test_error_if_trying_to_execute_multiple_statements(monkeypatch, execute_method):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    mock = Mock(wraps=conn._connection.execute)
+    monkeypatch.setattr(conn._connection, "execute", mock)
+
+    with pytest.raises(NotImplementedError) as excinfo:
+        method = getattr(conn, execute_method)
+        method(
+            """
+CREATE TABLE foo (bar INT);
+INSERT INTO foo VALUES (42), (43);
+SELECT * FROM foo LIMIT 1;
+"""
+        )
+
+    assert str(excinfo.value) == "Only one statement is supported."
+
+
+# TODO: check dbapi connection
+def test_transpile_query(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    transpiled = conn._transpile_query(
+        """
+CREATE TABLE foo (bar INT);
+INSERT INTO foo VALUES (42), (43);
+SELECT * FROM foo LIMIT 1;
+"""
+    )
+
+    assert transpiled == (
+        "CREATE TABLE foo (bar INTEGER);\n"
+        "INSERT INTO foo VALUES (42), (43);\n"
+        "SELECT TOP 1 * FROM foo"
+    )
+
+
+# def test_transpile_query_doesnt_transpile_if_it_doesnt_need_to(monkeypatch):
+#     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+#     transpiled = conn._transpile_query(
+#         """
+#     SELECT
+#     percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP  (ORDER BY "column")
+# AS percentiles
+#     FROM "table"
+# """
+#     )
+
+#     assert transpiled == ""
+
+
+# def test_raw_execute_dbapi(monkeypatch):
+#     conn = DBAPIConnection(engine=create_engine("duckdb://"))
+
+#     mock = Mock(wraps=conn._connection.cursor)
+#     monkeypatch.setattr(conn._connection, "cursor", mock)
+
+#     mock.assert_not_called()

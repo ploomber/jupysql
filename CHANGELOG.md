@@ -9,7 +9,7 @@
 * [Fix] Fixed vertical color breaks in histograms (#702)
 * [Fix] Showing feedback when switching connections (#727)
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
-
+* [Fix] Fix bug that caused the query transpilation process to fail when passing multiple statements
 ## 0.8.0 (2023-07-18)
 
 * [Feature] Modified `TableDescription` to add styling, generate messages and format the calculated outputs ([#459](https://github.com/ploomber/jupysql/issues/459))

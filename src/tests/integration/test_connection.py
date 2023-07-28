@@ -389,10 +389,3 @@ def test_mssql_with_pytds(setup_MSSQL, autocommit_value):
 
 # TODO: test changing autocommit and make sure the connection is updated
 # with the new settings
-
-# TODO: test with a connection that throws an error when calling commit()
-
-
-# TODO: test .execute, there are some errors because it's transpilng even when it
-# doesn't need to and it's also removing part of the query when doing a create table
-# and then an insert into
