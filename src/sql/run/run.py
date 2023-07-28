@@ -5,8 +5,8 @@ from sql.run.resultset import ResultSet
 from sql.run.pgspecial import handle_postgres_special
 
 
-# TODO: this is getting confusing because conn has access to config and we're passing
-# it as well here
+# TODO: conn also has access to config, we should clean this up to provide a clean
+# way to access the config
 def run_statements(conn, sql, config):
     """
     Run a SQL query (supports running multiple SQL statements) with the given

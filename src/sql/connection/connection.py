@@ -531,7 +531,7 @@ class SQLAlchemyConnection(AbstractConnection):
             success = set_sqlalchemy_isolation_level(self._connection_sqlalchemy)
             self._requires_manual_commit = not success
 
-            # TODO: add a unit tests for this
+            # TODO: I noticed we don't have any unit tests for this
             # even if autocommit is true, we should not use it for some dialects
             self._requires_manual_commit = (
                 all(
@@ -543,8 +543,8 @@ class SQLAlchemyConnection(AbstractConnection):
         else:
             self._requires_manual_commit = False
 
-        # TODO: delete. and when you delete it, check that you remove the print
-        # statement that uses this
+        # TODO: we're no longer using this. I believe this is only used via the
+        # config.feedback option
         self.name = default_alias_for_engine(engine)
 
         # calling init from AbstractConnection must be the last thing we do as it
@@ -563,8 +563,6 @@ class SQLAlchemyConnection(AbstractConnection):
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
 
-        # TODO: checking for with isn't the best idea because it doesn't guarantee
-        # that the final one is a select statement
         words = query.split()
 
         if words:
@@ -572,7 +570,10 @@ class SQLAlchemyConnection(AbstractConnection):
         else:
             first_word_statement = ""
 
-        # in duckdb db "from TABLE_NAME" is valid
+        # NOTE: in duckdb db "from TABLE_NAME" is valid
+        # TODO: we can parse the query to ensure that it's a SELECT statement
+        # for example, it might start with WITH but the final statement might
+        # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
         out = self._connection.execute(sqlalchemy.text(query))
@@ -586,8 +587,11 @@ class SQLAlchemyConnection(AbstractConnection):
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
-                # TODO: we're getting cannot commit - no transaction is active
-                # unsure why
+                # TODO: I moved this from run.py where we were catching all exceptions
+                # because some drivers do not support commits. However, I noticed
+                # that if I remove the try catch we get this error in SQLite:
+                #  "cannot commit - no transaction is active", we need to investigate
+                # further, catching generic exceptions is not a good idea
                 try:
                     self._connection.execute("commit")
                 except Exception:
@@ -671,7 +675,7 @@ class DBAPIConnection(AbstractConnection):
 
         self._dialect = "duckdb" if _is_duckdb_native else None
 
-        # TODO: test blacklisted commit dialects
+        # TODO: implement the dialect blacklist and add unit tests
         self._requires_manual_commit = True if config is None else config.autocommit
 
         self._connection = connection
