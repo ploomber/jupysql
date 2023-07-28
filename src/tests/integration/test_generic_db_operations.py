@@ -311,11 +311,13 @@ def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_di
         if not is_snowflake
         else test_table_name_dict["plot_something"].upper()
     )
+
+    plot_column_name = "x" if not is_snowflake else "X"
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     plt.cla()
     out = ip_with_dynamic_db.run_cell(
         f"%sqlplot histogram --table\
-          {plot_table_name} --column x"
+          {plot_table_name} --column {plot_column_name}"
     )
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}

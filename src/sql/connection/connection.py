@@ -404,7 +404,9 @@ class AbstractConnection(abc.ABC):
         """
         if with_:
             query = str(store.render(query, with_=with_))
+        print("Before: ", query)
         query = self._transpile_query(query, read=read)
+        print("After: ", query)
 
         return query
 

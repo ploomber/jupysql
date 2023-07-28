@@ -288,8 +288,8 @@ def _min_max(con, table, column, with_=None, use_backticks=False):
         con = sql.connection.ConnectionManager.current
     template_ = """
 SELECT
-    MIN({{column}}),
-    MAX({{column}})
+    MIN("{{column}}"),
+    MAX("{{column}}")
 FROM "{{table}}"
 """
     if use_backticks:
@@ -522,7 +522,9 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
     # Define all relevant filters here
-    filter_query_1 = f"{column} IS NOT NULL"
+    filter_query_1 = f"""
+    "{column}" IS NOT NULL
+    """
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
@@ -541,7 +543,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         bin_size = range_ / (bins - 1)
         template_ = """
             select
-            ceiling({{column}}/{{bin_size}} - 0.5)*{{bin_size}} as bin,
+            ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
             count(*) as count
             from "{{table}}"
             {{filter_query}}
