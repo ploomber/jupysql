@@ -297,8 +297,7 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
-    min_, max_ = con.execute(query, with_=with_).fetchone()
-    print("min_, max_, from func: ", min_, max_)
+    min_, max_ = con.execute(query, with_).fetchone()
     return min_, max_
 
 
@@ -522,9 +521,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 
     # Define all relevant filters here
-    filter_query_1 = f"""
-    "{column}" IS NOT NULL
-    """
+    filter_query_1 = f'"{column}" IS NOT NULL'
 
     filter_query_2 = f"{facet['key']} == '{facet['value']}'" if facet else None
 
