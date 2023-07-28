@@ -573,7 +573,12 @@ class SQLAlchemyConnection(AbstractConnection):
         if self._requires_manual_commit and not is_select:
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
-                self.connection.execute("commit")
+                # TODO: we're getting cannot commit - no transaction is active
+                # unsure why
+                try:
+                    self.connection.execute("commit")
+                except Exception:
+                    pass
             else:
                 self.connection.commit()
 
