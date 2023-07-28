@@ -200,4 +200,5 @@ dependencies:
       - wcwidth==0.2.6
       - widgetsnbextension==4.0.8
       - zipp==3.16.2
+      - sphinxext-opengraph==0.4.0
 prefix: /opt/conda/envs/jupysql-doc
