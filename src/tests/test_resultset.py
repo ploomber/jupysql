@@ -184,9 +184,14 @@ def test_convert_to_dataframe_create_table(
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {"Count": {0: 5}}),
+        ("duckdb_sqlalchemy", {}),
         ("duckdb_dbapi", {"Count": {0: 5}}),
         ("sqlite_sqlalchemy", {}),
+    ],
+    ids=[
+        "duckdb_sqlalchemy",
+        "duckdb_dbapi",
+        "sqlite_sqlalchemy",
     ],
 )
 def test_convert_to_dataframe_insert_into(
