@@ -274,7 +274,7 @@ CREATE TABLE numbers (
 # TODO: this is failing with False
 def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postgreSQL):
     class Config:
-        autocommit = False
+        autocommit = True
 
     """Test case when we use sqlalchemy to set the isolation level for autocommit"""
     url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")

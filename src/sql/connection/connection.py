@@ -521,9 +521,12 @@ class SQLAlchemyConnection(AbstractConnection):
 
             # TODO: add a unit tests for this
             # even if autocommit is true, we should not use it for some dialects
-            self._requires_manual_commit = all(
-                blacklisted_dialect not in str(self._dialect)
-                for blacklisted_dialect in _COMMIT_BLACKLIST_DIALECTS
+            self._requires_manual_commit = (
+                all(
+                    blacklisted_dialect not in str(self._dialect)
+                    for blacklisted_dialect in _COMMIT_BLACKLIST_DIALECTS
+                )
+                and self._requires_manual_commit
             )
         else:
             self._requires_manual_commit = False
@@ -659,6 +662,9 @@ class DBAPIConnection(AbstractConnection):
 
         self._dialect = "duckdb" if _is_duckdb_native else None
 
+        # TODO: test blacklisted commit dialects
+        self._requires_manual_commit = True if config is None else config.autocommit
+
         self._connection = connection
         self._connection_class_name = type(connection).__name__
 
@@ -676,6 +682,10 @@ class DBAPIConnection(AbstractConnection):
     def raw_execute(self, query):
         cur = self.connection.cursor()
         cur.execute(query)
+
+        if self._requires_manual_commit:
+            self.connection.commit()
+
         return cur
 
     def _get_database_information(self):
