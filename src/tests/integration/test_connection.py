@@ -283,7 +283,7 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
     conn_two = SQLAlchemyConnection(create_engine(url), config=Config)
 
     # mock commit to ensure it's not called
-    conn_one.connection.commit = Mock(
+    conn_one._connection.commit = Mock(
         side_effect=ValueError(
             "commit should not be called manually if the "
             "driver supports isolation level"
@@ -301,9 +301,7 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
     conn_one.raw_execute(f"CREATE TABLE {name} (id int)")
     conn_two.raw_execute(f"SELECT * FROM {name}")
 
-    assert conn_one.connection_sqlalchemy._execution_options == {
-        "isolation_level": "AUTOCOMMIT"
-    }
+    assert conn_one._connection._execution_options == {"isolation_level": "AUTOCOMMIT"}
 
 
 # TODO: test changing autocommit and make sure the connection is updated
