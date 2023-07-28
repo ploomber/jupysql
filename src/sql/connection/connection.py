@@ -418,13 +418,15 @@ class AbstractConnection(abc.ABC):
         with_ : string, default None
             The key to use in with sql clause
         """
-
         if with_:
-            query = str(store.render(query, with_=with_))
+            query = self._resolve_cte(query, with_)
 
         query = self._transpile_query(query)
 
         return query
+
+    def _resolve_cte(self, query, with_):
+        return str(store.render(query, with_=with_))
 
     def execute(self, query, with_=None):
         """
@@ -548,7 +550,10 @@ class SQLAlchemyConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
+    def raw_execute(self, query, with_=None):
+        if with_:
+            query = self._resolve_cte(query, with_)
+
         # we do not support multiple statements
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
@@ -681,7 +686,10 @@ class DBAPIConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
+    def raw_execute(self, query, with_=None):
+        if with_:
+            query = self._resolve_cte(query, with_)
+
         cur = self._connection.cursor()
         cur.execute(query)
 
