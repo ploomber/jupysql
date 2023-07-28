@@ -361,7 +361,7 @@ class AbstractConnection(abc.ABC):
         for rs in self._result_sets:
             rs._sqlaproxy.close()
 
-        self.connection.close()
+        self._connection.close()
 
     def _get_sqlglot_dialect(self):
         """
@@ -569,9 +569,9 @@ class SQLAlchemyConnection(AbstractConnection):
         # TODO: I think there is a problem with pytds and we should not call it
         # if that's the driver
         # if self._requires_manual_commit and not is_select:
-        #     self.connection.begin()
+        #     self._connection.begin()
 
-        out = self.connection.execute(sqlalchemy.text(query))
+        out = self._connection.execute(sqlalchemy.text(query))
 
         if self._requires_manual_commit and not is_select:
             # in sqlalchemy 1.x, connection has no commit attribute
@@ -579,16 +579,16 @@ class SQLAlchemyConnection(AbstractConnection):
                 # TODO: we're getting cannot commit - no transaction is active
                 # unsure why
                 try:
-                    self.connection.execute("commit")
+                    self._connection.execute("commit")
                 except Exception:
                     pass
             else:
-                self.connection.commit()
+                self._connection.commit()
 
         return out
 
     def _get_database_information(self):
-        dialect = self.connection_sqlalchemy.dialect
+        dialect = self._connection_sqlalchemy.dialect
 
         return {
             "dialect": getattr(dialect, "name", None),
@@ -608,7 +608,7 @@ class SQLAlchemyConnection(AbstractConnection):
         return self._connection_sqlalchemy
 
     @property
-    def connection(self):
+    def _connection(self):
         """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
 
@@ -617,7 +617,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
         # NOTE: in SQLAlchemy 2.x, we need to call engine.dispose() to completely
         # close the connection, calling connection.close() is not enough
-        self.connection.engine.dispose()
+        self._connection.engine.dispose()
 
     @classmethod
     @modify_exceptions
@@ -644,7 +644,6 @@ class SQLAlchemyConnection(AbstractConnection):
         return err
 
 
-# TODO: implement the autocommit logic
 class DBAPIConnection(AbstractConnection):
     """A connection object for generic DBAPI connections"""
 
@@ -680,11 +679,11 @@ class DBAPIConnection(AbstractConnection):
         return self._dialect
 
     def raw_execute(self, query):
-        cur = self.connection.cursor()
+        cur = self._connection.cursor()
         cur.execute(query)
 
         if self._requires_manual_commit:
-            self.connection.commit()
+            self._connection.commit()
 
         return cur
 
@@ -709,11 +708,6 @@ class DBAPIConnection(AbstractConnection):
         raise NotImplementedError(
             "This feature is only available for SQLAlchemy connections"
         )
-
-    # TODO: delete this, execution must be done via .execute
-    @property
-    def connection(self):
-        return self._connection
 
 
 def _check_if_duckdb_dbapi_connection(conn):

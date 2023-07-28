@@ -327,7 +327,7 @@ def test_properties(mock_postgres):
     assert conn.name == "user@db"
     assert conn.dialect
     assert conn.connection_sqlalchemy
-    assert conn.connection
+    assert conn.connection_sqlalchemy is conn._connection
 
 
 @pytest.mark.parametrize(
