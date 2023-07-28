@@ -464,10 +464,18 @@ def _convert_to_data_frame(
     result_set, converter_name, constructor, constructor_kwargs=None
 ):
     constructor_kwargs = constructor_kwargs or {}
-    has_converter_method = hasattr(result_set.sqlaproxy, converter_name)
+
+    # maybe create accessors in the connection objects?
+    if result_set._conn.is_dbapi_connection:
+        # native_connection = result_set._conn._connection
+        native_connection = result_set.sqlaproxy
+    else:
+        native_connection = result_set._conn._connection.connection
+
+    has_converter_method = hasattr(native_connection, converter_name)
 
     # native duckdb connection
-    if hasattr(result_set.sqlaproxy, converter_name):
+    if has_converter_method:
         # we need to re-execute the statement because if we fetched some rows
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
@@ -475,9 +483,9 @@ def _convert_to_data_frame(
         is_select = _statement_is_select(result_set._statement)
 
         if is_select:
-            result_set.sqlaproxy.execute(result_set._statement)
+            native_connection.execute(result_set._statement)
 
-        return getattr(result_set.sqlaproxy, converter_name)()
+        return getattr(native_connection, converter_name)()
     else:
         frame = constructor(
             (tuple(row) for row in result_set),
@@ -490,21 +498,21 @@ def _convert_to_data_frame(
         # have the same state as the SQLAlchemy connection, yielding confusing
         # errors. So we decided to remove this and just warn the user that
         # performance might be slow and they could use a native connection
-        if (
-            result_set._dialect == "duckdb"
-            and not has_converter_method
-            and len(frame) >= 1_000
-        ):
-            DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
-            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
+        # if (
+        #     result_set._dialect == "duckdb"
+        #     and not has_converter_method
+        #     and len(frame) >= 1_000
+        # ):
+        #     DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
+        #     WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
 
-            warnings.warn(
-                "It looks like you're using DuckDB with SQLAlchemy. "
-                "For faster conversions, use "
-                f" a DuckDB native connection. Docs: {DOCS}."
-                f" to suppress this warning, see: {WARNINGS}",
-                category=JupySQLDataFramePerformanceWarning,
-            )
+        #     warnings.warn(
+        #         "It looks like you're using DuckDB with SQLAlchemy. "
+        #         "For faster conversions, use "
+        #         f" a DuckDB native connection. Docs: {DOCS}."
+        #         f" to suppress this warning, see: {WARNINGS}",
+        #         category=JupySQLDataFramePerformanceWarning,
+        #     )
 
         return frame
 

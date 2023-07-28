@@ -8,6 +8,51 @@ import pandas as pd
 from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
+# TODO: test with autocommit off
+@pytest.mark.parametrize(
+    "method, expected_type, expected_native_method",
+    [
+        ("DataFrame", pd.DataFrame, "df"),
+        ("PolarsDataFrame", pl.DataFrame, "pl"),
+    ],
+)
+def test_sqlalchemy_connection_converts_to_data_frames_natively(
+    monkeypatch,
+    ip_with_duckdb_sqlalchemy_empty,
+    method,
+    expected_type,
+    expected_native_method,
+):
+    ip_with_duckdb_sqlalchemy_empty.run_cell(
+        "%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);"
+    )
+    ip_with_duckdb_sqlalchemy_empty.run_cell(
+        "%sql INSERT INTO weather VALUES ('San Francisco', 46);"
+    )
+    ip_with_duckdb_sqlalchemy_empty.run_cell(
+        "%sql INSERT INTO weather VALUES ('NYC', 20);"
+    )
+    ip_with_duckdb_sqlalchemy_empty.run_cell("results = %sql SELECT * FROM weather")
+
+    results = ip_with_duckdb_sqlalchemy_empty.run_cell("results").result
+
+    mock_sqlalchemy_conn = Mock(wraps=results._conn)
+    mock_sqlalchemy_conn.is_dbapi_connection = False
+    monkeypatch.setattr(results, "_conn", mock_sqlalchemy_conn)
+
+    out = ip_with_duckdb_sqlalchemy_empty.run_cell(f"results.{method}()")
+
+    mock_sqlalchemy_conn._connection.connection.execute.assert_called_once_with(
+        "SELECT * FROM weather"
+    )
+    getattr(
+        mock_sqlalchemy_conn._connection.connection, expected_native_method
+    ).assert_called_once_with()
+    assert isinstance(out.result, expected_type)
+    assert out.result.shape == (2, 2)
+
+
+# TODO: test with autocommit off
 @pytest.mark.parametrize(
     "method, expected_type, expected_native_method",
     [
@@ -33,13 +78,15 @@ def test_native_connection_converts_to_data_frames_natively(
 
     results = ip_with_duckdb_native_empty.run_cell("results").result
 
-    mock = Mock(wraps=results.sqlaproxy)
-    monkeypatch.setattr(results, "_sqlaproxy", mock)
+    # mock_native_connection = Mock(wraps=results._conn._connection)
+    # monkeypatch.setattr(results._conn, "_connection", mock_native_connection)
+    mock_native_connection = Mock(wraps=results.sqlaproxy)
+    monkeypatch.setattr(results, "_sqlaproxy", mock_native_connection)
 
     out = ip_with_duckdb_native_empty.run_cell(f"results.{method}()")
 
-    mock.execute.assert_called_once_with("SELECT * FROM weather")
-    getattr(mock, expected_native_method).assert_called_once_with()
+    mock_native_connection.execute.assert_called_once_with("SELECT * FROM weather")
+    getattr(mock_native_connection, expected_native_method).assert_called_once_with()
     assert isinstance(out.result, expected_type)
     assert out.result.shape == (2, 2)
 
@@ -181,14 +228,14 @@ def test_commits_all_statements(ip, sql, request):
     assert out.result.dict() == {"x": (1, 2)}
 
 
-@pytest.mark.parametrize("method", ["DataFrame", "PolarsDataFrame"])
-def test_warn_when_using_sqlalchemy_and_converting_to_dataframe(ip_empty, method):
-    ip_empty.run_cell("%sql duckdb://")
-    df = pd.DataFrame(range(1000))  # noqa
+# @pytest.mark.parametrize("method", ["DataFrame", "PolarsDataFrame"])
+# def test_warn_when_using_sqlalchemy_and_converting_to_dataframe(ip_empty, method):
+#     ip_empty.run_cell("%sql duckdb://")
+#     df = pd.DataFrame(range(1000))  # noqa
 
-    data = ip_empty.run_cell("%sql SELECT * FROM df;").result
+#     data = ip_empty.run_cell("%sql SELECT * FROM df;").result
 
-    with pytest.warns(JupySQLDataFramePerformanceWarning) as record:
-        getattr(data, method)()
+#     with pytest.warns(JupySQLDataFramePerformanceWarning) as record:
+#         getattr(data, method)()
 
-    assert len(record) == 1
+#     assert len(record) == 1
