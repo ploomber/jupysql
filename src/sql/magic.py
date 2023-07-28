@@ -457,7 +457,7 @@ class SqlMagic(Magics, Configurable):
             connect_args=args.connection_arguments,
             creator=args.creator,
             alias=args.alias,
-            config=self.config,
+            config=self,
         )
         payload["connection_info"] = conn._get_database_information()
 
