@@ -1,11 +1,21 @@
-from unittest.mock import ANY
+import uuid
+from unittest.mock import ANY, Mock
 from functools import partial
 
 
+import sqlalchemy
+from sqlalchemy import create_engine
 import pytest
 
 
 from sql.connection import SQLAlchemyConnection, DBAPIConnection, ConnectionManager
+from sql import _testing
+
+
+# TODO: refactor the fixtures so each test can use its own database
+# and we don't have to worry about unique table names
+def gen_name(prefix="table"):
+    return f"{prefix}_{str(uuid.uuid4())[:8]}"
 
 
 @pytest.mark.parametrize(
@@ -199,3 +209,110 @@ def test_dbapi_connection_sets_right_dialect(dynamic_db, dialect, request):
 
     assert ConnectionManager.current.is_dbapi_connection
     assert ConnectionManager.current.dialect == dialect
+
+
+def test_duckdb_autocommit_on(tmp_empty):
+    class Config:
+        autocommit = True
+
+    engine = create_engine("duckdb:///my.db")
+    conn = SQLAlchemyConnection(engine=engine, config=Config)
+    conn.raw_execute(
+        """
+CREATE TABLE numbers (
+    x INTEGER
+);
+"""
+    )
+    conn.raw_execute(
+        """
+    INSERT INTO numbers VALUES (1), (2), (3);
+    """
+    )
+
+    # if commit is working, the table should be readable from another connection
+    another = SQLAlchemyConnection(
+        engine=create_engine("duckdb:///my.db"), config=Config
+    )
+    results = another.raw_execute("SELECT * FROM numbers")
+
+    assert list(results) == [(1,), (2,), (3,)]
+
+
+def test_duckdb_autocommit_off(tmp_empty):
+    class Config:
+        autocommit = False
+
+    engine = create_engine("duckdb:///my.db")
+    conn = SQLAlchemyConnection(engine=engine, config=Config)
+    conn.raw_execute(
+        """
+CREATE TABLE numbers (
+    x INTEGER
+);
+"""
+    )
+    conn.raw_execute(
+        """
+    INSERT INTO numbers VALUES (1), (2), (3);
+    """
+    )
+
+    # since autocommit is off, the table should not be readable from another connection
+    another = SQLAlchemyConnection(
+        engine=create_engine("duckdb:///my.db"), config=Config
+    )
+
+    with pytest.raises(sqlalchemy.exc.ProgrammingError) as excinfo:
+        another.raw_execute("SELECT * FROM numbers")
+
+    assert "Catalog Error: Table with name numbers does not exist!" in str(
+        excinfo.value
+    )
+
+
+# TODO: this is failing with False
+def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postgreSQL):
+    class Config:
+        autocommit = False
+
+    """Test case when we use sqlalchemy to set the isolation level for autocommit"""
+    url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
+
+    conn_one = SQLAlchemyConnection(create_engine(url), config=Config)
+    conn_two = SQLAlchemyConnection(create_engine(url), config=Config)
+
+    # mock commit to ensure it's not called
+    conn_one.connection.commit = Mock(
+        side_effect=ValueError(
+            "commit should not be called manually if the driver supports isolation level"
+        )
+    )
+
+    db = gen_name(prefix="db")
+    name = gen_name(prefix="table")
+
+    # this will fail if we don't use the isolation level feature because if we use
+    # manual commit, then we'll get the "CREATE DATABASE cannot run inside a
+    # transaction block" error
+    conn_one.raw_execute(f"CREATE DATABASE {db}")
+
+    conn_one.raw_execute(f"CREATE TABLE {name} (id int)")
+    conn_two.raw_execute(f"SELECT * FROM {name}")
+
+    assert conn_one.connection_sqlalchemy._execution_options == {
+        "isolation_level": "AUTOCOMMIT"
+    }
+
+
+# TODO: test changing autocommit and make sure the connection is updated
+# with the new settings
+
+# TODO: test with a connection that throws an error when calling commit()
+
+# TODO: test converting to data frames with sqlalchemy , ensure it works and it
+# uses the native connection
+
+# TODO: test .execute, there are some errors because it's transpilng even when it
+# doesn't need to and it's also removing part of the query when doing a create table
+# and then an insert into
