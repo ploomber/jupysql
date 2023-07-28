@@ -575,9 +575,6 @@ class SQLAlchemyConnection(AbstractConnection):
         # in duckdb db "from TABLE_NAME" is valid
         is_select = first_word_statement in {"select", "with", "from"}
 
-        # TODO: I think there is a problem with pytds and we should not call it
-        # if that's the driver
-
         out = self._connection.execute(sqlalchemy.text(query))
 
         if self._requires_manual_commit:
