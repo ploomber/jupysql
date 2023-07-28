@@ -38,4 +38,3 @@ dependencies:
     - ipywidgets
     # needed to upload and download from/to S3 for notebook cache
     - awscli
-    - sphinxext-opengraph
