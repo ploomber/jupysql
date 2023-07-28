@@ -369,8 +369,6 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
 
 # TODO: test with a connection that throws an error when calling commit()
 
-# TODO: test converting to data frames with sqlalchemy , ensure it works and it
-# uses the native connection
 
 # TODO: test .execute, there are some errors because it's transpilng even when it
 # doesn't need to and it's also removing part of the query when doing a create table
