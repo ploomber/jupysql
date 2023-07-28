@@ -1,5 +1,5 @@
 import uuid
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, call
 from functools import partial
 
 
@@ -223,6 +223,8 @@ def test_duckdb_autocommit_on_with_manual_commit(tmp_empty, monkeypatch):
     engine = create_engine("duckdb:///my.db")
 
     conn = SQLAlchemyConnection(engine=engine, config=Config)
+    conn_mock_commit = Mock(wraps=conn._connection.commit)
+    monkeypatch.setattr(conn._connection, "commit", conn_mock_commit)
 
     conn.raw_execute(
         """
@@ -241,9 +243,16 @@ CREATE TABLE numbers (
     another = SQLAlchemyConnection(
         engine=create_engine("duckdb:///my.db"), config=Config
     )
+    another_mock_commit = Mock(wraps=another._connection.commit)
+    monkeypatch.setattr(another._connection, "commit", another_mock_commit)
+
     results = another.raw_execute("SELECT * FROM numbers")
 
     assert list(results) == [(1,), (2,), (3,)]
+    conn_mock_commit.assert_has_calls([call(), call()])
+    # due to https://github.com/Mause/duckdb_engine/issues/734, we should not
+    # call commit on SELECT statements
+    another_mock_commit.assert_not_called()
 
 
 def test_postgres_autocommit_on_with_manual_commit(setup_postgreSQL, monkeypatch):
@@ -259,6 +268,8 @@ def test_postgres_autocommit_on_with_manual_commit(setup_postgreSQL, monkeypatch
     engine = create_engine(url)
 
     conn = SQLAlchemyConnection(engine=engine, config=Config)
+    conn_mock_commit = Mock(wraps=conn._connection.commit)
+    monkeypatch.setattr(conn._connection, "commit", conn_mock_commit)
 
     conn.raw_execute(
         """
@@ -275,9 +286,16 @@ CREATE TABLE numbers (
 
     # if commit is working, the table should be readable from another connection
     another = SQLAlchemyConnection(engine=create_engine(url), config=Config)
+    another_mock_commit = Mock(wraps=another._connection.commit)
+    monkeypatch.setattr(another._connection, "commit", another_mock_commit)
+
     results = another.raw_execute("SELECT * FROM numbers")
 
     assert list(results) == [(1,), (2,), (3,)]
+    conn_mock_commit.assert_has_calls([call(), call()])
+    # due to https://github.com/Mause/duckdb_engine/issues/734, we are not calling
+    # commit on SELECT statements for DuckDB, but for other databases we do
+    another_mock_commit.assert_has_calls([call()])
 
 
 def test_duckdb_autocommit_off(tmp_empty):
