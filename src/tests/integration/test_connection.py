@@ -10,6 +10,7 @@ import pytest
 
 from sql.connection import SQLAlchemyConnection, DBAPIConnection, ConnectionManager
 from sql import _testing
+from sql.connection import connection
 
 
 # TODO: refactor the fixtures so each test can use its own database
@@ -211,12 +212,18 @@ def test_dbapi_connection_sets_right_dialect(dynamic_db, dialect, request):
     assert ConnectionManager.current.dialect == dialect
 
 
-def test_duckdb_autocommit_on(tmp_empty):
+def test_duckdb_autocommit_on_with_manual_commit(tmp_empty, monkeypatch):
     class Config:
         autocommit = True
 
+    # monkeypatch.setattr(
+    #     connection, "set_sqlalchemy_isolation_level", Mock(return_value=False)
+    # )
+
     engine = create_engine("duckdb:///my.db")
+
     conn = SQLAlchemyConnection(engine=engine, config=Config)
+
     conn.raw_execute(
         """
 CREATE TABLE numbers (
@@ -234,6 +241,40 @@ CREATE TABLE numbers (
     another = SQLAlchemyConnection(
         engine=create_engine("duckdb:///my.db"), config=Config
     )
+    results = another.raw_execute("SELECT * FROM numbers")
+
+    assert list(results) == [(1,), (2,), (3,)]
+
+
+def test_postgres_autocommit_on_with_manual_commit(setup_postgreSQL, monkeypatch):
+    url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
+
+    class Config:
+        autocommit = True
+
+    monkeypatch.setattr(
+        connection, "set_sqlalchemy_isolation_level", Mock(return_value=False)
+    )
+
+    engine = create_engine(url)
+
+    conn = SQLAlchemyConnection(engine=engine, config=Config)
+
+    conn.raw_execute(
+        """
+CREATE TABLE numbers (
+    x INTEGER
+);
+"""
+    )
+    conn.raw_execute(
+        """
+    INSERT INTO numbers VALUES (1), (2), (3);
+    """
+    )
+
+    # if commit is working, the table should be readable from another connection
+    another = SQLAlchemyConnection(engine=create_engine(url), config=Config)
     results = another.raw_execute("SELECT * FROM numbers")
 
     assert list(results) == [(1,), (2,), (3,)]
@@ -273,10 +314,11 @@ CREATE TABLE numbers (
 
 # TODO: this is failing with False
 def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postgreSQL):
+    """Test case when we use sqlalchemy to set the isolation level for autocommit"""
+
     class Config:
         autocommit = True
 
-    """Test case when we use sqlalchemy to set the isolation level for autocommit"""
     url = _testing.DatabaseConfigHelper.get_database_url("postgreSQL")
 
     conn_one = SQLAlchemyConnection(create_engine(url), config=Config)

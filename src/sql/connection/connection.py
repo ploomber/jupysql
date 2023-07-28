@@ -554,16 +554,8 @@ class SQLAlchemyConnection(AbstractConnection):
             first_word_statement = ""
 
         # in duckdb db "from TABLE_NAME" is valid
-
-        # DO WE ONLY NEED THIS FOR DUCKDB?
         is_select = first_word_statement in {"select", "with", "from"}
         # is_select = False
-
-        # calling connection.commit() when using duckdb-engine will yield
-        # empty results if we commit after a SELECT statement
-        # see: https://github.com/Mause/duckdb_engine/issues/734
-        # if is_select and conn.dialect == "duckdb":
-        #         manual_commit_call_required = False
 
         # NOTE: calling begin breaks a lot of tests
         # TODO: I think there is a problem with pytds and we should not call it
@@ -573,7 +565,13 @@ class SQLAlchemyConnection(AbstractConnection):
 
         out = self._connection.execute(sqlalchemy.text(query))
 
-        if self._requires_manual_commit and not is_select:
+        if self._requires_manual_commit:
+            # calling connection.commit() when using duckdb-engine will yield
+            # empty results if we commit after a SELECT statement
+            # see: https://github.com/Mause/duckdb_engine/issues/734
+            if is_select and self.dialect == "duckdb":
+                return out
+
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
                 # TODO: we're getting cannot commit - no transaction is active
