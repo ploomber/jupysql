@@ -28,7 +28,6 @@
 * [Doc] Modified integrations content to ensure they're all consistent ([#523](https://github.com/ploomber/jupysql/issues/523))
 * [Doc] Document `--persist-replace` in API section ([#539](https://github.com/ploomber/jupysql/issues/539))
 * [Doc] Re-organized sections. Adds section showing how to share notebooks via Ploomber Cloud
-* [Fix] Snowflake plot issue (#697)
 
 ## 0.7.9 (2023-06-19)
 
