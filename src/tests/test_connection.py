@@ -20,6 +20,7 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
 )
+from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
@@ -591,12 +592,28 @@ def test_raw_execute_doesnt_transpile_sql_query(monkeypatch):
     conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
     conn.raw_execute("SELECT * FROM foo LIMIT 1")
 
-    assert len(mock.call_args_list) == 3
-    assert [str(call[0][0]) for call in mock.call_args_list] == [
-        "CREATE TABLE foo (bar INT)",
-        "INSERT INTO foo VALUES (42), (43)",
-        "SELECT * FROM foo LIMIT 1",
-    ]
+    calls = [str(call[0][0]) for call in mock.call_args_list]
+
+    # if running on sqlalchemy 1.x, the commit call is done via .execute
+    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
+    expected_calls = (
+        [
+            "CREATE TABLE foo (bar INT)",
+            "commit",
+            "INSERT INTO foo VALUES (42), (43)",
+            "commit",
+            "SELECT * FROM foo LIMIT 1",
+        ]
+        if IS_SQLALCHEMY_ONE
+        else [
+            "CREATE TABLE foo (bar INT)",
+            "INSERT INTO foo VALUES (42), (43)",
+            "SELECT * FROM foo LIMIT 1",
+        ]
+    )
+
+    assert len(mock.call_args_list) == expected_number_of_calls
+    assert calls == expected_calls
 
 
 # TODO: check dbapi connection
@@ -615,13 +632,28 @@ def test_execute_transpiles_sql_query(monkeypatch):
     with pytest.raises(sqlalchemy.exc.ProgrammingError):
         conn.execute("SELECT * FROM foo LIMIT 1")
 
-    assert len(mock.call_args_list) == 3
-    assert [str(call[0][0]) for call in mock.call_args_list] == [
-        "CREATE TABLE foo (bar INTEGER)",
-        "INSERT INTO foo VALUES (42), (43)",
-        # tsql doesn't support LIMIT, so this should change it for TOP
-        "SELECT TOP 1 * FROM foo",
-    ]
+    calls = [str(call[0][0]) for call in mock.call_args_list]
+
+    # if running on sqlalchemy 1.x, the commit call is done via .execute
+    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
+    expected_calls = (
+        [
+            "CREATE TABLE foo (bar INTEGER)",
+            "commit",
+            "INSERT INTO foo VALUES (42), (43)",
+            "commit",
+            "SELECT TOP 1 * FROM foo",
+        ]
+        if IS_SQLALCHEMY_ONE
+        else [
+            "CREATE TABLE foo (bar INTEGER)",
+            "INSERT INTO foo VALUES (42), (43)",
+            "SELECT TOP 1 * FROM foo",
+        ]
+    )
+
+    assert len(mock.call_args_list) == expected_number_of_calls
+    assert calls == expected_calls
 
 
 # TODO: check dbapi connection
