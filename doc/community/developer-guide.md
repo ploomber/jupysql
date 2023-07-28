@@ -54,12 +54,14 @@ JupySQL is a Python library that allows users to run SQL queries (among other th
 However, there is also a Python API. For example, users can create plots using the `ggplot` module:
 
 ```{code-cell} ipython3
-from sql.ggplot import ggplot
+from sql.ggplot import ggplot # noqa
 ```
 
 So depending on which API is called, the behavior differs. Most notably, when using `%sql`/`%%sql` and other magics, Python tracebacks are hidden, since they're not relevant to the user. For example, if a user tries to query a non-existent table, we won't show the Python traceback:
 
 ```{code-cell} ipython3
+:tags: [raises-exception]
+
 %sql SELECT * FROM not_a_table
 ```
 
