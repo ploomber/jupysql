@@ -37,7 +37,33 @@ After the codespace has finished setting up, you can run `conda activate jupysql
 
 ## The basics
 
-magics vs python api
+JupySQL is a Python library that allows users to run SQL queries (among other things) in IPython and Jupyter via a `%sql`/`%%sql` [magic.](https://ipython.readthedocs.io/en/stable/interactive/magics.html):
+
+```{code-cell} ipython3
+%load_ext sql
+```
+
+```{code-cell} ipython3
+%sql duckdb://
+```
+
+```{code-cell} ipython3
+%sql SELECT 42
+```
+
+However, there is also a Python API. For example, users can create plots using the `ggplot` module:
+
+```{code-cell} ipython3
+from sql.ggplot import ggplot
+```
+
+So depending on which API is called, the behavior differs. Most notably, when using `%sql`/`%%sql` and other magics, Python tracebacks are hidden, since they're not relevant to the user. For example, if a user tries to query a non-existent table, we won't show the Python traceback:
+
+```{code-cell} ipython3
+%sql SELECT * FROM not_a_table
+```
+
+On the other hand, if they're using the Python API, we'll show a full traceback.
 
 +++
 
@@ -66,10 +92,6 @@ message_success("Some operation finished successfully!")
 When writing Python libraries, we often throw errors (and display error tracebacks) to let users know that something went wrong. However, JupySQL is an abstraction for executing SQL queries; hence, Python tracebacks a useless to end-users since they expose JupySQL's internals.
 
 So in most circumstances, we only display an error without a traceback. For example, when calling `%sqlplot` without arguments, we get an error:
-
-```{code-cell} ipython3
-%load_ext sql
-```
 
 ```{code-cell} ipython3
 :tags: [raises-exception]
@@ -254,11 +276,9 @@ conn_dbapi.dialect is None
 
 +++
 
-## Unit testing
+## Testing
 
-TODO: mention nox
-
-### Running tests
+### Running unit tests
 
 Unit tests are executed on each PR; however, you might need to run them locally.
 
@@ -268,13 +288,29 @@ To run all unit tests:
 pytest --ignore=src/tests/integration
 ```
 
+Some unit tests compare reference images with images produced by the test; such tests might fail depending on your OS, to skip them:
+
+```sh
+pytest src/tests/ --ignore src/tests/integration --ignore src/tests/test_ggplot.py --ignore src/tests/test_magic_plot.py
+```
+
 To run a specific file:
 
 ```sh
 pytest src/tests/TEST_FILE_NAME.py
 ```
 
-### Testing magics (e.g., `%sql`, `%%sql`, etc)
++++
+
+### Running tests with nox
+
+We use [`nox`](https://github.com/wntrblm/nox) to run the unit and integration tests in the CI. `nox` automates creating an environment with all the dependencies and then running the tests, while using `pytest` assumes you already have all dependencies installed in the current environment.
+
+If you want to use `nox` locally, check out the [`noxfile.py`](https://github.com/ploomber/jupysql/blob/master/noxfile.py), and for examples, see the [GitHub Actions configuration.](https://github.com/ploomber/jupysql/tree/master/.github/workflows).
+
++++
+
+### Writing tests for magics (e.g., `%sql`, `%%sql`, etc)
 
 This guide will show you the basics of writing unit tests for JupySQL magics. Magics are commands that begin with `%` (line magics) and `%%` (cell magics).
 
@@ -358,7 +394,7 @@ with pytest.raises(UsageError) as excinfo:
     ip_session.run_cell("raise MissingPackageError('something happened')")
 ```
 
-## Integration tests
+### Integration tests
 
 Integration tests check compatibility with different databases. They are executed on
 each PR; however, you might need to run them locally.
@@ -403,21 +439,29 @@ You will need to install [colima](https://github.com/abiosoft/colima) then run `
 Send us a [message on Slack](https://ploomber.io/community) if any issue happens.
 ```
 
-```{important}
-If you're using **Windows**, the command above might get stuck. Send us a [message on Slack](https://ploomber.io/community) if it happens.
-```
-
 To run some of the tests:
 
 ```sh
 pytest src/tests/integration/test_generic_db_operations.py::test_profile_query
 ```
 
+To run tests for a specific database:
+
+```sh
+pytest src/tests/integration -k duckdb
+```
+
+To see the databases available, check out [`src/tests/integration/conftest.py`](https://github.com/ploomber/jupysql/blob/master/src/tests/integration/conftest.py)
+
+
 ### Integration tests with cloud databases
 
 We run integration tests against cloud databases like Snowflake, which requires using pre-registered accounts to evaluate their behavior. To initiate these tests, please create a branch in our [ploomber/jupyter repository](https://github.com/ploomber/jupysql).
 
 Please note that if you submit a pull request from a forked repository, the integration testing phase will be skipped because the pre-registered accounts won't be accessible.
+
++++
+
 
 ## General SQL Clause for Multiple Database Dialects
 
