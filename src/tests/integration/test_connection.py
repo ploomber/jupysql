@@ -364,6 +364,29 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
     assert conn_one._connection._execution_options == {"isolation_level": "AUTOCOMMIT"}
 
 
+# https://github.com/ploomber/jupysql/issues/15
+
+
+@pytest.mark.parametrize("autocommit_value", [True, False])
+def test_mssql_with_pytds(setup_MSSQL, autocommit_value):
+    class Config:
+        autocommit = autocommit_value
+
+    url = _testing.DatabaseConfigHelper.get_database_url("mssql_pytds")
+
+    conn_one = SQLAlchemyConnection(create_engine(url), config=Config)
+
+    name = gen_name(prefix="table")
+    conn_one.raw_execute(f"CREATE TABLE {name} (id int)")
+    conn_one.raw_execute(f"INSERT INTO {name} VALUES (1), (2), (3)")
+    results = conn_one.raw_execute(f"SELECT * FROM {name}").fetchall()
+
+    conn_one.close()
+
+    assert url.startswith("mssql+pytds")
+    assert [(1,), (2,), (3,)] == results
+
+
 # TODO: test changing autocommit and make sure the connection is updated
 # with the new settings
 

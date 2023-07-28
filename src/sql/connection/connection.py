@@ -819,9 +819,4 @@ def set_sqlalchemy_isolation_level(conn):
         return False
 
 
-def is_pytds(dialect):
-    """Checks if driver is pytds"""
-    return "pytds" in str(dialect)
-
-
 atexit.register(ConnectionManager.close_all, verbose=True)

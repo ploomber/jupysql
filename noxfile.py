@@ -22,6 +22,8 @@ INTEGRATION_PIP_DEPENDENCIES = [
     "dockerctx",
     "pgspecial==2.0.1",
     "pyodbc==4.0.34",
+    "sqlalchemy-pytds",
+    "python-tds",
 ]
 
 
@@ -113,7 +115,7 @@ def test_integration_snowflake(session):
     # tests
     _install(session, integration=True)
     session.install("snowflake-sqlalchemy")
-    session.run("pytest", "src/tests/integration", "-k", "snowflake")
+    session.run("pytest", "src/tests/integration", "-k", "snowflake", "-v")
 
 
 @nox.session(
@@ -127,4 +129,5 @@ def test_integration(session):
         "src/tests/integration",
         "-k",
         "not snowflake",
+        "-v",
     )
