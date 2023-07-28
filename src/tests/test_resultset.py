@@ -184,7 +184,13 @@ def test_convert_to_dataframe_create_table(
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {}),
+        pytest.param(
+            "duckdb_sqlalchemy",
+            {"Count": {0: 5}},
+            marks=pytest.mark.xfail(
+                reason="inconsistent behavior between sqlalchemy 1.x and 2.x"
+            ),
+        ),
         ("duckdb_dbapi", {"Count": {0: 5}}),
         ("sqlite_sqlalchemy", {}),
     ],
