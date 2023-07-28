@@ -642,7 +642,7 @@ def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
         "SELECT * FROM foo LIMIT 1",
     ]
 
-    assert len(mock_execute.call_args_list) == expected_number_of_calls
+    assert len(calls) == expected_number_of_calls
     assert calls == expected_calls
 
 
@@ -704,7 +704,7 @@ def test_execute_transpiles_sql_query(fixture_name, request):
         "SELECT TOP 1 * FROM foo",
     ]
 
-    assert len(mock_execute.call_args_list) == expected_number_of_calls
+    assert len(calls) == expected_number_of_calls
     assert calls == expected_calls
 
 
