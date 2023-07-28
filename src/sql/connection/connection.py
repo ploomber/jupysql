@@ -404,7 +404,7 @@ class AbstractConnection(abc.ABC):
             return query
 
         try:
-            query = ";\n".join(
+            return ";\n".join(
                 [p.sql(dialect=write_dialect) for p in sqlglot.parse(query)]
             )
         except Exception:
@@ -437,8 +437,8 @@ class AbstractConnection(abc.ABC):
         """
         Executes SQL query on a given connection
         """
-        query = self._prepare_query(query, with_)
-        return self.raw_execute(query)
+        query_prepared = self._prepare_query(query, with_)
+        return self.raw_execute(query_prepared)
 
     def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
