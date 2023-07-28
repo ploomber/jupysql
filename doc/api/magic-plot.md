@@ -126,6 +126,8 @@ Shortcut: `%sqlplot hist`
 
 `-b`/`--bins` (default: `50`) Number of bins
 
+`-B`/`--breaks` Custom bin intervals
+
 `-w`/`--with` Use a previously saved query as input data
 
 +++
@@ -149,6 +151,14 @@ When plotting a histogram, it divides a range with the number of bins - 1 to cal
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g  --bins 100
+```
+
+### Specifying breaks
+
+Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired break points separated by whitespace after `-B/--breaks`. Make sure to pass more than 1 point that is strictly increasing and includes at least one data point.
+
+```{code-cell} ipython3
+%sqlplot histogram --table penguins.csv --column body_mass_g --breaks 2500 3000 3500 3700 4000
 ```
 
 ### Multiple columns

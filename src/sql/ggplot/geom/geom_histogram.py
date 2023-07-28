@@ -20,10 +20,11 @@ class geom_histogram(geom):
         Apply a color map to the stacked graph
     """
 
-    def __init__(self, bins=None, fill=None, cmap=None, **kwargs):
+    def __init__(self, bins=None, fill=None, cmap=None, breaks=None, **kwargs):
         self.bins = bins
         self.fill = fill
         self.cmap = cmap
+        self.breaks = breaks
         super().__init__(**kwargs)
 
     @telemetry.log_call("ggplot-histogram")
@@ -40,5 +41,6 @@ class geom_histogram(geom):
             edgecolor=gg.mapping.color,
             facet=facet,
             ax=ax or gg.axs[0],
+            breaks=self.breaks,
         )
         return gg
