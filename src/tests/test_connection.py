@@ -581,7 +581,7 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
 
 @pytest.fixture
-def mock_sqlalchemy_execute(monkeypatch):
+def mock_sqlalchemy_raw_execute(monkeypatch):
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
     mock = Mock()
@@ -589,39 +589,34 @@ def mock_sqlalchemy_execute(monkeypatch):
     # mock the dialect to pretend we're using tsql
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
 
-    conn.raw_execute("CREATE TABLE foo (bar INT)")
-    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
-    conn.raw_execute("SELECT * FROM foo LIMIT 1")
-
-    yield mock.execute
+    yield mock.execute, conn
 
 
 @pytest.fixture
-def mock_dbapi_execute(monkeypatch):
+def mock_dbapi_raw_execute(monkeypatch):
     conn = DBAPIConnection(duckdb.connect())
 
     mock = Mock()
-
     monkeypatch.setattr(conn, "_connection", mock)
     # mock the dialect to pretend we're using tsql
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
 
-    conn.raw_execute("CREATE TABLE foo (bar INT)")
-    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
-    conn.raw_execute("SELECT * FROM foo LIMIT 1")
-
-    yield mock.cursor().execute
+    yield mock.cursor().execute, conn
 
 
 @pytest.mark.parametrize(
     "fixture_name",
     [
-        "mock_sqlalchemy_execute",
-        "mock_dbapi_execute",
+        "mock_sqlalchemy_raw_execute",
+        "mock_dbapi_raw_execute",
     ],
 )
 def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
-    mock_execute = request.getfixturevalue(fixture_name)
+    mock_execute, conn = request.getfixturevalue(fixture_name)
+
+    conn.raw_execute("CREATE TABLE foo (bar INT)")
+    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
+    conn.raw_execute("SELECT * FROM foo LIMIT 1")
 
     calls = [str(call[0][0]) for call in mock_execute.call_args_list]
 
@@ -647,23 +642,49 @@ def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
     assert calls == expected_calls
 
 
-# TODO: check dbapi connection
-def test_execute_transpiles_sql_query(monkeypatch):
+@pytest.fixture
+def mock_sqlalchemy_execute(monkeypatch):
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
-    mock = Mock(wraps=conn._connection.execute)
+    mock = Mock()
     monkeypatch.setattr(conn._connection, "execute", mock)
     # mock the dialect to pretend we're using tsql
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
 
+    yield mock, conn
+
+
+@pytest.fixture
+def mock_dbapi_execute(monkeypatch):
+    conn = DBAPIConnection(duckdb.connect())
+
+    mock = Mock()
+    monkeypatch.setattr(conn, "_connection", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock.cursor().execute, conn
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "mock_sqlalchemy_execute",
+        "mock_dbapi_execute",
+    ],
+    ids=[
+        "sqlalchemy",
+        "dbapi",
+    ],
+)
+def test_execute_transpiles_sql_query(fixture_name, request):
+    mock_execute, conn = request.getfixturevalue(fixture_name)
+
     conn.execute("CREATE TABLE foo (bar INT)")
     conn.execute("INSERT INTO foo VALUES (42), (43)")
+    conn.execute("SELECT * FROM foo LIMIT 1")
 
-    # this should fail because it'll try to run a tsql query on duckdb
-    with pytest.raises(sqlalchemy.exc.ProgrammingError):
-        conn.execute("SELECT * FROM foo LIMIT 1")
-
-    calls = [str(call[0][0]) for call in mock.call_args_list]
+    calls = [str(call[0][0]) for call in mock_execute.call_args_list]
 
     # if running on sqlalchemy 1.x, the commit call is done via .execute
     expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
@@ -673,17 +694,19 @@ def test_execute_transpiles_sql_query(monkeypatch):
             "commit",
             "INSERT INTO foo VALUES (42), (43)",
             "commit",
+            # since we're transpiling, we should see TSQL code
             "SELECT TOP 1 * FROM foo",
         ]
         if IS_SQLALCHEMY_ONE
         else [
             "CREATE TABLE foo (bar INTEGER)",
             "INSERT INTO foo VALUES (42), (43)",
+            # since we're transpiling, we should see TSQL code
             "SELECT TOP 1 * FROM foo",
         ]
     )
 
-    assert len(mock.call_args_list) == expected_number_of_calls
+    assert len(mock_execute.call_args_list) == expected_number_of_calls
     assert calls == expected_calls
 
 
