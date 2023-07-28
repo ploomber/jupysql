@@ -5,9 +5,6 @@ import polars as pl
 import pandas as pd
 
 
-from sql.warnings import JupySQLDataFramePerformanceWarning
-
-
 # TODO: test with autocommit off
 @pytest.mark.parametrize(
     "method, expected_type, expected_native_method",

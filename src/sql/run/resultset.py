@@ -1,4 +1,3 @@
-import warnings
 import re
 import operator
 from functools import reduce
@@ -14,7 +13,6 @@ from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
 from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
-from sql.warnings import JupySQLDataFramePerformanceWarning
 
 
 class ResultSetsManager:
