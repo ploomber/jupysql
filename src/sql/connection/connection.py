@@ -571,9 +571,11 @@ class SQLAlchemyConnection(AbstractConnection):
         out = self.connection.execute(sqlalchemy.text(query))
 
         if self._requires_manual_commit and not is_select:
-            self.connection.commit()
-            # TODO: in sqlalchemy 1.x, connection has no commit attribute
-            # self.connection.execute("commit")
+            # in sqlalchemy 1.x, connection has no commit attribute
+            if IS_SQLALCHEMY_ONE:
+                self.connection.execute("commit")
+            else:
+                self.connection.commit()
 
         return out
 
