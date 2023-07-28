@@ -611,7 +611,7 @@ def test_execute_transpiles_sql_query(monkeypatch):
     conn.execute("CREATE TABLE foo (bar INT)")
     conn.execute("INSERT INTO foo VALUES (42), (43)")
 
-    # tihs should fail because it'll try to run a tsql query on duckdb
+    # this should fail because it'll try to run a tsql query on duckdb
     with pytest.raises(sqlalchemy.exc.ProgrammingError):
         conn.execute("SELECT * FROM foo LIMIT 1")
 
