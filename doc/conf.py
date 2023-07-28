@@ -46,7 +46,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "matplotlib.sphinxext.plot_directive",
     "sphinx_jupyterbook_latex",
-    "sphinxext.opengraph",
+    "sphinx.ext.opengraph",
 ]
 external_toc_exclude_missing = False
 external_toc_path = "_toc.yml"
