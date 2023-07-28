@@ -152,12 +152,12 @@ class ConnectionManager:
                 cls.current = DBAPIConnection(descriptor, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-
                 if existing and existing.alias == alias:
                     cls.current = existing
                 # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
                     cls.current = existing
+                    display.message(f"Switching to connection {descriptor}")
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     cls.current = cls.from_connect_str(
@@ -245,6 +245,7 @@ class ConnectionManager:
             conn = cls.connections.get(descriptor) or cls.connections.get(
                 descriptor.lower()
             )
+
         if not conn:
             raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
@@ -257,7 +258,8 @@ class ConnectionManager:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.connection.close()
+
+        conn.close()
 
     @classmethod
     def connections_table(cls):
@@ -526,6 +528,13 @@ class SQLAlchemyConnection(AbstractConnection):
     def connection(self):
         """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
+
+    def close(self):
+        super().close()
+
+        # NOTE: in SQLAlchemy 2.x, we need to call engine.dispose() to completely
+        # close the connection, calling connection.close() is not enough
+        self.connection.engine.dispose()
 
     @classmethod
     @modify_exceptions
