@@ -21,7 +21,6 @@ from sql.connection import (
     is_pep249_compliant,
     default_alias_for_engine,
 )
-from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
