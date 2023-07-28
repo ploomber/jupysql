@@ -11,6 +11,7 @@
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
 * [Fix] Fix bug that caused the query transpilation process to fail when passing multiple statements
 * [Feature] Adds `with_` to `{SQLAlchemyConnection, DBAPIConnection}.raw_execute` to resolve CTEs
+* [Fix] Fixes error when creating tables and querying them in the same cell when using DuckDB + SQLAlchemy (#674)
 
 ## 0.8.0 (2023-07-18)
 
