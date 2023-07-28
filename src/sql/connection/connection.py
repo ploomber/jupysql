@@ -687,6 +687,11 @@ class DBAPIConnection(AbstractConnection):
         return self._dialect
 
     def raw_execute(self, query, with_=None):
+        # we do not support multiple statements (this might actually work in some
+        # drivers but we need to add this for consistency with SQLAlchemyConnection)
+        if len(sqlparse.split(query)) > 1:
+            raise NotImplementedError("Only one statement is supported.")
+
         if with_:
             query = self._resolve_cte(query, with_)
 

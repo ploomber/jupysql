@@ -581,27 +581,37 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
 
 @pytest.fixture
-def mock_sqlalchemy_raw_execute(monkeypatch):
+def conn_sqlalchemy():
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
-
-    mock = Mock()
-    monkeypatch.setattr(conn, "_connection_sqlalchemy", mock)
-    # mock the dialect to pretend we're using tsql
-    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
-
-    yield mock.execute, conn
+    yield conn
+    conn.close()
 
 
 @pytest.fixture
-def mock_dbapi_raw_execute(monkeypatch):
+def conn_dbapi():
     conn = DBAPIConnection(duckdb.connect())
+    yield conn
+    conn.close()
 
+
+@pytest.fixture
+def mock_sqlalchemy_raw_execute(conn_sqlalchemy, monkeypatch):
     mock = Mock()
-    monkeypatch.setattr(conn, "_connection", mock)
+    monkeypatch.setattr(conn_sqlalchemy, "_connection_sqlalchemy", mock)
     # mock the dialect to pretend we're using tsql
-    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+    monkeypatch.setattr(conn_sqlalchemy, "_get_sqlglot_dialect", lambda: "tsql")
 
-    yield mock.cursor().execute, conn
+    yield mock.execute, conn_sqlalchemy
+
+
+@pytest.fixture
+def mock_dbapi_raw_execute(monkeypatch, conn_dbapi):
+    mock = Mock()
+    monkeypatch.setattr(conn_dbapi, "_connection", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn_dbapi, "_get_sqlglot_dialect", lambda: "tsql")
+
+    yield mock.cursor().execute, conn_dbapi
 
 
 @pytest.mark.parametrize(
@@ -710,13 +720,18 @@ def test_execute_transpiles_sql_query(fixture_name, request):
     assert calls == expected_calls
 
 
-# TODO: check dbapi connection
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "conn_sqlalchemy",
+        "conn_dbapi",
+    ],
+)
 @pytest.mark.parametrize("execute_method", ["execute", "raw_execute"])
-def test_error_if_trying_to_execute_multiple_statements(monkeypatch, execute_method):
-    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
-
-    mock = Mock(wraps=conn._connection.execute)
-    monkeypatch.setattr(conn._connection, "execute", mock)
+def test_error_if_trying_to_execute_multiple_statements(
+    monkeypatch, execute_method, fixture_name, request
+):
+    conn = request.getfixturevalue(fixture_name)
 
     with pytest.raises(NotImplementedError) as excinfo:
         method = getattr(conn, execute_method)
@@ -731,24 +746,47 @@ SELECT * FROM foo LIMIT 1;
     assert str(excinfo.value) == "Only one statement is supported."
 
 
-# TODO: check dbapi connection
-def test_transpile_query(monkeypatch):
-    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
-    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
-
-    transpiled = conn._transpile_query(
-        """
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "conn_sqlalchemy",
+        "conn_dbapi",
+    ],
+)
+@pytest.mark.parametrize(
+    "query_input,query_output",
+    [
+        (
+            """
+SELECT * FROM foo LIMIT 1;
+""",
+            "SELECT TOP 1 * FROM foo",
+        ),
+        (
+            """
 CREATE TABLE foo (bar INT);
 INSERT INTO foo VALUES (42), (43);
 SELECT * FROM foo LIMIT 1;
-"""
-    )
+""",
+            (
+                "CREATE TABLE foo (bar INTEGER);\n"
+                "INSERT INTO foo VALUES (42), (43);\n"
+                "SELECT TOP 1 * FROM foo"
+            ),
+        ),
+    ],
+    ids=[
+        "one_statement",
+        "multiple_statements",
+    ],
+)
+def test_transpile_query(monkeypatch, fixture_name, request, query_input, query_output):
+    conn = request.getfixturevalue(fixture_name)
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
 
-    assert transpiled == (
-        "CREATE TABLE foo (bar INTEGER);\n"
-        "INSERT INTO foo VALUES (42), (43);\n"
-        "SELECT TOP 1 * FROM foo"
-    )
+    transpiled = conn._transpile_query(query_input)
+
+    assert transpiled == query_output
 
 
 # def test_transpile_query_doesnt_transpile_if_it_doesnt_need_to(monkeypatch):
@@ -764,12 +802,3 @@ SELECT * FROM foo LIMIT 1;
 #     )
 
 #     assert transpiled == ""
-
-
-# def test_raw_execute_dbapi(monkeypatch):
-#     conn = DBAPIConnection(engine=create_engine("duckdb://"))
-
-#     mock = Mock(wraps=conn._connection.cursor)
-#     monkeypatch.setattr(conn._connection, "cursor", mock)
-
-#     mock.assert_not_called()
