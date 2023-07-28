@@ -6,8 +6,10 @@ import pandas as pd
 import urllib.request
 import requests
 from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
+from sql.connection import ConnectionManager
+
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
-from sql.connection import CustomConnection, CustomSession
+from sql.connection import DBAPIConnection
 from IPython.core.error import UsageError
 
 """
@@ -70,7 +72,7 @@ def import_data(file_name, table_name):
 
 
 def custom_database_ready(
-    custom_connection,
+    dbapi_connection,
     timeout=20,
     poll_freq=0.5,
 ):
@@ -88,7 +90,7 @@ def custom_database_ready(
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
-            custom_connection()
+            dbapi_connection()
             return True
         except Exception as e:
             errors.append(str(e))
@@ -512,7 +514,9 @@ def test_sql(ip_questdb, query, expected_results):
 # NOT SUPPORTED ERRORS
 
 
-NOT_SUPPORTED_SUFFIX = "is not supported for a custom engine"
+NOT_SUPPORTED_SUFFIX = (
+    "is only supported with SQLAlchemy connections, not with DBAPI connections"
+)
 
 
 @pytest.mark.parametrize(
@@ -588,34 +592,29 @@ def test_sqlplot_not_supported_error(
 # Utils
 @pytest.mark.parametrize(
     "alias",
-    [None, "test_alias"],
+    [
+        "Connection",
+        "test_alias",
+    ],
 )
-def test_custom_connection(ip_questdb, alias):
+def test_dbapi_connection(ip_questdb, alias):
     import psycopg as pg
 
     engine = pg.connect(QUESTDB_CONNECTION_STRING)
 
-    expected_connection_name = "custom_driver"
+    expected_connection_name = "Connection"
 
-    connection = CustomConnection(engine, alias)
+    connection = DBAPIConnection(engine, alias)
 
-    assert isinstance(connection, CustomConnection)
+    assert isinstance(connection, DBAPIConnection)
     assert connection.name is expected_connection_name
-    assert connection.dialect is expected_connection_name
+    assert connection.dialect is None
     assert connection.alias is alias
-    assert len(connection.connections) > 0
-    assert isinstance(connection.session, CustomSession)
+    assert len(ConnectionManager.connections) > 0
 
     if alias:
-        stored_connection = connection.connections[alias]
+        stored_connection = ConnectionManager.connections[alias]
     else:
-        stored_connection = connection.connections[expected_connection_name]
+        stored_connection = ConnectionManager.connections[expected_connection_name]
 
-    assert isinstance(stored_connection, CustomConnection)
-
-
-def test_custom_connection_error(ip_questdb):
-    with pytest.raises(ValueError) as err:
-        CustomConnection()
-
-    assert "Engine cannot be None" in str(err)
+    assert isinstance(stored_connection, DBAPIConnection)

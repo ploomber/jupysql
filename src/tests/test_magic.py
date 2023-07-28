@@ -13,9 +13,9 @@ import polars as pl
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.magic import SqlMagic
-from sql.run import ResultSet
+from sql.run.resultset import ResultSet
 from sql import magic
 
 from conftest import runsql
@@ -85,7 +85,7 @@ def test_result_var(ip, capsys):
     assert "Returning data to local variable" not in out
 
 
-def test_result_var_link(ip, capsys):
+def test_result_var_link(ip):
     ip.run_cell_magic(
         "sql",
         "",
@@ -96,14 +96,16 @@ def test_result_var_link(ip, capsys):
         """,
     )
     result = ip.user_global_ns["x"]
-    out, _ = capsys.readouterr()
+
     assert (
         "<a href=https://en.wikipedia.org/wiki/Bertolt_Brecht>"
-        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>" in result._repr_html_()
-        and "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
-        "https://en.wikipedia.org/wiki/William_Shakespeare</a>" in result._repr_html_()
-    )
-    assert "Returning data to local variable" not in out
+        "https://en.wikipedia.org/wiki/Bertolt_Brecht</a>"
+    ) in result._repr_html_()
+
+    assert (
+        "<a href=https://en.wikipedia.org/wiki/William_Shakespeare>"
+        "https://en.wikipedia.org/wiki/William_Shakespeare</a>"
+    ) in result._repr_html_()
     assert "<a href=google_link>google_link</a>" not in result._repr_html_()
 
 
@@ -232,20 +234,20 @@ def test_persist_no_index(ip):
 @pytest.mark.parametrize(
     "sql_statement, expected_error",
     [
-        ("%%sql --stuff\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql --unknown\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql --invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
-        ("%%sql -invalid-arg\n SELECT * FROM test", "Unrecognized argument(s)"),
+        ("%%sql --arg\n SELECT * FROM test", "Unrecognized argument(s): --arg"),
+        ("%%sql -arg\n SELECT * FROM test", "Unrecognized argument(s): -arg"),
         ("%%sql \n SELECT * FROM test", None),
-        ("%sql select * FROM penguins.csv --some", None),
+        ("%sql select * FROM test --some", None),
         ("%%sql --persist '--some' \n SELECT * FROM test", "not a valid identifier"),
     ],
 )
 def test_unrecognized_arguments_cell_magic(ip, sql_statement, expected_error):
     result = ip.run_cell(sql_statement)
-    assert (result.error_in_exec is not None) == (expected_error is not None)
+
     if expected_error:
         assert expected_error in str(result.error_in_exec)
+    else:
+        assert result.error_in_exec is None
 
 
 def test_persist_invalid_identifier(ip):
@@ -555,7 +557,8 @@ def test_displaylimit_default(ip):
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
     ip.run_cell("%sql INSERT INTO number_table VALUES (4, 3)")
 
-    out = runsql(ip, "SELECT * FROM number_table;")
+    out = ip.run_cell("%sql SELECT * FROM number_table;").result
+
     assert "Truncated to displaylimit of 10" in out._repr_html_()
 
 
@@ -567,6 +570,8 @@ def test_displaylimit(ip):
 
     assert "Brecht" in result._repr_html_()
     assert "Shakespeare" not in result._repr_html_()
+    assert "Brecht" in repr(result)
+    assert "Shakespeare" not in repr(result)
 
 
 @pytest.mark.parametrize("config_value, expected_length", [(3, 3), (6, 6)])
@@ -897,25 +902,25 @@ def test_close_connection(ip, tmp_empty):
     ip.run_cell("%sql -x sqlite:///one.db")
     ip.run_cell("%sql --close sqlite:///two.db")
 
-    assert "sqlite:///one.db" not in Connection.connections
-    assert "sqlite:///two.db" not in Connection.connections
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "sqlite:///two.db" not in ConnectionManager.connections
 
 
 def test_alias(clean_conns, ip_empty, tmp_empty):
     ip_empty.run_cell("%sql sqlite:///one.db --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
 def test_alias_existing_engine(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite:///first.db")
     ip_empty.run_cell("%sql first --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
-def test_alias_custom_connection(clean_conns, ip_empty, tmp_empty):
+def test_alias_dbapi_connection(clean_conns, ip_empty, tmp_empty):
     ip_empty.user_global_ns["first"] = create_engine("sqlite://")
     ip_empty.run_cell("%sql first --alias one")
-    assert {"one"} == set(Connection.connections)
+    assert {"one"} == set(ConnectionManager.connections)
 
 
 def test_close_connection_with_alias(ip, tmp_empty):
@@ -927,10 +932,10 @@ def test_close_connection_with_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///one.db" not in Connection.connections
-    assert "sqlite:///two.db" not in Connection.connections
-    assert "one" not in Connection.connections
-    assert "two" not in Connection.connections
+    assert "sqlite:///one.db" not in ConnectionManager.connections
+    assert "sqlite:///two.db" not in ConnectionManager.connections
+    assert "one" not in ConnectionManager.connections
+    assert "two" not in ConnectionManager.connections
 
 
 def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
@@ -945,13 +950,13 @@ def test_close_connection_with_existing_engine_and_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///first.db" not in Connection.connections
-    assert "sqlite:///second.db" not in Connection.connections
-    assert "first" not in Connection.connections
-    assert "second" not in Connection.connections
+    assert "sqlite:///first.db" not in ConnectionManager.connections
+    assert "sqlite:///second.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "second" not in ConnectionManager.connections
 
 
-def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
+def test_close_connection_with_dbapi_connection_and_alias(ip, tmp_empty):
     ip.user_global_ns["first"] = create_engine("sqlite:///first.db")
     ip.user_global_ns["second"] = create_engine("sqlite:///second.db")
 
@@ -963,10 +968,10 @@ def test_close_connection_with_custom_connection_and_alias(ip, tmp_empty):
     ip.run_cell("%sql -x one")
     ip.run_cell("%sql --close two")
 
-    assert "sqlite:///first.db" not in Connection.connections
-    assert "sqlite:///second.db" not in Connection.connections
-    assert "first" not in Connection.connections
-    assert "second" not in Connection.connections
+    assert "sqlite:///first.db" not in ConnectionManager.connections
+    assert "sqlite:///second.db" not in ConnectionManager.connections
+    assert "first" not in ConnectionManager.connections
+    assert "second" not in ConnectionManager.connections
 
 
 def test_creator_no_argument_raises(ip_empty):
@@ -1241,10 +1246,14 @@ def test_save_with_non_existing_with(ip):
     assert isinstance(out.error_in_exec, UsageError)
 
 
-def test_save_with_non_existing_table(ip, capsys):
-    ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
-    out, _ = capsys.readouterr()
-    assert "(sqlite3.OperationalError) no such table: non_existing_table" in out
+def test_save_with_non_existing_table(ip):
+    out = ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
+
+    assert isinstance(out.error_in_exec, UsageError)
+    assert out.error_in_exec.error_type == "RuntimeError"
+    assert "(sqlite3.OperationalError) no such table: non_existing_table" in str(
+        out.error_in_exec
+    )
 
 
 def test_save_with_bad_query_save(ip, capsys):

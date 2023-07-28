@@ -16,13 +16,15 @@ from IPython.core.magic import (
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from traitlets.config.configurable import Configurable
+from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
 import warnings
 import shlex
 from difflib import get_close_matches
 import sql.connection
 import sql.parse
-import sql.run
+from sql.run.run import run_statements
 from sql.parse import _option_strings_from_parser
 from sql import display, exceptions
 from sql.store import store
@@ -32,11 +34,11 @@ from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import query_util
 from sql.util import get_suggestions_message, pretty_print
-from ploomber_core.dependencies import check_installed
-
+from sql.exceptions import RuntimeError
 from sql.error_message import detail
-from traitlets.config.configurable import Configurable
-from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
+
+
+from ploomber_core.dependencies import check_installed
 
 
 try:
@@ -110,7 +112,7 @@ class SqlMagic(Magics, Configurable):
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        sql.run.DEFAULT_DISPLAYLIMIT_VALUE,
+        10,
         config=True,
         allow_none=True,
         help=(
@@ -168,7 +170,7 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            print("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message("displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
@@ -188,7 +190,9 @@ class SqlMagic(Magics, Configurable):
             other = "autopolars" if change["name"] == "autopandas" else "autopandas"
             if getattr(self, other):
                 setattr(self, other, False)
-                print(f"Disabled '{other}' since '{change['name']}' was enabled.")
+                display.message(
+                    f"Disabled '{other}' since '{change['name']}' was enabled."
+                )
 
     def check_random_arguments(self, line="", cell=""):
         # check only for cell magic
@@ -218,8 +222,7 @@ class SqlMagic(Magics, Configurable):
         detailed_msg = detail(e)
         if self.short_errors:
             if detailed_msg is not None:
-                err = exceptions.UsageError(detailed_msg)
-                raise err
+                raise exceptions.RuntimeError(detailed_msg) from e
                 # TODO: move to error_messages.py
                 # Added here due to circular dependency issue (#545)
             elif "no such table" in str(e):
@@ -233,10 +236,9 @@ class SqlMagic(Magics, Configurable):
                         suggestions_message = get_suggestions_message(suggestions)
                         raise exceptions.TableNotFoundError(
                             f"{err_message}{suggestions_message}"
-                        )
-                display.message(str(e))
-            else:
-                display.message(str(e))
+                        ) from e
+
+            raise RuntimeError(str(e)) from e
         else:
             if detailed_msg is not None:
                 display.message(detailed_msg)
@@ -400,7 +402,7 @@ class SqlMagic(Magics, Configurable):
             if with_:
                 command.set_sql_with(with_)
                 display.message(
-                    f"Generating CTE with stored snippets : {pretty_print(with_)}"
+                    f"Generating CTE with stored snippets: {pretty_print(with_)}"
                 )
             else:
                 with_ = None
@@ -411,16 +413,18 @@ class SqlMagic(Magics, Configurable):
             interactive_dict = {}
             for key in args.interact:
                 interactive_dict[key] = local_ns[key]
-            print(
+            display.message(
                 "Interactive mode, please interact with below "
                 "widget(s) to control the variable"
             )
             interact(interactive_execute_wrapper, **interactive_dict)
             return
         if args.connections:
-            return sql.connection.Connection.connections_table()
+            return sql.connection.ConnectionManager.connections_table()
         elif args.close:
-            return sql.connection.Connection.close(args.close)
+            return sql.connection.ConnectionManager.close_connection_with_descriptor(
+                args.close
+            )
 
         connect_arg = command.connection
 
@@ -448,14 +452,14 @@ class SqlMagic(Magics, Configurable):
 
         # this creates a new connection or use an existing one
         # depending on the connect_arg value
-        conn = sql.connection.Connection.set(
+        conn = sql.connection.ConnectionManager.set(
             connect_arg,
             displaycon=self.displaycon,
             connect_args=args.connection_arguments,
             creator=args.creator,
             alias=args.alias,
         )
-        payload["connection_info"] = conn._get_curr_sqlalchemy_connection_info()
+        payload["connection_info"] = conn._get_database_information()
 
         if args.persist_replace and args.append:
             raise exceptions.UsageError(
@@ -510,7 +514,7 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = sql.run.run(conn, command.sql, self)
+            result = run_statements(conn, command.sql, self)
 
             if (
                 result is not None
@@ -527,7 +531,7 @@ class SqlMagic(Magics, Configurable):
                     result = result.dict()
 
                 if self.feedback:
-                    print(
+                    display.message(
                         "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
@@ -608,7 +612,7 @@ class SqlMagic(Magics, Configurable):
 
         try:
             frame.to_sql(
-                table_name, conn.session.engine, if_exists=if_exists, index=index
+                table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index
             )
         except ValueError:
             raise exceptions.ValueError(

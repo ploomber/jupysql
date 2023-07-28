@@ -10,11 +10,25 @@ from IPython.core.interactiveshell import InteractiveShell
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
-from sql.connection import Connection
+from sql.connection import ConnectionManager
+from sql import connection
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
 PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def isolate_connections(monkeypatch):
+    """
+    Fixture to ensure connections are isolated between tests, preventing tests
+    from accidentally closing connections created by other tests.
+    """
+    connections = {}
+    monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
+    monkeypatch.setattr(connection.ConnectionManager, "current", None)
+    yield
+    connection.ConnectionManager.close_all()
 
 
 def path_to_tests():
@@ -45,9 +59,24 @@ def runsql(ip_session, statements):
 
 @pytest.fixture
 def clean_conns():
-    Connection.current = None
-    Connection.connections = dict()
+    ConnectionManager.current = None
+    ConnectionManager.connections = dict()
     yield
+
+
+class TestingShell(InteractiveShell):
+    """
+    A custom InteractiveShell that raises exceptions instead of silently suppressing
+    them.
+    """
+
+    def run_cell(self, *args, **kwargs):
+        result = super().run_cell(*args, **kwargs)
+
+        if result.error_in_exec is not None:
+            raise result.error_in_exec
+
+        return result
 
 
 @pytest.fixture
@@ -64,8 +93,34 @@ def ip_empty():
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
     yield ip_session
-    Connection.close_all()
+    ConnectionManager.close_all()
+
+
+@pytest.fixture
+def ip_empty_testing():
+    c = Config()
+    c.HistoryAccessor.enabled = False
+    ip_session = TestingShell(config=c)
+
+    ip_session.register_magics(SqlMagic)
+    ip_session.register_magics(RenderMagic)
+    ip_session.register_magics(SqlPlotMagic)
+    ip_session.register_magics(SqlCmdMagic)
+
+    # there is some weird bug in ipython that causes this function to hang the pytest
+    # process when all tests have been executed (an internal call to gc.collect()
+    # hangs). This is a workaround.
+    ip_session.displayhook.flush = lambda: None
+
+    yield ip_session
+    ConnectionManager.close_all()
 
 
 @pytest.fixture
@@ -104,6 +159,9 @@ def ip(ip_empty):
         ],
     )
     yield ip_empty
+
+    ConnectionManager.close_all()
+
     runsql(ip_empty, "DROP TABLE IF EXISTS test")
     runsql(ip_empty, "DROP TABLE IF EXISTS author")
     runsql(ip_empty, "DROP TABLE IF EXISTS website")

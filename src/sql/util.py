@@ -1,10 +1,9 @@
 import warnings
-import sql
 from sql import inspect
 import difflib
-from sql.connection import Connection
+from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
-from sql import exceptions
+from sql import exceptions, display
 import json
 
 SINGLE_QUOTE = "'"
@@ -86,10 +85,10 @@ def is_table_exists(
             return False
         else:
             raise exceptions.UsageError("Table cannot be None")
-    if not Connection.current:
+    if not ConnectionManager.current:
         raise exceptions.RuntimeError("No active connection")
     if not conn:
-        conn = Connection.current
+        conn = ConnectionManager.current
 
     table = strip_multiple_chars(table, "\"'")
 
@@ -102,7 +101,7 @@ def is_table_exists(
 
     if not _is_exist:
         if not ignore_error:
-            try_find_suggestions = not Connection.is_custom_connection(conn)
+            try_find_suggestions = not conn.is_dbapi_connection
             expected = []
             existing_schemas = []
             existing_tables = []
@@ -182,7 +181,7 @@ def strip_multiple_chars(string: str, chars: str) -> str:
 
 def is_saved_snippet(table: str) -> bool:
     if table in list(store):
-        print(f"Plotting using saved snippet : {table}")
+        display.message(f"Plotting using saved snippet : {table}")
         return True
     return False
 
@@ -192,7 +191,7 @@ def _is_table_exists(table: str, conn) -> bool:
     Runs a SQL query to check if table exists
     """
     if not conn:
-        conn = Connection.current
+        conn = ConnectionManager.current
 
     identifiers = conn.get_curr_identifiers()
 
@@ -250,8 +249,11 @@ def support_only_sql_alchemy_connection(command):
     """
     Throws a sql.exceptions.RuntimeError if connection is not SQLAlchemy
     """
-    if Connection.is_custom_connection():
-        raise exceptions.RuntimeError(f"{command} is not supported for a custom engine")
+    if ConnectionManager.current.is_dbapi_connection:
+        raise exceptions.RuntimeError(
+            f"{command} is only supported with SQLAlchemy "
+            "connections, not with DBAPI connections"
+        )
 
 
 def fetch_sql_with_pagination(
@@ -286,10 +288,10 @@ def fetch_sql_with_pagination(
     SELECT * FROM {table} {order_by}
     OFFSET {offset} ROWS FETCH NEXT {n_rows} ROWS ONLY"""
 
-    rows = Connection.current.execute(query).fetchall()
+    rows = ConnectionManager.current.execute(query).fetchall()
 
-    columns = sql.run.raw_run(
-        Connection.current, f"SELECT * FROM {table} WHERE 1=0"
+    columns = ConnectionManager.current.raw_execute(
+        f"SELECT * FROM {table} WHERE 1=0"
     ).keys()
 
     return rows, columns
