@@ -369,7 +369,7 @@ class AbstractConnection(abc.ABC):
             connection_info["dialect"], connection_info["dialect"]
         )
 
-    def _transpile_query(self, query, read=None):
+    def _transpile_query(self, query):
         """Translate the given SQL clause that's compatible to current connected
         dialect by sqlglot
 
@@ -385,11 +385,11 @@ class AbstractConnection(abc.ABC):
         """
         write_dialect = self._get_sqlglot_dialect()
         try:
-            query = sqlglot.parse_one(query, read=read).sql(dialect=write_dialect)
+            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
         finally:
             return query
 
-    def _prepare_query(self, query, with_=None, read=None) -> str:
+    def _prepare_query(self, query, with_=None) -> str:
         """
         Returns a textual representation of a query based
         on the current connection
@@ -404,17 +404,15 @@ class AbstractConnection(abc.ABC):
         """
         if with_:
             query = str(store.render(query, with_=with_))
-        print("Before: ", query)
-        query = self._transpile_query(query, read=read)
-        print("After: ", query)
+        query = self._transpile_query(query)
 
         return query
 
-    def execute(self, query, with_=None, read=None):
+    def execute(self, query, with_=None):
         """
         Executes SQL query on a given connection
         """
-        query = self._prepare_query(query, with_, read)
+        query = self._prepare_query(query, with_)
         return self.raw_execute(query)
 
     def is_use_backtick_template(self):

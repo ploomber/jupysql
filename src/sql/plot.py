@@ -297,7 +297,7 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
-    min_, max_ = con.execute(query, with_=with_, read=None).fetchone()
+    min_, max_ = con.execute(query, with_=with_).fetchone()
     print("min_, max_, from func: ", min_, max_)
     return min_, max_
 
@@ -576,7 +576,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
 
         query = template.render(table=table, column=column, filter_query=filter_query)
 
-    data = conn.execute(query, with_, read=None).fetchall()
+    data = conn.execute(query, with_).fetchall()
 
     bin_, height = zip(*data)
 

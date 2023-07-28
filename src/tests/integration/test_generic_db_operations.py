@@ -268,15 +268,15 @@ def test_telemetry_execute_command_has_connection_info(
     "cell",
     [
         (
-            "%sqlplot histogram --with plot_something_subset2 --table\
+            "%sqlplot histogram --with plot_something_subset --table\
               plot_something_subset --column x"
         ),
         (
-            "%sqlplot hist --with plot_something_subset2 --table\
+            "%sqlplot hist --with plot_something_subset --table\
               plot_something_subset --column x"
         ),
         (
-            "%sqlplot histogram --with plot_something_subset2 --table\
+            "%sqlplot histogram --with plot_something_subset --table\
               plot_something_subset --column x --bins 10"
         ),
     ],
