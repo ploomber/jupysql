@@ -398,11 +398,16 @@ class AbstractConnection(abc.ABC):
         """
         write_dialect = self._get_sqlglot_dialect()
 
+        # we write queries to be duckdb-compatible so we don't transpile them
+        # sqlglot might still change the query so we avoid skip it to avoid it
+        if write_dialect == "duckdb":
+            return query
+
         try:
             query = ";\n".join(
                 [p.sql(dialect=write_dialect) for p in sqlglot.parse(query)]
             )
-        finally:
+        except Exception:
             return query
 
     def _prepare_query(self, query, with_=None) -> str:

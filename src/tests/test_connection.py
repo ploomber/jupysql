@@ -777,16 +777,16 @@ def test_transpile_query(monkeypatch, fixture_name, request, query_input, query_
     assert transpiled == query_output
 
 
-# def test_transpile_query_doesnt_transpile_if_it_doesnt_need_to(monkeypatch):
-#     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+def test_transpile_query_doesnt_transpile_if_it_doesnt_need_to(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
-#     transpiled = conn._transpile_query(
-#         """
-#     SELECT
-#     percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP  (ORDER BY "column")
-# AS percentiles
-#     FROM "table"
-# """
-#     )
+    query_input = """
+    SELECT
+    percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP  (ORDER BY "column")
+AS percentiles
+    FROM "table"
+"""
 
-#     assert transpiled == ""
+    transpiled = conn._transpile_query(query_input)
+
+    assert transpiled == query_input
