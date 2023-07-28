@@ -35,6 +35,12 @@ After the codespace has finished setting up, you can run `conda activate jupysql
 
 +++
 
+## The basics
+
+magics vs python api
+
++++
+
 ## Displaying messages
 
 ```{important}
@@ -76,49 +82,45 @@ To implement such behavior, you can use any of the functions defined in `sql.exc
 ```{code-cell} ipython3
 :tags: [raises-exception]
 
-from sql.exceptions import UsageError
+from sql import exceptions
 
-raise UsageError("something bad happened")
+raise exceptions.UsageError("something bad happened")
+```
+
+There are other exceptions available, if nothing fits in your scenario, you can add new ones.
+
+```{code-cell} ipython3
+:tags: [raises-exception]
+
+raise exceptions.ValueError("something bad happened")
 ```
 
 ```{important}
-These errors that hide the traceback should only be used in the context of a magic. For example, in our ggplot API (Python-based), we do not hide tracebacks as users might need them to debug their code
+These errors that hide the traceback should only be used in the `%sql`/`%%sql` magic context. For example, in our ggplot API (Python-based), we do not hide tracebacks as users might need them to debug their code
 ```
 
-+++ {"user_expressions": []}
-
-### Unit testing custom errors
-
-The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when testing, see `test_util.py` for examples, and `exceptions.py` for more details.
-
 +++
 
-### Handling common errors
+## Getting connections
 
-Currently, these common errors are handled by providing more meaningful error messages:
-
-* Syntax error in SQL query - The SQL query is parsed using `sqlglot` and possible syntax issues or query suggestions are provided to the user. This raises a `UsageError` with the message.
-* Missing password when connecting to PostgreSQL - Displays guide on DB connections
-* Invalid connection strings when connecting to DuckDB.
-
-+++
-
-## Managing Connections
-
-In our codebase, we establish connections to databases with `SQLAlchemyConnection` and `DBAPIConnection` objects (they have the same interface).
-
-Furthermore, we have a `ConnectionManager` to manage all the connections.
-
-### Working with connections
-
-We can access the current connection using `ConnectionManager.current`.
+When adding features to JupySQL magics (`%sql/%%sql`), you can use the `ConnectionManager` to get the current open connections.
 
 ```{code-cell} ipython3
 :tags: [remove-output]
 
 %load_ext sql
-%sql sqlite://
 ```
+
+```{code-cell} ipython3
+import sqlite3
+
+conn = sqlite3.connect("")
+
+%sql sqlite:// --alias sqlite-sqlalchemy
+%sql conn --alias sqlite-dbapi
+```
+
+We can access the current connection using `ConnectionManager.current`:
 
 ```{code-cell} ipython3
 from sql.connection import ConnectionManager
@@ -127,8 +129,73 @@ conn = ConnectionManager.current
 conn
 ```
 
- 
-Functions that expect a `conn` (sometimes named `con`) input variable should only use connection objects.
+To get all open connections:
+
+```{code-cell} ipython3
+ConnectionManager.connections
+```
+
+## Using connections
+
+Connections are either `SQLAlchemyConnection` or `DBAPIConnection` object. Both have the same interface, the difference is that the first one is a connectioon established via SQLAlchemy and `DBAPIConnection` one is a connection established by an object that follows the [Python DB API](https://peps.python.org/pep-0249/).
+
+```{code-cell} ipython3
+conn_sqlalchemy = ConnectionManager.connections["sqlite-sqlalchemy"]
+conn_dbapi = ConnectionManager.connections["sqlite-dbapi"]
+```
+
+### `raw_execute`
+
+```{important}
+Always use `raw_execute` for user-submitted queries!
+```
+
+`raw_execute` allows you to execute a given SQL query in the connection. Unlike `execute`, `raw_execute` does not perform any transpilation.
+
+```{code-cell} ipython3
+conn_sqlalchemy.raw_execute("CREATE TABLE foo (bar INT);")
+conn_sqlalchemy.raw_execute("INSERT INTO foo VALUES (42), (43), (44), (45);")
+results = conn_sqlalchemy.raw_execute("SELECT * FROM foo")
+print("one: ", results.fetchone())
+print("many: ", results.fetchmany(size=1))
+print("all: ", results.fetchall())
+```
+
+```{code-cell} ipython3
+conn_dbapi.raw_execute("CREATE TABLE foo (bar INT);")
+conn_dbapi.raw_execute("INSERT INTO foo VALUES (42), (43), (44), (45);")
+results = conn_dbapi.raw_execute("SELECT * FROM foo")
+print("one: ", results.fetchone())
+print("many: ", results.fetchmany(size=1))
+print("all: ", results.fetchall())
+```
+
+### `execute`
+
+```{important}
+Only use `raw_execute` for internal queries!
+```
+
+`execute` allows you to run a query but it transpiles it so it's compatible with the target database.
+
+Since each database SQL dialect is slightly different, we cannot write a single SQL query and expect it to work across all databases.
+
+For example, in our `plot.py` module we have internal SQL queries for generating plots. However, the queries are designed to work with DuckDB and PostgreSQL, for any other databases, we rely on a transpilation process that converts our query into another one compatible with the target database. Note that this process isn't perfect and it fails often. So whenever you add a new feature ensure that your queries work at least on DuckDB and PostgreSQL, then write integration tests with all the remaining databases and for those that fail, add an `xfail` mark. Then, we can decide which databases we support for which features.
+
+Note that since `execute` has a transpilation process, it should only be used for internal queries, and not for user-submitted ones.
+
+```{code-cell} ipython3
+results = conn_sqlalchemy.execute("SELECT * FROM foo")
+print("one: ", results.fetchone())
+print("many: ", results.fetchmany(size=1))
+print("all: ", results.fetchall())
+```
+
++++ {"jp-MarkdownHeadingCollapsed": true}
+
+### Writing functions that use connections
+
+Functions that expect a `conn` (sometimes named `con`) input variable should assume the input argument is a connection objects (either `SQLAlchemyConnection` or `DBAPIConnection`):
 
 ```python
 def histogram(payload, table, column, bins, with_=None, conn=None):
@@ -137,7 +204,59 @@ def histogram(payload, table, column, bins, with_=None, conn=None):
 
 +++
 
+### Reading snippets
+
+JupySQL allows users to store snippets:
+
+```{code-cell} ipython3
+%sql sqlite-sqlalchemy
+```
+
+```{code-cell} ipython3
+%%sql --save fav_number
+SELECT * FROM foo WHERE bar = 42
+```
+
+These snippets help them break complex logic in multiple cells and automatically generate  CTEs. Now that we saved `fav_number` we can run `SELECT * FROM fav_number`, and JupySQL will automatically build the CTE:
+
+```{code-cell} ipython3
+%%sql
+SELECT * FROM fav_number WHERE bar = 42
+```
+
+In some scenarios, we want to allow users to use existing snippets for certain features. For example, we allow them to define a snippet and then plot the results using `%sqlplot`. If you're writing a feature that should support snippets, then you can use the `with_` argument in `raw_execute` and `execute`:
+
+```{code-cell} ipython3
+results = conn_sqlalchemy.raw_execute("SELECT * FROM fav_number", with_=["fav_number"])
+results.fetchall()
+```
+
+```{code-cell} ipython3
+results = conn_dbapi.raw_execute("SELECT * FROM fav_number", with_=["fav_number"])
+results.fetchall()
+```
+
+### `dialect`
+
+If you need to know the database dialect, you can access the `dialect` property in `SQLAlchemyConnection`s:
+
+```{code-cell} ipython3
+conn_sqlalchemy.dialect
+```
+
+Dialect in `DBAPIConnection` is only implemented for DuckDB, for all others, it currently returns `None`:
+
+```{code-cell} ipython3
+conn_dbapi.dialect is None
+```
+
+### `autocommit`
+
++++
+
 ## Unit testing
+
+TODO: mention nox
 
 ### Running tests
 
@@ -155,7 +274,7 @@ To run a specific file:
 pytest src/tests/TEST_FILE_NAME.py
 ```
 
-### Magics (e.g., `%sql`, `%%sql`, etc)
+### Testing magics (e.g., `%sql`, `%%sql`, etc)
 
 This guide will show you the basics of writing unit tests for JupySQL magics. Magics are commands that begin with `%` (line magics) and `%%` (cell magics).
 
@@ -223,6 +342,20 @@ with pytest.raises(ZeroDivisionError) as excinfo:
 
 ```{code-cell} ipython3
 assert str(excinfo.value) == "division by zero"
+```
+
+### Unit testing custom errors
+
+The internal implementation of `sql.exceptions` is a workaround due to some IPython limitations; in consequence, you need to test for `IPython.error.UsageError` when checking if a given code raises any of the errors in `sql.exceptions`, see `test_util.py` for examples, and `exceptions.py` for more details.
+
+```{code-cell} ipython3
+from IPython.core.error import UsageError
+
+ip_session.run_cell("from sql.exceptions import MissingPackageError")
+
+# always test for UsageError, even if checking for another error from sql.exceptions!
+with pytest.raises(UsageError) as excinfo:
+    ip_session.run_cell("raise MissingPackageError('something happened')")
 ```
 
 ## Integration tests
