@@ -330,7 +330,10 @@ CREATE TABLE numbers (
     )
 
 
-# TODO: this is failing with False
+# TODO: if we set autocommit to False, then we should not be able to create a table
+# we need to add a test. Currently, it's failing with
+# "CREATE DATABASE cannot run inside a transaction block" so looks like even with
+# autocommit off, we are still in a transaction block (perhaps it's a psycopg2 thing?)
 def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postgreSQL):
     """Test case when we use sqlalchemy to set the isolation level for autocommit"""
 
@@ -364,11 +367,14 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
     assert conn_one._connection._execution_options == {"isolation_level": "AUTOCOMMIT"}
 
 
-# https://github.com/ploomber/jupysql/issues/15
-
-
 @pytest.mark.parametrize("autocommit_value", [True, False])
 def test_mssql_with_pytds(setup_MSSQL, autocommit_value):
+    """
+    In https://github.com/ploomber/jupysql/issues/15, we determined that turning off
+    autocommit would fix the issue but I was unable to reproduce the problem,
+    this is working fine.
+    """
+
     class Config:
         autocommit = autocommit_value
 
@@ -385,7 +391,3 @@ def test_mssql_with_pytds(setup_MSSQL, autocommit_value):
 
     assert url.startswith("mssql+pytds")
     assert [(1,), (2,), (3,)] == results
-
-
-# TODO: test changing autocommit and make sure the connection is updated
-# with the new settings

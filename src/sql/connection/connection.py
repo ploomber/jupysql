@@ -495,6 +495,8 @@ _COMMIT_BLACKLIST_DIALECTS = (
 )
 
 
+# TODO: the autocommit is read only during initialization, if the user changes it
+# it won't have any effect
 class SQLAlchemyConnection(AbstractConnection):
     """Manages connections to databases
 

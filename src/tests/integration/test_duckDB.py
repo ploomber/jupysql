@@ -5,7 +5,6 @@ import polars as pl
 import pandas as pd
 
 
-# TODO: test with autocommit off
 @pytest.mark.parametrize(
     "method, expected_type, expected_native_method",
     [
@@ -13,13 +12,22 @@ import pandas as pd
         ("PolarsDataFrame", pl.DataFrame, "pl"),
     ],
 )
+@pytest.mark.parametrize(
+    "autocommit",
+    [True, False],
+)
 def test_sqlalchemy_connection_converts_to_data_frames_natively(
     monkeypatch,
     ip_with_duckdb_sqlalchemy_empty,
     method,
     expected_type,
     expected_native_method,
+    autocommit,
 ):
+    ip_with_duckdb_sqlalchemy_empty.run_cell(
+        f"%config SqlMagic.autocommit = {autocommit}"
+    )
+
     ip_with_duckdb_sqlalchemy_empty.run_cell(
         "%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);"
     )
@@ -49,7 +57,6 @@ def test_sqlalchemy_connection_converts_to_data_frames_natively(
     assert out.result.shape == (2, 2)
 
 
-# TODO: test with autocommit off
 @pytest.mark.parametrize(
     "method, expected_type, expected_native_method",
     [
@@ -57,13 +64,20 @@ def test_sqlalchemy_connection_converts_to_data_frames_natively(
         ("PolarsDataFrame", pl.DataFrame, "pl"),
     ],
 )
+@pytest.mark.parametrize(
+    "autocommit",
+    [True, False],
+)
 def test_native_connection_converts_to_data_frames_natively(
     monkeypatch,
     ip_with_duckdb_native_empty,
     method,
     expected_type,
     expected_native_method,
+    autocommit,
 ):
+    ip_with_duckdb_native_empty.run_cell(f"%config SqlMagic.autocommit = {autocommit}")
+
     ip_with_duckdb_native_empty.run_cell(
         "%sql CREATE TABLE weather (city VARCHAR, temp_lo INT);"
     )
