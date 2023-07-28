@@ -628,25 +628,20 @@ def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
     conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
     conn.raw_execute("SELECT * FROM foo LIMIT 1")
 
-    calls = [str(call[0][0]) for call in mock_execute.call_args_list]
+    calls = [
+        str(call[0][0])
+        for call in mock_execute.call_args_list
+        # if running on sqlalchemy 1.x, the commit call is done via .execute,
+        # ignore them
+        if str(call[0][0]) != "commit"
+    ]
 
-    # if running on sqlalchemy 1.x, the commit call is done via .execute
-    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
-    expected_calls = (
-        [
-            "CREATE TABLE foo (bar INT)",
-            "commit",
-            "INSERT INTO foo VALUES (42), (43)",
-            "commit",
-            "SELECT * FROM foo LIMIT 1",
-        ]
-        if IS_SQLALCHEMY_ONE
-        else [
-            "CREATE TABLE foo (bar INT)",
-            "INSERT INTO foo VALUES (42), (43)",
-            "SELECT * FROM foo LIMIT 1",
-        ]
-    )
+    expected_number_of_calls = 3
+    expected_calls = [
+        "CREATE TABLE foo (bar INT)",
+        "INSERT INTO foo VALUES (42), (43)",
+        "SELECT * FROM foo LIMIT 1",
+    ]
 
     assert len(mock_execute.call_args_list) == expected_number_of_calls
     assert calls == expected_calls
@@ -694,27 +689,21 @@ def test_execute_transpiles_sql_query(fixture_name, request):
     conn.execute("INSERT INTO foo VALUES (42), (43)")
     conn.execute("SELECT * FROM foo LIMIT 1")
 
-    calls = [str(call[0][0]) for call in mock_execute.call_args_list]
+    calls = [
+        str(call[0][0])
+        for call in mock_execute.call_args_list
+        # if running on sqlalchemy 1.x, the commit call is done via .execute,
+        # ignore them
+        if str(call[0][0]) != "commit"
+    ]
 
-    # if running on sqlalchemy 1.x, the commit call is done via .execute
-    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
-    expected_calls = (
-        [
-            "CREATE TABLE foo (bar INTEGER)",
-            "commit",
-            "INSERT INTO foo VALUES (42), (43)",
-            "commit",
-            # since we're transpiling, we should see TSQL code
-            "SELECT TOP 1 * FROM foo",
-        ]
-        if IS_SQLALCHEMY_ONE
-        else [
-            "CREATE TABLE foo (bar INTEGER)",
-            "INSERT INTO foo VALUES (42), (43)",
-            # since we're transpiling, we should see TSQL code
-            "SELECT TOP 1 * FROM foo",
-        ]
-    )
+    expected_number_of_calls = 3
+    expected_calls = [
+        "CREATE TABLE foo (bar INTEGER)",
+        "INSERT INTO foo VALUES (42), (43)",
+        # since we're transpiling, we should see TSQL code
+        "SELECT TOP 1 * FROM foo",
+    ]
 
     assert len(mock_execute.call_args_list) == expected_number_of_calls
     assert calls == expected_calls
