@@ -223,16 +223,3 @@ def test_commits_all_statements(ip, sql, request):
     out = ip.run_cell(sql)
     assert out.error_in_exec is None
     assert out.result.dict() == {"x": (1, 2)}
-
-
-# @pytest.mark.parametrize("method", ["DataFrame", "PolarsDataFrame"])
-# def test_warn_when_using_sqlalchemy_and_converting_to_dataframe(ip_empty, method):
-#     ip_empty.run_cell("%sql duckdb://")
-#     df = pd.DataFrame(range(1000))  # noqa
-
-#     data = ip_empty.run_cell("%sql SELECT * FROM df;").result
-
-#     with pytest.warns(JupySQLDataFramePerformanceWarning) as record:
-#         getattr(data, method)()
-
-#     assert len(record) == 1

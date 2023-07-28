@@ -461,6 +461,10 @@ def unduplicate_field_names(field_names):
 def _convert_to_data_frame(
     result_set, converter_name, constructor, constructor_kwargs=None
 ):
+    """
+    Convert the result set to a pandas DataFrame, using native DuckDB methods if
+    possible
+    """
     constructor_kwargs = constructor_kwargs or {}
 
     # maybe create accessors in the connection objects?
@@ -489,28 +493,6 @@ def _convert_to_data_frame(
             (tuple(row) for row in result_set),
             **constructor_kwargs,
         )
-
-        # NOTE: in JupySQL 0.7.9, we were opening a raw new connection so people
-        # using SQLALchemy still had the native performance to convert to data frames
-        # but this led to other problems because the native connection didn't
-        # have the same state as the SQLAlchemy connection, yielding confusing
-        # errors. So we decided to remove this and just warn the user that
-        # performance might be slow and they could use a native connection
-        # if (
-        #     result_set._dialect == "duckdb"
-        #     and not has_converter_method
-        #     and len(frame) >= 1_000
-        # ):
-        #     DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
-        #     WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
-
-        #     warnings.warn(
-        #         "It looks like you're using DuckDB with SQLAlchemy. "
-        #         "For faster conversions, use "
-        #         f" a DuckDB native connection. Docs: {DOCS}."
-        #         f" to suppress this warning, see: {WARNINGS}",
-        #         category=JupySQLDataFramePerformanceWarning,
-        #     )
 
         return frame
 
