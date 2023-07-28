@@ -16,6 +16,7 @@ from sqlalchemy.exc import ResourceClosedError
 import sql.connection
 from sql.connection import (
     SQLAlchemyConnection,
+    DBAPIConnection,
     ConnectionManager,
     is_pep249_compliant,
     default_alias_for_engine,
@@ -579,12 +580,12 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
 
 
-# TODO: check dbapi connection
-def test_raw_execute_doesnt_transpile_sql_query(monkeypatch):
+@pytest.fixture
+def mock_sqlalchemy_execute(monkeypatch):
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
 
-    mock = Mock(wraps=conn._connection.execute)
-    monkeypatch.setattr(conn._connection, "execute", mock)
+    mock = Mock()
+    monkeypatch.setattr(conn, "_connection_sqlalchemy", mock)
     # mock the dialect to pretend we're using tsql
     monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
 
@@ -592,7 +593,29 @@ def test_raw_execute_doesnt_transpile_sql_query(monkeypatch):
     conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
     conn.raw_execute("SELECT * FROM foo LIMIT 1")
 
-    calls = [str(call[0][0]) for call in mock.call_args_list]
+    yield mock.execute
+
+
+@pytest.fixture
+def mock_dbapi_execute(monkeypatch):
+    conn = duckdb.connect()
+    conn = DBAPIConnection(conn)
+
+    mock = Mock()
+
+    monkeypatch.setattr(conn, "_connection", mock)
+    # mock the dialect to pretend we're using tsql
+    monkeypatch.setattr(conn, "_get_sqlglot_dialect", lambda: "tsql")
+
+    conn.raw_execute("CREATE TABLE foo (bar INT)")
+    conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
+    conn.raw_execute("SELECT * FROM foo LIMIT 1")
+
+    yield mock.cursor().execute
+
+
+def test_raw_execute_doesnt_transpile_sql_query_sqlalchemy(mock_sqlalchemy_execute):
+    calls = [str(call[0][0]) for call in mock_sqlalchemy_execute.call_args_list]
 
     # if running on sqlalchemy 1.x, the commit call is done via .execute
     expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
@@ -612,7 +635,32 @@ def test_raw_execute_doesnt_transpile_sql_query(monkeypatch):
         ]
     )
 
-    assert len(mock.call_args_list) == expected_number_of_calls
+    assert len(mock_sqlalchemy_execute.call_args_list) == expected_number_of_calls
+    assert calls == expected_calls
+
+
+def test_raw_execute_doesnt_transpile_sql_query_dbapi(mock_dbapi_execute):
+    calls = [str(call[0][0]) for call in mock_dbapi_execute.call_args_list]
+
+    # if running on sqlalchemy 1.x, the commit call is done via .execute
+    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
+    expected_calls = (
+        [
+            "CREATE TABLE foo (bar INT)",
+            "commit",
+            "INSERT INTO foo VALUES (42), (43)",
+            "commit",
+            "SELECT * FROM foo LIMIT 1",
+        ]
+        if IS_SQLALCHEMY_ONE
+        else [
+            "CREATE TABLE foo (bar INT)",
+            "INSERT INTO foo VALUES (42), (43)",
+            "SELECT * FROM foo LIMIT 1",
+        ]
+    )
+
+    assert len(mock_dbapi_execute.call_args_list) == expected_number_of_calls
     assert calls == expected_calls
 
 
