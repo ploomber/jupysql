@@ -598,8 +598,7 @@ def mock_sqlalchemy_execute(monkeypatch):
 
 @pytest.fixture
 def mock_dbapi_execute(monkeypatch):
-    conn = duckdb.connect()
-    conn = DBAPIConnection(conn)
+    conn = DBAPIConnection(duckdb.connect())
 
     mock = Mock()
 
@@ -614,8 +613,17 @@ def mock_dbapi_execute(monkeypatch):
     yield mock.cursor().execute
 
 
-def test_raw_execute_doesnt_transpile_sql_query_sqlalchemy(mock_sqlalchemy_execute):
-    calls = [str(call[0][0]) for call in mock_sqlalchemy_execute.call_args_list]
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "mock_sqlalchemy_execute",
+        "mock_dbapi_execute",
+    ],
+)
+def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
+    mock_execute = request.getfixturevalue(fixture_name)
+
+    calls = [str(call[0][0]) for call in mock_execute.call_args_list]
 
     # if running on sqlalchemy 1.x, the commit call is done via .execute
     expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
@@ -635,32 +643,7 @@ def test_raw_execute_doesnt_transpile_sql_query_sqlalchemy(mock_sqlalchemy_execu
         ]
     )
 
-    assert len(mock_sqlalchemy_execute.call_args_list) == expected_number_of_calls
-    assert calls == expected_calls
-
-
-def test_raw_execute_doesnt_transpile_sql_query_dbapi(mock_dbapi_execute):
-    calls = [str(call[0][0]) for call in mock_dbapi_execute.call_args_list]
-
-    # if running on sqlalchemy 1.x, the commit call is done via .execute
-    expected_number_of_calls = 5 if IS_SQLALCHEMY_ONE else 3
-    expected_calls = (
-        [
-            "CREATE TABLE foo (bar INT)",
-            "commit",
-            "INSERT INTO foo VALUES (42), (43)",
-            "commit",
-            "SELECT * FROM foo LIMIT 1",
-        ]
-        if IS_SQLALCHEMY_ONE
-        else [
-            "CREATE TABLE foo (bar INT)",
-            "INSERT INTO foo VALUES (42), (43)",
-            "SELECT * FROM foo LIMIT 1",
-        ]
-    )
-
-    assert len(mock_dbapi_execute.call_args_list) == expected_number_of_calls
+    assert len(mock_execute.call_args_list) == expected_number_of_calls
     assert calls == expected_calls
 
 
