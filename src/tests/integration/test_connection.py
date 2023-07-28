@@ -285,7 +285,8 @@ def test_autocommit_on_with_sqlalchemy_that_supports_isolation_level(setup_postg
     # mock commit to ensure it's not called
     conn_one.connection.commit = Mock(
         side_effect=ValueError(
-            "commit should not be called manually if the driver supports isolation level"
+            "commit should not be called manually if the "
+            "driver supports isolation level"
         )
     )
 
