@@ -10,6 +10,7 @@ from textwrap import dedent
 from unittest.mock import patch
 
 import polars as pl
+import pandas as pd
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
@@ -746,14 +747,15 @@ def test_autopolars_infer_schema_length(ip):
 
 
 def test_mutex_autopolars_autopandas(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = False")
+    ip.run_line_magic("config", "SqlMagic.autopandas = False")
+
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == ResultSet
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
     assert type(dframe) == pl.DataFrame
-
-    import pandas as pd
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
