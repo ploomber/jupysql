@@ -110,10 +110,10 @@ def magic_args(magic_execute, line):
 
 def escape_string_literals_with_colon_prefix(query):
     """
-    Given a query, replaces all ocurrences of ':variable' with '\:variable' and
+    Given a query, replaces all occurrences of ':variable' with '\:variable' and
     ":variable" with "\:variable" so that the query can be passed to sqlalchemy.text
     without the literals being interpreted as bind parameters. It doesn't replace
-    the ocurrences of :variable (without quotes)
+    the occurrences of :variable (without quotes)
     """  # noqa
 
     # Define the regular expression pattern for valid Python identifiers
