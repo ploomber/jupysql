@@ -1522,3 +1522,90 @@ displaycon = false
 
     # revert back to a default setting
     setattr(sql, "displaycon", True)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_interpolation_ignore_literals(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    # this isn't a parameter because it's quoted (':last_name')
+    result = ip.run_cell(
+        "%sql select * from author where last_name = ':last_name'"
+    ).result
+    assert result.dict() == {}
+
+
+def test_sqlalchemy_interpolation(ip):
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    ip.run_cell("last_name = 'Shakespeare'")
+
+    # define another variable to ensure the test doesn't break if there are more
+    # variables in the namespace
+    ip.run_cell("first_name = 'William'")
+
+    result = ip.run_cell(
+        "%sql select * from author where last_name = :last_name"
+    ).result
+
+    assert result.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_sqlalchemy_interpolation_missing_parameter(ip):
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql select * from author where last_name = :last_name")
+
+    assert (
+        "Cannot execute query because the following variables are undefined: last_name"
+        in str(excinfo.value)
+    )
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_sqlalchemy_insert_literals_with_colon_character(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell(
+        """%%sql
+CREATE TABLE names (
+    name VARCHAR(50) NOT NULL
+);
+
+INSERT INTO names (name)
+VALUES
+    ('John'),
+    (':Mary'),
+    ('Alex'),
+    (':Lily'),
+    ('Michael'),
+    ('Robert'),
+    (':Sarah'),
+    ('Jennifer'),
+    (':Tom'),
+    ('Jessica');
+"""
+    )
+
+    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
+
+    assert result.dict() == {"name": (":Mary",)}
