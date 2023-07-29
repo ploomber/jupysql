@@ -533,9 +533,14 @@ class SQLAlchemyConnection(AbstractConnection):
                     "variables are undefined: {}".format(", ".join(missing_parameters))
                 )
 
-            return self.connection.execute(
-                sqlalchemy.text(query), parameters=parameters
-            )
+            if IS_SQLALCHEMY_ONE:
+                results = self.connection.execute(sqlalchemy.text(query), **parameters)
+            else:
+                results = self.connection.execute(
+                    sqlalchemy.text(query), parameters=parameters
+                )
+
+            return results
         else:
             return self.connection.execute(sqlalchemy.text(query))
 
