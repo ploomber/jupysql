@@ -1,3 +1,4 @@
+import difflib
 import abc
 import os
 from difflib import get_close_matches
@@ -7,15 +8,16 @@ import sqlalchemy
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import NoSuchModuleError, OperationalError
 from IPython.core.error import UsageError
-import difflib
 import sqlglot
+from ploomber_core.exceptions import modify_exceptions
 
 
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from ploomber_core.exceptions import modify_exceptions
+from sql.parse import escape_string_literals_with_colon_prefix
+
 
 PLOOMBER_DOCS_LINK_STR = (
     "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
@@ -332,7 +334,7 @@ class AbstractConnection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def raw_execute(self, query):
+    def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""
         pass
 
@@ -347,7 +349,9 @@ class AbstractConnection(abc.ABC):
     def close(self):
         """Close the connection"""
         for rs in self._result_sets:
-            rs._sqlaproxy.close()
+            # this might be None if it didn't run any query
+            if rs._sqlaproxy is not None:
+                rs._sqlaproxy.close()
 
         self.connection.close()
 
@@ -501,8 +505,39 @@ class SQLAlchemyConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
-        return self.connection.execute(sqlalchemy.text(query))
+    def raw_execute(self, query, parameters=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            Parameters to use in the query. They should appear in the query with the
+            :name format (no quotes around them)
+        """
+        query = escape_string_literals_with_colon_prefix(query)
+
+        # TODO: if there are things that look like parameters, show a suggestion
+        # to enable the feature
+
+        if parameters:
+            required_parameters = set(sqlalchemy.text(query).compile().params)
+            available_parameters = set(parameters)
+            missing_parameters = required_parameters - available_parameters
+
+            if missing_parameters:
+                raise exceptions.InvalidQueryParameters(
+                    "Cannot execute query because the following "
+                    "variables are undefined: {}".format(", ".join(missing_parameters))
+                )
+
+            return self.connection.execute(
+                sqlalchemy.text(query), parameters=parameters
+            )
+        else:
+            return self.connection.execute(sqlalchemy.text(query))
 
     def _get_database_information(self):
         dialect = self.connection_sqlalchemy.dialect
@@ -592,7 +627,18 @@ class DBAPIConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
+    def raw_execute(self, query, parameters=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            This parameter is added for consistency with SQLAlchemy connections but
+            it is not used
+        """
         cur = self.connection.cursor()
         cur.execute(query)
         return cur
