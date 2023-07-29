@@ -9,6 +9,7 @@ from sql.parse import (
     parse,
     without_sql_comment,
     magic_args,
+    escape_string_literals_with_colon_prefix,
 )
 
 try:
@@ -278,3 +279,30 @@ def test_magic_args(ip, line, expected):
     args = magic_args(sql_line, line)
 
     assert args.__dict__ == complete_with_defaults(expected)
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ("SELECT * FROM table where x > :x", "SELECT * FROM table where x > :x"),
+        ("SELECT * FROM table where x > ':x'", "SELECT * FROM table where x > '\\:x'"),
+        ('SELECT * FROM table where x > ":x"', 'SELECT * FROM table where x > "\\:x"'),
+        (
+            "SELECT * FROM table where x > '':x''",
+            "SELECT * FROM table where x > ''\\:x''",
+        ),
+        (
+            'SELECT * FROM table where x > "":x""',
+            'SELECT * FROM table where x > ""\\:x""',
+        ),
+    ],
+    ids=[
+        "no-escape",
+        "single-quote",
+        "double-quote",
+        "double-single-quote",
+        "double-double-quote",
+    ],
+)
+def test_escape_string_literals_with_colon_prefix(query, expected):
+    assert escape_string_literals_with_colon_prefix(query) == expected
