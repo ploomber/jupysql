@@ -114,7 +114,8 @@ def escape_string_literals_with_colon_prefix(query):
     ":variable" with "\:variable" so that the query can be passed to sqlalchemy.text
     without the literals being interpreted as bind parameters. It doesn't replace
     the ocurrences of :variable (without quotes)
-    """
+    """  # noqa
+
     # Define the regular expression pattern for valid Python identifiers
     identifier_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
 
