@@ -263,7 +263,7 @@ tablename = "penguins.csv"
 ```
 
 ```{code-cell} ipython3
-:tags: [raise-exception]
+:tags: [raises-exception]
 
 %%sql
 SELECT *
