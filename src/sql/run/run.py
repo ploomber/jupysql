@@ -7,7 +7,7 @@ from sql.run.pgspecial import handle_postgres_special
 
 # TODO: conn also has access to config, we should clean this up to provide a clean
 # way to access the config
-def run_statements(conn, sql, config):
+def run_statements(conn, sql, config, parameters=None):
     """
     Run a SQL query (supports running multiple SQL statements) with the given
     connection. This is the function that's called when executing SQL magic.
@@ -38,7 +38,7 @@ def run_statements(conn, sql, config):
 
         # regular query
         else:
-            result = conn.raw_execute(statement)
+            result = conn.raw_execute(statement, parameters=parameters)
 
             if config.feedback and hasattr(result, "rowcount") and result.rowcount > 0:
                 display.message_success(f"{result.rowcount} rows affected.")

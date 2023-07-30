@@ -1,3 +1,5 @@
+import warnings
+import difflib
 import abc
 import os
 from difflib import get_close_matches
@@ -5,18 +7,20 @@ import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError, StatementError
 from IPython.core.error import UsageError
-import difflib
 import sqlglot
 import sqlparse
+from ploomber_core.exceptions import modify_exceptions
 
 
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from ploomber_core.exceptions import modify_exceptions
+from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
+from sql.warnings import JupySQLQuotedNamedParametersWarning
+
 
 PLOOMBER_DOCS_LINK_STR = (
     "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
@@ -345,7 +349,7 @@ class AbstractConnection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def raw_execute(self, query):
+    def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""
         pass
 
@@ -360,7 +364,9 @@ class AbstractConnection(abc.ABC):
     def close(self):
         """Close the connection"""
         for rs in self._result_sets:
-            rs._sqlaproxy.close()
+            # this might be None if it didn't run any query
+            if rs._sqlaproxy is not None:
+                rs._sqlaproxy.close()
 
         self._connection.close()
 
@@ -557,9 +563,18 @@ class SQLAlchemyConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query, with_=None):
-        if with_:
-            query = self._resolve_cte(query, with_)
+    def _connection_execute(self, query, parameters=None):
+        """Call the connection execute method
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            Parameters to use in the query (:variable format)
+        """
+        parameters = parameters or {}
 
         # we do not support multiple statements
         if len(sqlparse.split(query)) > 1:
@@ -578,7 +593,12 @@ class SQLAlchemyConnection(AbstractConnection):
         # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
-        out = self._connection.execute(sqlalchemy.text(query))
+        if IS_SQLALCHEMY_ONE:
+            out = self._connection.execute(sqlalchemy.text(query), **parameters)
+        else:
+            out = self._connection.execute(
+                sqlalchemy.text(query), parameters=parameters
+            )
 
         if self._requires_manual_commit:
             # calling connection.commit() when using duckdb-engine will yield
@@ -602,6 +622,68 @@ class SQLAlchemyConnection(AbstractConnection):
                 self._connection.commit()
 
         return out
+
+    def raw_execute(self, query, parameters=None, with_=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            Parameters to use in the query. They should appear in the query with the
+            :name format (no quotes around them)
+
+        with_ : list, default None
+            List of CTEs to use in the query
+        """
+        if with_:
+            query = self._resolve_cte(query, with_)
+
+        query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
+
+        if quoted_named_parameters and parameters:
+            intersection = set(quoted_named_parameters) & set(parameters)
+
+            if intersection:
+                intersection_ = ", ".join(sorted(intersection))
+                warnings.warn(
+                    f"The following variables are defined: {intersection_}. However "
+                    "the parameters are quoted in the query, if you want to use "
+                    "them as named parameters, remove the quotes.",
+                    category=JupySQLQuotedNamedParametersWarning,
+                )
+
+        if parameters:
+            required_parameters = set(sqlalchemy.text(query).compile().params)
+            available_parameters = set(parameters)
+            missing_parameters = required_parameters - available_parameters
+
+            if missing_parameters:
+                raise exceptions.InvalidQueryParameters(
+                    "Cannot execute query because the following "
+                    "variables are undefined: {}".format(", ".join(missing_parameters))
+                )
+
+            return self._connection_execute(query, parameters)
+        else:
+            try:
+                return self._connection_execute(query)
+            except StatementError as e:
+                # add a more helpful message if the users passes :variable but
+                # the feature isn't enabled
+                if parameters is None:
+                    named_params = find_named_parameters(query)
+
+                    if named_params:
+                        named_params_ = ", ".join(named_params)
+                        e.add_detail(
+                            f"Your query contains named parameters ({named_params_}) "
+                            "but the named parameters feature is disabled. Enable it "
+                            "with: %config SqlMagic.named_paramstyle=True"
+                        )
+                raise
 
     def _get_database_information(self):
         dialect = self._connection_sqlalchemy.dialect
@@ -694,7 +776,18 @@ class DBAPIConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query, with_=None):
+    def raw_execute(self, query, parameters=None, with_=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            This parameter is added for consistency with SQLAlchemy connections but
+            it is not used
+        """
         # we do not support multiple statements (this might actually work in some
         # drivers but we need to add this for consistency with SQLAlchemyConnection)
         if len(sqlparse.split(query)) > 1:

@@ -1,0 +1,2 @@
+class JupySQLQuotedNamedParametersWarning(UserWarning):
+    pass
