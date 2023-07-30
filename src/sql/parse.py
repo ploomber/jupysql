@@ -125,7 +125,23 @@ def escape_string_literals_with_colon_prefix(query):
     single_quoted_variable_pattern = r"(?<!\\)':(" + identifier_pattern + r")(?<!\\)\'"
 
     # Replace ":variable" and ':variable' with "\:variable"
-    query = re.sub(double_quoted_variable_pattern, r'"\\:\1"', query)
-    query = re.sub(single_quoted_variable_pattern, r"'\\:\1'", query)
+    query_quoted = re.sub(double_quoted_variable_pattern, r'"\\:\1"', query)
+    query_quoted = re.sub(single_quoted_variable_pattern, r"'\\:\1'", query_quoted)
 
-    return query
+    double_found = re.findall(double_quoted_variable_pattern, query)
+    single_found = re.findall(single_quoted_variable_pattern, query)
+
+    return query_quoted, double_found + single_found
+
+
+def find_named_parameters(input_string):
+    # Define the regular expression pattern for valid Python identifiers
+    identifier_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
+
+    # Define the regular expression pattern for matching :variable format
+    variable_pattern = r'(?<!["\'])\:(' + identifier_pattern + ")"
+
+    # Use findall to extract all matches of :variable from the input string
+    matches = re.findall(variable_pattern, input_string)
+
+    return matches

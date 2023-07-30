@@ -1,3 +1,4 @@
+import warnings
 import difflib
 import abc
 import os
@@ -6,7 +7,7 @@ import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError, StatementError
 from IPython.core.error import UsageError
 import sqlglot
 from ploomber_core.exceptions import modify_exceptions
@@ -16,7 +17,8 @@ from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from sql.parse import escape_string_literals_with_colon_prefix
+from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
+from sql.warnings import JupySQLQuotedNamedParametersWarning
 
 
 PLOOMBER_DOCS_LINK_STR = (
@@ -517,10 +519,19 @@ class SQLAlchemyConnection(AbstractConnection):
             Parameters to use in the query. They should appear in the query with the
             :name format (no quotes around them)
         """
-        query = escape_string_literals_with_colon_prefix(query)
+        query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
 
-        # TODO: if there are things that look like parameters, show a suggestion
-        # to enable the feature
+        if quoted_named_parameters and parameters:
+            intersection = set(quoted_named_parameters) & set(parameters)
+
+            if intersection:
+                intersection_ = ", ".join(intersection)
+                warnings.warn(
+                    f"The following variables are defined: {intersection_}. However "
+                    "the parameters are quoted in the query, if you want to use "
+                    "them as named parameters, remove the quotes.",
+                    category=JupySQLQuotedNamedParametersWarning,
+                )
 
         if parameters:
             required_parameters = set(sqlalchemy.text(query).compile().params)
@@ -542,7 +553,24 @@ class SQLAlchemyConnection(AbstractConnection):
 
             return results
         else:
-            return self.connection.execute(sqlalchemy.text(query))
+            try:
+                return self.connection.execute(sqlalchemy.text(query))
+            except StatementError as e:
+                # add a more helpful message if the users passes :variable but
+                # the feature isn't enabled
+                if parameters is None:
+                    named_params = find_named_parameters(query)
+
+                    if named_params:
+                        named_params_ = ", ".join(named_params)
+                        e.add_detail(
+                            f"Your query contains named parameters ({named_params_}) "
+                            "but the named parameters feature is disabled. Enable it "
+                            "with: %config SqlMagic.named_paramstyle=True"
+                        )
+                        raise
+
+                raise exceptions.QueryError(str(e))
 
     def _get_database_information(self):
         dialect = self.connection_sqlalchemy.dialect
