@@ -568,9 +568,7 @@ class SQLAlchemyConnection(AbstractConnection):
                             "but the named parameters feature is disabled. Enable it "
                             "with: %config SqlMagic.named_paramstyle=True"
                         )
-                        raise
-
-                raise exceptions.QueryError(str(e))
+                raise
 
     def _get_database_information(self):
         dialect = self.connection_sqlalchemy.dialect
