@@ -525,7 +525,7 @@ class SQLAlchemyConnection(AbstractConnection):
             intersection = set(quoted_named_parameters) & set(parameters)
 
             if intersection:
-                intersection_ = ", ".join(intersection)
+                intersection_ = ", ".join(sorted(intersection))
                 warnings.warn(
                     f"The following variables are defined: {intersection_}. However "
                     "the parameters are quoted in the query, if you want to use "

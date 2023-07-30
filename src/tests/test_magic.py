@@ -1641,7 +1641,7 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
         (
             "%sql SELECT * FROM author where last_name = ':last_name' "
             "and first_name = ':first_name'",
-            "The following variables are defined: last_name, first_name.",
+            "The following variables are defined: first_name, last_name.",
         ),
     ],
     ids=[
