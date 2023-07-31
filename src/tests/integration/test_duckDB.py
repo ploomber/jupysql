@@ -89,8 +89,6 @@ def test_native_connection_converts_to_data_frames_natively(
 
     results = ip_with_duckdb_native_empty.run_cell("results").result
 
-    # mock_native_connection = Mock(wraps=results._conn._connection)
-    # monkeypatch.setattr(results._conn, "_connection", mock_native_connection)
     mock_native_connection = Mock(wraps=results.sqlaproxy)
     monkeypatch.setattr(results, "_sqlaproxy", mock_native_connection)
 

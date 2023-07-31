@@ -153,6 +153,20 @@ class ConnectionManager:
         """
         Set the current database connection. This method is called from the magic to
         determine which connection to use (either use an existing one or open a new one)
+
+        Parameters
+        ----------
+        descriptor : str or sqlalchemy.engine.Engine or sqlalchemy.engine.Connection
+            A connection string or an existing connection. It opens a new connection
+            if needed, otherwise it just assigns the connection as the current
+            connection.
+
+        alias : str, optional
+            A name to identify the connection
+
+        config : object, optional
+            An object with configuration options. Options must be accessible via
+            attributes. As of 0.9.0, only the autocommit option is needed.
         """
         connect_args = connect_args or {}
 
@@ -404,8 +418,9 @@ class AbstractConnection(abc.ABC):
         """
         write_dialect = self._get_sqlglot_dialect()
 
-        # we write queries to be duckdb-compatible so we don't transpile them
-        # sqlglot might still change the query so we avoid skip it to avoid it
+        # we write queries to be duckdb-compatible so we don't need to transpile
+        # them. Furthermore, sqlglot does not guarantee roundtrip converstion
+        # so calling transpile might break queries
         if write_dialect == "duckdb":
             return query
 

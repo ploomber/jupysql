@@ -216,10 +216,6 @@ def test_duckdb_autocommit_on_with_manual_commit(tmp_empty, monkeypatch):
     class Config:
         autocommit = True
 
-    # monkeypatch.setattr(
-    #     connection, "set_sqlalchemy_isolation_level", Mock(return_value=False)
-    # )
-
     engine = create_engine("duckdb:///my.db")
 
     conn = SQLAlchemyConnection(engine=engine, config=Config)

@@ -469,7 +469,6 @@ def _convert_to_data_frame(
 
     # maybe create accessors in the connection objects?
     if result_set._conn.is_dbapi_connection:
-        # native_connection = result_set._conn._connection
         native_connection = result_set.sqlaproxy
     else:
         native_connection = result_set._conn._connection.connection

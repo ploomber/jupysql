@@ -580,37 +580,37 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
 
 @pytest.fixture
-def conn_sqlalchemy():
+def conn_sqlalchemy_duckdb():
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
     yield conn
     conn.close()
 
 
 @pytest.fixture
-def conn_dbapi():
+def conn_dbapi_duckdb():
     conn = DBAPIConnection(duckdb.connect())
     yield conn
     conn.close()
 
 
 @pytest.fixture
-def mock_sqlalchemy_raw_execute(conn_sqlalchemy, monkeypatch):
+def mock_sqlalchemy_raw_execute(conn_sqlalchemy_duckdb, monkeypatch):
     mock = Mock()
-    monkeypatch.setattr(conn_sqlalchemy, "_connection_sqlalchemy", mock)
+    monkeypatch.setattr(conn_sqlalchemy_duckdb, "_connection_sqlalchemy", mock)
     # mock the dialect to pretend we're using tsql
-    monkeypatch.setattr(conn_sqlalchemy, "_get_sqlglot_dialect", lambda: "tsql")
+    monkeypatch.setattr(conn_sqlalchemy_duckdb, "_get_sqlglot_dialect", lambda: "tsql")
 
-    yield mock.execute, conn_sqlalchemy
+    yield mock.execute, conn_sqlalchemy_duckdb
 
 
 @pytest.fixture
-def mock_dbapi_raw_execute(monkeypatch, conn_dbapi):
+def mock_dbapi_raw_execute(monkeypatch, conn_dbapi_duckdb):
     mock = Mock()
-    monkeypatch.setattr(conn_dbapi, "_connection", mock)
+    monkeypatch.setattr(conn_dbapi_duckdb, "_connection", mock)
     # mock the dialect to pretend we're using tsql
-    monkeypatch.setattr(conn_dbapi, "_get_sqlglot_dialect", lambda: "tsql")
+    monkeypatch.setattr(conn_dbapi_duckdb, "_get_sqlglot_dialect", lambda: "tsql")
 
-    yield mock.cursor().execute, conn_dbapi
+    yield mock.cursor().execute, conn_dbapi_duckdb
 
 
 @pytest.mark.parametrize(
@@ -711,8 +711,8 @@ def test_execute_transpiles_sql_query(fixture_name, request):
 @pytest.mark.parametrize(
     "fixture_name",
     [
-        "conn_sqlalchemy",
-        "conn_dbapi",
+        "conn_sqlalchemy_duckdb",
+        "conn_dbapi_duckdb",
     ],
 )
 @pytest.mark.parametrize("execute_method", ["execute", "raw_execute"])
@@ -737,8 +737,8 @@ SELECT * FROM foo LIMIT 1;
 @pytest.mark.parametrize(
     "fixture_name",
     [
-        "conn_sqlalchemy",
-        "conn_dbapi",
+        "conn_sqlalchemy_duckdb",
+        "conn_dbapi_duckdb",
     ],
 )
 @pytest.mark.parametrize(

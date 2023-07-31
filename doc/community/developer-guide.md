@@ -37,7 +37,7 @@ After the codespace has finished setting up, you can run `conda activate jupysql
 
 ## The basics
 
-JupySQL is a Python library that allows users to run SQL queries (among other things) in IPython and Jupyter via a `%sql`/`%%sql` [magic.](https://ipython.readthedocs.io/en/stable/interactive/magics.html):
+JupySQL is a Python library that allows users to run SQL queries (among other things) in IPython and Jupyter via a `%sql`/`%%sql` [magic](https://ipython.readthedocs.io/en/stable/interactive/magics.html):
 
 ```{code-cell} ipython3
 %load_ext sql
@@ -161,7 +161,7 @@ ConnectionManager.connections
 
 ## Using connections
 
-Connections are either `SQLAlchemyConnection` or `DBAPIConnection` object. Both have the same interface, the difference is that the first one is a connectioon established via SQLAlchemy and `DBAPIConnection` one is a connection established by an object that follows the [Python DB API](https://peps.python.org/pep-0249/).
+Connections are either `SQLAlchemyConnection` or `DBAPIConnection` object. Both have the same interface, the difference is that the first one is a connection established via SQLAlchemy and `DBAPIConnection` one is a connection established by an object that follows the [Python DB API](https://peps.python.org/pep-0249/).
 
 ```{code-cell} ipython3
 conn_sqlalchemy = ConnectionManager.connections["sqlite-sqlalchemy"]
@@ -174,7 +174,7 @@ conn_dbapi = ConnectionManager.connections["sqlite-dbapi"]
 Always use `raw_execute` for user-submitted queries!
 ```
 
-`raw_execute` allows you to execute a given SQL query in the connection. Unlike `execute`, `raw_execute` does not perform any transpilation.
+`raw_execute` allows you to execute a given SQL query in the connection. Unlike `execute`, `raw_execute` does not perform any [transpilation](#sql-transpilation).
 
 ```{code-cell} ipython3
 conn_sqlalchemy.raw_execute("CREATE TABLE foo (bar INT);")
@@ -197,7 +197,8 @@ print("all: ", results.fetchall())
 ### `execute`
 
 ```{important}
-Only use `raw_execute` for internal queries!
+Only use `execute` for internal queries! (queries defined in our own codebase, not
+queries we receive as strings from the user.)
 ```
 
 `execute` allows you to run a query but it transpiles it so it's compatible with the target database.
@@ -241,7 +242,7 @@ JupySQL allows users to store snippets:
 SELECT * FROM foo WHERE bar = 42
 ```
 
-These snippets help them break complex logic in multiple cells and automatically generate  CTEs. Now that we saved `fav_number` we can run `SELECT * FROM fav_number`, and JupySQL will automatically build the CTE:
+These snippets help them break complex logic in multiple cells and automatically generate CTEs. Now that we saved `fav_number` we can run `SELECT * FROM fav_number`, and JupySQL will automatically build the CTE:
 
 ```{code-cell} ipython3
 %%sql
@@ -250,10 +251,14 @@ SELECT * FROM fav_number WHERE bar = 42
 
 In some scenarios, we want to allow users to use existing snippets for certain features. For example, we allow them to define a snippet and then plot the results using `%sqlplot`. If you're writing a feature that should support snippets, then you can use the `with_` argument in `raw_execute` and `execute`:
 
+#### `SQlAlchemyConnection`
+
 ```{code-cell} ipython3
 results = conn_sqlalchemy.raw_execute("SELECT * FROM fav_number", with_=["fav_number"])
 results.fetchall()
 ```
+
+#### `DBAPIConnection`
 
 ```{code-cell} ipython3
 results = conn_dbapi.raw_execute("SELECT * FROM fav_number", with_=["fav_number"])
@@ -273,8 +278,6 @@ Dialect in `DBAPIConnection` is only implemented for DuckDB, for all others, it 
 ```{code-cell} ipython3
 conn_dbapi.dialect is None
 ```
-
-### `autocommit`
 
 +++
 
@@ -308,7 +311,7 @@ pytest src/tests/TEST_FILE_NAME.py
 
 We use [`nox`](https://github.com/wntrblm/nox) to run the unit and integration tests in the CI. `nox` automates creating an environment with all the dependencies and then running the tests, while using `pytest` assumes you already have all dependencies installed in the current environment.
 
-If you want to use `nox` locally, check out the [`noxfile.py`](https://github.com/ploomber/jupysql/blob/master/noxfile.py), and for examples, see the [GitHub Actions configuration.](https://github.com/ploomber/jupysql/tree/master/.github/workflows).
+If you want to use `nox` locally, check out the [`noxfile.py`](https://github.com/ploomber/jupysql/blob/master/noxfile.py), and for examples, see the [GitHub Actions configuration](https://github.com/ploomber/jupysql/tree/master/.github/workflows).
 
 +++
 
@@ -465,9 +468,7 @@ Please note that if you submit a pull request from a forked repository, the inte
 +++
 
 
-## General SQL Clause for Multiple Database Dialects
-
-### Context
+## SQL transpilation
 
 As our codebase is expanding, we have noticed that we need to write SQL queries for different database dialects such as MySQL, PostgreSQL, SQLite, and more. Writing and maintaining separate queries for each database can be time-consuming and error-prone.
 
