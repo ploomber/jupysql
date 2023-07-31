@@ -297,6 +297,7 @@ FROM "{{table}}"
 
     template = Template(template_)
     query = template.render(table=table, column=column)
+
     min_, max_ = con.execute(query, with_).fetchone()
     return min_, max_
 
@@ -530,6 +531,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
     filter_query = _filter_aggregate(filter_query_1, filter_query_2)
 
     bin_size = None
+
     if _are_numeric_values(min_, max_):
         if not isinstance(bins, int):
             raise ValueError(
