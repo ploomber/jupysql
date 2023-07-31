@@ -11,7 +11,7 @@
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
 * [Fix] Fix error that caused literals like `':something'` to be interpreted as query parameters
 * [Feature] allows parametrizing queries with `:variable` with `%config SqlMagic.named_paramstyle = True`
-* [Fix] Messsage printing twice when switching to the current connection (#772)
+* [Fix] Message printing twice when switching to the current connection (#772)
 
 ## 0.8.0 (2023-07-18)
 
