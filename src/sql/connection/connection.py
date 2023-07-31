@@ -160,8 +160,9 @@ class ConnectionManager:
                     cls.current = existing
                 # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
+                    if cls.current is not existing:
+                        display.message(f"Switching to connection {descriptor}")
                     cls.current = existing
-                    display.message(f"Switching to connection {descriptor}")
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     cls.current = cls.from_connect_str(
