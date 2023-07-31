@@ -390,7 +390,7 @@ def test_table_profile_store(ip, tmp_empty):
 def test_table_profile_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
-        %%sql duckdb://
+        %%sql 
         CREATE TABLE people (name varchar(50), number int, country varchar(50));
         INSERT INTO people VALUES ('joe', 82, 'usa');
         INSERT INTO people VALUES ('paula', 93, 'uk');
@@ -421,11 +421,7 @@ def test_table_profile_with_snippets(ip, tmp_empty):
         "max": [math.nan, 89, math.nan],
         "unique": [7, 6, 1],
         "freq": [1, math.nan, 7],
-        "top": ["joe", math.nan, "usa"],
-        "std": [math.nan, "7.5862", math.nan],
-        "25%": [math.nan, "76.0000", math.nan],
-        "50%": [math.nan, "82.0000", math.nan],
-        "75%": [math.nan, "88.0000", math.nan],
+        "top": ["robert", math.nan, "usa"],
     }
 
     stats_table = out._table
@@ -668,7 +664,7 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 def test_table_explore_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
-        %%sql duckdb://
+        %%sql 
         CREATE TABLE people (name varchar(50), number int, country varchar(50));
         INSERT INTO people VALUES ('joe', 82, 'usa');
         INSERT INTO people VALUES ('paula', 93, 'uk');

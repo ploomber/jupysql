@@ -1167,8 +1167,80 @@ def test_explore_fetch_sql_with_pagination(
 ):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
+    """
+    %%sql
+    CREATE TABLE test_numbers (value_one, value_two);
+    INSERT INTO test_numbers VALUES (0, 1);
+    INSERT INTO test_numbers VALUES (0, 0);
+    INSERT INTO test_numbers VALUES (5, 2);
+    INSERT INTO test_numbers VALUES (6, 3);
+    INSERT INTO test_numbers VALUES (7, 3);
+    INSERT INTO test_numbers VALUES (8, 8);
+    INSERT INTO test_numbers VALUES (9, 3);
+    INSERT INTO test_numbers VALUES (10, 5);
+    INSERT INTO test_numbers VALUES (11, 9);
+    INSERT INTO test_numbers VALUES (12, 19);
+    INSERT INTO test_numbers VALUES (13, 40);
+    INSERT INTO test_numbers VALUES (14, 39);
+    INSERT INTO test_numbers VALUES (15, 13);
+    """
+    )
+    rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
+    assert rows == expected_rows
+    assert columns == expected_columns
+
+
+
+@pytest.mark.parametrize(
+    "table, offset, n_rows, expected_rows, expected_columns",
+    [
+        ("test_numbers", 0, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 5, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 50, 0, [], ["value_one", "value_two"]),
+        ("test_numbers", 50, 10, [], ["value_one", "value_two"]),
+        ("test_numbers", 0, 2, [(0, 1), (0, 0)], ["value_one", "value_two"]),
+        (
+            "test_numbers",
+            0,
+            10,
+            [
+                (0, 1),
+                (0, 0),
+                (5, 2),
+                (6, 3),
+                (7, 3),
+                (8, 8),
+                (9, 3),
+                (10, 5),
+                (11, 9),
+                (12, 19),
+            ],
+            ["value_one", "value_two"],
+        ),
+        (
+            "test_numbers",
+            0,
+            5,
+            [(0, 1), (0, 0), (5, 2), (6, 3), (7, 3)],
+            ["value_one", "value_two"],
+        ),
+        (
+            "test_numbers",
+            5,
+            5,
+            [(8, 8), (9, 3), (10, 5), (11, 9), (12, 19)],
+            ["value_one", "value_two"],
+        ),
+    ],
+)
+@pytest.mark.parametrize("ip_with_dynamic_db",["ip_with_duckDB"])
+def test_explore_fetch_sql_with_pagination_test(
+    ip_with_dynamic_db, request, table, offset, n_rows, expected_rows, expected_columns
+):
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+    """
+    %%sql
     CREATE TABLE test_numbers (value_one, value_two);
     INSERT INTO test_numbers VALUES (0, 1);
     INSERT INTO test_numbers VALUES (0, 0);
