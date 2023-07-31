@@ -1,5 +1,6 @@
 from sql.connection.connection import (
     ConnectionManager,
+    AbstractConnection,
     SQLAlchemyConnection,
     DBAPIConnection,
     is_pep249_compliant,

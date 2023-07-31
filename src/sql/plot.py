@@ -5,7 +5,7 @@ from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
-from sql.util import flatten
+from sql.util import flatten, to_upper_if_snowflake_conn
 from sqlalchemy.exc import ProgrammingError
 from sql import exceptions, display
 
@@ -517,6 +517,8 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
+    column = to_upper_if_snowflake_conn(conn, column)
+    table = to_upper_if_snowflake_conn(conn, table)
     # FIXME: we're computing all the with elements twice
     min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
 

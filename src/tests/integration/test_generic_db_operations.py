@@ -304,21 +304,14 @@ def test_telemetry_execute_command_has_connection_info(
 )
 def test_sqlplot_histogram(ip_with_dynamic_db, cell, request, test_table_name_dict):
     # clean current Axes
-    is_snowflake = ip_with_dynamic_db == "ip_with_Snowflake"
-    # Special handling for Snowflake table name, it's case-sensitive
-    plot_table_name = (
-        test_table_name_dict["plot_something"]
-        if not is_snowflake
-        else test_table_name_dict["plot_something"].upper()
-    )
-
-    plot_column_name = "x" if not is_snowflake else "X"
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     plt.cla()
-    out = ip_with_dynamic_db.run_cell(
-        f"%sqlplot histogram --table\
-          {plot_table_name} --column {plot_column_name}"
+
+    ip_with_dynamic_db.run_cell(
+        f"%sql --save plot_something_subset\
+         --no-execute SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
     )
+    out = ip_with_dynamic_db.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
@@ -1119,3 +1112,21 @@ SELECT * FROM {__TABLE_NAME__};
     ).result
 
     assert len(result) == 3
+
+
+# @pytest.mark.parametrize(
+#     "ip_with_dynamic_db",
+#     [
+#         "ip_with_postgreSQL",
+#         "ip_with_mySQL",
+#         "ip_with_mariaDB",
+#         "ip_with_SQLite",
+#         "ip_with_duckDB",
+#         "ip_with_duckDB_native",
+#         "ip_with_Snowflake",
+#     ],
+# )
+# def test_handle_multiple_open_result_sets(
+#     ip_with_dynamic_db, request, test_table_name_dict
+# ):
+#     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)

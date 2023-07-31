@@ -1,7 +1,7 @@
 import warnings
 from sql import inspect
 import difflib
-from sql.connection import ConnectionManager
+from sql.connection import ConnectionManager, AbstractConnection
 from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
@@ -418,6 +418,15 @@ def get_line_content_from_toml(file_path, line_number):
         if "=" in eline:
             ekey, evalue = map(str.strip, eline.split("="))
         return eline, ekey, evalue
+
+
+def to_upper_if_snowflake_conn(conn, upper):
+    return (
+        upper.upper()
+        if isinstance(conn, AbstractConnection)
+        and conn._get_sqlglot_dialect() == "snowflake"
+        else upper
+    )
 
 
 @requires(["toml"])
