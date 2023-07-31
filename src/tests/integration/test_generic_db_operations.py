@@ -1112,21 +1112,3 @@ SELECT * FROM {__TABLE_NAME__};
     ).result
 
     assert len(result) == 3
-
-
-# @pytest.mark.parametrize(
-#     "ip_with_dynamic_db",
-#     [
-#         "ip_with_postgreSQL",
-#         "ip_with_mySQL",
-#         "ip_with_mariaDB",
-#         "ip_with_SQLite",
-#         "ip_with_duckDB",
-#         "ip_with_duckDB_native",
-#         "ip_with_Snowflake",
-#     ],
-# )
-# def test_handle_multiple_open_result_sets(
-#     ip_with_dynamic_db, request, test_table_name_dict
-# ):
-#     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
