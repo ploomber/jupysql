@@ -576,3 +576,15 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
     captured = capsys.readouterr()
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+
+
+def test_feedback_when_switching_connection_with_existing_connection(
+    ip_empty, tmp_empty, capsys
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb:// --alias one")
+    ip_empty.run_cell("%sql duckdb:// --alias two")
+    ip_empty.run_cell("%sql two")
+
+    captured = capsys.readouterr()
+    assert "" == captured.out.replace("\n", "")
