@@ -419,7 +419,7 @@ class AbstractConnection(abc.ABC):
         write_dialect = self._get_sqlglot_dialect()
 
         # we write queries to be duckdb-compatible so we don't need to transpile
-        # them. Furthermore, sqlglot does not guarantee roundtrip converstion
+        # them. Furthermore, sqlglot does not guarantee roundtrip conversion
         # so calling transpile might break queries
         if write_dialect == "duckdb":
             return query
