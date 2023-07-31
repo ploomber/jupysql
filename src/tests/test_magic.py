@@ -17,6 +17,7 @@ from sql.connection import ConnectionManager
 from sql.magic import SqlMagic
 from sql.run.resultset import ResultSet
 from sql import magic
+from sql.warnings import JupySQLQuotedNamedParametersWarning
 
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
@@ -708,7 +709,7 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
     assert dframe["name"][0] == "foo"
@@ -747,27 +748,27 @@ def test_autopolars_infer_schema_length(ip):
 
 def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
 
     import pandas as pd
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pd.DataFrame
+    assert isinstance(dframe, pd.DataFrame)
 
     # Test that re-enabling autopolars works
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
 
     # Disabling autopolars at this point should result in the default behavior
     ip.run_line_magic("config", "SqlMagic.autopolars = False")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
 
 def test_csv(ip):
@@ -1342,3 +1343,322 @@ def test_interact_and_missing_ipywidgets_installed(ip):
     assert "'ipywidgets' is required to use '--interactive argument'" in str(
         excinfo.value
     )
+
+
+@pytest.mark.parametrize(
+    "file_content, expect, revert",
+    [
+        (
+            """
+[tool.jupysql.SqlMagic]
+autocommit = false
+autolimit = 1
+style = "RANDOM"
+""",
+            [
+                "Found pyproject.toml from '%s'",
+                "Settings changed:",
+                r"autocommit\s*\|\s*False",
+                r"autolimit\s*\|\s*1",
+                r"style\s*\|\s*RANDOM",
+            ],
+            {"autocommit": True, "autolimit": 0, "style": "DEFAULT"},
+        ),
+        (
+            """
+[tool.jupysql.SqlMagic]
+""",
+            ["Found pyproject.toml from '%s'"],
+            {},
+        ),
+        (
+            """
+[test]
+github = "ploomber/jupysql"
+""",
+            ["Found pyproject.toml from '%s'"],
+            {},
+        ),
+        (
+            """
+[tool.pkgmt]
+github = "ploomber/jupysql"
+""",
+            ["Found pyproject.toml from '%s'"],
+            {},
+        ),
+        (
+            """
+[tool.jupysql.test]
+github = "ploomber/jupysql"
+""",
+            ["Found pyproject.toml from '%s'"],
+            {},
+        ),
+        (
+            "",
+            ["Found pyproject.toml from '%s'"],
+            {},
+        ),
+    ],
+)
+def test_valid_loading_toml(tmp_empty, ip, capsys, file_content, expect, revert):
+    Path("pyproject.toml").write_text(file_content)
+    toml_dir = os.getcwd()
+    os.makedirs("sub")
+    os.chdir("sub")
+
+    ip.run_cell("%load_ext sql").result
+    out, _ = capsys.readouterr()
+
+    expect[0] = expect[0] % (re.escape(toml_dir))
+    assert all(re.search(substring, out) for substring in expect)
+
+    sql = ip.find_cell_magic("sql").__self__
+    [setattr(sql, config, value) for config, value in revert.items()]
+
+
+def test_no_toml(tmp_empty, ip, capsys):
+    os.makedirs("sub")
+    os.chdir("sub")
+
+    ip.run_cell("%load_ext sql").result
+    out, _ = capsys.readouterr()
+
+    assert out == ""
+
+
+@pytest.mark.parametrize(
+    "file_content, error_msg",
+    [
+        (
+            """
+[tool.jupysql.SqlMagic]
+autocommit = true
+autocommit = true
+""",
+            "Duplicate key found : 'autocommit'",
+        ),
+        (
+            """
+[tool.jupySql.SqlMagic]
+autocommit = true
+""",
+            "'jupySql' is an invalid section name. Did you mean 'jupysql'?",
+        ),
+        (
+            """
+[tool.jupysql.SqlMagic]
+autocommit = True
+""",
+            (
+                "Invalid value 'True' in 'autocommit = True'. "
+                "Valid boolean values: true, false"
+            ),
+        ),
+        (
+            """
+[tool.jupysql.SqlMagic]
+autocommit = invalid
+""",
+            (
+                "Invalid value 'invalid' in 'autocommit = invalid'. "
+                "To use str value, enclose it with ' or \"."
+            ),
+        ),
+    ],
+)
+def test_error_on_toml_parsing(tmp_empty, ip, capsys, file_content, error_msg):
+    Path("pyproject.toml").write_text(file_content)
+    toml_dir = os.getcwd()
+    found_statement = "Found pyproject.toml from '%s'" % (toml_dir)
+    os.makedirs("sub")
+    os.chdir("sub")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%load_ext sql")
+    out, _ = capsys.readouterr()
+
+    assert out.strip() == found_statement
+    assert excinfo.value.error_type == "ConfigurationError"
+    assert str(excinfo.value) == error_msg
+
+
+def test_valid_and_invalid_configs(tmp_empty, ip, capsys):
+    Path("pyproject.toml").write_text(
+        """
+[tool.jupysql.SqlMagic]
+autocomm = true
+autop = false
+autolimit = "text"
+invalid = false
+displaycon = false
+"""
+    )
+    toml_dir = os.getcwd()
+    os.makedirs("sub")
+    os.chdir("sub")
+
+    ip.run_cell("%load_ext sql")
+    out, _ = capsys.readouterr()
+    expect = [
+        "Found pyproject.toml from '%s'" % (re.escape(toml_dir)),
+        "'autocomm' is an invalid configuration. Did you mean 'autocommit'?",
+        (
+            "'autop' is an invalid configuration. "
+            "Did you mean 'autopandas', or 'autopolars'?"
+        ),
+        (
+            "'text' is an invalid value for 'autolimit'. "
+            "Please use int value instead."
+        ),
+        r"displaycon\s*\|\s*False",
+    ]
+    assert all(re.search(substring, out) for substring in expect)
+
+    # confirm the correct changes are applied
+    confirm = {"displaycon": False, "autolimit": 0}
+    sql = ip.find_cell_magic("sql").__self__
+    assert all([getattr(sql, config) == value for config, value in confirm.items()])
+
+    # revert back to a default setting
+    setattr(sql, "displaycon", True)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_interpolation_ignore_literals(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    # this isn't a parameter because it's quoted (':last_name')
+    result = ip.run_cell(
+        "%sql select * from author where last_name = ':last_name'"
+    ).result
+    assert result.dict() == {}
+
+
+def test_sqlalchemy_interpolation(ip):
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    ip.run_cell("last_name = 'Shakespeare'")
+
+    # define another variable to ensure the test doesn't break if there are more
+    # variables in the namespace
+    ip.run_cell("first_name = 'William'")
+
+    result = ip.run_cell(
+        "%sql select * from author where last_name = :last_name"
+    ).result
+
+    assert result.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_sqlalchemy_interpolation_missing_parameter(ip):
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql select * from author where last_name = :last_name")
+
+    assert (
+        "Cannot execute query because the following variables are undefined: last_name"
+        in str(excinfo.value)
+    )
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_sqlalchemy_insert_literals_with_colon_character(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell(
+        """%%sql
+CREATE TABLE names (
+    name VARCHAR(50) NOT NULL
+);
+
+INSERT INTO names (name)
+VALUES
+    ('John'),
+    (':Mary'),
+    ('Alex'),
+    (':Lily'),
+    ('Michael'),
+    ('Robert'),
+    (':Sarah'),
+    ('Jennifer'),
+    (':Tom'),
+    ('Jessica');
+"""
+    )
+
+    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
+
+    assert result.dict() == {"name": (":Mary",)}
+
+
+def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
+    ip.run_cell("%config SqlMagic.named_paramstyle = False")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
+
+    suggestion = (
+        "Your query contains named parameters (species) but the named "
+        "parameters feature is disabled. Enable it with: "
+        "%config SqlMagic.named_paramstyle=True"
+    )
+    assert suggestion in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "cell, expected_warning",
+    [
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name'",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = :first_name",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = ':first_name'",
+            "The following variables are defined: first_name, last_name.",
+        ),
+    ],
+    ids=[
+        "one-quoted",
+        "one-quoted-one-unquoted",
+        "two-quoted",
+    ],
+)
+def test_warning_if_variable_defined_but_named_param_is_quoted(
+    ip, cell, expected_warning
+):
+    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+    ip.run_cell("last_name = 'Shakespeare'")
+    ip.run_cell("first_name = 'William'")
+
+    with pytest.warns(
+        JupySQLQuotedNamedParametersWarning,
+        match=expected_warning,
+    ):
+        ip.run_cell(cell)
