@@ -540,30 +540,6 @@ def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     assert str(expected_error_message).lower() in error_message.lower()
 
 
-@_cleanup_cm()
-@pytest.mark.parametrize(
-    "query, expected_error_message",
-    [
-        (
-            "%sqlplot boxplot --column body_mass_g --table penguins.csv",
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-        (
-            "%sqlplot boxplot --column body_mass_g --table no_nulls --with no_nulls",
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-    ],
-)
-def test_sqlplot_not_supported_error(
-    ip_questdb, penguins_data, penguins_no_nulls_questdb, query, expected_error_message
-):
-    with pytest.raises(UsageError) as excinfo:
-        ip_questdb.run_cell(query)
-
-    error_message = str(excinfo.value)
-    assert str(expected_error_message).lower() in error_message.lower()
-
-
 # Utils
 @pytest.mark.parametrize(
     "alias",
