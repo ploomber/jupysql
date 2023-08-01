@@ -51,6 +51,8 @@ DEV = [
     # for running tests for %sqlcmd explore --table
     "js2py",
     "jupysql-plugin",
+    # for monitoring access to files
+    "psutil",
 ]
 
 # dependencies for running integration tests
@@ -63,6 +65,8 @@ INTEGRATION = [
     "pyodbc",
     "snowflake-sqlalchemy",
     "oracledb",
+    "sqlalchemy-pytds",
+    "python-tds",
 ]
 
 setup(

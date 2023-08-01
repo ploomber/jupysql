@@ -15,7 +15,12 @@ from IPython.core.magic import (
     no_var_expand,
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
-from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from sqlalchemy.exc import (
+    OperationalError,
+    ProgrammingError,
+    DatabaseError,
+    StatementError,
+)
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
@@ -32,7 +37,7 @@ from sql.command import SQLCommand
 from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
-from sql import query_util
+from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
@@ -151,6 +156,15 @@ class SqlMagic(Magics, Configurable):
         "matching section in the DSN file.",
     )
     autocommit = Bool(True, config=True, help="Set autocommit mode")
+
+    named_parameters = Bool(
+        False,
+        config=True,
+        help=(
+            "Allow named parameters in queries "
+            "(i.e., 'SELECT * FROM foo WHERE bar = :bar')"
+        ),
+    )
 
     @telemetry.log_call("init")
     def __init__(self, shell):
@@ -360,17 +374,18 @@ class SqlMagic(Magics, Configurable):
     @telemetry.log_call("execute", payload=True)
     @modify_exceptions
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
-        def interactive_execute_wrapper(**kwargs):
-            for key, value in kwargs.items():
-                local_ns[key] = value
-            return self._execute(line, cell, local_ns, is_interactive_mode=True)
-
         """
         This function implements the cell logic; we create this private
         method so we can control how the function is called. Otherwise,
         decorating ``SqlMagic.execute`` will break when adding the ``@log_call``
         decorator with ``payload=True``
         """
+
+        def interactive_execute_wrapper(**kwargs):
+            for key, value in kwargs.items():
+                local_ns[key] = value
+            return self._execute(line, cell, local_ns, is_interactive_mode=True)
+
         # line is the text after the magic, cell is the cell's body
 
         # Examples
@@ -443,8 +458,7 @@ class SqlMagic(Magics, Configurable):
                         raw_args = raw_args[1:-1]
                 args.connection_arguments = json.loads(raw_args)
             except Exception as e:
-                display.message(str(e))
-                raise e
+                raise exceptions.ValueError(str(e)) from e
         else:
             args.connection_arguments = {}
         if args.creator:
@@ -458,6 +472,7 @@ class SqlMagic(Magics, Configurable):
             connect_args=args.connection_arguments,
             creator=args.creator,
             alias=args.alias,
+            config=self,
         )
         payload["connection_info"] = conn._get_database_information()
 
@@ -514,7 +529,12 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = run_statements(conn, command.sql, self)
+            result = run_statements(
+                conn,
+                command.sql,
+                self,
+                parameters=user_ns if self.named_parameters else None,
+            )
 
             if (
                 result is not None
@@ -549,7 +569,13 @@ class SqlMagic(Magics, Configurable):
                 return result
 
         # JA: added DatabaseError for MySQL
-        except (ProgrammingError, OperationalError, DatabaseError) as e:
+        except (
+            ProgrammingError,
+            OperationalError,
+            DatabaseError,
+            # raised when they query has :parameters but no parameters are given
+            StatementError,
+        ) as e:
             # Sqlite apparently return all errors as OperationalError :/
             self._error_handling(e, command.sql)
         except Exception as e:
@@ -623,6 +649,39 @@ class SqlMagic(Magics, Configurable):
         display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
+def set_configs(ip, file_path):
+    """Set user defined SqlMagic configuration settings"""
+    sql = ip.find_cell_magic("sql").__self__
+    user_configs = util.get_user_configs(file_path, ["tool", "jupysql", "SqlMagic"])
+    default_configs = util.get_default_configs(sql)
+    table_rows = []
+    for config, value in user_configs.items():
+        if config in default_configs.keys():
+            default_type = type(default_configs[config])
+            if isinstance(value, default_type):
+                setattr(sql, config, value)
+                table_rows.append([config, value])
+            else:
+                display.message(
+                    f"'{value}' is an invalid value for '{config}'. "
+                    f"Please use {default_type.__name__} value instead."
+                )
+        else:
+            util.find_close_match_config(config, default_configs.keys())
+
+    return table_rows
+
+
+def load_SqlMagic_configs(ip):
+    """Loads saved SqlMagic configs in pyproject.toml"""
+    file_path = util.find_path_from_root("pyproject.toml")
+    if file_path:
+        table_rows = set_configs(ip, file_path)
+        if table_rows:
+            display.message("Settings changed:")
+            display.table(["Config", "value"], table_rows)
+
+
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
 
@@ -637,3 +696,5 @@ def load_ipython_extension(ip):
     ip.register_magics(SqlCmdMagic)
 
     patch_ipython_usage_error(ip)
+
+    load_SqlMagic_configs(ip)

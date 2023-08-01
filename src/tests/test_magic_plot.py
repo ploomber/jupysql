@@ -4,6 +4,7 @@ import pytest
 from IPython.core.error import UsageError
 import matplotlib.pyplot as plt
 from sql import util
+import duckdb
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 
@@ -41,47 +42,44 @@ WHERE x > 2
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
         [
             "%sqlplot someplot -t a -c b",
-            UsageError,
             f"Unknown plot 'someplot'. Must be any of: {plot_str}",
         ],
         [
             "%sqlplot -t a -c b",
-            UsageError,
             f"Missing the first argument, must be any of: {plot_str}",
         ],
     ],
 )
-def test_validate_plot_name(tmp_empty, ip, cell, error_type, error_message):
-    out = ip.run_cell(cell)
+def test_validate_plot_name(tmp_empty, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(error_message).lower() in str(out.error_in_exec).lower()
+    assert excinfo.value.error_type == "UsageError"
+    assert str(error_message).lower() in str(excinfo.value).lower()
 
 
 @pytest.mark.parametrize(
-    "cell, error_type, error_message",
+    "cell, error_message",
     [
         [
             "%sqlplot histogram --column a",
-            UsageError,
             "the following arguments are required: -t/--table",
         ],
         [
             "%sqlplot histogram --table a",
-            UsageError,
             "the following arguments are required: -c/--column",
         ],
     ],
 )
-def test_validate_arguments(tmp_empty, ip, cell, error_type, error_message):
-    out = ip.run_cell(cell)
+def test_validate_arguments(tmp_empty, ip, cell, error_message):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(cell)
 
-    assert isinstance(out.error_in_exec, error_type)
-    assert str(out.error_in_exec) == (error_message)
+    assert str(error_message).lower() in str(excinfo.value).lower()
 
 
 @_cleanup_cm()
@@ -366,6 +364,17 @@ def test_boxplot(load_penguin, ip):
 
 
 @_cleanup_cm()
+@image_comparison(
+    baseline_images=["boxplot_duckdb"], extensions=["png"], remove_text=True
+)
+def test_boxplot_duckdb(load_penguin, ip):
+    conn = duckdb.connect(database=":memory:", read_only=False)
+    ip.push({"conn": conn})
+    ip.run_cell("%sql conn")
+    ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g")
+
+
+@_cleanup_cm()
 @image_comparison(baseline_images=["boxplot_h"], extensions=["png"], remove_text=True)
 def test_boxplot_h(load_penguin, ip):
     ip.run_cell("%sqlplot boxplot --table penguins.csv --column body_mass_g --orient h")
@@ -427,35 +436,49 @@ def test_hist_cust(load_penguin, ip):
 
 
 @pytest.mark.parametrize(
-    "arg", ["--delete", "-d", "--delete-force-all", "-A", "--delete-force", "-D"]
+    "arg",
+    [
+        "--delete",
+        "-d",
+        "--delete-force-all",
+        "-A",
+        "--delete-force",
+        "-D",
+    ],
 )
-def test_sqlplot_snippet_deletion(ip_snippets, arg, capsys):
+def test_sqlplot_snippet_deletion(ip_snippets, arg):
     ip_snippets.run_cell(f"%sqlcmd snippets {arg} subset_another")
-    ip_snippets.run_cell("%sqlplot boxplot --table subset_another --column x")
-    out, err = capsys.readouterr()
-    assert "There is no table with name 'subset_another' in the default schema" in err
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell("%sqlplot boxplot --table subset_another --column x")
+
+    assert "There is no table with name 'subset_another' in the default schema" in str(
+        excinfo.value
+    )
 
 
 TABLE_NAME_TYPO_MSG = """
-UsageError: There is no table with name 'subst' in the default schema
+There is no table with name 'subst' in the default schema
 Did you mean : 'subset'
 If you need help solving this issue, send us a message: https://ploomber.io/community
 """
 
 
-def test_sqlplot_snippet_typo(ip_snippets, capsys):
-    ip_snippets.run_cell("%sqlplot boxplot --table subst --column x")
-    out, err = capsys.readouterr()
-    assert TABLE_NAME_TYPO_MSG.strip() == err.strip()
+def test_sqlplot_snippet_typo(ip_snippets):
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell("%sqlplot boxplot --table subst --column x")
+
+    assert TABLE_NAME_TYPO_MSG.strip() in str(excinfo.value).strip()
 
 
 MISSING_TABLE_ERROR_MSG = """
-UsageError: There is no table with name 'missing' in the default schema
+There is no table with name 'missing' in the default schema
 If you need help solving this issue, send us a message: https://ploomber.io/community
 """
 
 
 def test_sqlplot_missing_table(ip_snippets, capsys):
-    ip_snippets.run_cell("%sqlplot boxplot --table missing --column x")
-    out, err = capsys.readouterr()
-    assert MISSING_TABLE_ERROR_MSG.strip() == err.strip()
+    with pytest.raises(UsageError) as excinfo:
+        ip_snippets.run_cell("%sqlplot boxplot --table missing --column x")
+
+    assert MISSING_TABLE_ERROR_MSG.strip() in str(excinfo.value).strip()

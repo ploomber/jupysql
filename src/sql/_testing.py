@@ -1,10 +1,11 @@
+import os
 from contextlib import contextmanager
 import sys
 import time
 
 from sqlalchemy.engine import URL
-import os
 import sqlalchemy
+from IPython.core.interactiveshell import InteractiveShell
 
 from ploomber_core.dependencies import requires
 
@@ -25,6 +26,18 @@ except ModuleNotFoundError:
 TMP_DIR = "tmp"
 
 
+class TestingShell(InteractiveShell):
+    """
+    A custom InteractiveShell that raises exceptions instead of silently suppressing
+    them.
+    """
+
+    def run_cell(self, *args, **kwargs):
+        result = super().run_cell(*args, **kwargs)
+        result.raise_error()
+        return result
+
+
 class DatabaseConfigHelper:
     @staticmethod
     def get_database_config(database):
@@ -38,6 +51,28 @@ class DatabaseConfigHelper:
     def get_tmp_dir():
         return TMP_DIR
 
+
+mssql_base = {
+    "username": "sa",
+    "password": "Ploomber_App@Root_Password",
+    "database": "master",
+    "host": "localhost",
+    "port": "1433",
+    "query": {
+        "driver": "ODBC Driver 18 for SQL Server",
+        "Encrypt": "yes",
+        "TrustServerCertificate": "yes",
+    },
+    "docker_ct": {
+        "name": "MSSQL",
+        "image": "mcr.microsoft.com/azure-sql-edge",
+        "ports": {1433: 1433},
+    },
+    "alias": "MSSQLTest",
+}
+
+mssql_pyobdc = {**mssql_base, "drivername": "mssql+pyodbc"}
+mssql_pytds = {**mssql_base, "drivername": "mssql+pytds"}
 
 databaseConfig = {
     "postgreSQL": {
@@ -107,25 +142,8 @@ databaseConfig = {
         "alias": "duckDBTest",
         "query": {},
     },
-    "MSSQL": {
-        "drivername": "mssql+pyodbc",
-        "username": "sa",
-        "password": "Ploomber_App@Root_Password",
-        "database": "master",
-        "host": "localhost",
-        "port": "1433",
-        "query": {
-            "driver": "ODBC Driver 18 for SQL Server",
-            "Encrypt": "yes",
-            "TrustServerCertificate": "yes",
-        },
-        "docker_ct": {
-            "name": "MSSQL",
-            "image": "mcr.microsoft.com/azure-sql-edge",
-            "ports": {1433: 1433},
-        },
-        "alias": "MSSQLTest",
-    },
+    "MSSQL": mssql_pyobdc,
+    "mssql_pytds": mssql_pytds,
     "Snowflake": {
         "drivername": "snowflake",
         "username": os.getenv("SF_USERNAME"),

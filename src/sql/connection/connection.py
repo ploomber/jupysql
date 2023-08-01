@@ -1,3 +1,5 @@
+import warnings
+import difflib
 import abc
 import os
 from difflib import get_close_matches
@@ -5,17 +7,20 @@ import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError
+from sqlalchemy.exc import NoSuchModuleError, OperationalError, StatementError
 from IPython.core.error import UsageError
-import difflib
 import sqlglot
+import sqlparse
+from ploomber_core.exceptions import modify_exceptions
 
 
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from ploomber_core.exceptions import modify_exceptions
+from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
+from sql.warnings import JupySQLQuotedNamedParametersWarning
+
 
 PLOOMBER_DOCS_LINK_STR = (
     "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
@@ -136,10 +141,32 @@ class ConnectionManager:
     current = None
 
     @classmethod
-    def set(cls, descriptor, displaycon, connect_args=None, creator=None, alias=None):
+    def set(
+        cls,
+        descriptor,
+        displaycon,
+        connect_args=None,
+        creator=None,
+        alias=None,
+        config=None,
+    ):
         """
         Set the current database connection. This method is called from the magic to
         determine which connection to use (either use an existing one or open a new one)
+
+        Parameters
+        ----------
+        descriptor : str or sqlalchemy.engine.Engine or sqlalchemy.engine.Connection
+            A connection string or an existing connection. It opens a new connection
+            if needed, otherwise it just assigns the connection as the current
+            connection.
+
+        alias : str, optional
+            A name to identify the connection
+
+        config : object, optional
+            An object with configuration options. Options must be accessible via
+            attributes. As of 0.9.0, only the autocommit option is needed.
         """
         connect_args = connect_args or {}
 
@@ -147,17 +174,19 @@ class ConnectionManager:
             if isinstance(descriptor, SQLAlchemyConnection):
                 cls.current = descriptor
             elif isinstance(descriptor, Engine):
-                cls.current = SQLAlchemyConnection(descriptor, alias=alias)
+                cls.current = SQLAlchemyConnection(
+                    descriptor, config=config, alias=alias
+                )
             elif is_pep249_compliant(descriptor):
-                cls.current = DBAPIConnection(descriptor, alias=alias)
+                cls.current = DBAPIConnection(descriptor, config=config, alias=alias)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
-
                 if existing and existing.alias == alias:
                     cls.current = existing
                 # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
                     cls.current = existing
+                    display.message(f"Switching to connection {descriptor}")
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     cls.current = cls.from_connect_str(
@@ -165,6 +194,7 @@ class ConnectionManager:
                         connect_args=connect_args,
                         creator=creator,
                         alias=alias,
+                        config=config,
                     )
 
         else:
@@ -177,6 +207,7 @@ class ConnectionManager:
                     connect_args=connect_args,
                     creator=creator,
                     alias=alias,
+                    config=config,
                 )
             else:
                 raise cls._error_no_connection()
@@ -245,6 +276,7 @@ class ConnectionManager:
             conn = cls.connections.get(descriptor) or cls.connections.get(
                 descriptor.lower()
             )
+
         if not conn:
             raise exceptions.RuntimeError(
                 "Could not close connection because it was not found amongst these: %s"
@@ -257,7 +289,8 @@ class ConnectionManager:
             cls.connections.pop(
                 str(conn.metadata.bind.url) if IS_SQLALCHEMY_ONE else str(conn.url)
             )
-            conn.connection.close()
+
+        conn.close()
 
     @classmethod
     def connections_table(cls):
@@ -276,7 +309,7 @@ class ConnectionManager:
 
     @classmethod
     def from_connect_str(
-        cls, connect_str=None, connect_args=None, creator=None, alias=None
+        cls, connect_str=None, connect_args=None, creator=None, alias=None, config=None
     ):
         """Creates a new connection from a connection string"""
         connect_args = connect_args or {}
@@ -307,7 +340,7 @@ class ConnectionManager:
         except Exception as e:
             raise cls._error_invalid_connection_info(e, connect_str) from e
 
-        connection = SQLAlchemyConnection(engine, alias=alias)
+        connection = SQLAlchemyConnection(engine, alias=alias, config=config)
         connection.connect_args = connect_args
 
         return connection
@@ -330,7 +363,7 @@ class AbstractConnection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def raw_execute(self, query):
+    def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""
         pass
 
@@ -345,9 +378,11 @@ class AbstractConnection(abc.ABC):
     def close(self):
         """Close the connection"""
         for rs in self._result_sets:
-            rs._sqlaproxy.close()
+            # this might be None if it didn't run any query
+            if rs._sqlaproxy is not None:
+                rs._sqlaproxy.close()
 
-        self.connection.close()
+        self._connection.close()
 
     def _get_sqlglot_dialect(self):
         """
@@ -382,9 +417,18 @@ class AbstractConnection(abc.ABC):
             SQL clause that's compatible to current connected dialect
         """
         write_dialect = self._get_sqlglot_dialect()
+
+        # we write queries to be duckdb-compatible so we don't need to transpile
+        # them. Furthermore, sqlglot does not guarantee roundtrip conversion
+        # so calling transpile might break queries
+        if write_dialect == "duckdb":
+            return query
+
         try:
-            query = sqlglot.parse_one(query).sql(dialect=write_dialect)
-        finally:
+            return ";\n".join(
+                [p.sql(dialect=write_dialect) for p in sqlglot.parse(query)]
+            )
+        except Exception:
             return query
 
     def _prepare_query(self, query, with_=None) -> str:
@@ -401,18 +445,21 @@ class AbstractConnection(abc.ABC):
             The key to use in with sql clause
         """
         if with_:
-            query = str(store.render(query, with_=with_))
+            query = self._resolve_cte(query, with_)
 
         query = self._transpile_query(query)
 
         return query
 
+    def _resolve_cte(self, query, with_):
+        return str(store.render(query, with_=with_))
+
     def execute(self, query, with_=None):
         """
         Executes SQL query on a given connection
         """
-        query = self._prepare_query(query, with_)
-        return self.raw_execute(query)
+        query_prepared = self._prepare_query(query, with_)
+        return self.raw_execute(query_prepared)
 
     def is_use_backtick_template(self):
         """Get if the dialect support backtick (`) syntax as identifier
@@ -457,6 +504,20 @@ class AbstractConnection(abc.ABC):
         return identifiers
 
 
+# some dialects break when commit is used
+_COMMIT_BLACKLIST_DIALECTS = (
+    "athena",
+    "bigquery",
+    "clickhouse",
+    "ingres",
+    "mssql",
+    "teradata",
+    "vertica",
+)
+
+
+# TODO: the autocommit is read only during initialization, if the user changes it
+# it won't have any effect
 class SQLAlchemyConnection(AbstractConnection):
     """Manages connections to databases
 
@@ -468,7 +529,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
     is_dbapi_connection = False
 
-    def __init__(self, engine, alias=None):
+    def __init__(self, engine, alias=None, config=None):
         if IS_SQLALCHEMY_ONE:
             self._metadata = sqlalchemy.MetaData(bind=engine)
         else:
@@ -487,8 +548,26 @@ class SQLAlchemyConnection(AbstractConnection):
 
         self._dialect = self._get_database_information()["dialect"]
 
-        # TODO: delete. and when you delete it, check that you remove the print
-        # statement that uses this
+        autocommit = True if config is None else config.autocommit
+
+        if autocommit:
+            success = set_sqlalchemy_isolation_level(self._connection_sqlalchemy)
+            self._requires_manual_commit = not success
+
+            # TODO: I noticed we don't have any unit tests for this
+            # even if autocommit is true, we should not use it for some dialects
+            self._requires_manual_commit = (
+                all(
+                    blacklisted_dialect not in str(self._dialect)
+                    for blacklisted_dialect in _COMMIT_BLACKLIST_DIALECTS
+                )
+                and self._requires_manual_commit
+            )
+        else:
+            self._requires_manual_commit = False
+
+        # TODO: we're no longer using this. I believe this is only used via the
+        # config.feedback option
         self.name = default_alias_for_engine(engine)
 
         # calling init from AbstractConnection must be the last thing we do as it
@@ -499,11 +578,130 @@ class SQLAlchemyConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
-        return self.connection.execute(sqlalchemy.text(query))
+    def _connection_execute(self, query, parameters=None):
+        """Call the connection execute method
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            Parameters to use in the query (:variable format)
+        """
+        parameters = parameters or {}
+
+        # we do not support multiple statements
+        if len(sqlparse.split(query)) > 1:
+            raise NotImplementedError("Only one statement is supported.")
+
+        words = query.split()
+
+        if words:
+            first_word_statement = words[0].lower()
+        else:
+            first_word_statement = ""
+
+        # NOTE: in duckdb db "from TABLE_NAME" is valid
+        # TODO: we can parse the query to ensure that it's a SELECT statement
+        # for example, it might start with WITH but the final statement might
+        # not be a SELECT
+        is_select = first_word_statement in {"select", "with", "from"}
+
+        if IS_SQLALCHEMY_ONE:
+            out = self._connection.execute(sqlalchemy.text(query), **parameters)
+        else:
+            out = self._connection.execute(
+                sqlalchemy.text(query), parameters=parameters
+            )
+
+        if self._requires_manual_commit:
+            # calling connection.commit() when using duckdb-engine will yield
+            # empty results if we commit after a SELECT statement
+            # see: https://github.com/Mause/duckdb_engine/issues/734
+            if is_select and self.dialect == "duckdb":
+                return out
+
+            # in sqlalchemy 1.x, connection has no commit attribute
+            if IS_SQLALCHEMY_ONE:
+                # TODO: I moved this from run.py where we were catching all exceptions
+                # because some drivers do not support commits. However, I noticed
+                # that if I remove the try catch we get this error in SQLite:
+                #  "cannot commit - no transaction is active", we need to investigate
+                # further, catching generic exceptions is not a good idea
+                try:
+                    self._connection.execute("commit")
+                except Exception:
+                    pass
+            else:
+                self._connection.commit()
+
+        return out
+
+    def raw_execute(self, query, parameters=None, with_=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            Parameters to use in the query. They should appear in the query with the
+            :name format (no quotes around them)
+
+        with_ : list, default None
+            List of CTEs to use in the query
+        """
+        if with_:
+            query = self._resolve_cte(query, with_)
+
+        query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
+
+        if quoted_named_parameters and parameters:
+            intersection = set(quoted_named_parameters) & set(parameters)
+
+            if intersection:
+                intersection_ = ", ".join(sorted(intersection))
+                warnings.warn(
+                    f"The following variables are defined: {intersection_}. However "
+                    "the parameters are quoted in the query, if you want to use "
+                    "them as named parameters, remove the quotes.",
+                    category=JupySQLQuotedNamedParametersWarning,
+                )
+
+        if parameters:
+            required_parameters = set(sqlalchemy.text(query).compile().params)
+            available_parameters = set(parameters)
+            missing_parameters = required_parameters - available_parameters
+
+            if missing_parameters:
+                raise exceptions.InvalidQueryParameters(
+                    "Cannot execute query because the following "
+                    "variables are undefined: {}".format(", ".join(missing_parameters))
+                )
+
+            return self._connection_execute(query, parameters)
+        else:
+            try:
+                return self._connection_execute(query)
+            except StatementError as e:
+                # add a more helpful message if the users passes :variable but
+                # the feature isn't enabled
+                if parameters is None:
+                    named_params = find_named_parameters(query)
+
+                    if named_params:
+                        named_params_ = ", ".join(named_params)
+                        e.add_detail(
+                            f"Your query contains named parameters ({named_params_}) "
+                            "but the named parameters feature is disabled. Enable it "
+                            "with: %config SqlMagic.named_parameters=True"
+                        )
+                raise
 
     def _get_database_information(self):
-        dialect = self.connection_sqlalchemy.dialect
+        dialect = self._connection_sqlalchemy.dialect
 
         return {
             "dialect": getattr(dialect, "name", None),
@@ -523,9 +721,16 @@ class SQLAlchemyConnection(AbstractConnection):
         return self._connection_sqlalchemy
 
     @property
-    def connection(self):
+    def _connection(self):
         """Returns the SQLAlchemy connection object"""
         return self._connection_sqlalchemy
+
+    def close(self):
+        super().close()
+
+        # NOTE: in SQLAlchemy 2.x, we need to call engine.dispose() to completely
+        # close the connection, calling connection.close() is not enough
+        self._connection.engine.dispose()
 
     @classmethod
     @modify_exceptions
@@ -558,7 +763,7 @@ class DBAPIConnection(AbstractConnection):
     is_dbapi_connection = True
 
     @telemetry.log_call("DBAPIConnection", payload=True)
-    def __init__(self, payload, connection, alias=None):
+    def __init__(self, payload, connection, alias=None, config=None):
         try:
             payload["engine"] = type(connection)
         except Exception as e:
@@ -568,6 +773,9 @@ class DBAPIConnection(AbstractConnection):
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(connection)
 
         self._dialect = "duckdb" if _is_duckdb_native else None
+
+        # TODO: implement the dialect blacklist and add unit tests
+        self._requires_manual_commit = True if config is None else config.autocommit
 
         self._connection = connection
         self._connection_class_name = type(connection).__name__
@@ -583,9 +791,32 @@ class DBAPIConnection(AbstractConnection):
     def dialect(self):
         return self._dialect
 
-    def raw_execute(self, query):
-        cur = self.connection.cursor()
+    def raw_execute(self, query, parameters=None, with_=None):
+        """Run the query without any preprocessing
+
+        Parameters
+        ----------
+        query : str
+            SQL query
+
+        parameters : dict, default None
+            This parameter is added for consistency with SQLAlchemy connections but
+            it is not used
+        """
+        # we do not support multiple statements (this might actually work in some
+        # drivers but we need to add this for consistency with SQLAlchemyConnection)
+        if len(sqlparse.split(query)) > 1:
+            raise NotImplementedError("Only one statement is supported.")
+
+        if with_:
+            query = self._resolve_cte(query, with_)
+
+        cur = self._connection.cursor()
         cur.execute(query)
+
+        if self._requires_manual_commit:
+            self._connection.commit()
+
         return cur
 
     def _get_database_information(self):
@@ -609,11 +840,6 @@ class DBAPIConnection(AbstractConnection):
         raise NotImplementedError(
             "This feature is only available for SQLAlchemy connections"
         )
-
-    # TODO: delete this, execution must be done via .execute
-    @property
-    def connection(self):
-        return self._connection
 
 
 def _check_if_duckdb_dbapi_connection(conn):
@@ -716,6 +942,19 @@ def default_alias_for_engine(engine):
         return str(engine.url)
 
     return f"{engine.url.username}@{engine.url.database}"
+
+
+def set_sqlalchemy_isolation_level(conn):
+    """
+    Sets the autocommit setting for a database connection using SQLAlchemy.
+    This better handles some edge cases than calling .commit() on the connection but
+    not all drivers support it.
+    """
+    try:
+        conn.execution_options(isolation_level="AUTOCOMMIT")
+        return True
+    except Exception:
+        return False
 
 
 atexit.register(ConnectionManager.close_all, verbose=True)
