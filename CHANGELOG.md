@@ -1,12 +1,18 @@
 # CHANGELOG
 
 ## 0.9.0dev
+
+* [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization (#689)
 * [Fix] Fix error that was incorrectly converted into a print message
 * [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
 * [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
 * [Fix] Fixed vertical color breaks in histograms (#702)
+* [Fix] Showing feedback when switching connections (#727)
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
+* [Fix] Fix error that caused literals like `':something'` to be interpreted as query parameters
+* [Feature] allows parametrizing queries with `:variable` with `%config SqlMagic.named_paramstyle = True`
 * [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
+
 
 ## 0.8.0 (2023-07-18)
 
