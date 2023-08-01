@@ -65,7 +65,6 @@ INTEGRATION = [
     "pyodbc",
     "snowflake-sqlalchemy",
     "oracledb",
-    "psycopg2",
 ]
 
 setup(
