@@ -1,2 +1,2 @@
-class JupySQLDataFramePerformanceWarning(UserWarning):
+class JupySQLQuotedNamedParametersWarning(UserWarning):
     pass

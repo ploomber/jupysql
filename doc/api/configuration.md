@@ -289,6 +289,31 @@ allowing you to use the snippets in any notebook, even if the were not defined t
 
 
 ## Loading configuration settings
+## `named_parameters`
+
+Default: `False`
+
+If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
+
+```{code-cell} ipython3
+%config SqlMagic.named_parameters=True
+```
+
+```{code-cell} ipython3
+rating = 12
+```
+
+```{code-cell} ipython3
+%%sql
+SELECT *
+FROM languages
+WHERE rating > :rating
+```
+
+## Loading configuration from a `pyproject.toml` file
+
+```{versionadded} 0.9
+```
 
 You can define configurations in a `pyproject.toml` file and automatically load the configurations when you run `%load_ext sql`. If the file is not found in the current or parent directories, default values will be used. A sample `pyproject.toml` could look like this:
 
