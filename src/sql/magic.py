@@ -39,7 +39,6 @@ from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
 
-
 from ploomber_core.dependencies import check_installed
 
 
@@ -205,9 +204,8 @@ class SqlMagic(Magics, Configurable):
     @observe("persist_snippets")
     def _persist_snippets_message(self, change):
         if change["new"] is True:
-            message = """Manual editing of .sql files may not be reflected when
-            reopening the notebook. Please edit snippets directly in the notebook
-            to ensure consistency."""
+            message = """Important: do not edit the stored .sql files directly.
+            If you need to change them, edit the notebook where they are defined."""
             display.message(message, style="font-size: 12px; font-style: italic;")
 
     def _load_snippets(self):
@@ -531,7 +529,8 @@ class SqlMagic(Magics, Configurable):
             self._store.store(args.save, command.sql_original, with_=with_)
 
             if self.persist_snippets:
-                store_snippet_as_sql(str(store[args.save]), args.save)
+                # store_snippet_as_sql(str(store[args.save]),with_, args.save)
+                store_snippet_as_sql(store, command.sql_original, with_, args.save)
 
         if args.no_execute:
             display.message("Skipping execution...")

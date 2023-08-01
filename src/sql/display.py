@@ -83,7 +83,16 @@ class Message:
 
 
 def message(message, style=None):
-    """Display a generic message"""
+    """Display a generic message
+
+    Parameters
+    ----------
+    message : str,
+        Message to be passed to the user.
+
+    style : str, DEFUALT None
+        CSS style to be applied to the message
+    """
     display(Message(message, style))
 
 

@@ -179,23 +179,63 @@ def _flatten(elements):
     return [element for sub in elements for element in sub]
 
 
-def store_snippet_as_sql(sql_command, snippet_name):
+def _get_dependency_queries(store, with_):
+    """
+    retrieve the queries of each dependency
+    of a snippet
+
+    Parameters
+    ----------
+    store : SQLStore
+        SQLStore of the current session .
+
+    with_ : list
+        list of dependencies
+
+    Returns
+    ----------
+    queries : dict
+        A dictionary with
+        key : dependency
+        value : query
+    """
+    dependencies = _get_dependencies(store, with_) if with_ else None
+    queries = {}
+
+    if dependencies is None:
+        return None
+    for i in dependencies:
+        queries[i] = store[i]._query
+
+    return queries
+
+
+def store_snippet_as_sql(store, sql_command, with_, snippet_name):
     """
     Store snippet as a .sql file
 
     Parameters
     ----------
-    command : str
+    store : SQLStore
+        SQLStore of the current session .
+
+    sql_command : str
         query to be saved as the snippet .
 
     snippet_name : str
-        Name of the saved snippet
+        Name of the saved snippets
+
+    with_ : list
+        list of dependencies
     """
 
+    print(with_)
+    dependencies = _get_dependency_queries(store, with_)
+    marked_sql = query_util.write_sql_with_markers(sql_command, dependencies)
     snippet_path = Path(SNIPPETS_DIR) / f"{snippet_name}.sql"
     snippet_path.parent.mkdir(parents=True, exist_ok=True)
     with open(snippet_path, "w") as file:
-        file.write(sql_command)
+        file.write(marked_sql)
 
 
 def load_snippet_from_sql(store):
@@ -210,14 +250,16 @@ def load_snippet_from_sql(store):
 
     """
     if os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR):
+        print(f"loading snippets from {SNIPPETS_DIR}")
         snippet_files = glob.glob(SNIPPETS_DIR + "*.sql")
         snippet_names = [filename[len(SNIPPETS_DIR) : -4] for filename in snippet_files]
         for name, filename in zip(snippet_names, snippet_files):
             with open(filename, "r") as file:
                 snippet_content = file.read()
-                key = query_util.extract_tables_from_query(snippet_content)
-                dependencies = store.infer_dependencies(snippet_content, key=key)
-                store.store(name, snippet_content, with_=dependencies)
+                snippet_content = query_util.parse_sql_snippet(snippet_content)
+                store.store(
+                    name, snippet_content["main_sql"], with_=snippet_content["with_"]
+                )
 
 
 # session-wide store

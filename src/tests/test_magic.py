@@ -34,7 +34,7 @@ def _assert_file_content(filepath, expected_content):
         content = file.read().strip()
     content = re.sub(r"\s+", "", content)
     expected_content = re.sub(r"\s+", "", expected_content)
-    assert content == expected_content
+    assert expected_content in content
 
 
 def test_memory_db(ip):
@@ -760,7 +760,7 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    assert type(dframe) == pl.DataFrame
+    assert type(dframe) is pl.DataFrame
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
     assert dframe["name"][0] == "foo"
@@ -799,27 +799,27 @@ def test_autopolars_infer_schema_length(ip):
 
 def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert type(dframe) is ResultSet
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert type(dframe) is pl.DataFrame
 
     import pandas as pd
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pd.DataFrame
+    assert type(dframe) is pd.DataFrame
 
     # Test that re-enabling autopolars works
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert type(dframe) is pl.DataFrame
 
     # Disabling autopolars at this point should result in the default behavior
     ip.run_line_magic("config", "SqlMagic.autopolars = False")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert type(dframe) is ResultSet
 
 
 def test_csv(ip):
@@ -1588,10 +1588,18 @@ def test_save_snippet_as_sql(ip_snip):
     _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
     _assert_file_content(
         citizen_another_sql_path,
-        """WITH citizen AS (
+        """with citizen as (
            select * from people where country = 'usa'
-           )
-           select * from citizen where number = 82
+           )""",
+    )
+    _assert_file_content(
+        citizen_another_sql_path,
+        """select * from citizen where number = 82
+        """,
+    )
+    _assert_file_content(
+        citizen_another_sql_path,
+        """{"with_": ["citizen"]}
         """,
     )
 
@@ -1698,9 +1706,19 @@ def test_snippet_sql_not_overriden(ip_snip):
     _assert_file_content(citizen_sql_path, "select * from people where country = 'usa'")
     _assert_file_content(
         citizen_another_sql_path,
-        """WITH citizen AS (
-select * from people where country = 'usa')
-select * from citizen where number = 82""",
+        """with citizen as (
+           select * from people where country = 'usa'
+           )""",
+    )
+    _assert_file_content(
+        citizen_another_sql_path,
+        """select * from citizen where number = 82
+        """,
+    )
+    _assert_file_content(
+        citizen_another_sql_path,
+        """{"with_": ["citizen"]}
+        """,
     )
 
 

@@ -242,7 +242,6 @@ res = %sql SELECT * FROM languages LIMIT 2
 print(res)
 ```
 
-
 ## `persist_snippets`
 
 ```{versionadded} 0.9
@@ -274,19 +273,19 @@ The sql files will be saved at:
 with the following content:
 
 ```{code-cell} ipython3
-with open("jupysql-snippets/rated_high.sql", "r") as file:
-    sql_content = file.read()
-print(sql_content)
+from pathlib import Path
+
+print(Path("path/jupysql-snippets/rated_high.sql").read_text())
 ```
 
 ```{code-cell} ipython3
-with open("jupysql-snippets/rated_high_change.sql", "r") as file:
-    sql_content = file.read()
-print(sql_content)
+from pathlib import Path
+
+print(Path("path/jupysql-snippets/rated_high_change.sql").read_text())
 ```
 
-JupySqL will automatically load the snippets from the SQL files when re-initializing the magic.
-It will remain readily available for future use.
+JupySQL will load the snippets when initializing the magic (`%load_ext sql`), 
+allowing you to use the snippets in any notebook, even if the were not defined there.
 
 
 ## Loading configuration settings
@@ -298,4 +297,3 @@ You can define configurations in a `pyproject.toml` file and automatically load 
 feedback = true
 autopandas = true
 ```
-
