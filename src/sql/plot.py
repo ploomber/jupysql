@@ -396,17 +396,17 @@ def histogram(
         conn = sql.connection.ConnectionManager.current
     if isinstance(breaks, list):
         if len(breaks) < 2:
-            raise ValueError(
+            raise exceptions.ValueError(
                 f"Breaks given : {breaks}. When using breaks, please ensure "
                 "to specify at least two points."
             )
         if not all([b2 > b1 for b1, b2 in zip(breaks[:-1], breaks[1:])]):
-            raise ValueError(
+            raise exceptions.ValueError(
                 f"Breaks given : {breaks}. When using breaks, please ensure that "
                 "breaks are strictly increasing."
             )
         if bins:
-            raise ValueError(
+            raise exceptions.ValueError(
                 "Both bins and breaks are specified. Must specify only one of them."
             )
 
@@ -500,7 +500,7 @@ def histogram(
         ax.set_xlabel(column)
 
     else:
-        if breaks:
+        if breaks and len(column) > 1:
             raise exceptions.UsageError(
                 "Multiple columns don't support breaks. Please use bins instead."
             )
@@ -561,11 +561,11 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=No
         if breaks:
             if min_ > breaks[-1]:
                 raise exceptions.UsageError(
-                    "All break points are lower than the min data point."
+                    f"All break points are lower than the min data point of {min_}."
                 )
             elif max_ < breaks[0]:
                 raise exceptions.UsageError(
-                    "All break points are higher than the max data point."
+                    f"All break points are higher than the max data point of {max_}."
                 )
 
             cases, bin_size = [], []

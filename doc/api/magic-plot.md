@@ -155,10 +155,10 @@ When plotting a histogram, it divides a range with the number of bins - 1 to cal
 
 ### Specifying breaks
 
-Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired break points separated by whitespace after `-B/--breaks`. Make sure to pass more than 1 point that is strictly increasing and includes at least one data point.
+Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired each end and break points separated by whitespace after `-B/--breaks`. Since those break points define a range of data points to plot, bar width, and number of bars in a histogram, make sure to pass more than 1 point that is strictly increasing and includes at least one data point. Note that using both `-b/--bins` and `-B/--breaks` isn't allowed. 
 
 ```{code-cell} ipython3
-%sqlplot histogram --table penguins.csv --column body_mass_g --breaks 2500 3000 3500 3700 4000
+%sqlplot histogram --table penguins.csv --column body_mass_g --breaks 3200 3400 3600 3800 4000 4200 4400 4600 4800
 ```
 
 ### Multiple columns

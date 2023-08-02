@@ -110,14 +110,9 @@ class SqlPlotMagic(Magics, Configurable):
                 conn=None,
             )
         elif cmd.args.line[0] in {"hist", "histogram"}:
+            # to avoid passing bins default value when breaks are given by a user
             bin_specified = " --bins " in line or " -b " in line
             breaks_specified = " --breaks " in line or " -B " in line
-            if bin_specified and breaks_specified:
-                raise exceptions.UsageError(
-                    "Both bins and breaks are specified. Must specify only one of them."
-                )
-
-            # to avoid passing bins default value when breaks are given by a user
             if breaks_specified and not bin_specified:
                 bins = None
             else:

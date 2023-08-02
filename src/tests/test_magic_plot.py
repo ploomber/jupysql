@@ -90,14 +90,14 @@ def test_validate_arguments(tmp_empty, ip, cell, error_message):
                 "%sqlplot histogram --table penguins.csv --column body_mass_g "
                 "--breaks 1000 2000 2699"
             ),
-            "All break points are lower than the min data point.",
+            "All break points are lower than the min data point of 2700.",
         ],
         [
             (
                 "%sqlplot histogram --table penguins.csv --column body_mass_g "
                 "--breaks 7000 7100 7200"
             ),
-            "All break points are higher than the max data point.",
+            "All break points are higher than the max data point of 6300.",
         ],
         [
             (

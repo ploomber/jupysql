@@ -3,6 +3,7 @@ from matplotlib.testing.decorators import image_comparison, _cleanup_cm
 import pytest
 from pathlib import Path
 from urllib.request import urlretrieve
+from IPython.core.error import UsageError
 
 
 @pytest.fixture
@@ -559,10 +560,11 @@ def test_histogram_no_bins_error(diamonds_data):
     ],
 )
 def test_hist_breaks_error(penguins_data, bins, breaks, error_message):
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(UsageError) as error:
         (
             ggplot(penguins_data, aes(x="body_mass_g"))
             + geom_histogram(bins=bins, breaks=breaks)
         )
 
+    assert error.value.error_type == "ValueError"
     assert error_message in str(error.value)

@@ -18,6 +18,9 @@ class geom_histogram(geom):
 
     cmap : str, default 'viridis
         Apply a color map to the stacked graph
+
+    breaks : list
+        Divide bins with custom intervals
     """
 
     def __init__(self, bins=None, fill=None, cmap=None, breaks=None, **kwargs):
