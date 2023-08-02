@@ -556,7 +556,6 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=No
                 "count(*) as count "
                 'from "{{table}}" '
                 "{{filter_query}} "
-                "and {{column}} "
                 "group by bin) "
                 "as count_table on all_bins.bin = count_table.bin "
                 "order by all_bins.bin;"
