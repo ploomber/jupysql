@@ -404,6 +404,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_redshift"),
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="not supported yet for native connections"),
@@ -429,40 +430,6 @@ def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
         )
 
     assert "The above values do not match your test requirements." in str(excinfo.value)
-
-
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        ("ip_with_postgreSQL"),
-        ("ip_with_mySQL"),
-        ("ip_with_mariaDB"),
-        ("ip_with_SQLite"),
-        ("ip_with_duckDB"),
-        ("ip_with_duckDB_native"),
-        ("ip_with_MSSQL"),
-        pytest.param(
-            "ip_with_Snowflake",
-            marks=pytest.mark.xfail(
-                reason="Something wrong with test_sql_cmd_magic_dos in snowflake"
-            ),
-        ),
-        ("ip_with_oracle"),
-    ],
-)
-def test_sql_cmd_magic_dos(ip_with_dynamic_db, request, capsys):
-    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-
-    ip_with_dynamic_db.run_cell(
-        """
-    %%sql sqlite://
-    CREATE TABLE test_numbers (value);
-    INSERT INTO test_numbers VALUES (0);
-    INSERT INTO test_numbers VALUES (4);
-    INSERT INTO test_numbers VALUES (5);
-    INSERT INTO test_numbers VALUES (6);
-    """
-    )
 
 
 @pytest.mark.parametrize(
@@ -651,7 +618,7 @@ def test_profile_data_mismatch(ip_with_dynamic_db, request, capsys):
         ),
     ],
 )
-def test_profile_query(
+def test_sqlcmd_profile(
     request,
     ip_with_dynamic_db,
     table,
@@ -702,6 +669,7 @@ def test_profile_query(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_redshift"),
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Bug #428"),
@@ -710,9 +678,7 @@ def test_profile_query(
         ("ip_with_Snowflake"),
     ],
 )
-def test_sqlcmd_tables_columns(
-    ip_with_dynamic_db, table, request, test_table_name_dict
-):
+def test_sqlcmd_columns(ip_with_dynamic_db, table, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     out = ip_with_dynamic_db.run_cell(
         f"%sqlcmd columns --table {test_table_name_dict[table]}"
@@ -728,6 +694,7 @@ def test_sqlcmd_tables_columns(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_redshift"),
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Bug #428"),
