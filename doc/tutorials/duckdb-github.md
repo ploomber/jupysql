@@ -15,7 +15,7 @@ myst:
     description lang=en: Use JupySQL and DuckDB to query JSON files with SQL
     keywords: jupyter, sql, jupysql, json, duckdb
     property=og:locale: en_US
-:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
+    property=:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
 ---
 
 # Analyzing Github Data with JupySQL + DuckDB
