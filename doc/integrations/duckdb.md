@@ -17,6 +17,8 @@ myst:
     property=og:locale: en_US
     property=og:image: 'https://shorturl.at/hwyCP'
     property=og:image:alt: 'Better SQL in Jupyter. 📊.'
+    
+:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
 ---
 
 
