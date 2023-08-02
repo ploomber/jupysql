@@ -358,8 +358,9 @@ BOX_PLOT_FAIL_REASON = (
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
-        pytest.param("ip_with_postgreSQL"),
-        pytest.param("ip_with_duckDB"),
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Custom driver not supported"),
@@ -415,7 +416,7 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
         ("ip_with_oracle"),
     ],
 )
-def test_sql_cmd_magic_uno(ip_with_dynamic_db, request, test_table_name_dict):
+def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
     table = test_table_name_dict["numbers"]
 
