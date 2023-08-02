@@ -10,6 +10,7 @@ from textwrap import dedent
 from unittest.mock import patch
 
 import polars as pl
+import pandas as pd
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
@@ -747,14 +748,15 @@ def test_autopolars_infer_schema_length(ip):
 
 
 def test_mutex_autopolars_autopandas(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = False")
+    ip.run_line_magic("config", "SqlMagic.autopandas = False")
+
     dframe = runsql(ip, "SELECT * FROM test;")
     assert isinstance(dframe, ResultSet)
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
     assert isinstance(dframe, pl.DataFrame)
-
-    import pandas as pd
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
@@ -1535,7 +1537,7 @@ displaycon = false
 def test_interpolation_ignore_literals(fixture_name, request):
     ip = request.getfixturevalue(fixture_name)
 
-    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+    ip.run_cell("%config SqlMagic.named_parameters = True")
 
     # this isn't a parameter because it's quoted (':last_name')
     result = ip.run_cell(
@@ -1545,7 +1547,7 @@ def test_interpolation_ignore_literals(fixture_name, request):
 
 
 def test_sqlalchemy_interpolation(ip):
-    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+    ip.run_cell("%config SqlMagic.named_parameters = True")
 
     ip.run_cell("last_name = 'Shakespeare'")
 
@@ -1565,7 +1567,7 @@ def test_sqlalchemy_interpolation(ip):
 
 
 def test_sqlalchemy_interpolation_missing_parameter(ip):
-    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+    ip.run_cell("%config SqlMagic.named_parameters = True")
 
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell("%sql select * from author where last_name = :last_name")
@@ -1613,7 +1615,7 @@ VALUES
 
 
 def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
-    ip.run_cell("%config SqlMagic.named_paramstyle = False")
+    ip.run_cell("%config SqlMagic.named_parameters = False")
 
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
@@ -1621,7 +1623,7 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
     suggestion = (
         "Your query contains named parameters (species) but the named "
         "parameters feature is disabled. Enable it with: "
-        "%config SqlMagic.named_paramstyle=True"
+        "%config SqlMagic.named_parameters=True"
     )
     assert suggestion in str(excinfo.value)
 
@@ -1653,7 +1655,7 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
 def test_warning_if_variable_defined_but_named_param_is_quoted(
     ip, cell, expected_warning
 ):
-    ip.run_cell("%config SqlMagic.named_paramstyle = True")
+    ip.run_cell("%config SqlMagic.named_parameters = True")
     ip.run_cell("last_name = 'Shakespeare'")
     ip.run_cell("first_name = 'William'")
 
