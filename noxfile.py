@@ -130,7 +130,7 @@ def test_integration_cloud(session):
     # TODO: do not require integrationt test dependencies if only running snowflake
     # tests
     _install(session, integration=True)
-    session.install("snowflake-sqlalchemy", "sqlalchemy-redshift")
+    session.install("snowflake-sqlalchemy", "redshift-connector", "sqlalchemy-redshift")
     session.run("pytest", "src/tests/integration", "-k", "snowflake or redshift", "-v")
 
 
