@@ -387,7 +387,7 @@ def setup_Snowflake(test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
+def ip_with_Snowflake(ip_empty, setup_Snowflake):
     configKey = "Snowflake"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine
@@ -446,7 +446,7 @@ def setup_oracle(test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_oracle(ip_empty, setup_oracle, pytestconfig):
+def ip_with_oracle(ip_empty, setup_oracle):
     configKey = "oracle"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine
