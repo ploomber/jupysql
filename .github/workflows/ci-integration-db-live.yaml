@@ -55,6 +55,10 @@ jobs:
           SF_USERNAME: ${{ secrets.SF_USERNAME }}
           SF_PASSWORD: ${{ secrets.SF_PASSWORD }}
           SF_DATABASE: ${{ secrets.SF_DATABASE }}
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_USERNAME: ${{ secrets.REDSHIFT_USERNAME }}
+          REDSHIFT_PASSWORD: ${{ secrets.REDSHIFT_PASSWORD }}
+
         run: |
 
           nox --session test_integration_cloud --no-install --reuse-existing-virtualenvs
