@@ -145,8 +145,6 @@ def test_integration(session):
         "pytest",
         "src/tests/integration",
         "-k",
-        "not snowflake",
-        "-k",
-        "not redshift",
+        "(snowflake or redshift)",
         "-v",
     )
