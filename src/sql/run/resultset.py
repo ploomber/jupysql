@@ -15,45 +15,11 @@ from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
 
 
-class ResultSetsManager:
-    def __init__(self) -> None:
-        self._results = defaultdict(list)
-
-    def append_to_key(self, key, result):
-        """
-        Append object to a given key, if it already exists, it doesn't add
-        a duplicate but moves it to the end
-        """
-        results_for_key = self._results[key]
-
-        if result in results_for_key:
-            results_for_key.remove(result)
-
-        results_for_key.append(result)
-
-    def is_last_for_key(self, key, result):
-        """
-        Check if the passed result is the last one for the given key,
-        returns True if there are no results for the key
-        """
-        results_for_key = self._results[key]
-
-        # if there are no results, return True to prevent triggering
-        # a query in the database
-        if not len(results_for_key):
-            return True
-
-        return results_for_key[-1] is result
-
-
 class ResultSet(ColumnGuesserMixin):
     """
     Results of a SQL query. Fetches rows lazily (only the necessary rows to show the
     preview based on the current configuration)
     """
-
-    # user to overcome drivers limitations, see @sqlaproxy for details
-    BY_CONNECTION = ResultSetsManager()
 
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
         self._config = config
@@ -85,11 +51,8 @@ class ResultSet(ColumnGuesserMixin):
 
         self._finished_init = True
 
-        # TODO: clean up, this is redundant
         if conn:
             conn._result_sets.append(self)
-
-        ResultSet.BY_CONNECTION.append_to_key(conn, self)
 
     @property
     def sqlaproxy(self):
@@ -97,7 +60,8 @@ class ResultSet(ColumnGuesserMixin):
         # create separate cursors, so whenever we have >1 ResultSet, the old ones
         # become outdated and fetching their results will return the results from
         # the last ResultSet. To fix this, we have to re-issue the query
-        is_last_result = ResultSet.BY_CONNECTION.is_last_for_key(self._conn, self)
+        is_last_result = self._conn._result_sets.is_last(self)
+
         is_duckdb_sqlalchemy = (
             self._dialect == "duckdb" and not self._conn.is_dbapi_connection
         )
@@ -114,7 +78,7 @@ class ResultSet(ColumnGuesserMixin):
             self._sqlaproxy = self._conn.raw_execute(self._statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
 
-            ResultSet.BY_CONNECTION.append_to_key(self._conn, self)
+            self._conn._result_sets.append(self)
 
         return self._sqlaproxy
 
