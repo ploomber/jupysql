@@ -17,7 +17,7 @@ from ploomber_core.exceptions import modify_exceptions
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
-from sql.error_message import detail
+from sql.sqlalchemy_error_handler import detail
 from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
 from sql.warnings import JupySQLQuotedNamedParametersWarning
 

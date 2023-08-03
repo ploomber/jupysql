@@ -40,7 +40,8 @@ from sql._patch import patch_ipython_usage_error
 from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
-from sql.error_message import detail
+from sql.sqlalchemy_error_handler import detail as sqlalchemy_detail
+from sql.db_specific_error_handler import detail as db_detail
 
 
 from ploomber_core.dependencies import check_installed
@@ -232,8 +233,7 @@ class SqlMagic(Magics, Configurable):
                         "Unrecognized argument(s): {}".format(check_argument)
                     )
 
-    def _error_handling(self, e, query):
-        detailed_msg = detail(e)
+    def _error_handling(self, e, query, detailed_msg):
         if self.short_errors:
             if detailed_msg is not None:
                 raise exceptions.RuntimeError(detailed_msg) from e
@@ -577,11 +577,13 @@ class SqlMagic(Magics, Configurable):
             StatementError,
         ) as e:
             # Sqlite apparently return all errors as OperationalError :/
-            self._error_handling(e, command.sql)
+            detailed_msg = sqlalchemy_detail(e)
+            self._error_handling(e, command.sql, detailed_msg)
         except Exception as e:
-            # handle DuckDB exceptions
-            if "Catalog Error" in str(e):
-                self._error_handling(e, command.sql)
+            # handle DB specific exceptions
+            detailed_msg = db_detail(e)
+            if detailed_msg is not None:
+                self._error_handling(e, command.sql, detailed_msg)
             else:
                 raise e
 

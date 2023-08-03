@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
-from sql.error_message import CTE_MSG
+from sql.sqlalchemy_error_handler import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
 
@@ -802,25 +802,7 @@ def test_sql_query(ip_with_dynamic_db, cell, request, test_table_name_dict):
         "cte-explicit",
     ],
 )
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        "ip_with_postgreSQL",
-        "ip_with_mySQL",
-        "ip_with_mariaDB",
-        "ip_with_SQLite",
-        "ip_with_duckDB_native",
-        "ip_with_duckDB",
-        pytest.param(
-            "ip_with_MSSQL",
-            marks=pytest.mark.xfail(
-                reason="We need to close any pending results for this to work"
-            ),
-        ),
-        "ip_with_Snowflake",
-        "ip_with_oracle",
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
@@ -833,27 +815,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
     assert out.error_in_exec is None
 
 
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db",
-    [
-        "ip_with_postgreSQL",
-        "ip_with_mySQL",
-        "ip_with_mariaDB",
-        "ip_with_SQLite",
-        pytest.param(
-            "ip_with_duckDB_native",
-            marks=pytest.mark.xfail(reason="Not yet implemented"),
-        ),
-        "ip_with_duckDB",
-        "ip_with_Snowflake",
-        pytest.param(
-            "ip_with_MSSQL", marks=pytest.mark.xfail(reason="Not yet implemented")
-        ),
-        pytest.param(
-            "ip_with_oracle", marks=pytest.mark.xfail(reason="Not yet implemented")
-        ),
-    ],
-)
+@pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 

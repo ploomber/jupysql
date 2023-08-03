@@ -1,6 +1,6 @@
 import pytest
 from IPython.core.error import UsageError
-from sql.error_message import CTE_MSG
+from sql.sqlalchemy_error_handler import CTE_MSG
 
 
 def test_trailing_semicolons_removed_from_cte(ip):
