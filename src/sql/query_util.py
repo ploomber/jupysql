@@ -77,7 +77,7 @@ def write_sql_with_markers(content, dependencies=None):
     content : str,
         snippet content
 
-    dependencies : dict, DEFUALT None
+    dependencies : dict, DEFAULT None
         A dictionary with
         key : snippet name
         value : content of the snippet

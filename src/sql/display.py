@@ -90,7 +90,7 @@ def message(message, style=None):
     message : str,
         Message to be passed to the user.
 
-    style : str, DEFUALT None
+    style : str, DEFAULT None
         CSS style to be applied to the message
     """
     display(Message(message, style))

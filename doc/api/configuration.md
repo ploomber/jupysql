@@ -244,7 +244,7 @@ print(res)
 
 ## `persist_snippets`
 
-```{versionadded} 0.9
+```{versionadded} 0.9.1
 ```
 
 Default: `False`
