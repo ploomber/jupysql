@@ -81,13 +81,29 @@ def extract_module_name_from_NoSuchModuleError(e):
     return str(e).split(":")[-1].split(".")[-1]
 
 
-"""
-When there is ModuleNotFoundError or NoSuchModuleError case
-Three types of suggestions will be shown when the missing module name is:
-1. Excepted in the pre-defined map, suggest the user to install the driver pkg
-2. Closely matched to the pre-defined map, suggest the user to type correct driver name
-3. Not found in the pre-defined map, suggest user to use valid driver pkg
-"""
+class ResultSetCollection:
+    def __init__(self) -> None:
+        self._result_sets = []
+
+    def append(self, result):
+        if result in self._result_sets:
+            self._result_sets.remove(result)
+
+        self._result_sets.append(result)
+
+    def is_last(self, result):
+        # if there are no results, return True to prevent triggering
+        # a query in the database
+        if not len(self._result_sets):
+            return True
+
+        return self._result_sets[-1] is result
+
+    def __iter__(self):
+        return iter(self._result_sets)
+
+    def __len__(self):
+        return len(self._result_sets)
 
 
 def get_missing_package_suggestion_str(e):
@@ -355,7 +371,7 @@ class AbstractConnection(abc.ABC):
         ConnectionManager.current = self
         ConnectionManager.connections[alias] = self
 
-        self._result_sets = []
+        self._result_sets = ResultSetCollection()
 
     @abc.abstractproperty
     def dialect(self):
