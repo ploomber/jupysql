@@ -275,13 +275,13 @@ with the following content:
 ```{code-cell} ipython3
 from pathlib import Path
 
-print(Path("path/jupysql-snippets/rated_high.sql").read_text())
+print(Path("jupysql-snippets/rated_high.sql").read_text())
 ```
 
 ```{code-cell} ipython3
 from pathlib import Path
 
-print(Path("path/jupysql-snippets/rated_high_change.sql").read_text())
+print(Path("jupysql-snippets/rated_high_change.sql").read_text())
 ```
 
 JupySQL will load the snippets when initializing the magic (`%load_ext sql`), 
