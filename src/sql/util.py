@@ -3,10 +3,15 @@ from sql import inspect
 import difflib
 from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
+from sql.parse import connection_from_dsn_section
+from sql.cmd.connect import CONNECTORWIDGET
 from sql import exceptions, display
 import json
 from pathlib import Path
 from ploomber_core.dependencies import requires
+from urllib.parse import urlparse
+from configparser import ConfigParser
+
 
 try:
     import toml
