@@ -29,7 +29,12 @@ At the moment, the only difference is that some features are only available when
 
 ```{code-cell} ipython3
 import pandas as pd
-df = pd.DataFrame({"x": range(10_000_000)})
+import numpy as np
+
+num_rows = 1_000_000
+num_cols = 100
+
+df = pd.DataFrame(np.random.randn(num_rows, num_cols))
 ```
 
 ## Raw DuckDB

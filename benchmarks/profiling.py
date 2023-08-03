@@ -11,8 +11,9 @@ from pandas import DataFrame
 import numpy as np
 
 num_rows = 1_000_000
+num_cols = 50
 
-df = DataFrame(np.random.randn(num_rows, 20))
+df = DataFrame(np.random.randn(num_rows, num_cols))
 
 magic = SqlMagic(InteractiveShell())
 
