@@ -819,7 +819,6 @@ def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
     assert isinstance(dframe, pl.DataFrame)
 
-
     # Disabling autopolars at this point should result in the default behavior
     ip.run_line_magic("config", "SqlMagic.autopolars = False")
     dframe = runsql(ip, "SELECT * FROM test;")
@@ -1747,6 +1746,7 @@ def test_snippet_sql_message(ip, capsys, per_snippets, expected_in_output):
     else:
         assert message not in snippets_output
 
+
 @pytest.mark.parametrize(
     "fixture_name",
     [
@@ -1884,4 +1884,3 @@ def test_warning_if_variable_defined_but_named_param_is_quoted(
         match=expected_warning,
     ):
         ip.run_cell(cell)
-
