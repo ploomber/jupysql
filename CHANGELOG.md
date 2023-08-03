@@ -2,6 +2,7 @@
 
 ## 0.9.1dev
 * [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
+* [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
 
 ## 0.9.0 (2023-08-01)
 
@@ -12,7 +13,6 @@
 * [Fix] Modified histogram query to ensure histogram binning is done correctly ([#751](https://github.com/ploomber/jupysql/issues/751))
 * [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
 * [Fix] Fixed vertical color breaks in histograms (#702)
-* [Feature] Adding `%config SqlMagic.persist_snippets` to store snippets as SQL files (#653)
 * [Fix] Showing feedback when switching connections (#727)
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
 * [Fix] Fix bug that caused the query transpilation process to fail when passing multiple statements
