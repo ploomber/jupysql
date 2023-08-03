@@ -1740,7 +1740,7 @@ def test_snippet_sql_message(ip, capsys, per_snippets, expected_in_output):
     ip.run_line_magic("config", f"SqlMagic.persist_snippets = {per_snippets}")
 
     snippets_output, _ = capsys.readouterr()
-    message = "Manual editing of .sql files may not be"
+    message = "Important: do not edit the stored .sql files directly"
     if expected_in_output:
         assert message in snippets_output
     else:
