@@ -19,7 +19,7 @@ myst:
 
 # DuckDB (native vs SQLAlchemy)
 
-Beginning in 0.9, JupySQL supports DuckDB via a native connection and SQLAlchemy, both with comparable performance.
+Beginning in 0.9, JupySQL supports DuckDB via a native connection and SQLAlchemy, both with comparable performance. JupySQL has adds a small overhead; however, this overhead is constant.
 
 At the moment, the only difference is that some features are only available when using SQLAlchemy.
 
