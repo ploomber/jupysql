@@ -4,7 +4,6 @@ from functools import reduce
 from io import StringIO
 import html
 from collections.abc import Iterable
-from collections import defaultdict
 
 
 import prettytable
