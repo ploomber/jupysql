@@ -400,6 +400,60 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
 @pytest.mark.parametrize(
     "ip_with_dynamic_db",
     [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
+        "ip_with_MSSQL",
+    ],
+)
+def test_sqlplot_bar(ip_with_dynamic_db, request, test_table_name_dict):
+    plt.cla()
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        f"%sql --save plot_something_subset --no-execute\
+          SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
+    )
+
+    cell = (
+        "%sqlplot bar --with plot_something_subset "
+        "--table plot_something_subset --column x"
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
+        "ip_with_MSSQL",
+    ],
+)
+def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
+    plt.cla()
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        f"%sql --save plot_something_subset --no-execute\
+          SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
+    )
+
+    cell = (
+        "%sqlplot pie --with plot_something_subset "
+        "--table plot_something_subset --column x"
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
         ("ip_with_postgreSQL"),
         ("ip_with_mySQL"),
         ("ip_with_mariaDB"),
