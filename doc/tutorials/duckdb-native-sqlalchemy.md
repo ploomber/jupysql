@@ -27,36 +27,45 @@ At the moment, the only difference is that some features are only available when
 
 ## Performance comparison (pandas)
 
-### DuckDB + SQLALchemy
-
 ```{code-cell} ipython3
 import pandas as pd
-
-df = pd.DataFrame({"x": range(1_000_000)})
+df = pd.DataFrame({"x": range(10_000_000)})
 ```
+
+## Raw DuckDB
+
+```{code-cell} ipython3
+import duckdb
+conn = duckdb.connect()
+```
+
+```{code-cell} ipython3
+%%timeit
+conn.execute("SELECT * FROM df").df()
+```
+
+### DuckDB + SQLALchemy
 
 ```{code-cell} ipython3
 %load_ext sql
 %config SqlMagic.autopandas = True
+%config SqlMagic.displaycon = False
 %sql duckdb:// --alias duckdb-sqlalchemy
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
 ## DuckDB + native
 
 ```{code-cell} ipython3
-import duckdb
-
-conn = duckdb.connect()
 %sql conn --alias duckdb-native
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
@@ -67,10 +76,17 @@ _ = %sql SELECT * FROM df
 %sql duckdb-sqlalchemy
 ```
 
+## Raw DuckDB
+
+```{code-cell} ipython3
+%%timeit
+conn.execute("SELECT * FROM df").pl()
+```
+
 ### DuckDB + SQLAlchemy
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
@@ -81,7 +97,7 @@ _ = %sql SELECT * FROM df
 ```
 
 ```{code-cell} ipython3
-%%time
+%%timeit
 _ = %sql SELECT * FROM df
 ```
 
