@@ -361,6 +361,7 @@ BOX_PLOT_FAIL_REASON = (
         "ip_with_postgreSQL",
         "ip_with_duckDB",
         "ip_with_redshift",
+        "ip_with_MSSQL",
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Custom driver not supported"),

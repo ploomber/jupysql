@@ -11,6 +11,8 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - Running queries with `%%sql` ✅
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
 - Plotting with `%%sqlplot histogram` ✅
 - Plotting with `ggplot` API ✅
 - Profiling tables with `%sqlcmd profile` ✅
@@ -20,8 +22,6 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - Interactive SQL queries via `--interact` ✅
 
 ## Snowflake
-
-**We're working on testing Snowflake, [see here](https://github.com/ploomber/jupysql/pull/336)**
 
 - Running queries with `%%sql` ✅
 - CTEs with `%%sql --save NAME` ✅
@@ -41,6 +41,8 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - Running queries with `%%sql` ✅
 - CTEs with `%%sql --save NAME` ✅
 - Plotting with `%%sqlplot boxplot` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
 - Plotting with `%%sqlplot histogram` ✅
 - Plotting with `ggplot` API ❓
 - Profiling tables with `%sqlcmd profile` ✅
@@ -70,9 +72,11 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 
 - Running queries with `%%sql` ✅
 - CTEs with `%%sql --save NAME` ✅
-- Plotting with `%%sqlplot boxplot` ❌
+- Plotting with `%%sqlplot boxplot` ✅
+- Plotting with `%%sqlplot bar` ✅
+- Plotting with `%%sqlplot pie` ✅
 - Plotting with `%%sqlplot histogram` ❌
-- Plotting with `ggplot` API ❌
+- Plotting with `ggplot` API ✅
 - Profiling tables with `%sqlcmd profile` ✅
 - Listing tables with `%sqlcmd tables` ✅
 - Listing columns with `%sqlcmd columns` ✅
