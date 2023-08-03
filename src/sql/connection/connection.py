@@ -99,6 +99,12 @@ class ResultSetCollection:
 
         return self._result_sets[-1] is result
 
+    def close_all(self):
+        for r in self._result_sets:
+            r.close()
+
+        self._result_sets = []
+
     def __iter__(self):
         return iter(self._result_sets)
 
@@ -562,7 +568,9 @@ class SQLAlchemyConnection(AbstractConnection):
             engine, self._url
         )
 
-        self._dialect = self._get_database_information()["dialect"]
+        db_info = self._get_database_information()
+        self._dialect = db_info["dialect"]
+        self._driver = db_info["driver"]
 
         autocommit = True if config is None else config.autocommit
 
@@ -593,6 +601,10 @@ class SQLAlchemyConnection(AbstractConnection):
     @property
     def dialect(self):
         return self._dialect
+
+    @property
+    def driver(self):
+        return self._driver
 
     def _connection_execute(self, query, parameters=None):
         """Call the connection execute method
@@ -669,6 +681,11 @@ class SQLAlchemyConnection(AbstractConnection):
         with_ : list, default None
             List of CTEs to use in the query
         """
+        # mssql with pyodbc does not support multiple open result sets, so we need
+        # to close them all before issuing a new query
+        if self.dialect == "mssql" and self.driver == "pyodbc":
+            self._result_sets.close_all()
+
         if with_:
             query = self._resolve_cte(query, with_)
 
@@ -789,6 +806,7 @@ class DBAPIConnection(AbstractConnection):
         _is_duckdb_native = _check_if_duckdb_dbapi_connection(connection)
 
         self._dialect = "duckdb" if _is_duckdb_native else None
+        self._driver = None
 
         # TODO: implement the dialect blacklist and add unit tests
         self._requires_manual_commit = True if config is None else config.autocommit
@@ -806,6 +824,10 @@ class DBAPIConnection(AbstractConnection):
     @property
     def dialect(self):
         return self._dialect
+
+    @property
+    def driver(self):
+        return self._driver
 
     def raw_execute(self, query, parameters=None, with_=None):
         """Run the query without any preprocessing
