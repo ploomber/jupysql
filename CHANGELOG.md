@@ -2,8 +2,11 @@
 
 ## 0.9.1dev
 * [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
+* [Doc] Add Redshift tutorial
 * [Feature] Adds Redshift support for `%sqlplot boxplot`
 * [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
+* [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
+
 ## 0.9.0 (2023-08-01)
 
 * [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization ([#689](https://github.com/ploomber/jupysql/issues/689))
