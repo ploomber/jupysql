@@ -11,6 +11,7 @@ from sql.cmd.test import test
 from sql.cmd.profile import profile
 from sql.cmd.explore import explore
 from sql.cmd.snippets import snippets
+from sql.cmd.connect import connect
 
 try:
     from traitlets.config.configurable import Configurable
@@ -51,6 +52,7 @@ class SqlCmdMagic(Magics, Configurable):
             "profile",
             "explore",
             "snippets",
+            "connect",
         ]
 
         VALID_COMMANDS_MSG = (
@@ -88,6 +90,7 @@ class SqlCmdMagic(Magics, Configurable):
             "profile": profile,
             "explore": explore,
             "snippets": snippets,
+            "connect": connect,
         }
 
         cmd = router.get(cmd_name)

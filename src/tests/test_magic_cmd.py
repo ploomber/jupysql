@@ -9,10 +9,18 @@ from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
+from sql.connection.connection import ConnectionManager
 
+jupysql_plugin_available = False
+try:
+    from jupysql_plugin.widgets import ConnectorWidget
+
+    jupysql_plugin_available = True
+except ImportError:
+    pass
 
 VALID_COMMANDS_MESSAGE = (
-    "Valid commands are: tables, " "columns, test, profile, explore, snippets"
+    "Valid commands are: tables, columns, test, profile, explore, snippets, connect"
 )
 
 
@@ -605,3 +613,112 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
     assert excinfo.value.error_type == "UsageError"
     assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"
+
+
+@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
+@pytest.mark.parametrize(
+    "file_content, num_conn, connections_lst",
+    [
+        (
+            """
+[conn1]
+drivername = sqlite
+""",
+            1,
+            [
+                {"name": "conn1", "driver": "sqlite"},
+            ],
+        ),
+        (
+            """
+[conn1]
+drivername = sqlite
+
+[conn2]
+drivername = sqlite
+
+[conn3]
+drivername = duckdb
+""",
+            3,
+            [
+                {"name": "conn1", "driver": "sqlite"},
+                {"name": "conn2", "driver": "sqlite"},
+                {"name": "conn3", "driver": "duckdb"},
+            ],
+        ),
+    ],
+)
+def test_connect(tmp_empty, ip_empty, file_content, num_conn, connections_lst):
+    Path("connections.ini").write_text(file_content)
+    ip_empty.run_cell("%load_ext sql")
+    assert len(ConnectionManager._get_connections()) == num_conn
+
+    connector_widget = ip_empty.run_cell("%sqlcmd connect").result
+    assert isinstance(connector_widget, ConnectorWidget)
+    assert connections_lst == connector_widget.stored_connections
+
+
+@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
+@pytest.mark.parametrize(
+    "file_content, num_conn, err_type, err_msg",
+    [
+        (
+            """
+[conn1]
+username = username
+password = password
+host = localhost
+atabase = database
+drivername = postgresql
+""",
+            0,
+            "TypeError",
+            "URL.create() got an unexpected keyword argument 'atabase'",
+        ),
+        (
+            """
+[conn1]
+username = username
+password = password
+host = localhost
+database = database
+drivername = postgresql
+port = test
+""",
+            0,
+            "ValueError",
+            "invalid literal for int() with base 10: 'test'",
+        ),
+    ],
+)
+def test_error_in_connections_ini(
+    tmp_empty, ip_empty, file_content, num_conn, err_type, err_msg
+):
+    Path("connections.ini").write_text(file_content)
+
+    with pytest.raises(UsageError) as error:
+        ip_empty.run_cell("%load_ext sql")
+
+    assert len(ConnectionManager._get_connections()) == num_conn
+    assert error.value.error_type == err_type
+    assert err_msg in str(error.value)
+
+
+@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
+def test_no_connections_ini(tmp_empty, ip_empty):
+    ip_empty.run_cell("%load_ext sql")
+    assert len(ConnectionManager._get_connections()) == 0
+
+    with pytest.raises(AttributeError):
+        ip_empty.run_cell("%sqlcmd connect")
+
+
+@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
+def test_no_conn_in_connections_ini(tmp_empty, ip_empty):
+    Path("connections.ini").write_text("")
+    ip_empty.run_cell("%load_ext sql")
+    assert len(ConnectionManager._get_connections()) == 0
+
+    with pytest.raises(AttributeError):
+        ip_empty.run_cell("%sqlcmd connect")
