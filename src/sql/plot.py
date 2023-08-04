@@ -5,9 +5,9 @@ from ploomber_core.dependencies import requires
 from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
-from sql.util import flatten
-from sqlalchemy.exc import ProgrammingError
+
 from sql import exceptions, display
+from sql.stats import _summary_stats
 
 try:
     import matplotlib.pyplot as plt
@@ -24,41 +24,6 @@ except ModuleNotFoundError:
 import sql.connection
 from sql.telemetry import telemetry
 import warnings
-from sql import util
-
-
-def _summary_stats(conn, table, column, with_=None):
-    """Compute percentiles and mean for boxplot"""
-
-    if not conn:
-        conn = sql.connection.ConnectionManager.current
-    driver = conn._get_database_information()["driver"]
-
-    template = Template(
-        """
-    SELECT
-    percentile_disc([0.25, 0.50, 0.75]) WITHIN GROUP \
-    (ORDER BY "{{column}}") AS percentiles,
-    AVG("{{column}}") AS mean,
-    COUNT(*) AS N
-    FROM "{{table}}"
-"""
-    )
-
-    query = template.render(table=table, column=column)
-
-    try:
-        values = conn.execute(query, with_).fetchone()
-    except ProgrammingError as e:
-        print(e)
-        raise exceptions.RuntimeError(
-            f"\nEnsure that percentile_disc function is available on {driver}."
-        )
-    except Exception as e:
-        raise e
-
-    keys = ["q1", "med", "q3", "mean", "N"]
-    return {k: float(v) for k, v in zip(keys, flatten(values))}
 
 
 def _whishi(conn, table, column, hival, with_=None):
@@ -140,9 +105,6 @@ def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
     """Compute statistics required to create a boxplot"""
     if not conn:
         conn = sql.connection.ConnectionManager.current
-
-    # calculating stats might fail on other DBs (percentile_disc)
-    util.support_only_sql_alchemy_connection("boxplot")
 
     def _compute_conf_interval(N, med, iqr):
         notch_min = med - 1.57 * iqr / np.sqrt(N)
