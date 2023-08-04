@@ -93,7 +93,7 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - Plotting with `%%sqlplot boxplot` ✅
 - Plotting with `%%sqlplot bar` ✅
 - Plotting with `%%sqlplot pie` ✅
-- Plotting with `%%sqlplot histogram` ✅
+- Plotting with `%%sqlplot histogram` ❌
 - Plotting with `ggplot` API ✅
 - Profiling tables with `%sqlcmd profile` ✅
 - Listing tables with `%sqlcmd tables` ✅
