@@ -422,9 +422,14 @@ class TableDescription(DatabaseInspection):
             warning_background = "white"
             warning_title = ""
 
-        database = ConnectionManager.current.url
-        db_driver = ConnectionManager.current._get_database_information()["driver"]
-        if "duckdb" in database:
+        current = ConnectionManager.current
+        if current.is_dbapi_connection:
+            database = current._dialect
+        else:
+            database = current.url
+        db_driver = current._get_database_information()["driver"]
+
+        if database and "duckdb" in database:
             db_message = ""
         else:
             db_message = f"""Following statistics are not available in
