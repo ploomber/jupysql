@@ -1,5 +1,6 @@
 ---
-:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
+og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
+og:description: 'duckdb'
 jupytext:
   notebook_metadata_filter: myst
   text_representation:
