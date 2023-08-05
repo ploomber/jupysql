@@ -1,3 +1,4 @@
+:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
 ---
 jupytext:
   notebook_metadata_filter: myst
@@ -17,11 +18,6 @@ myst:
     property=og:locale: en_US
     property=og:image:alt: 'Better SQL in Jupyter. 📊.'
 ---
-
-```{eval-rst}
-:og:description: Blendify Documentation
-:og:image: https://assets.nerf.studio/opg.png
-```
 
 # DuckDB
 
