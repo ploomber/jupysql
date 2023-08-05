@@ -288,11 +288,16 @@ def test_telemetry_execute_command_has_connection_info(
             "%sqlplot histogram --with plot_something_subset --table\
               plot_something_subset --column x --bins 10"
         ),
+        (
+            "%sqlplot histogram --with plot_something_subset --table\
+              plot_something_subset --column x --breaks 0 2 3 4 5"
+        ),
     ],
     ids=[
         "histogram",
         "hist",
         "histogram-bins",
+        "histogram-breaks",
     ],
 )
 @pytest.mark.parametrize(
@@ -361,6 +366,7 @@ BOX_PLOT_FAIL_REASON = (
         "ip_with_postgreSQL",
         "ip_with_duckDB",
         "ip_with_redshift",
+        "ip_with_MSSQL",
         pytest.param(
             "ip_with_duckDB_native",
             marks=pytest.mark.xfail(reason="Custom driver not supported"),
@@ -391,6 +397,60 @@ def test_sqlplot_boxplot(ip_with_dynamic_db, cell, request, test_table_name_dict
           SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
     )
 
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
+        "ip_with_MSSQL",
+    ],
+)
+def test_sqlplot_bar(ip_with_dynamic_db, request, test_table_name_dict):
+    plt.cla()
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        f"%sql --save plot_something_subset --no-execute\
+          SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
+    )
+
+    cell = (
+        "%sqlplot bar --with plot_something_subset "
+        "--table plot_something_subset --column x"
+    )
+    out = ip_with_dynamic_db.run_cell(cell)
+
+    assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db",
+    [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_redshift",
+        "ip_with_MSSQL",
+    ],
+)
+def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
+    plt.cla()
+
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        f"%sql --save plot_something_subset --no-execute\
+          SELECT * from {test_table_name_dict['plot_something']} LIMIT 3"
+    )
+
+    cell = (
+        "%sqlplot pie --with plot_something_subset "
+        "--table plot_something_subset --column x"
+    )
     out = ip_with_dynamic_db.run_cell(cell)
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
@@ -855,12 +915,7 @@ DROP TABLE my_numbers
         "ip_with_duckDB_native",
         "ip_with_duckDB",
         "ip_with_Snowflake",
-        pytest.param(
-            "ip_with_MSSQL",
-            marks=pytest.mark.xfail(
-                reason="We need to close existing result sets for this to work"
-            ),
-        ),
+        "ip_with_MSSQL",
         "ip_with_oracle",
     ],
 )
@@ -965,19 +1020,11 @@ CREATE_GLOBAL_TEMPORARY_TABLE = (
                 reason="We're executing operations in different cursors"
             ),
         ),
-        pytest.param(
-            "ip_with_MSSQL",
-            CREATE_TABLE,
-            marks=pytest.mark.xfail(
-                reason="We need to close all existing result sets for this to work"
-            ),
-        ),
+        ("ip_with_MSSQL", CREATE_TABLE),
         pytest.param(
             "ip_with_MSSQL",
             CREATE_TEMP_TABLE,
-            marks=pytest.mark.xfail(
-                reason="We need to close all existing result sets for this to work"
-            ),
+            marks=pytest.mark.xfail(reason="We need to fix the create table statement"),
         ),
         pytest.param(
             "ip_with_oracle",
@@ -1038,13 +1085,7 @@ SELECT * FROM {__TABLE_NAME__};
                 reason="We're executing operations in different cursors"
             ),
         ),
-        pytest.param(
-            "ip_with_MSSQL",
-            CREATE_TABLE,
-            marks=pytest.mark.xfail(
-                reason="We need to close all existing result sets for this to work"
-            ),
-        ),
+        ("ip_with_MSSQL", CREATE_TABLE),
         pytest.param(
             "ip_with_MSSQL",
             CREATE_TEMP_TABLE,
