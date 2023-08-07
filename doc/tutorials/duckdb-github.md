@@ -18,7 +18,6 @@ myst:
    
 ---
 
-:og:image: https://jupysql--685.org.readthedocs.build/en/685/_static/duckdb.png
 
 # Analyzing Github Data with JupySQL + DuckDB
 
