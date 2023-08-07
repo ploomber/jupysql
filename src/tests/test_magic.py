@@ -708,7 +708,7 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
     assert dframe["name"][0] == "foo"
@@ -747,27 +747,27 @@ def test_autopolars_infer_schema_length(ip):
 
 def test_mutex_autopolars_autopandas(ip):
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
 
     import pandas as pd
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pd.DataFrame
+    assert isinstance(dframe, pd.DataFrame)
 
     # Test that re-enabling autopolars works
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
 
     # Disabling autopolars at this point should result in the default behavior
     ip.run_line_magic("config", "SqlMagic.autopolars = False")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
 
 def test_csv(ip):

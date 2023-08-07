@@ -390,7 +390,7 @@ def test_table_profile_store(ip, tmp_empty):
 def test_table_profile_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
-        %%sql 
+        %%sql
         CREATE TABLE people (name varchar(50), number int, country varchar(50));
         INSERT INTO people VALUES ('joe', 82, 'usa');
         INSERT INTO people VALUES ('paula', 93, 'uk');
@@ -664,7 +664,7 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 def test_table_explore_with_snippets(ip, tmp_empty):
     ip.run_cell(
         """
-        %%sql 
+        %%sql
         CREATE TABLE people (name varchar(50), number int, country varchar(50));
         INSERT INTO people VALUES ('joe', 82, 'usa');
         INSERT INTO people VALUES ('paula', 93, 'uk');
