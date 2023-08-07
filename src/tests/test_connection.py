@@ -580,7 +580,6 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
 
 
-<<<<<<< HEAD
 def test_feedback_when_switching_connection_with_existing_connection(
     ip_empty, tmp_empty, capsys
 ):
@@ -591,7 +590,8 @@ def test_feedback_when_switching_connection_with_existing_connection(
 
     captured = capsys.readouterr()
     assert "" == captured.out.replace("\n", "")
-=======
+
+
 @pytest.fixture
 def conn_sqlalchemy_duckdb():
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
@@ -840,4 +840,3 @@ def test_result_set_collection_is_last():
     assert len(collection) == 2
     assert collection.is_last(first)
     assert not collection.is_last(second)
->>>>>>> master
