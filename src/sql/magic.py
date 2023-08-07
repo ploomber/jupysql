@@ -40,8 +40,7 @@ from sql._patch import patch_ipython_usage_error
 from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
-from sql.sqlalchemy_error_handler import detail as sqlalchemy_detail
-from sql.db_specific_error_handler import detail as db_detail
+from sql.sqlalchemy_error_handler import detail
 
 
 from ploomber_core.dependencies import check_installed
@@ -577,13 +576,21 @@ class SqlMagic(Magics, Configurable):
             StatementError,
         ) as e:
             # Sqlite apparently return all errors as OperationalError :/
-            detailed_msg = sqlalchemy_detail(e)
+            detailed_msg = detail(e)
             self._error_handling(e, command.sql, detailed_msg)
         except Exception as e:
             # handle DB specific exceptions
-            detailed_msg = db_detail(e)
-            if detailed_msg is not None:
-                self._error_handling(e, command.sql, detailed_msg)
+            DB_ERRORS = [
+                "duckdb.CatalogException",
+                "Parser Error",
+                "pyodbc.ProgrammingError",
+            ]
+            if any(msg in str(e) for msg in DB_ERRORS):
+                detailed_msg = detail(e)
+                if detailed_msg is not None:
+                    self._error_handling(e, command.sql, detailed_msg)
+                else:
+                    raise e
             else:
                 raise e
 
