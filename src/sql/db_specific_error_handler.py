@@ -9,9 +9,9 @@ DB_ERRORS = [
     "duckdb.CatalogException",
     "duckdb.ParserException",
     "Parser Error",
-    "ORA-",
+    "ORA",
+    "oracle",
     "pyodbc.ProgrammingError",
-    "oracledb.exceptions.DatabaseError",
 ]
 
 
