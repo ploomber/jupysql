@@ -44,6 +44,7 @@ def _is_table_not_found_error(error):
 
 def detail(original_error):
     original_error = str(original_error)
+    assert original_error == "Some"
     if any(msg in original_error for msg in DB_ERRORS) and (
         _is_syntax_error(original_error) or _is_table_not_found_error(original_error)
     ):
