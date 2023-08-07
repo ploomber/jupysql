@@ -16,6 +16,7 @@ def _is_syntax_error(error):
         "syntax error" in error_lower
         or "error in your sql syntax" in error_lower
         or "incorrect syntax" in error_lower
+        or "invalid sql" in error_lower
     )
 
 
