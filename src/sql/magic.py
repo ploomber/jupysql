@@ -40,7 +40,7 @@ from sql._patch import patch_ipython_usage_error
 from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
-from sql.sqlalchemy_error_handler import detail
+from sql.error_handler import detail
 
 
 from ploomber_core.dependencies import check_installed

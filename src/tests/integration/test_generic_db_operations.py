@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.telemetry import telemetry
-from sql.sqlalchemy_error_handler import CTE_MSG
+from sql.error_handler import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
 
