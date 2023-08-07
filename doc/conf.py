@@ -102,7 +102,6 @@ pygments_style = "sphinx"
 suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
-# ogp_site_url = "https://jupysql.ploomber.io/en/latest/"
 ogp_image = "/en/685/_static/html-meta-template.png"
 
 

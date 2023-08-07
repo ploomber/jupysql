@@ -1,5 +1,5 @@
 ---
-:og:image: /en/685/_static/duckdb.png
+og:image: en/685/_static/duckdb.png
 og:description: 'duckdb'
 jupytext:
   notebook_metadata_filter: myst
