@@ -1,11 +1,9 @@
-import warnings
 import re
 import operator
 from functools import reduce
 from io import StringIO
 import html
 from collections.abc import Iterable
-from collections import defaultdict
 
 
 import prettytable
@@ -14,38 +12,6 @@ from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
 from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
-from sql.warnings import JupySQLDataFramePerformanceWarning
-
-
-class ResultSetsManager:
-    def __init__(self) -> None:
-        self._results = defaultdict(list)
-
-    def append_to_key(self, key, result):
-        """
-        Append object to a given key, if it already exists, it doesn't add
-        a duplicate but moves it to the end
-        """
-        results_for_key = self._results[key]
-
-        if result in results_for_key:
-            results_for_key.remove(result)
-
-        results_for_key.append(result)
-
-    def is_last_for_key(self, key, result):
-        """
-        Check if the passed result is the last one for the given key,
-        returns True if there are no results for the key
-        """
-        results_for_key = self._results[key]
-
-        # if there are no results, return True to prevent triggering
-        # a query in the database
-        if not len(results_for_key):
-            return True
-
-        return results_for_key[-1] is result
 
 
 class ResultSet(ColumnGuesserMixin):
@@ -54,10 +20,8 @@ class ResultSet(ColumnGuesserMixin):
     preview based on the current configuration)
     """
 
-    # user to overcome drivers limitations, see @sqlaproxy for details
-    BY_CONNECTION = ResultSetsManager()
-
     def __init__(self, sqlaproxy, config, statement=None, conn=None):
+        self._closed = False
         self._config = config
         self._statement = statement
         self._sqlaproxy = sqlaproxy
@@ -87,24 +51,31 @@ class ResultSet(ColumnGuesserMixin):
 
         self._finished_init = True
 
-        # TODO: clean up, this is redundant
         if conn:
             conn._result_sets.append(self)
 
-        ResultSet.BY_CONNECTION.append_to_key(conn, self)
-
     @property
     def sqlaproxy(self):
+        conn = self._conn
+
+        # mssql with pyodbc does not support multiple open result sets, so we need
+        # to close them all. when running this, we might've already closed the results
+        # so we need to check for that and re-open the results if needed
+        if conn.dialect == "mssql" and conn.driver == "pyodbc" and self._closed:
+            self._conn._result_sets.close_all()
+            self._sqlaproxy = self._conn.raw_execute(self._statement)
+            self._sqlaproxy.fetchmany(size=len(self._results))
+            self._conn._result_sets.append(self)
+
         # there is a problem when using duckdb + sqlalchemy: duckdb-engine doesn't
         # create separate cursors, so whenever we have >1 ResultSet, the old ones
         # become outdated and fetching their results will return the results from
         # the last ResultSet. To fix this, we have to re-issue the query
-        is_last_result = ResultSet.BY_CONNECTION.is_last_for_key(self._conn, self)
+        is_last_result = self._conn._result_sets.is_last(self)
+
         is_duckdb_sqlalchemy = (
             self._dialect == "duckdb" and not self._conn.is_dbapi_connection
         )
-
-        # TODO: re-open it if closed
 
         if (
             # skip this if we're initializing the object (we're running __init__)
@@ -116,7 +87,8 @@ class ResultSet(ColumnGuesserMixin):
             self._sqlaproxy = self._conn.raw_execute(self._statement)
             self._sqlaproxy.fetchmany(size=len(self._results))
 
-            ResultSet.BY_CONNECTION.append_to_key(self._conn, self)
+            # ensure we make his result set the last one
+            self._conn._result_sets.append(self)
 
         return self._sqlaproxy
 
@@ -262,8 +234,7 @@ class ResultSet(ColumnGuesserMixin):
         payload["connection_info"] = self._conn._get_database_information()
         import pandas as pd
 
-        kwargs = {"columns": (self and self.keys) or []}
-        return _convert_to_data_frame(self, "df", pd.DataFrame, kwargs)
+        return _convert_to_data_frame(self, "df", pd.DataFrame)
 
     @telemetry.log_call("polars-data-frame")
     def PolarsDataFrame(self, **polars_dataframe_kwargs):
@@ -446,6 +417,10 @@ class ResultSet(ColumnGuesserMixin):
 
         return pretty
 
+    def close(self):
+        self._sqlaproxy.close()
+        self._closed = True
+
 
 def unduplicate_field_names(field_names):
     """Append a number to duplicate field names to make them unique."""
@@ -463,11 +438,22 @@ def unduplicate_field_names(field_names):
 def _convert_to_data_frame(
     result_set, converter_name, constructor, constructor_kwargs=None
 ):
+    """
+    Convert the result set to a pandas DataFrame, using native DuckDB methods if
+    possible
+    """
     constructor_kwargs = constructor_kwargs or {}
-    has_converter_method = hasattr(result_set.sqlaproxy, converter_name)
+
+    # maybe create accessors in the connection objects?
+    if result_set._conn.is_dbapi_connection:
+        native_connection = result_set.sqlaproxy
+    else:
+        native_connection = result_set._conn._connection.connection
+
+    has_converter_method = hasattr(native_connection, converter_name)
 
     # native duckdb connection
-    if hasattr(result_set.sqlaproxy, converter_name):
+    if has_converter_method:
         # we need to re-execute the statement because if we fetched some rows
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
@@ -475,36 +461,17 @@ def _convert_to_data_frame(
         is_select = _statement_is_select(result_set._statement)
 
         if is_select:
-            result_set.sqlaproxy.execute(result_set._statement)
+            native_connection.execute(result_set._statement)
 
-        return getattr(result_set.sqlaproxy, converter_name)()
+        return getattr(native_connection, converter_name)()
     else:
+        if converter_name == "df":
+            constructor_kwargs["columns"] = result_set.keys
+
         frame = constructor(
             (tuple(row) for row in result_set),
             **constructor_kwargs,
         )
-
-        # NOTE: in JupySQL 0.7.9, we were opening a raw new connection so people
-        # using SQLALchemy still had the native performance to convert to data frames
-        # but this led to other problems because the native connection didn't
-        # have the same state as the SQLAlchemy connection, yielding confusing
-        # errors. So we decided to remove this and just warn the user that
-        # performance might be slow and they could use a native connection
-        if (
-            result_set._dialect == "duckdb"
-            and not has_converter_method
-            and len(frame) >= 1_000
-        ):
-            DOCS = "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html"
-            WARNINGS = "https://jupysql.ploomber.io/en/latest/tutorials/duckdb-native-sqlalchemy.html#supress-warnings"  # noqa: E501
-
-            warnings.warn(
-                "It looks like you're using DuckDB with SQLAlchemy. "
-                "For faster conversions, use "
-                f" a DuckDB native connection. Docs: {DOCS}."
-                f" to suppress this warning, see: {WARNINGS}",
-                category=JupySQLDataFramePerformanceWarning,
-            )
 
         return frame
 
