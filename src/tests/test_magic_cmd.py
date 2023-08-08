@@ -10,14 +10,8 @@ from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
 from sql.connection.connection import ConnectionManager
+from jupysql_plugin.widgets import ConnectorWidget
 
-jupysql_plugin_available = False
-try:
-    from jupysql_plugin.widgets import ConnectorWidget
-
-    jupysql_plugin_available = True
-except ImportError:
-    pass
 
 VALID_COMMANDS_MESSAGE = (
     "Valid commands are: tables, columns, test, profile, explore, snippets, connect"
@@ -615,7 +609,6 @@ def test_delete_invalid_snippet(arg, ip_snippets):
     assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"
 
 
-@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
 @pytest.mark.parametrize(
     "file_content, num_conn, connections_lst",
     [
@@ -659,7 +652,6 @@ def test_connect(tmp_empty, ip_empty, file_content, num_conn, connections_lst):
     assert connections_lst == connector_widget.stored_connections
 
 
-@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
 @pytest.mark.parametrize(
     "file_content, num_conn, err_type, err_msg",
     [
@@ -674,7 +666,7 @@ drivername = postgresql
 """,
             0,
             "TypeError",
-            "URL.create() got an unexpected keyword argument 'atabase'",
+            "got an unexpected keyword argument 'atabase'",
         ),
         (
             """
@@ -705,7 +697,6 @@ def test_error_in_connections_ini(
     assert err_msg in str(error.value)
 
 
-@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
 def test_no_connections_ini(tmp_empty, ip_empty):
     ip_empty.run_cell("%load_ext sql")
     assert len(ConnectionManager._get_connections()) == 0
@@ -714,7 +705,6 @@ def test_no_connections_ini(tmp_empty, ip_empty):
         ip_empty.run_cell("%sqlcmd connect")
 
 
-@pytest.mark.skipif(not jupysql_plugin_available, reason="jupysql_plugin not installed")
 def test_no_conn_in_connections_ini(tmp_empty, ip_empty):
     Path("connections.ini").write_text("")
     ip_empty.run_cell("%load_ext sql")

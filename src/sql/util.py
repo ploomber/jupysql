@@ -4,14 +4,12 @@ import difflib
 from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql.parse import connection_from_dsn_section
-from sql.cmd.connect import CONNECTORWIDGET
 from sql import exceptions, display
+from sql.cmd.connect import get_connections_config_file
 import json
 from pathlib import Path
 from ploomber_core.dependencies import requires
-from urllib.parse import urlparse
-from configparser import ConfigParser
-
+from IPython.core.error import UsageError
 
 try:
     import toml
@@ -501,81 +499,38 @@ def get_default_configs(sql):
     return default_configs
 
 
-def parse_connect_arg(connect_arg):
-    if not isinstance(connect_arg, str):
-        url = urlparse(str(connect_arg.url))
-    else:
-        url = urlparse(connect_arg)
-
-    username, password = url.username, url.password
-    host, port = url.hostname, url.port
-    database, drivername = url.path, url.scheme
-    if database.startswith("/"):
-        database = database[1:]
-
-    return {
-        "username": username,
-        "password": password,
-        "host": host,
-        "port": port,
-        "database": database,
-        "drivername": drivername,
-    }
-
-
-def get_config_file():
-    config = ConfigParser()
-    config.read("connections.ini")
-    return config
-
-
 def load_conn_config(displaycon):
-    if CONNECTORWIDGET:
+    class Config:
+        dsn_filename = Path("connections.ini")
 
-        class Config:
-            dsn_filename = Path("connections.ini")
-
-        config = get_config_file()
-        sections = config.sections()
-        if sections:
-            for section in sections:
-                try:
-                    connection_string = connection_from_dsn_section(
-                        section=section, config=Config()
-                    )
-                except TypeError as e:
-                    raise exceptions.TypeError(str(e))
-                except ValueError as e:
-                    raise exceptions.ValueError(str(e))
-
-                ConnectionManager.set(
-                    connection_string,
-                    displaycon=displaycon,
-                    alias=section,
+    config = get_connections_config_file()
+    sections = config.sections()
+    if sections:
+        for section in sections:
+            try:
+                connection_string = connection_from_dsn_section(
+                    section=section, config=Config()
                 )
+            except TypeError as e:
+                raise exceptions.TypeError(str(e))
+            except ValueError as e:
+                raise exceptions.ValueError(str(e))
 
-            update_connectorwidget_connect(
-                sections[-1], config[sections[-1]]["drivername"]
-            )
-            update_connectorwidget_stored_conn(config)
+            validate_and_set_connection(connection_string, displaycon, section)
 
 
-def update_connectorwidget_connect(alias, drivername):
+def validate_and_set_connection(connection_string, displaycon, section):
     try:
-        CONNECTORWIDGET._connect({"name": alias, "driver": drivername})
-        CONNECTORWIDGET.send({"method": "connected", "message": alias})
-    except Exception as e:
-        CONNECTORWIDGET.send_error_message_to_front(e)
-
-
-def update_connectorwidget_stored_conn(current_config):
-    sections = current_config.sections()
-    if len(sections) > 0:
-        connections = [
-            {"name": s, "driver": current_config[s]["drivername"]} for s in sections
-        ]
-
-        CONNECTORWIDGET.stored_connections = connections
-        CONNECTORWIDGET.send(
-            {"method": "update_connections", "message": json.dumps(connections)}
+        ConnectionManager.set(
+            connection_string,
+            displaycon=displaycon,
+            alias=section,
         )
+    except AttributeError:
+        raise exceptions.AttributeError(
+            "connections.ini has been incorrectly configured."
+        )
+    except UsageError as e:
+        err_msg = str(e).split("\n\n")
+        err_msg[0] = f"{err_msg[0]} from connections.ini"
+        raise exceptions.MissingPackageError("\n\n".join(err_msg))

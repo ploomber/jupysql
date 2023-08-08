@@ -20,47 +20,42 @@ myst:
 
 # `%sqlcmd connect`
 
-`%sqlcmd connect` displays a ConnectorWidget that shows loaded connections through `connections.ini`.
+`%sqlcmd connect` displays a widget that shows existing connections and allows users to create new connections.
 
 ## Installation
-Since `%sqlcmd connect` uses an optional `jupysql_plugin` package, please ensure that you have installed the latest version of the JupySQL plugin by running the following command: `pip install jupysql-plugin --upgrade`.
+Since `%sqlcmd connect` uses an optional `jupysql_plugin` package, please ensure that you have installed the latest version of the JupySQL plugin by running the following command: 
 
-```{code-cell} ipython3
-%pip install jupysql_plugin jupyter_server --upgrade --quiet
+```sh
+pip install jupysql-plugin --upgrade
 ```
 
-## Store connections in connections.ini
++++
 
-For every connection, the alias should be enclosed within brackets [], followed by the corresponding connection details. When connecting using sqlite or duckdb, only the `drivername` needs to be specified. For postgresql or snowflake connections, the `username`, `password`, `host`, `database`, and `drivername` are required. For mysql or mariadb connections, the `port` also needs to be specified.
+## Store connections in `connections.ini`
 
-```{code-cell} ipython3
-from pathlib import Path
+For every connection, the alias should be enclosed within brackets [], followed by the corresponding connection details. When connecting using sqlite or duckdb, only the `drivername` needs to be specified. For postgresql and snowflake connections, the `username`, `password`, `host`, `database`, and `drivername` are required, and for mysql and mariadb connections, the `port` also needs to be specified.
 
-# generate connections.ini
-Path("connections.ini").write_text(
-    """[conn1]
-drivername = sqlite
+![format](../static/sample-connections-ini.png)
 
-[conn2]
-drivername = duckdb
-"""
-)
-```
-
-```{code-cell} ipython3
-%load_ext sql
-```
++++
 
 ## `%sqlcmd connect`
 
-Displays existing connections. Using the provided widget, you can easily connect to a different connection, remove an existing connection, or create a new connection by interacting with the corresponding buttons.
+Displays existing connections. 
 
-```{code-cell} ipython3
-%sqlcmd connect
-```
+### Connect to a connection
+Using the provided widget, you can easily connect to a different connection by clicking the Connect button on the right.
 
-## Current connections
+![connect](../static/connect-demonstration.gif)
 
-```{code-cell} ipython3
-%sql --connections
-```
+### Delete a connection
+
+You can delete an existing connection by clicking the trash bin icon located on the right.
+
+![delete](../static/delete-demonstration.gif)
+
+### Create a new connection
+
+You can create a new connection by clicking the 'Create new connection' and filling up the required information.
+
+![create](../static/create-demonstration.gif)
