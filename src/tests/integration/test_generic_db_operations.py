@@ -7,7 +7,7 @@ from sql.telemetry import telemetry
 from sql.error_message import CTE_MSG
 from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
-import sql.util
+from IPython.utils.io import capture_output
 import math
 
 ALL_DATABASES = [
@@ -1097,134 +1097,47 @@ SELECT * FROM {__TABLE_NAME__};
     assert len(result) == 3
 
 
-@pytest.mark.parametrize(
-    "table, offset, n_rows, expected_rows, expected_columns",
-    [
-        pytest.param(
-            "test_numbers",
-            0,
-            0,
-            [],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            5,
-            0,
-            [],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            50,
-            0,
-            [],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            50,
-            10,
-            [],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            0,
-            2,
-            [(0, 1), (0, 0)],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            0,
-            10,
-            [
-                (0, 1),
-                (0, 0),
-                (5, 2),
-                (6, 3),
-                (7, 3),
-                (8, 8),
-                (9, 3),
-                (10, 5),
-                (11, 9),
-                (12, 19),
-            ],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            0,
-            5,
-            [(0, 1), (0, 0), (5, 2), (6, 3), (7, 3)],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-        pytest.param(
-            "test_numbers",
-            5,
-            5,
-            [(8, 8), (9, 3), (10, 5), (11, 9), (12, 19)],
-            ["value_one", "value_two"],
-            marks=pytest.mark.xfail(
-                reason="There may be an issue due to code refactoring"
-            ),
-        ),
-    ],
-)
 @pytest.mark.parametrize("ip_with_dynamic_db", ALL_DATABASES)
 def test_explore_fetch_sql_with_pagination(
     ip_with_dynamic_db,
     request,
-    table,
-    offset,
-    n_rows,
-    expected_rows,
-    expected_columns,
     tmp_empty,
 ):
+    if ip_with_dynamic_db not in [
+        "ip_with_postgreSQL",
+        "ip_with_duckDB",
+        "ip_with_SQLite",
+    ]:
+        pytest.xfail(reason="There may be an issue due to code refactoring")
+
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+
     ip_with_dynamic_db.run_cell(
         """
     %%sql
-    CREATE TABLE test_numbers (value_one, value_two);
-    INSERT INTO test_numbers VALUES (0, 1);
-    INSERT INTO test_numbers VALUES (0, 0);
-    INSERT INTO test_numbers VALUES (5, 2);
-    INSERT INTO test_numbers VALUES (6, 3);
-    INSERT INTO test_numbers VALUES (7, 3);
-    INSERT INTO test_numbers VALUES (8, 8);
-    INSERT INTO test_numbers VALUES (9, 3);
-    INSERT INTO test_numbers VALUES (10, 5);
-    INSERT INTO test_numbers VALUES (11, 9);
-    INSERT INTO test_numbers VALUES (12, 19);
-    INSERT INTO test_numbers VALUES (13, 40);
-    INSERT INTO test_numbers VALUES (14, 39);
-    INSERT INTO test_numbers VALUES (15, 13);
+    CREATE TABLE people (name varchar(50), number int, country varchar(50));
+    INSERT INTO people VALUES ('joe', 82, 'usa');
+    INSERT INTO people VALUES ('paula', 93, 'uk');
+    INSERT INTO people VALUES ('sam', 77, 'canada');
+    INSERT INTO people VALUES ('emily', 65, 'usa');
+    INSERT INTO people VALUES ('michael', 89, 'usa');
+    INSERT INTO people VALUES ('sarah', 81, 'uk');
+    INSERT INTO people VALUES ('james', 76, 'usa');
+    INSERT INTO people VALUES ('angela', 88, 'usa');
+    INSERT INTO people VALUES ('robert', 82, 'usa');
+    INSERT INTO people VALUES ('lisa', 92, 'uk');
+    INSERT INTO people VALUES ('mark', 77, 'usa');
+    INSERT INTO people VALUES ('jennifer', 68, 'australia');
     """
     )
-    rows, columns = sql.util.fetch_sql_with_pagination(table, offset, n_rows)
-    ip_with_dynamic_db.run_cell("""%sql DROP TABLE test_numbers""")
-    assert rows == expected_rows
-    assert columns == expected_columns
+    ip_with_dynamic_db.run_cell(
+        """
+        %%sql --save citizen
+        select * from people where country = 'usa'
+        """
+    )
+    with capture_output() as captured:
+        ip_with_dynamic_db.run_cell("%sqlcmd explore -t citizen")
+
+    assert "sql.widgets.table_widget.table_widget.TableWidget object" in captured.stdout
+    ip_with_dynamic_db.run_cell("""%sql DROP TABLE people""")
