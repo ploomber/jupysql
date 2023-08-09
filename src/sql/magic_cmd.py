@@ -4,7 +4,7 @@ import argparse
 from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from sql import util
+from sql.inspect import support_only_sql_alchemy_connection
 from sql.cmd.tables import tables
 from sql.cmd.columns import columns
 from sql.cmd.test import test
@@ -86,7 +86,7 @@ class SqlCmdMagic(Magics, Configurable):
                     )
 
                 if command in COMMANDS_SQLALCHEMY_ONLY:
-                    util.support_only_sql_alchemy_connection(f"%sqlcmd {command}")
+                    support_only_sql_alchemy_connection(f"%sqlcmd {command}")
 
                 return self.execute(command, others)
             else:

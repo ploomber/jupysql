@@ -33,6 +33,8 @@
 * [Fix] Fix Twice message printing when switching to the current connection ([#772](https://github.com/ploomber/jupysql/issues/772))
 * [Fix] Error when using %sqlplot in snowflake ([#697](https://github.com/ploomber/jupysql/issues/697))
 * [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
+* [Fix] Resolve circular dependency issue occurring due to multiple imports in `util.py`
+* [Fix] Handling of DuckDB `Parser Error` and `pyodbc.ProgrammingError`
 
 ## 0.9.1 (2023-08-10)
 
