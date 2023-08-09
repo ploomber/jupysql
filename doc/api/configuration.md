@@ -101,11 +101,11 @@ The data of each column is now stored as
 a list with variable name of the column.
 
 ```{code-cell} ipython3
-%sql print(name)
+print(name)
 ```
 
 ```{code-cell} ipython3
-%sql print(rating)
+print(rating)
 ```
 
 ## `autolimit`
