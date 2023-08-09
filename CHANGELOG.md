@@ -7,6 +7,7 @@
 * [Feature] Adds Redshift support for `%sqlplot boxplot`
 * [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
 * [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
+* [Doc] Added `autocommit` `short_errors` `column_local_vars` `dsn_filename` to configuration doc [#691]
 
 ## 0.9.0 (2023-08-01)
 
