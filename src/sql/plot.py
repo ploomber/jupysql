@@ -8,6 +8,7 @@ from jinja2 import Template
 
 from sql import exceptions, display
 from sql.stats import _summary_stats
+from sql.util import pretty_print
 
 try:
     import matplotlib.pyplot as plt
@@ -268,7 +269,7 @@ def _are_numeric_values(*values):
     return all([isinstance(value, (int, float)) for value in values])
 
 
-def _get_bar_width(ax, bins, bin_size):
+def _get_bar_width(ax, bins, bin_size, binwidth):
     """
     Return a single bar width based on number of bins
     or a list of bar widths if `breaks` is given.
@@ -286,6 +287,9 @@ def _get_bar_width(ax, bins, bin_size):
         Calculated bin_size from the _histogram function
         or from consecutive differences in `breaks`
 
+    binwidth : int or float or None
+        Specified binwidth from a user
+
     Returns
     -------
     width : float
@@ -293,6 +297,8 @@ def _get_bar_width(ax, bins, bin_size):
     """
     if _are_numeric_values(bin_size) or isinstance(bin_size, list):
         width = bin_size
+    elif _are_numeric_values(binwidth):
+        width = binwidth
     else:
         fig = plt.gcf()
         bbox = ax.get_window_extent()
@@ -318,6 +324,7 @@ def histogram(
     ax=None,
     facet=None,
     breaks=None,
+    binwidth=None,
 ):
     """Plot histogram
 
@@ -371,10 +378,34 @@ def histogram(
                 f"Breaks given : {breaks}. When using breaks, please ensure that "
                 "breaks are strictly increasing."
             )
-        if bins:
+
+    if _are_numeric_values(binwidth):
+        if binwidth <= 0:
             raise exceptions.ValueError(
-                "Both bins and breaks are specified. Must specify only one of them."
+                f"Binwidth given : {binwidth}. When using binwidth, please ensure to "
+                "pass a positive value."
             )
+        binwidth = float(binwidth)
+    elif binwidth is None:
+        pass
+    else:
+        raise exceptions.ValueError(
+            f"Binwidth given : {binwidth}. When using binwidth, please ensure to "
+            "pass a numeric value."
+        )
+
+    specified_args = [
+        args
+        for args, specified in zip(
+            ["bins", "breaks", "binwidth"], [bins, breaks, binwidth]
+        )
+        if specified
+    ]
+    if len(specified_args) > 1:
+        raise exceptions.ValueError(
+            f"{pretty_print(specified_args)} are specified. "
+            "You can only specify one of them."
+        )
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
@@ -393,9 +424,15 @@ def histogram(
             raise ValueError("Column name has not been specified")
 
         bin_, height, bin_size = _histogram(
-            table, column, bins, with_=with_, conn=conn, breaks=breaks
+            table,
+            column,
+            bins,
+            with_=with_,
+            conn=conn,
+            breaks=breaks,
+            binwidth=binwidth,
         )
-        width = _get_bar_width(ax, bin_, bin_size)
+        width = _get_bar_width(ax, bin_, bin_size, binwidth)
         data = _histogram_stacked(
             table,
             column,
@@ -406,6 +443,7 @@ def histogram(
             conn=conn,
             facet=facet,
             breaks=breaks,
+            binwidth=binwidth,
         )
         cmap = plt.get_cmap(cmap or "viridis")
         norm = Normalize(vmin=0, vmax=len(data))
@@ -449,9 +487,16 @@ def histogram(
         ax.legend(handles[::-1], labels[::-1])
     elif isinstance(column, str):
         bin_, height, bin_size = _histogram(
-            table, column, bins, with_=with_, conn=conn, facet=facet, breaks=breaks
+            table,
+            column,
+            bins,
+            with_=with_,
+            conn=conn,
+            facet=facet,
+            breaks=breaks,
+            binwidth=binwidth,
         )
-        width = _get_bar_width(ax, bin_, bin_size)
+        width = _get_bar_width(ax, bin_, bin_size, binwidth)
 
         ax.bar(
             bin_,
@@ -472,9 +517,16 @@ def histogram(
             )
         for i, col in enumerate(column):
             bin_, height, bin_size = _histogram(
-                table, col, bins, with_=with_, conn=conn, facet=facet, breaks=breaks
+                table,
+                col,
+                bins,
+                with_=with_,
+                conn=conn,
+                facet=facet,
+                breaks=breaks,
+                binwidth=binwidth,
             )
-            width = _get_bar_width(ax, bin_, bin_size)
+            width = _get_bar_width(ax, bin_, bin_size, binwidth)
 
             if isinstance(color, list):
                 color_ = color[i]
@@ -505,7 +557,9 @@ def histogram(
 
 
 @modify_exceptions
-def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=None):
+def _histogram(
+    table, column, bins, with_=None, conn=None, facet=None, breaks=None, binwidth=None
+):
     """Compute bins and heights"""
     if not conn:
         conn = sql.connection.ConnectionManager.current
@@ -576,7 +630,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=No
             query = template.render(
                 table=table, column=column, filter_query=filter_query
             )
-        elif not isinstance(bins, int):
+        elif not binwidth and not isinstance(bins, int):
             raise ValueError(
                 f"bins are '{bins}'. Please specify a valid number of bins."
             )
@@ -584,7 +638,10 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None, breaks=No
             # Use bins - 1 instead of bins and round half down instead of floor
             # to mimic right-closed histogram intervals in R ggplot
             range_ = max_ - min_
-            bin_size = range_ / (bins - 1)
+            if binwidth:
+                bin_size = binwidth
+            else:
+                bin_size = range_ / (bins - 1)
             template_ = """
                 select
                 ceiling("{{column}}"/{{bin_size}} - 0.5)*{{bin_size}} as bin,
@@ -638,6 +695,7 @@ def _histogram_stacked(
     conn=None,
     facet=None,
     breaks=None,
+    binwidth=None,
 ):
     """Compute the corresponding heights of each bin based on the category"""
     if not conn:
@@ -654,6 +712,8 @@ def _histogram_stacked(
             cases.append(case)
         cases[0] = cases[0].replace(">", ">=", 1)
     else:
+        if binwidth:
+            bin_size = binwidth
         tolerance = bin_size / 1000  # Use to avoid floating point error
         for bin in bins:
             # Use round half down instead of floor to mimic

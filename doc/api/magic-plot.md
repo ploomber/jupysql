@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -128,7 +128,13 @@ Shortcut: `%sqlplot hist`
 
 `-B`/`--breaks` Custom bin intervals
 
+`-W`/`--binwidth` Width of each bin
+
 `-w`/`--with` Use a previously saved query as input data
+
+```{note}
+When using -b/--bins, -B/--breaks, or -W/--binwidth, you can only specify one of them. If none of them is specified, the default value for -b/--bins will be used.
+```
 
 +++
 
@@ -155,10 +161,18 @@ When plotting a histogram, it divides a range with the number of bins - 1 to cal
 
 ### Specifying breaks
 
-Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired each end and break points separated by whitespace after `-B/--breaks`. Since those break points define a range of data points to plot, bar width, and number of bars in a histogram, make sure to pass more than 1 point that is strictly increasing and includes at least one data point. Note that using both `-b/--bins` and `-B/--breaks` isn't allowed. 
+Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired each end and break points separated by whitespace after `-B/--breaks`. Since those break points define a range of data points to plot, bar width, and number of bars in a histogram, make sure to pass more than 1 point that is strictly increasing and includes at least one data point.
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g --breaks 3200 3400 3600 3800 4000 4200 4400 4600 4800
+```
+
+### Specifying binwidth
+
+Binwidth allows you to set the width of bins in a histogram. To specify the binwidth, pass a desired width after `-W/--binwidth`. Since the binwidth determines details of distribution, make sure to pass a suitable positive numeric value based on your data.
+
+```{code-cell} ipython3
+%sqlplot histogram --table penguins.csv --column body_mass_g --binwidth 150
 ```
 
 ### Multiple columns

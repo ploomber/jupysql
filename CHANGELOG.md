@@ -2,6 +2,7 @@
 
 ## 0.9.2dev
 
+* [Feature] Add Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
 * [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
 
 ## 0.9.1 (2023-08-10)
@@ -12,7 +13,6 @@
 * [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
 * [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
 * [Fix] Fixes a bug when converting a CTE stored with `--save` into a `pandas.DataFrame` via `.DataFrame()`
-* [Doc] Add Redshift tutorial
 
 ## 0.9.0 (2023-08-01)
 
