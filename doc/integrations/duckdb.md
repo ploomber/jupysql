@@ -1,5 +1,6 @@
 ---
-og:image: /en/685/_static/duckdb.png
+og:image: /en/685/_static/duckdb.pn
+og:image:alt: 'Better SQL in Jupyter. 📊.'
 og:description: 'duckdb'
 jupytext:
   notebook_metadata_filter: myst
@@ -17,7 +18,6 @@ myst:
     description lang=en: Use DuckDB from Jupyter using JupySQL
     keywords: jupyter, sql, jupysql, duckdb, plotting
     property=og:locale: en_US
-    property=og:image:alt: 'Better SQL in Jupyter. 📊.'
 ---
 
 # DuckDB
