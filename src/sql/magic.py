@@ -426,6 +426,11 @@ class SqlMagic(Magics, Configurable):
                 else:
                     with_ = None
         else:
+            if args.with_:
+                raise exceptions.UsageError(
+                    "Cannot use --with with CTEs, remove --with and re-run the cell"
+                )
+
             with_ = None
 
         # Create the interactive slider
