@@ -145,7 +145,6 @@ def rough_dict_get(dct, sought, default=None):
     If there is a `@` in sought, seek each piece separately.
     This lets `me@server` match `me:***@myserver/db`
     """
-
     sought = sought.split("@")
     for key, val in dct.items():
         if not any(s.lower() not in key.lower() for s in sought):
@@ -205,13 +204,17 @@ class ConnectionManager:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
                     cls.current = existing
-                # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
-                    if cls.current is not existing:
-                        display.message(f"Switching to connection {descriptor}")
+                    if cls.current != existing:
+                        display.message(
+                            f"Switching to connection {alias or descriptor}"
+                        )
                     cls.current = existing
-                # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
+                    if cls.current and cls.current.alias != alias:
+                        display.message(
+                            f"Switching to connection {alias or descriptor}"
+                        )
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
