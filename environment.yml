@@ -1,29 +1,28 @@
-# binder environment
+# binder environment file
 name: jupysql-binder
 
 channels:
   - conda-forge
 
 dependencies:
-  - python=3.10
+  - python=3.11
   - matplotlib
   - pandas
   - pip
-  # by default binder runs an old version of jupyterlab
-  # that doesn't work with jupysql-plugin
+  # jupysql-plugin doesn't work with jupyterlab 4
   - jupyterlab<4
   - pip:
-    - jupyter-book
-    - jupyterlab_myst # display admonitions in jupyterlab
     # duckdb example
     - duckdb
     - duckdb-engine
     # plot example
     - memory-profiler
     - pyarrow
-    # package
-    - -e .
-    # to add sql syntax highlighting + formatting
-    - jupysql-plugin
     # required to open .md files as nbs
-    - jupytext
+    # pinning it because recent versions give
+    # trouble, I think it's because they migrated
+    # to jupyterlab 4
+    - jupytext<1.15
+    # jupysql
+    - --editable .
+    - jupysql-plugin
