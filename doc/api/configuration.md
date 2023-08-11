@@ -128,17 +128,6 @@ Automatically limit the size of the returned result sets (e.g., add a `LIMIT` at
 %config SqlMagic.autolimit = 0
 ```
 
-## `autocommit`
-
-Default: `True` 
-
-Commit each executed query to the 
-database automatically
-
-```{code-cell} ipython3
-%config SqlMagic.autocommit = False
-```
-
 
 ## `displaylimit`
 
@@ -344,6 +333,18 @@ rating = 12
 SELECT *
 FROM languages
 WHERE rating > :rating
+```
+
+
+## `autocommit`
+
+Default: `True` 
+
+Commit each executed query to the 
+database automatically
+
+```{code-cell} ipython3
+%config SqlMagic.autocommit = False
 ```
 
 ## Loading configuration from a `pyproject.toml` file
