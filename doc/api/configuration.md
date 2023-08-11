@@ -277,10 +277,6 @@ message is displayed
 %config SqlMagic.short_errors = False
 ```
 
-```{code-cell} ipython3
-%sql SELECT * FROM languages_none LIMIT 2
-```
-
 When True, only a partial error
 message is displayed
 
