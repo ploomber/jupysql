@@ -2,6 +2,8 @@
 
 ## 0.9.2dev
 
+* [Fix] Fix a bug that caused a CTE to fail if there was a snippet defined with the same name (#753)
+
 ## 0.9.1 (2023-08-10)
 
 * [Feature] Added `--breaks/-B` to ggplot histogram for specifying breaks ([#719](https://github.com/ploomber/jupysql/issues/719))
