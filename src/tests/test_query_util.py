@@ -16,13 +16,15 @@ import json
                 "snippet1": "SELECT column1 FROM table1;",
                 "snippet2": "SELECT column2 FROM table2;",
             },
-            """with snippet1 as (SELECT column1 FROM table1;\n),
-            snippet2 as (SELECT column2 FROM table2;\n),
-            """,
+            (
+                "with snippet1 as (SELECT column1 FROM table1;\n),"
+                "snippet2 as (SELECT column2 FROM table2;\n),"
+            ),
         ),
     ],
 )
 def test_generate_dependencies_parser(input_dependencies, expected_output):
+    print(query_util._generate_dependencies_parser(input_dependencies))
     assert (
         query_util._generate_dependencies_parser(input_dependencies) == expected_output
     )
