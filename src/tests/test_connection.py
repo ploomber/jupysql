@@ -566,7 +566,18 @@ def test_feedback_when_switching_connection_with_alias(ip_empty, tmp_empty, caps
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.replace("\n", "")
+    assert "Switching to connection one" == captured.out.splitlines()[-1]
+
+
+def test_feedback_when_switching_connection_with_descriptors(
+    ip_empty, tmp_empty, capsys
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql sqlite://")
+
+    captured = capsys.readouterr()
+    assert "Switching to connection sqlite://" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, capsys):
@@ -577,7 +588,7 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
     ip_empty.run_cell("%sql duckdb://")
 
     captured = capsys.readouterr()
-    assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+    assert "Switching to connection duckdb://" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_with_existing_connection(
@@ -589,7 +600,7 @@ def test_feedback_when_switching_connection_with_existing_connection(
     ip_empty.run_cell("%sql two")
 
     captured = capsys.readouterr()
-    assert "" == captured.out.replace("\n", "")
+    assert "Switching to connection two" == captured.out.splitlines()[-1]
 
 
 @pytest.fixture
