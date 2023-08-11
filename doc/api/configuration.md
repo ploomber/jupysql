@@ -85,29 +85,6 @@ Show connection string after execution.
 %sql SELECT * FROM languages LIMIT 2
 ```
 
-## `column_local_vars`
-
-Default: `False`
-
-Return the data stored in each column 
-of the result as a local variable.
-
-```{code-cell} ipython3
-%config SqlMagic.column_local_vars = True
-%sql SELECT * FROM languages LIMIT 2
-```
-
-The data of each column is now stored as
-a list with variable name of the column.
-
-```{code-cell} ipython3
-print(name)
-```
-
-```{code-cell} ipython3
-print(rating)
-```
-
 ## `autolimit`
 
 Default: `0` (no limit)
@@ -128,6 +105,45 @@ Automatically limit the size of the returned result sets (e.g., add a `LIMIT` at
 %config SqlMagic.autolimit = 0
 ```
 
+## `column_local_vars`
+
+Default: `False`
+
+Return the data stored in each column
+of the result as a local variable.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = True
+%sql SELECT * FROM languages LIMIT 2
+```
+
+The data of each column is now stored as
+a list with variable name of the column.
+
+```{code-cell} ipython3
+print(name)
+print(rating)
+```
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = False
+```
+
+
+## `autocommit`
+
+Default: `True`
+
+Commit each executed query to the
+database automatically
+
+```{code-cell} ipython3
+%config SqlMagic.autocommit = False
+```
+
+```{code-cell} ipython3
+%config SqlMagic.autocommit = True
+```
 
 ## `displaylimit`
 
@@ -190,6 +206,28 @@ df = %sql SELECT * FROM languages
 type(df)
 ```
 
+
+## `dsn_filename`
+
+Default: `odbc.ini`
+
+Set the Path to the DSN file.
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename
+```
+
+You can change it according to the
+path to your DSN file
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename = "new_path_to_dsn.ini"
+%config SqlMagic.dsn_filename
+```
+
+```{code-cell} ipython3
+%config SqlMagic.dsn_filename = "odbc.ini"
+```
 ## `polars_dataframe_kwargs`
 
 Default: `{}`
@@ -220,6 +258,37 @@ To unset:
 %config SqlMagic.polars_dataframe_kwargs = {}
 ```
 
+
+## `short_errors`
+
+Default: `True`
+
+Don't display the full traceback
+on SQL Programming Error
+
+```{code-cell} ipython3
+%sql SELECT * FROM languages_none LIMIT 2
+```
+
+When False, full traceback
+message is displayed
+
+```{code-cell} ipython3
+%config SqlMagic.short_errors = False
+```
+
+```{code-cell} ipython3
+%sql SELECT * FROM languages_none LIMIT 2
+```
+
+When True, only a partial error
+message is displayed
+
+```{code-cell} ipython3
+%config SqlMagic.short_errors = True
+```
+
+
 ## `feedback`
 
 Default: `True`
@@ -247,54 +316,6 @@ CREATE TABLE more_points (x, y);
 INSERT INTO more_points VALUES (0, 0);
 INSERT INTO more_points VALUES (1, 1);
 ```
-
-## `short_errors`
-
-Default: `True`
-
-Don't display the full traceback
-on SQL Programming Error
-
-When True, only a partial error
-message is displayed
-
-```{code-cell} ipython3
-%config SqlMagic.short_errors = True
-```
-
-```{code-cell} ipython3
-%sql SELECT * FROM languages_none LIMIT 2
-```
-
-When False, full traceback
-message is displayed
-
-```{code-cell} ipython3
-%config SqlMagic.short_errors = False
-```
-
-```{code-cell} ipython3
-%sql SELECT * FROM languages_none LIMIT 2
-```
-
-## `dsn_filename`
-
-Default: `odbc.ini`
-
-Set the Path to the DSN file.
-
-```{code-cell} ipython3
-%config SqlMagic.dsn_filename
-```
-
-You can change it according to the 
-path to your DSN file
-
-```{code-cell} ipython3
-%config SqlMagic.dsn_filename = "new_path_to_dsn.ini"
-%config SqlMagic.dsn_filename
-```
-
 
 ## `style`
 
@@ -335,18 +356,6 @@ FROM languages
 WHERE rating > :rating
 ```
 
-
-## `autocommit`
-
-Default: `True` 
-
-Commit each executed query to the 
-database automatically
-
-```{code-cell} ipython3
-%config SqlMagic.autocommit = False
-```
-
 ## Loading configuration from a `pyproject.toml` file
 
 ```{versionadded} 0.9
@@ -358,4 +367,3 @@ You can define configurations in a `pyproject.toml` file and automatically load 
 [tool.jupysql.SqlMagic]
 feedback = true
 autopandas = true
-```
