@@ -1667,22 +1667,25 @@ def test_warning_if_variable_defined_but_named_param_is_quoted(
         ip.run_cell(cell)
 
 
-def test_run_cte(ip):
+def test_can_run_cte_that_references_a_table_whose_name_is_the_same_as_a_snippet(ip):
     # randomize the name to avoid collisions
     identifier = "shakespeare_" + str(uuid.uuid4())[:8]
 
+    # create table
     ip.run_cell(
         f"""%%sql
 create table {identifier} as select * from author where last_name = 'Shakespeare'
 """
     )
 
+    # store a snippet with the same name
     ip.run_cell(
         f"""%%sql --save {identifier}
 select * from author where last_name = 'some other last name'
 """
     )
 
+    # this should query the table, not the snippet
     results = ip.run_cell(
         f"""%%sql
 with author_subset as (
