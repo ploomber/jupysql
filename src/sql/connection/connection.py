@@ -145,6 +145,7 @@ def rough_dict_get(dct, sought, default=None):
     If there is a `@` in sought, seek each piece separately.
     This lets `me@server` match `me:***@myserver/db`
     """
+
     sought = sought.split("@")
     for key, val in dct.items():
         if not any(s.lower() not in key.lower() for s in sought):
