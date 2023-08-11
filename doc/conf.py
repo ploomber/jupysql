@@ -103,6 +103,7 @@ suppress_warnings = ["misc.highlighting_failure"]
 use_jupyterbook_latex = True
 use_multitoc_numbering = True
 ogp_image = "/en/685/_static/html-meta-template.png"
+ogp_image_alt = "Better SQL in Jupyter. 📊."
 
 
 # Adding Algolia search to jupyter-book :

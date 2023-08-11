@@ -1,5 +1,5 @@
 ---
-og:image: /en/685/_static/duckdb.pn
+og:image: /en/685/_static/duckdb.png
 og:image:alt: 'Better SQL in Jupyter. 📊.'
 og:description: 'duckdb'
 jupytext:
