@@ -229,7 +229,6 @@ def store_snippet_as_sql(store, sql_command, with_, snippet_name):
         list of dependencies
     """
 
-    print(with_)
     dependencies = _get_dependency_queries(store, with_)
     marked_sql = query_util.write_sql_with_markers(sql_command, dependencies)
     snippet_path = Path(SNIPPETS_DIR) / f"{snippet_name}.sql"
@@ -250,8 +249,9 @@ def load_snippet_from_sql(store):
 
     """
     if os.path.exists(SNIPPETS_DIR) and os.path.isdir(SNIPPETS_DIR):
-        print(f"loading snippets from {SNIPPETS_DIR}")
         snippet_files = glob.glob(SNIPPETS_DIR + "*.sql")
+        if snippet_files:
+            print(f"loading snippets from {SNIPPETS_DIR}")
         snippet_names = [filename[len(SNIPPETS_DIR) : -4] for filename in snippet_files]
         for name, filename in zip(snippet_names, snippet_files):
             with open(filename, "r") as file:

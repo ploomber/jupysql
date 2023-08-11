@@ -545,7 +545,6 @@ class SqlMagic(Magics, Configurable):
             self._store.store(args.save, command.sql_original, with_=with_)
 
             if self.persist_snippets:
-                # store_snippet_as_sql(str(store[args.save]),with_, args.save)
                 store_snippet_as_sql(store, command.sql_original, with_, args.save)
 
         if args.no_execute:

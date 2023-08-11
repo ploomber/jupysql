@@ -1578,6 +1578,145 @@ displaycon = false
     setattr(sql, "displaycon", True)
 
 
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_interpolation_ignore_literals(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    # this isn't a parameter because it's quoted (':last_name')
+    result = ip.run_cell(
+        "%sql select * from author where last_name = ':last_name'"
+    ).result
+    assert result.dict() == {}
+
+
+def test_sqlalchemy_interpolation(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    ip.run_cell("last_name = 'Shakespeare'")
+
+    # define another variable to ensure the test doesn't break if there are more
+    # variables in the namespace
+    ip.run_cell("first_name = 'William'")
+
+    result = ip.run_cell(
+        "%sql select * from author where last_name = :last_name"
+    ).result
+
+    assert result.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_sqlalchemy_interpolation_missing_parameter(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql select * from author where last_name = :last_name")
+
+    assert (
+        "Cannot execute query because the following variables are undefined: last_name"
+        in str(excinfo.value)
+    )
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_sqlalchemy_insert_literals_with_colon_character(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell(
+        """%%sql
+CREATE TABLE names (
+    name VARCHAR(50) NOT NULL
+);
+
+INSERT INTO names (name)
+VALUES
+    ('John'),
+    (':Mary'),
+    ('Alex'),
+    (':Lily'),
+    ('Michael'),
+    ('Robert'),
+    (':Sarah'),
+    ('Jennifer'),
+    (':Tom'),
+    ('Jessica');
+"""
+    )
+
+    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
+
+    assert result.dict() == {"name": (":Mary",)}
+
+
+def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = False")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
+
+    suggestion = (
+        "Your query contains named parameters (species) but the named "
+        "parameters feature is disabled. Enable it with: "
+        "%config SqlMagic.named_parameters=True"
+    )
+    assert suggestion in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "cell, expected_warning",
+    [
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name'",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = :first_name",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = ':first_name'",
+            "The following variables are defined: first_name, last_name.",
+        ),
+    ],
+    ids=[
+        "one-quoted",
+        "one-quoted-one-unquoted",
+        "two-quoted",
+    ],
+)
+def test_warning_if_variable_defined_but_named_param_is_quoted(
+    ip, cell, expected_warning
+):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+    ip.run_cell("last_name = 'Shakespeare'")
+    ip.run_cell("first_name = 'William'")
+
+    with pytest.warns(
+        JupySQLQuotedNamedParametersWarning,
+        match=expected_warning,
+    ):
+        ip.run_cell(cell)
+
+
 def test_save_snippet_as_sql(ip_snip):
     """Test if SqlMagic.persist_snippets = True saves
     the snippet in a .sql file
@@ -1745,142 +1884,3 @@ def test_snippet_sql_message(ip, capsys, per_snippets, expected_in_output):
         assert message in snippets_output
     else:
         assert message not in snippets_output
-
-
-@pytest.mark.parametrize(
-    "fixture_name",
-    [
-        "ip",
-        "ip_dbapi",
-    ],
-)
-def test_interpolation_ignore_literals(fixture_name, request):
-    ip = request.getfixturevalue(fixture_name)
-
-    ip.run_cell("%config SqlMagic.named_parameters = True")
-
-    # this isn't a parameter because it's quoted (':last_name')
-    result = ip.run_cell(
-        "%sql select * from author where last_name = ':last_name'"
-    ).result
-    assert result.dict() == {}
-
-
-def test_sqlalchemy_interpolation(ip):
-    ip.run_cell("%config SqlMagic.named_parameters = True")
-
-    ip.run_cell("last_name = 'Shakespeare'")
-
-    # define another variable to ensure the test doesn't break if there are more
-    # variables in the namespace
-    ip.run_cell("first_name = 'William'")
-
-    result = ip.run_cell(
-        "%sql select * from author where last_name = :last_name"
-    ).result
-
-    assert result.dict() == {
-        "first_name": ("William",),
-        "last_name": ("Shakespeare",),
-        "year_of_death": (1616,),
-    }
-
-
-def test_sqlalchemy_interpolation_missing_parameter(ip):
-    ip.run_cell("%config SqlMagic.named_parameters = True")
-
-    with pytest.raises(UsageError) as excinfo:
-        ip.run_cell("%sql select * from author where last_name = :last_name")
-
-    assert (
-        "Cannot execute query because the following variables are undefined: last_name"
-        in str(excinfo.value)
-    )
-
-
-@pytest.mark.parametrize(
-    "fixture_name",
-    [
-        "ip",
-        "ip_dbapi",
-    ],
-)
-def test_sqlalchemy_insert_literals_with_colon_character(fixture_name, request):
-    ip = request.getfixturevalue(fixture_name)
-
-    ip.run_cell(
-        """%%sql
-CREATE TABLE names (
-    name VARCHAR(50) NOT NULL
-);
-
-INSERT INTO names (name)
-VALUES
-    ('John'),
-    (':Mary'),
-    ('Alex'),
-    (':Lily'),
-    ('Michael'),
-    ('Robert'),
-    (':Sarah'),
-    ('Jennifer'),
-    (':Tom'),
-    ('Jessica');
-"""
-    )
-
-    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
-
-    assert result.dict() == {"name": (":Mary",)}
-
-
-def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
-    ip.run_cell("%config SqlMagic.named_parameters = False")
-
-    with pytest.raises(UsageError) as excinfo:
-        ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
-
-    suggestion = (
-        "Your query contains named parameters (species) but the named "
-        "parameters feature is disabled. Enable it with: "
-        "%config SqlMagic.named_parameters=True"
-    )
-    assert suggestion in str(excinfo.value)
-
-
-@pytest.mark.parametrize(
-    "cell, expected_warning",
-    [
-        (
-            "%sql SELECT * FROM author where last_name = ':last_name'",
-            "The following variables are defined: last_name.",
-        ),
-        (
-            "%sql SELECT * FROM author where last_name = ':last_name' "
-            "and first_name = :first_name",
-            "The following variables are defined: last_name.",
-        ),
-        (
-            "%sql SELECT * FROM author where last_name = ':last_name' "
-            "and first_name = ':first_name'",
-            "The following variables are defined: first_name, last_name.",
-        ),
-    ],
-    ids=[
-        "one-quoted",
-        "one-quoted-one-unquoted",
-        "two-quoted",
-    ],
-)
-def test_warning_if_variable_defined_but_named_param_is_quoted(
-    ip, cell, expected_warning
-):
-    ip.run_cell("%config SqlMagic.named_parameters = True")
-    ip.run_cell("last_name = 'Shakespeare'")
-    ip.run_cell("first_name = 'William'")
-
-    with pytest.warns(
-        JupySQLQuotedNamedParametersWarning,
-        match=expected_warning,
-    ):
-        ip.run_cell(cell)

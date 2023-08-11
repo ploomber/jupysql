@@ -1,7 +1,7 @@
 import pytest
 from sql.connection import SQLAlchemyConnection, ConnectionManager
 from IPython.core.error import UsageError
-from sql.store import SQLStore, SQLQuery
+from sql.store import SQLStore, SQLQuery, _get_dependency_queries
 from sqlalchemy import create_engine
 
 
@@ -281,3 +281,39 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
             identifier
         )
     )
+
+
+@pytest.mark.parametrize(
+    "dependencies, expected_output",
+    [
+        (None, None),
+        (["first_a"], {"first_a": "SELECT * FROM a WHERE x > 10"}),
+        (
+            ["second_a"],
+            {
+                "first_a": "SELECT * FROM a WHERE x > 10",
+                "second_a": "SELECT * FROM first_a WHERE x > 20",
+            },
+        ),
+        (
+            ["third_a"],
+            {
+                "first_a": "SELECT * FROM a WHERE x > 10",
+                "second_a": "SELECT * FROM first_a WHERE x > 20",
+                "third_a": "SELECT * FROM second_a WHERE x > 30",
+            },
+        ),
+        (["fourth_a"], UsageError),
+    ],
+)
+def test_get_dependency_queries(dependencies, expected_output):
+    store = SQLStore()
+    store.store("first_a", "SELECT * FROM a WHERE x > 10")
+    store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    store.store("third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"])
+
+    if expected_output == UsageError:
+        with pytest.raises(UsageError):
+            _get_dependency_queries(store, dependencies)
+    else:
+        assert _get_dependency_queries(store, dependencies) == expected_output
