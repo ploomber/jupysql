@@ -266,10 +266,6 @@ Default: `True`
 Don't display the full traceback
 on SQL Programming Error
 
-```{code-cell} ipython3
-%sql SELECT * FROM languages_none LIMIT 2
-```
-
 When False, full traceback
 message is displayed
 
