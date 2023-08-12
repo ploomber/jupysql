@@ -944,3 +944,24 @@ def test_ignore_internalerror_if_it_doesnt_match_the_selected_patterns(monkeypat
     assert "(test_connection.SomeError) message" in str(excinfo.value)
     assert isinstance(excinfo.value.orig, SomeError)
     assert str(excinfo.value.orig) == "message"
+
+
+def test_ignore_operationalerror_if_it_doesnt_match_the_selected_patterns(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    class SomeError:
+        def __str__(self) -> str:
+            return "message"
+
+    orig = SomeError()
+    internal_error = exc.OperationalError("internal error", params={}, orig=orig)
+
+    mock_execute = Mock(side_effect=internal_error)
+    conn._connection_sqlalchemy.execute = mock_execute
+
+    with pytest.raises(exc.OperationalError) as excinfo:
+        conn.execute("SELECT * FROM table")
+
+    assert "(test_connection.SomeError) message" in str(excinfo.value)
+    assert isinstance(excinfo.value.orig, SomeError)
+    assert str(excinfo.value.orig) == "message"

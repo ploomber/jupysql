@@ -680,6 +680,8 @@ class SQLAlchemyConnection(AbstractConnection):
                     category=JupySQLRollbackPerformed,
                 )
                 rollback_needed = True
+            else:
+                raise
 
         if rollback_needed:
             self._connection.rollback()
