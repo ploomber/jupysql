@@ -41,6 +41,7 @@ from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
+from sql._current import _set_sql_magic
 
 
 from ploomber_core.dependencies import check_installed
@@ -146,7 +147,13 @@ class SqlMagic(Magics, Configurable):
     column_local_vars = Bool(
         False, config=True, help="Return data into local variables from column names"
     )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+
+    # TODO: check the existing place where we are using this
+    # TODO: update documentation
+    feedback = Int(
+        default_value=1, config=True, help="Verbosity level. 0=minimal, 1=normal, 2=all"
+    )
+
     dsn_filename = Unicode(
         "odbc.ini",
         config=True,
@@ -695,8 +702,11 @@ def load_SqlMagic_configs(ip):
 
 
 def load_ipython_extension(ip):
-    """Load the extension in IPython."""
-    ip.register_magics(SqlMagic)
+    """Load the magics, this function is executed when the user runs: %load_ext sql"""
+    sql_magic = SqlMagic(ip)
+    _set_sql_magic(sql_magic)
+
+    ip.register_magics(sql_magic)
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)

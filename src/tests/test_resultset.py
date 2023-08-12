@@ -82,16 +82,27 @@ def test_resultset_str(result_set):
     assert str(result_set) == "+---+\n| x |\n+---+\n| 0 |\n| 1 |\n| 2 |\n+---+"
 
 
-def test_resultset_repr_html(result_set):
+def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.feedback = 2")
+
     html_ = result_set._repr_html_()
     assert (
         "<span style='font-style:italic;font-size:11px'>"
-        "<code>ResultSet</code> : to convert to pandas, call <a href="
+        "<code>ResultSet</code>: to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
+
+
+@pytest.mark.parametrize("feedback", [0, 1])
+def test_resultset_repr_html_with_reduced_feedback(result_set, ip_empty, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
+    html = result_set._repr_html_()
+    assert "pandas" not in html
+    assert "polars" not in html
 
 
 @pytest.mark.parametrize(

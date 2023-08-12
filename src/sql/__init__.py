@@ -1,3 +1,4 @@
+# I dont think we need all these imports
 from sql.magic import RenderMagic, SqlMagic, load_ipython_extension
 from sql.connection import PLOOMBER_DOCS_LINK_STR
 
