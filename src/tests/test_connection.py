@@ -854,6 +854,7 @@ def test_execute_rollback_if_pendingrollbackerror_is_raised(monkeypatch):
         record[0].message.args[0]
         == "Found invalid transaction. JupySQL executed a ROLLBACK operation."
     )
+    mock_rollback.assert_called_once_with()
 
 
 def test_execute_rollback_if_current_transaction_aborted(monkeypatch):
@@ -878,7 +879,6 @@ def test_execute_rollback_if_current_transaction_aborted(monkeypatch):
     mock_rollback = Mock()
 
     conn._connection_sqlalchemy.execute = mock_execute
-    # TODO: check this was called
     conn._connection_sqlalchemy.rollback = mock_rollback
 
     with pytest.warns(JupySQLRollbackPerformed) as record:
@@ -890,6 +890,7 @@ def test_execute_rollback_if_current_transaction_aborted(monkeypatch):
         record[0].message.args[0]
         == "Current transaction is aborted. JupySQL executed a ROLLBACK operation."
     )
+    mock_rollback.assert_called_once_with()
 
 
 def test_execute_rollback_if_server_closes_connection(monkeypatch):
@@ -911,7 +912,6 @@ def test_execute_rollback_if_server_closes_connection(monkeypatch):
     mock_rollback = Mock()
 
     conn._connection_sqlalchemy.execute = mock_execute
-    # TODO: check this was called
     conn._connection_sqlalchemy.rollback = mock_rollback
 
     with pytest.warns(JupySQLRollbackPerformed) as record:
@@ -923,6 +923,7 @@ def test_execute_rollback_if_server_closes_connection(monkeypatch):
         record[0].message.args[0]
         == "Server closed connection. JupySQL executed a ROLLBACK operation."
     )
+    mock_rollback.assert_called_once_with()
 
 
 def test_ignore_internalerror_if_it_doesnt_match_the_selected_patterns(monkeypatch):
