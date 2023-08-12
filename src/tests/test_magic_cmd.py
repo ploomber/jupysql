@@ -69,11 +69,13 @@ WHERE symbol == 'b'
 def ip_with_dbapi(ip):
     for key in list(store):
         del store[key]
-    duckdb_conn = duckdb.connect("")
-    sqlite_conn = sqlite3.connect("")
+    ip.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
+    ip.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
+    duckdb_dbapi = duckdb.connect("")
+    sqlite_dbapi = sqlite3.connect("")
 
-    ip.push({"duckdb_conn": duckdb_conn})
-    ip.push({"sqlite_conn": sqlite_conn})
+    ip.push({"duckdb_dbapi": duckdb_dbapi})
+    ip.push({"sqlite_dbapi": sqlite_dbapi})
 
     yield ip
 
@@ -188,12 +190,12 @@ ATTACH DATABASE 'my.db' AS some_schema
 @pytest.mark.parametrize(
     "conn",
     [
-        ("%sql sqlite://"),
-        ("%sql sqlite_conn"),
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
     ],
 )
 def test_table_profile(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(conn)
+    ip_with_dbapi.run_cell(f"%sql {conn}")
     ip_with_dbapi.run_cell(
         """
     %%sql
@@ -245,12 +247,12 @@ def test_table_profile(ip_with_dbapi, tmp_empty, conn):
 @pytest.mark.parametrize(
     "conn",
     [
-        ("%sql duckdb://"),
-        ("%sql duckdb_conn"),
+        ("duckdb_sqlalchemy"),
+        ("duckdb_dbapi"),
     ],
 )
 def test_table_profile_with_stdev(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(conn)
+    ip_with_dbapi.run_cell(f"%sql {conn}")
     ip_with_dbapi.run_cell(
         """
     %%sql
@@ -350,23 +352,23 @@ def test_table_schema_profile(ip, tmp_empty):
             assert cell == str(expected[profile_metric][0])
 
 
-def test_table_schema_profile_dbapi(ip_with_dbapi, tmp_empty):
-    sqlite_conn_b = sqlite3.connect("b.db")
-    ip_with_dbapi.push({"sqlite_conn_b": sqlite_conn_b})
+def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_with_dbapi, tmp_empty):
+    sqlite_dbapi_testdb_conn = sqlite3.connect("test.db")
+    ip_with_dbapi.push({"sqlite_dbapi_testdb_conn": sqlite_dbapi_testdb_conn})
 
     ip_with_dbapi.run_cell(
-        """%%sql sqlite_conn_b
-CREATE TABLE t (n FLOAT);
-INSERT INTO t VALUES (11);
-INSERT INTO t VALUES (22);
-INSERT INTO t VALUES (33);
+        """%%sql sqlite_dbapi_testdb_conn
+CREATE TABLE sample_table (n FLOAT);
+INSERT INTO sample_table VALUES (11);
+INSERT INTO sample_table VALUES (22);
+INSERT INTO sample_table VALUES (33);
 """
     )
 
     ip_with_dbapi.run_cell(
         """
-    %%sql sqlite_conn_b
-    ATTACH DATABASE 'b.db' AS b_schema;
+    %%sql sqlite_dbapi_testdb_conn
+    ATTACH DATABASE 'test.db' AS test_schema;
     """
     )
 
@@ -381,7 +383,9 @@ INSERT INTO t VALUES (33);
         "top": [math.nan],
     }
 
-    out = ip_with_dbapi.run_cell("%sqlcmd profile -t t --schema b_schema").result
+    out = ip_with_dbapi.run_cell(
+        "%sqlcmd profile --table sample_table --schema test_schema"
+    ).result
 
     stats_table = out._table
 
@@ -397,8 +401,8 @@ INSERT INTO t VALUES (33);
 @pytest.mark.parametrize(
     "conn",
     [
-        ("sqlite://"),
-        ("sqlite_conn"),
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
     ],
 )
 def test_table_profile_warnings_styles(ip_with_dbapi, tmp_empty, conn):
@@ -431,8 +435,8 @@ def test_profile_is_numeric():
 @pytest.mark.parametrize(
     "conn",
     [
-        ("sqlite://"),
-        ("sqlite_conn"),
+        ("sqlite_sqlalchemy"),
+        ("sqlite_dbapi"),
     ],
 )
 def test_table_profile_is_numeric(ip_with_dbapi, tmp_empty, conn):
@@ -460,8 +464,8 @@ def test_table_profile_is_numeric(ip_with_dbapi, tmp_empty, conn):
 @pytest.mark.parametrize(
     "conn, report_fname",
     [
-        ("sqlite://", "test_report.html"),
-        ("sqlite_conn", "test_report_dbapi.html"),
+        ("sqlite_sqlalchemy", "test_report.html"),
+        ("sqlite_dbapi", "test_report_dbapi.html"),
     ],
 )
 def test_table_profile_store(ip_with_dbapi, tmp_empty, conn, report_fname):

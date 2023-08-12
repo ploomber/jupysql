@@ -423,10 +423,7 @@ class TableDescription(DatabaseInspection):
             warning_title = ""
 
         current = ConnectionManager.current
-        if current.is_dbapi_connection:
-            database = current._dialect
-        else:
-            database = current.url
+        database = current.dialect
         db_driver = current._get_database_information()["driver"]
 
         if database and "duckdb" in database:
