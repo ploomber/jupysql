@@ -37,6 +37,7 @@ MissingPackageError = exception_factory("MissingPackageError")
 # https://docs.python.org/3/library/exceptions.html#bltin-exceptions
 TypeError = exception_factory("TypeError")
 RuntimeError = exception_factory("RuntimeError")
+
 ValueError = exception_factory("ValueError")
 FileNotFoundError = exception_factory("FileNotFoundError")
 

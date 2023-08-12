@@ -11,7 +11,7 @@ import sqlalchemy
 import sqlite3
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import ResourceClosedError
+from sqlalchemy import exc
 
 import sql.connection
 from sql.connection import (
@@ -22,6 +22,7 @@ from sql.connection import (
     default_alias_for_engine,
     ResultSetCollection,
 )
+from sql.warnings import JupySQLRollbackPerformed
 
 
 @pytest.fixture
@@ -366,10 +367,10 @@ def test_close_all(ip_empty, monkeypatch):
 
     ConnectionManager.close_all()
 
-    with pytest.raises(ResourceClosedError):
+    with pytest.raises(exc.ResourceClosedError):
         connections_copy["sqlite://"].execute("").fetchall()
 
-    with pytest.raises(ResourceClosedError):
+    with pytest.raises(exc.ResourceClosedError):
         connections_copy["duckdb://"].execute("").fetchall()
 
     assert not ConnectionManager.connections
@@ -828,3 +829,118 @@ def test_result_set_collection_is_last():
     assert len(collection) == 2
     assert collection.is_last(first)
     assert not collection.is_last(second)
+
+
+def test_execute_rollback_if_pendingrollbackerror_is_raised(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    mock_execute = Mock(
+        side_effect=[
+            exc.PendingRollbackError("rollback"),
+            "RESULTS",
+        ]
+    )
+    mock_rollback = Mock()
+
+    conn._connection_sqlalchemy.execute = mock_execute
+    conn._connection_sqlalchemy.rollback = mock_rollback
+
+    with pytest.warns(JupySQLRollbackPerformed) as record:
+        results = conn.execute("SELECT * FROM table")
+
+    assert results == "RESULTS"
+    assert len(record) == 1
+    assert (
+        record[0].message.args[0]
+        == "Found invalid transaction. JupySQL executed a ROLLBACK operation."
+    )
+
+
+def test_execute_rollback_if_current_transaction_aborted(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    class InFailedSqlTransaction:
+        def __str__(self) -> str:
+            return (
+                "current transaction is aborted, "
+                "commands ignored until end of transaction block"
+            )
+
+    orig = InFailedSqlTransaction()
+    sqlalchemy_error = exc.InternalError("internal error", params={}, orig=orig)
+
+    mock_execute = Mock(
+        side_effect=[
+            sqlalchemy_error,
+            "RESULTS",
+        ]
+    )
+    mock_rollback = Mock()
+
+    conn._connection_sqlalchemy.execute = mock_execute
+    # TODO: check this was called
+    conn._connection_sqlalchemy.rollback = mock_rollback
+
+    with pytest.warns(JupySQLRollbackPerformed) as record:
+        results = conn.execute("SELECT * FROM table")
+
+    assert results == "RESULTS"
+    assert len(record) == 1
+    assert (
+        record[0].message.args[0]
+        == "Current transaction is aborted. JupySQL executed a ROLLBACK operation."
+    )
+
+
+def test_execute_rollback_if_server_closes_connection(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    class OperationalError:
+        def __str__(self) -> str:
+            return "server closed the connection unexpectedly"
+
+    orig = OperationalError()
+    sqlalchemy_error = exc.OperationalError("internal error", params={}, orig=orig)
+
+    mock_execute = Mock(
+        side_effect=[
+            sqlalchemy_error,
+            "RESULTS",
+        ]
+    )
+    mock_rollback = Mock()
+
+    conn._connection_sqlalchemy.execute = mock_execute
+    # TODO: check this was called
+    conn._connection_sqlalchemy.rollback = mock_rollback
+
+    with pytest.warns(JupySQLRollbackPerformed) as record:
+        results = conn.execute("SELECT * FROM table")
+
+    assert results == "RESULTS"
+    assert len(record) == 1
+    assert (
+        record[0].message.args[0]
+        == "Server closed connection. JupySQL executed a ROLLBACK operation."
+    )
+
+
+def test_ignore_internalerror_if_it_doesnt_match_the_selected_patterns(monkeypatch):
+    conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
+
+    class SomeError:
+        def __str__(self) -> str:
+            return "message"
+
+    orig = SomeError()
+    internal_error = exc.InternalError("internal error", params={}, orig=orig)
+
+    mock_execute = Mock(side_effect=internal_error)
+    conn._connection_sqlalchemy.execute = mock_execute
+
+    with pytest.raises(exc.InternalError) as excinfo:
+        conn.execute("SELECT * FROM table")
+
+    assert "(test_connection.SomeError) message" in str(excinfo.value)
+    assert isinstance(excinfo.value.orig, SomeError)
+    assert str(excinfo.value.orig) == "message"

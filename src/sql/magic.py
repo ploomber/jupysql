@@ -647,6 +647,7 @@ class SqlMagic(Magics, Configurable):
         else:
             if_exists = "fail"
 
+        # TODO: perform a rollback automatically if needed
         try:
             frame.to_sql(
                 table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index

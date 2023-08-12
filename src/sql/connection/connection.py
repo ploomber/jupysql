@@ -7,7 +7,13 @@ import atexit
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError, StatementError
+from sqlalchemy.exc import (
+    NoSuchModuleError,
+    OperationalError,
+    StatementError,
+    PendingRollbackError,
+    InternalError,
+)
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
@@ -19,7 +25,7 @@ from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
 from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
-from sql.warnings import JupySQLQuotedNamedParametersWarning
+from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 
 
 PLOOMBER_DOCS_LINK_STR = (
@@ -636,12 +642,48 @@ class SQLAlchemyConnection(AbstractConnection):
         # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
-        if IS_SQLALCHEMY_ONE:
-            out = self._connection.execute(sqlalchemy.text(query), **parameters)
-        else:
-            out = self._connection.execute(
-                sqlalchemy.text(query), parameters=parameters
+        rollback_needed = False
+
+        # TODO: test these cases with psycopg3
+        try:
+            out = self._execute_with_parameters(query, parameters)
+        except PendingRollbackError:
+            warnings.warn(
+                "Found invalid transaction. JupySQL executed a ROLLBACK operation.",
+                category=JupySQLRollbackPerformed,
             )
+            rollback_needed = True
+        except InternalError as e:
+            message = (
+                "current transaction is aborted, "
+                "commands ignored until end of transaction block"
+            )
+            if type(e.orig).__name__ == "InFailedSqlTransaction" and message in str(
+                e.orig
+            ):
+                warnings.warn(
+                    (
+                        "Current transaction is aborted. "
+                        "JupySQL executed a ROLLBACK operation."
+                    ),
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+            else:
+                raise
+        except OperationalError as e:
+            message = "server closed the connection unexpectedly"
+
+            if type(e.orig).__name__ == "OperationalError" and message in str(e.orig):
+                warnings.warn(
+                    "Server closed connection. JupySQL executed a ROLLBACK operation.",
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+
+        if rollback_needed:
+            self._connection.rollback()
+            out = self._execute_with_parameters(query, parameters)
 
         if self._requires_manual_commit:
             # calling connection.commit() when using duckdb-engine will yield
@@ -663,6 +705,17 @@ class SQLAlchemyConnection(AbstractConnection):
                     pass
             else:
                 self._connection.commit()
+
+        return out
+
+    def _execute_with_parameters(self, query, parameters):
+        """Execute the query with the given parameters"""
+        if IS_SQLALCHEMY_ONE:
+            out = self._connection.execute(sqlalchemy.text(query), **parameters)
+        else:
+            out = self._connection.execute(
+                sqlalchemy.text(query), parameters=parameters
+            )
 
         return out
 
