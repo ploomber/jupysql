@@ -1,12 +1,19 @@
 # CHANGELOG
 
-## 0.9.1dev
-* [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
-* [Doc] Add Redshift tutorial
+## 0.9.2dev
+
+* [Feature] Add DBAPI support for `%sqlcmd profile`(#743)
+* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
+
+## 0.9.1 (2023-08-10)
+
+* [Feature] Added `--breaks/-B` to ggplot histogram for specifying breaks ([#719](https://github.com/ploomber/jupysql/issues/719))
 * [Feature] Adds Redshift support for `%sqlplot boxplot`
+* [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
 * [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
 * [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
-* [Feature] Add DBAPI support for `%sqlcmd profile`(#743)
+* [Fix] Fixes a bug when converting a CTE stored with `--save` into a `pandas.DataFrame` via `.DataFrame()`
+* [Doc] Add Redshift tutorial
 
 ## 0.9.0 (2023-08-01)
 
