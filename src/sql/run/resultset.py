@@ -4,6 +4,7 @@ from functools import reduce
 from io import StringIO
 import html
 from collections.abc import Iterable
+import sqlparse
 
 
 import prettytable
@@ -488,10 +489,5 @@ def _nonbreaking_spaces(match_obj):
 
 
 def _statement_is_select(statement):
-    statement_ = statement.lower().strip()
     # duckdb also allows FROM without SELECT
-    return (
-        statement_.startswith("select")
-        or statement_.startswith("from")
-        or statement_.startswith("with")
-    )
+    return sqlparse.parse(statement)[0].get_type() == "SELECT"
