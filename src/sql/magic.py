@@ -696,7 +696,6 @@ def load_SqlMagic_configs(ip):
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-
     # this fails in both Firefox and Chrome for OS X.
     # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
 
