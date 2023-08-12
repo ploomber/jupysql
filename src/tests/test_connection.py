@@ -597,10 +597,18 @@ def test_feedback_when_switching_connection_with_existing_connection(
     ip_empty.run_cell("%load_ext sql")
     ip_empty.run_cell("%sql duckdb:// --alias one")
     ip_empty.run_cell("%sql duckdb:// --alias two")
-    ip_empty.run_cell("%sql two")
+    ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection two" == captured.out.splitlines()[-1]
+    assert "Switching to connection one" == captured.out.splitlines()[-1]
+
+
+def test_no_feedback(ip_empty, tmp_empty, capsys):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+
+    captured = capsys.readouterr()
+    assert "" == captured.out
 
 
 @pytest.fixture
