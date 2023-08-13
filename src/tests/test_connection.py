@@ -560,7 +560,12 @@ def test_set_no_descriptor_database_url(monkeypatch):
     assert ConnectionManager.current == conn
 
 
-def test_feedback_when_switching_connection_with_alias(ip_empty, tmp_empty, capsys):
+@pytest.mark.parametrize("feedback", [1, 2])
+def test_feedback_when_switching_connection_with_alias(
+    ip_empty, tmp_empty, capsys, feedback
+):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
     ip_empty.run_cell("%load_ext sql")
     ip_empty.run_cell("%sql duckdb:// --alias one")
     ip_empty.run_cell("%sql duckdb:// --alias two")
@@ -570,7 +575,12 @@ def test_feedback_when_switching_connection_with_alias(ip_empty, tmp_empty, caps
     assert "Switching to connection one" == captured.out.replace("\n", "")
 
 
-def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, capsys):
+@pytest.mark.parametrize("feedback", [1, 2])
+def test_feedback_when_switching_connection_without_alias(
+    ip_empty, tmp_empty, capsys, feedback
+):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
     ip_empty.run_cell("%load_ext sql")
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell("%sql duckdb:// --alias one")
@@ -579,6 +589,18 @@ def test_feedback_when_switching_connection_without_alias(ip_empty, tmp_empty, c
 
     captured = capsys.readouterr()
     assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+
+
+def test_no_switching_connection_feedback_if_disabled(ip_empty, capsys):
+    ip_empty.run_cell("%config SqlMagic.feedback = 0")
+
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql duckdb:// --alias one")
+    ip_empty.run_cell("%sql duckdb:// --alias two")
+    ip_empty.run_cell("%sql duckdb://")
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
 
 
 @pytest.fixture

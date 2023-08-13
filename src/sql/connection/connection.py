@@ -26,6 +26,7 @@ from sql import exceptions, display
 from sql.error_message import detail
 from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
+from sql import _current
 
 
 PLOOMBER_DOCS_LINK_STR = (
@@ -214,7 +215,10 @@ class ConnectionManager:
                 # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
                     cls.current = existing
-                    display.message(f"Switching to connection {descriptor}")
+
+                    if _current._config_feedback_normal_or_more():
+                        display.message(f"Switching to connection {descriptor}")
+
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     cls.current = cls.from_connect_str(
@@ -227,7 +231,7 @@ class ConnectionManager:
 
         else:
             if cls.connections:
-                if displaycon:
+                if displaycon and _current._config_feedback_normal_or_more():
                     cls.display_current_connection()
             elif os.getenv("DATABASE_URL"):
                 cls.current = cls.from_connect_str(
