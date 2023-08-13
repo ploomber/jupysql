@@ -28,6 +28,11 @@ import psutil
 
 COMMUNITY = COMMUNITY.strip()
 
+DISPLAYLIMIT_LINK = (
+    '<a href="https://jupysql.ploomber.io/en/'
+    'latest/api/configuration.html#displaylimit">displaylimit</a>'
+)
+
 
 def test_memory_db(ip):
     assert runsql(ip, "SELECT * FROM test;")[0][0] == 1
@@ -576,7 +581,7 @@ def test_displaylimit_default(ip):
 
     out = ip.run_cell("%sql SELECT * FROM number_table;").result
 
-    assert "Truncated to displaylimit of 10" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -599,7 +604,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -667,7 +672,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert "Truncated to displaylimit of 10" in out._repr_html_()
+        assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):
