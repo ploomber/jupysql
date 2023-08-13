@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.9.2dev
+## 0.10.0dev
 
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
