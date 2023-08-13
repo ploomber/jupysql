@@ -1,3 +1,4 @@
+import string
 from unittest.mock import Mock, call
 
 import duckdb
@@ -507,11 +508,18 @@ def test_display_limit_respected_even_when_feched_all(results):
 @pytest.mark.parametrize(
     "displaylimit, message",
     [
-        (1, "Truncated to displaylimit of 1"),
-        (2, "Truncated to displaylimit of 2"),
+        (1, "Truncated to $HTML_LINK of 1."),
+        (2, "Truncated to $HTML_LINK of 2."),
     ],
 )
 def test_displaylimit_message(displaylimit, message, results):
+    HTML_LINK = (
+        '<a href="https://jupysql.ploomber.io/en/'
+        'latest/api/configuration.html#displaylimit">displaylimit</a>'
+    )
+
+    message = string.Template(message).substitute(HTML_LINK=HTML_LINK)
+
     mock = Mock()
     mock.displaylimit = displaylimit
     mock.autolimit = 0

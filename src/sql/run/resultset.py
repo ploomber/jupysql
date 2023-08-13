@@ -165,13 +165,11 @@ class ResultSet(ColumnGuesserMixin):
         if self._config.displaylimit != 0 and not self._done_fetching():
             HTML = (
                 '%s\n<span style="font-style:italic;text-align:center;">'
-                "Truncated to displaylimit of %d</span>"
-                "<br>"
-                '<span style="font-style:italic;text-align:center;">'
-                "If you want to see more, please visit "
-                '<a href="https://jupysql.ploomber.io/en/latest/api/configuration.html#displaylimit">displaylimit</a>'  # noqa: E501
-                " configuration</span>"
+                'Truncated to <a href="https://jupysql.ploomber.io/en/'
+                'latest/api/configuration.html#displaylimit">'
+                "displaylimit</a> of %d.</span>"
             )
+
             result = HTML % (result, self._config.displaylimit)
         return result
 
