@@ -21,7 +21,6 @@ import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
 
-from sql import exceptions
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
