@@ -152,8 +152,6 @@ class SqlMagic(Magics, Configurable):
         help="Return data into local variables from column names",
     )
 
-    # TODO: check the existing place where we are using this
-    # TODO: update documentation
     feedback = Int(
         default_value=1,
         config=True,

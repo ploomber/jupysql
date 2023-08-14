@@ -20,7 +20,6 @@ PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
 PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 
-# TODO: reset config as well (note that we have two copies of this fixture)
 @pytest.fixture(scope="function", autouse=True)
 def isolate_tests(monkeypatch):
     """
@@ -29,13 +28,17 @@ def isolate_tests(monkeypatch):
 
     Also clear up any stored snippets.
     """
+    # reset connections
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
 
+    # reset store
     store.store = store.SQLStore()
 
     yield
+
+    # close connections
     connection.ConnectionManager.close_all()
 
 
