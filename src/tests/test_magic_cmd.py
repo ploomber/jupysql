@@ -66,18 +66,18 @@ WHERE symbol == 'b'
 
 
 @pytest.fixture
-def ip_with_dbapi(ip):
+def ip_with_connections(ip_empty):
     for key in list(store):
         del store[key]
-    ip.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
-    ip.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
+    ip_empty.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
+    ip_empty.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
     duckdb_dbapi = duckdb.connect("")
     sqlite_dbapi = sqlite3.connect("")
 
-    ip.push({"duckdb_dbapi": duckdb_dbapi})
-    ip.push({"sqlite_dbapi": sqlite_dbapi})
+    ip_empty.push({"duckdb_dbapi": duckdb_dbapi})
+    ip_empty.push({"sqlite_dbapi": sqlite_dbapi})
 
-    yield ip
+    yield ip_empty
 
 
 @pytest.fixture
@@ -194,9 +194,9 @@ ATTACH DATABASE 'my.db' AS some_schema
         ("sqlite_dbapi"),
     ],
 )
-def test_table_profile(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(f"%sql {conn}")
-    ip_with_dbapi.run_cell(
+def test_table_profile(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(f"%sql {conn}")
+    ip_with_connections.run_cell(
         """
     %%sql
     CREATE TABLE numbers (rating float, price float, number int, word varchar(50));
@@ -221,7 +221,7 @@ def test_table_profile(ip_with_dbapi, tmp_empty, conn):
         "top": [math.nan, math.nan, math.nan, "a"],
     }
 
-    out = ip_with_dbapi.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
 
     stats_table = out._table
 
@@ -251,9 +251,9 @@ def test_table_profile(ip_with_dbapi, tmp_empty, conn):
         ("duckdb_dbapi"),
     ],
 )
-def test_table_profile_with_stdev(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(f"%sql {conn}")
-    ip_with_dbapi.run_cell(
+def test_table_profile_with_stdev(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(f"%sql {conn}")
+    ip_with_connections.run_cell(
         """
     %%sql
     CREATE TABLE numbers (rating float, price float, number int, word varchar(50));
@@ -282,7 +282,7 @@ def test_table_profile_with_stdev(ip_with_dbapi, tmp_empty, conn):
         "75%": ["12.9000", "0.4100", "90.0000", math.nan],
     }
 
-    out = ip_with_dbapi.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
 
     stats_table = out._table
 
@@ -352,11 +352,11 @@ def test_table_schema_profile(ip, tmp_empty):
             assert cell == str(expected[profile_metric][0])
 
 
-def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_with_dbapi, tmp_empty):
+def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_empty, tmp_empty):
     sqlite_dbapi_testdb_conn = sqlite3.connect("test.db")
-    ip_with_dbapi.push({"sqlite_dbapi_testdb_conn": sqlite_dbapi_testdb_conn})
+    ip_empty.push({"sqlite_dbapi_testdb_conn": sqlite_dbapi_testdb_conn})
 
-    ip_with_dbapi.run_cell(
+    ip_empty.run_cell(
         """%%sql sqlite_dbapi_testdb_conn
 CREATE TABLE sample_table (n FLOAT);
 INSERT INTO sample_table VALUES (11);
@@ -365,7 +365,7 @@ INSERT INTO sample_table VALUES (33);
 """
     )
 
-    ip_with_dbapi.run_cell(
+    ip_empty.run_cell(
         """
     %%sql sqlite_dbapi_testdb_conn
     ATTACH DATABASE 'test.db' AS test_schema;
@@ -383,7 +383,7 @@ INSERT INTO sample_table VALUES (33);
         "top": [math.nan],
     }
 
-    out = ip_with_dbapi.run_cell(
+    out = ip_empty.run_cell(
         "%sqlcmd profile --table sample_table --schema test_schema"
     ).result
 
@@ -405,8 +405,8 @@ INSERT INTO sample_table VALUES (33);
         ("sqlite_dbapi"),
     ],
 )
-def test_table_profile_warnings_styles(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(
+def test_table_profile_warnings_styles(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(
         f"""
     %%sql {conn}
     CREATE TABLE numbers (rating float,price varchar(50),number int,word varchar(50));
@@ -414,7 +414,7 @@ def test_table_profile_warnings_styles(ip_with_dbapi, tmp_empty, conn):
     INSERT INTO numbers VALUES (13.13, '1.50', 93, 'b');
     """
     )
-    out = ip_with_dbapi.run_cell("%sqlcmd profile -t numbers").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t numbers").result
     stats_table_html = out._table_html
     assert "Columns <code>price</code> have a datatype mismatch" in stats_table_html
     assert "td:nth-child(3)" in stats_table_html
@@ -439,8 +439,8 @@ def test_profile_is_numeric():
         ("sqlite_dbapi"),
     ],
 )
-def test_table_profile_is_numeric(ip_with_dbapi, tmp_empty, conn):
-    ip_with_dbapi.run_cell(
+def test_table_profile_is_numeric(ip_with_connections, tmp_empty, conn):
+    ip_with_connections.run_cell(
         f"""
         %%sql {conn}
         CREATE TABLE people (name varchar(50),age varchar(50),number int,
@@ -449,7 +449,7 @@ def test_table_profile_is_numeric(ip_with_dbapi, tmp_empty, conn):
         INSERT INTO people VALUES ('paula', '50', 93, 'uk', '1', 'female');
         """
     )
-    out = ip_with_dbapi.run_cell("%sqlcmd profile -t people").result
+    out = ip_with_connections.run_cell("%sqlcmd profile -t people").result
     stats_table_html = out._table_html
     assert "td:nth-child(3)" in stats_table_html
     assert "td:nth-child(6)" in stats_table_html
@@ -468,8 +468,8 @@ def test_table_profile_is_numeric(ip_with_dbapi, tmp_empty, conn):
         ("sqlite_dbapi", "test_report_dbapi.html"),
     ],
 )
-def test_table_profile_store(ip_with_dbapi, tmp_empty, conn, report_fname):
-    ip_with_dbapi.run_cell(
+def test_table_profile_store(ip_with_connections, tmp_empty, conn, report_fname):
+    ip_with_connections.run_cell(
         f"""
     %%sql {conn}
     CREATE TABLE test_store (rating, price, number, symbol);
@@ -480,7 +480,9 @@ def test_table_profile_store(ip_with_dbapi, tmp_empty, conn, report_fname):
     """
     )
 
-    ip_with_dbapi.run_cell(f"%sqlcmd profile -t test_store --output {report_fname}")
+    ip_with_connections.run_cell(
+        f"%sqlcmd profile -t test_store --output {report_fname}"
+    )
 
     report = Path(report_fname)
     assert report.is_file()
