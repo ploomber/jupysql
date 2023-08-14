@@ -1,13 +1,7 @@
-# I dont think we need all these imports
-from sql.magic import RenderMagic, SqlMagic, load_ipython_extension
-from sql.connection import PLOOMBER_DOCS_LINK_STR
+from sql.magic import load_ipython_extension
+
 
 __version__ = "0.10.0dev"
 
 
-__all__ = [
-    "RenderMagic",
-    "SqlMagic",
-    "load_ipython_extension",
-    "PLOOMBER_DOCS_LINK_STR",
-]
+__all__ = ["load_ipython_extension"]
