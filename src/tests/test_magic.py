@@ -8,7 +8,7 @@ import re
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import polars as pl
 import pandas as pd
@@ -1754,5 +1754,19 @@ def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
     assert message in str(excinfo.value)
 
 
-def test_persist_uses_error_handling_method():
-    pass
+@pytest.mark.parametrize("cell", ["%sql --persist df", "%sql --persist-replace df"])
+def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip.push({"df": df})
+
+    conn = ConnectionManager.current
+    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    monkeypatch.setattr(
+        conn, "_execute_with_error_handling", execute_with_error_handling_mock
+    )
+
+    ip.run_cell(cell)
+
+    # ensure this got called because this function handles several sqlalchemy edge
+    # cases
+    execute_with_error_handling_mock.assert_called_once()
