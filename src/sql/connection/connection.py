@@ -652,7 +652,7 @@ class SQLAlchemyConnection(AbstractConnection):
         # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
-        operation = partial(self._connection_sqlalchemy.execute, query, parameters)
+        operation = partial(self._execute_with_parameters, query, parameters)
         out = self._execute_with_error_handling(operation)
 
         if self._requires_manual_commit:
