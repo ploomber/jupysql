@@ -66,7 +66,7 @@ If you have autopandas set to true, the displaylimit option will not apply. You 
 ## Changing configuration
 
 ```{code-cell} ipython3
-%config SqlMagic.feedback = False
+%config SqlMagic.feedback = 0
 ```
 
 ## `displaycon`
@@ -198,31 +198,17 @@ To unset:
 
 ## `feedback`
 
-Default: `True`
-
-Print number of rows affected by DML.
-
-```{code-cell} ipython3
-%config SqlMagic.feedback = True
+```{versionchanged} 0.10
+`feedback` takes values `0`, `2`, and `2` instead of `True`/`False`
 ```
 
-```{code-cell} ipython3
-%%sql
-CREATE TABLE my_points (x, y);
-INSERT INTO my_points VALUES (0, 0);
-INSERT INTO my_points VALUES (1, 1);
-```
+Default: `1`
 
-```{code-cell} ipython3
-%config SqlMagic.feedback = False
-```
+Control the quantity of feedback displayed when performing certain operations:
 
-```{code-cell} ipython3
-%%sql
-CREATE TABLE more_points (x, y);
-INSERT INTO more_points VALUES (0, 0);
-INSERT INTO more_points VALUES (1, 1);
-```
+- `0`: No feedback
+- `1`: Normal feedback (default)
+- `2`: All feedback
 
 ## `style`
 
@@ -244,6 +230,9 @@ print(res)
 
 ## `named_parameters`
 
+```{versionadded} 0.9
+```
+
 Default: `False`
 
 If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
@@ -263,7 +252,7 @@ FROM languages
 WHERE rating > :rating
 ```
 
-## Loading configuration from a `pyproject.toml` file
+## Loading from `pyproject.toml`
 
 ```{versionadded} 0.9
 ```
