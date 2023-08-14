@@ -1738,3 +1738,21 @@ select * from author_subset
     assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
         excinfo.value
     )
+
+
+def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_dbapi.push({"df": df})
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_dbapi.run_cell("%sql --persist df")
+
+    message = (
+        "--persist/--persist-replace is not available for "
+        "DBAPI connections (only available for SQLAlchemy connections)"
+    )
+    assert message in str(excinfo.value)
+
+
+def test_persist_uses_error_handling_method():
+    pass

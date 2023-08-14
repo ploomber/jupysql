@@ -21,6 +21,7 @@ import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
 
+from sql import exceptions
 from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
@@ -983,7 +984,7 @@ class DBAPIConnection(AbstractConnection):
         )
 
     def to_table(self, table_name, data_frame, if_exists, index):
-        raise NotImplementedError(
+        raise exceptions.NotImplementedError(
             "--persist/--persist-replace is not available for DBAPI connections"
             " (only available for SQLAlchemy connections)"
         )
