@@ -765,11 +765,13 @@ class SQLAlchemyConnection(AbstractConnection):
         operation : callable
             A callable that takes no parameters to execute a database operation
         """
-        # TODO: test these cases with psycopg3
         rollback_needed = False
 
         try:
             out = operation()
+
+        # this is a generic error but we've seen it in postgres. it helps recover
+        # from a idle session timeout (happens in psycopg 2 and psycopg 3)
         except PendingRollbackError:
             warnings.warn(
                 "Found invalid transaction. JupySQL executed a ROLLBACK operation.",
@@ -779,6 +781,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
         # postgres error
         except InternalError as e:
+            # message from psycopg 2 and psycopg 3
             message = (
                 "current transaction is aborted, "
                 "commands ignored until end of transaction block"
@@ -799,6 +802,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
         # postgres error
         except OperationalError as e:
+            # message from psycopg 2 and psycopg 3
             message = "server closed the connection unexpectedly"
 
             if type(e.orig).__name__ == "OperationalError" and message in str(e.orig):
