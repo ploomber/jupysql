@@ -5,11 +5,11 @@ from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql.parse import connection_from_dsn_section
 from sql import exceptions, display
-from sql.cmd.connect import get_connections_config_file
 import json
 from pathlib import Path
 from ploomber_core.dependencies import requires
 from IPython.core.error import UsageError
+from configparser import ConfigParser
 
 try:
     import toml

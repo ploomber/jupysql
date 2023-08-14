@@ -739,35 +739,6 @@ def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content):
     assert isinstance(connector_widget, ConnectorWidget)
 
 
-@pytest.mark.parametrize(
-    "file_content",
-    [
-        (
-            """[conn1]
-drivername = sqlite
-"""
-        ),
-        (
-            """[conn1]
-drivername = sqlite
-
-[conn2]
-drivername = sqlite
-
-[conn3]
-drivername = duckdb
-"""
-        ),
-        (""),
-    ],
-)
-def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content):
-    Path("connections.ini").write_text(file_content)
-    ip_empty.run_cell("%load_ext sql")
-    connector_widget = ip_empty.run_cell("%sqlcmd connect").result
-    assert isinstance(connector_widget, ConnectorWidget)
-
-
 def test_connect_when_no_connections_ini(tmp_empty, ip_empty):
     ip_empty.run_cell("%load_ext sql")
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
