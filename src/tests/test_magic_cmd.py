@@ -610,7 +610,7 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
 
 @pytest.mark.parametrize(
-    "file_content, num_conn, connections_lst",
+    "file_content, num_conn, aliases, urls",
     [
         (
             """
@@ -618,9 +618,8 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 drivername = sqlite
 """,
             1,
-            [
-                {"name": "conn1", "driver": "sqlite"},
-            ],
+            ["conn1"],
+            ["sqlite://"],
         ),
         (
             """
@@ -634,22 +633,21 @@ drivername = sqlite
 drivername = duckdb
 """,
             3,
-            [
-                {"name": "conn1", "driver": "sqlite"},
-                {"name": "conn2", "driver": "sqlite"},
-                {"name": "conn3", "driver": "duckdb"},
-            ],
+            ["conn1", "conn2", "conn3"],
+            ["sqlite://", "sqlite://", "duckdb://"],
         ),
     ],
 )
-def test_connect(tmp_empty, ip_empty, file_content, num_conn, connections_lst):
+def test_connect(tmp_empty, ip_empty, file_content, num_conn, aliases, urls):
     Path("connections.ini").write_text(file_content)
     ip_empty.run_cell("%load_ext sql")
-    assert len(ConnectionManager._get_connections()) == num_conn
-
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
+    connections = ConnectionManager._get_connections()
+
     assert isinstance(connector_widget, ConnectorWidget)
-    assert connections_lst == connector_widget.stored_connections
+    assert len(connections) == num_conn
+    assert aliases == [connection["alias"] for connection in connections]
+    assert urls == [connection["url"] for connection in connections]
 
 
 @pytest.mark.parametrize(
