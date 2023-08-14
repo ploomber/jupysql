@@ -659,18 +659,7 @@ class SqlMagic(Magics, Configurable):
         else:
             if_exists = "fail"
 
-        # TODO: perform a rollback automatically if needed
-        try:
-            frame.to_sql(
-                table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index
-            )
-        except ValueError:
-            raise exceptions.ValueError(
-                f"""Table {table_name!r} already exists. Consider using \
---persist-replace to drop the table before persisting the data frame"""
-            )
-
-        display.message_success(f"Success! Persisted {table_name} to the database.")
+        conn.to_table(name=table_name, data=frame, if_exists=if_exists, index=index)
 
 
 def set_configs(ip, file_path):

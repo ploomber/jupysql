@@ -4,6 +4,7 @@ import abc
 import os
 from difflib import get_close_matches
 import atexit
+from functools import partial
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -407,6 +408,11 @@ class AbstractConnection(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def to_table(self, table_name, data_frame, if_exists, index):
+        """Create a table from a pandas DataFrame"""
+        pass
+
     def close(self):
         """Close the connection"""
         for rs in self._result_sets:
@@ -646,50 +652,8 @@ class SQLAlchemyConnection(AbstractConnection):
         # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
-        rollback_needed = False
-
-        # TODO: test these cases with psycopg3
-        try:
-            out = self._execute_with_parameters(query, parameters)
-        except PendingRollbackError:
-            warnings.warn(
-                "Found invalid transaction. JupySQL executed a ROLLBACK operation.",
-                category=JupySQLRollbackPerformed,
-            )
-            rollback_needed = True
-        except InternalError as e:
-            message = (
-                "current transaction is aborted, "
-                "commands ignored until end of transaction block"
-            )
-            if type(e.orig).__name__ == "InFailedSqlTransaction" and message in str(
-                e.orig
-            ):
-                warnings.warn(
-                    (
-                        "Current transaction is aborted. "
-                        "JupySQL executed a ROLLBACK operation."
-                    ),
-                    category=JupySQLRollbackPerformed,
-                )
-                rollback_needed = True
-            else:
-                raise
-        except OperationalError as e:
-            message = "server closed the connection unexpectedly"
-
-            if type(e.orig).__name__ == "OperationalError" and message in str(e.orig):
-                warnings.warn(
-                    "Server closed connection. JupySQL executed a ROLLBACK operation.",
-                    category=JupySQLRollbackPerformed,
-                )
-                rollback_needed = True
-            else:
-                raise
-
-        if rollback_needed:
-            self._connection.rollback()
-            out = self._execute_with_parameters(query, parameters)
+        operation = partial(self._connection_sqlalchemy.execute, query, parameters)
+        out = self._execute_with_error_handling(operation)
 
         if self._requires_manual_commit:
             # calling connection.commit() when using duckdb-engine will yield
@@ -792,6 +756,65 @@ class SQLAlchemyConnection(AbstractConnection):
                         )
                 raise
 
+    def _execute_with_error_handling(self, operation):
+        """Execute a database operation and handle errors
+
+        Parameters
+        ----------
+        operation : callable
+            A callable that takes no parameters to execute a database operation
+        """
+        # TODO: test these cases with psycopg3
+        rollback_needed = False
+
+        try:
+            out = operation()
+        except PendingRollbackError:
+            warnings.warn(
+                "Found invalid transaction. JupySQL executed a ROLLBACK operation.",
+                category=JupySQLRollbackPerformed,
+            )
+            rollback_needed = True
+
+        # postgres error
+        except InternalError as e:
+            message = (
+                "current transaction is aborted, "
+                "commands ignored until end of transaction block"
+            )
+            if type(e.orig).__name__ == "InFailedSqlTransaction" and message in str(
+                e.orig
+            ):
+                warnings.warn(
+                    (
+                        "Current transaction is aborted. "
+                        "JupySQL executed a ROLLBACK operation."
+                    ),
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+            else:
+                raise
+
+        # postgres error
+        except OperationalError as e:
+            message = "server closed the connection unexpectedly"
+
+            if type(e.orig).__name__ == "OperationalError" and message in str(e.orig):
+                warnings.warn(
+                    "Server closed connection. JupySQL executed a ROLLBACK operation.",
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+            else:
+                raise
+
+        if rollback_needed:
+            self._connection.rollback()
+            out = operation()
+
+        return out
+
     def _get_database_information(self):
         dialect = self._connection_sqlalchemy.dialect
 
@@ -847,6 +870,22 @@ class SQLAlchemyConnection(AbstractConnection):
         )
         err.modify_exception = True
         return err
+
+    def to_table(self, table_name, data_frame, if_exists, index):
+        """Create a table from a pandas DataFrame"""
+        # TODO: perform a rollback automatically if needed
+        try:
+            data_frame.to_sql(
+                table_name, self.connection_sqlalchemy, if_exists=if_exists, index=index
+            )
+        except ValueError:
+            raise exceptions.ValueError(
+                f"Table {table_name!r} already exists. Consider using "
+                "--persist-replace to drop the table before "
+                "persisting the data frame"
+            )
+
+        display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
 class DBAPIConnection(AbstractConnection):
@@ -936,6 +975,12 @@ class DBAPIConnection(AbstractConnection):
         """
         raise NotImplementedError(
             "This feature is only available for SQLAlchemy connections"
+        )
+
+    def to_table(self, table_name, data_frame, if_exists, index):
+        raise NotImplementedError(
+            "--persist/--persist-replace is not available for DBAPI connections"
+            " (only available for SQLAlchemy connections)"
         )
 
 
