@@ -155,7 +155,7 @@ class SqlMagic(Magics, Configurable):
     feedback = Int(
         default_value=1,
         config=True,
-        help="Verbosity level. 0=disabled, 1=normal, 2=verbose",
+        help="Verbosity level. 0=minimal, 1=normal, 2=all",
     )
 
     dsn_filename = Unicode(

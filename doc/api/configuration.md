@@ -199,16 +199,21 @@ To unset:
 ## `feedback`
 
 ```{versionchanged} 0.10
-`feedback` takes values `0`, `2`, and `2` instead of `True`/`False`
+`feedback` takes values `0`, `1`, and `2` instead of `True`/`False`
 ```
 
 Default: `1`
 
-Control the quantity of feedback displayed when performing certain operations:
+Control the quantity of messages displayed when performing certain operations. Each
+value enables the ones from previous values plus new ones:
 
-- `0`: No feedback
+- `0`: Minimal feedback
 - `1`: Normal feedback (default)
+  - Connection name when switching
+  - Connection name when running a query
+  - Number of rows afffected by DML (e.g., `INSERT`, `UPDATE`, `DELETE`)
 - `2`: All feedback
+  - Footer to distinguish pandas/polars data frames from JupySQL's result sets
 
 ## `style`
 
