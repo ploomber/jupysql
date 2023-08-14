@@ -10,6 +10,7 @@
 * [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
 * [Fix] `ResultSet` footer only displayed when `feedback=2`
 * [Fix] Current connection and switching connections message only displayed when `feedback>=1`
+* [Fix] `--persist/--persist-replace` now perform `ROLLBACK` automatically when needed
 
 ## 0.9.1 (2023-08-10)
 

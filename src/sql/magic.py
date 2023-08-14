@@ -659,7 +659,9 @@ class SqlMagic(Magics, Configurable):
         else:
             if_exists = "fail"
 
-        conn.to_table(name=table_name, data=frame, if_exists=if_exists, index=index)
+        conn.to_table(
+            table_name=table_name, data_frame=frame, if_exists=if_exists, index=index
+        )
 
 
 def set_configs(ip, file_path):

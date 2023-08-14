@@ -873,11 +873,16 @@ class SQLAlchemyConnection(AbstractConnection):
 
     def to_table(self, table_name, data_frame, if_exists, index):
         """Create a table from a pandas DataFrame"""
-        # TODO: perform a rollback automatically if needed
+        operation = partial(
+            data_frame.to_sql,
+            table_name,
+            self.connection_sqlalchemy,
+            if_exists=if_exists,
+            index=index,
+        )
+
         try:
-            data_frame.to_sql(
-                table_name, self.connection_sqlalchemy, if_exists=if_exists, index=index
-            )
+            self._execute_with_error_handling(operation)
         except ValueError:
             raise exceptions.ValueError(
                 f"Table {table_name!r} already exists. Consider using "
