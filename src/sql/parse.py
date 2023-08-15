@@ -9,6 +9,16 @@ from IPython.core.magic_arguments import parse_argstring
 
 
 def connection_str_from_dsn_section(section, config):
+    """Return a SQLAlchemy connection string from a section in a DSN file
+
+    Parameters
+    ----------
+    section : str
+        The section name in the DSN file
+
+    config : Config
+        The config object, must have a dsn_filename attribute
+    """
     parser = CP.ConfigParser()
     parser.read(config.dsn_filename)
     cfg_dict = dict(parser.items(section))
@@ -16,15 +26,29 @@ def connection_str_from_dsn_section(section, config):
 
 
 def _connection_string(s, config):
-    s = expandvars(s)  # for environment variables
+    """Given a string, return a SQLAlchemy connection string if possible.
+
+    Scenarios:
+
+    - If the string is a valid URL, return it
+    - If the string is a valid section in the DSN file return the connection string
+    - Otherwise return an empty string
+    """
+    # for environment variables
+    s = expandvars(s)
+
+    # if it's a URL, return it
     if "@" in s or "://" in s:
         return s
+
+    # if it's a section in the DSN file, return the connection string
     if s.startswith("[") and s.endswith("]"):
         section = s.lstrip("[").rstrip("]")
         parser = CP.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
         return str(URL.create(**cfg_dict))
+
     return ""
 
 
@@ -48,7 +72,9 @@ def parse(cell, config):
     pieces = cell.split(None, 1)
     if not pieces:
         return result
+
     result["connection"] = _connection_string(pieces[0], config)
+
     if result["connection"]:
         if len(pieces) == 1:
             return result
