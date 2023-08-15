@@ -1846,6 +1846,25 @@ drivername = not-a-driver
     assert message in str(excinfo.value)
 
 
+def test_error_when_using_section_argument_and_alias(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck --alias stuff")
+
+    assert excinfo.value.error_type == "UsageError"
+
+    message = "Cannot use --section with --alias"
+    assert message in str(excinfo.value)
+
+
 def test_connect_to_db_in_connections_file_using_section_argument(ip_empty, tmp_empty):
     Path("connections.ini").write_text(
         """
@@ -1859,9 +1878,10 @@ drivername = duckdb
     ip_empty.run_cell("%sql --section duck")
 
     conns = ConnectionManager.connections
-    assert conns == {"duckdb://": ANY}
+    assert conns == {"duck": ANY}
 
 
+# TODO: set the alias as well?
 def test_connect_to_db_in_connections_file_using_section_name_between_square_brackets(
     ip_empty, tmp_empty
 ):
@@ -1877,3 +1897,17 @@ drivername = duckdb
 
     conns = ConnectionManager.connections
     assert conns == {"duckdb://": ANY}
+
+
+def test_switch(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    ip_empty.run_cell("%sql duckdb:// --alias someduck")
+    ip_empty.run_cell("%sql [duck]")
