@@ -44,7 +44,20 @@ def connection_str_from_dsn_section(section, config):
         ) from e
 
     cfg_dict = dict(cfg)
-    return str(URL.create(**cfg_dict).render_as_string(hide_password=False))
+
+    try:
+        url = URL.create(**cfg_dict)
+    except TypeError as e:
+        if "unexpected keyword argument" in str(e):
+            raise exceptions.TypeError(
+                f"%config SqlMagic.dsn_filename ({config.dsn_filename!r}) is invalid. "
+                "It must only contain the following keys: drivername, username, "
+                "password, host, port, database, query"
+            ) from e
+        else:
+            raise
+
+    return str(url.render_as_string(hide_password=False))
 
 
 # NOTE: this is legacy code. I noted that the behavior is inconsistency since it'll
