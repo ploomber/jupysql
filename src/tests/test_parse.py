@@ -178,7 +178,7 @@ def test_connection_from_dsn_section(section, expected):
 
 
 @pytest.mark.parametrize(
-    "s, expected",
+    "input_, expected",
     [
         ("", ""),
         (
@@ -186,7 +186,10 @@ def test_connection_from_dsn_section(section, expected):
             "drivername://user:pass@host:port/db",
         ),
         ("drivername://", "drivername://"),
-        ("[DB_CONFIG_1]", "postgres://goesto11:***@my.remote.host:5432/pgmain"),
+        (
+            "[DB_CONFIG_1]",
+            "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain",
+        ),
         ("DB_CONFIG_1", ""),
         ("not-a-url", ""),
     ],
@@ -199,8 +202,8 @@ def test_connection_from_dsn_section(section, expected):
         "not-a-url",
     ],
 )
-def test_connection_string(s, expected):
-    assert _connection_string(s, DummyConfig) == expected
+def test_connection_string(input_, expected):
+    assert _connection_string(input_, DummyConfig) == expected
 
 
 class Bunch:
