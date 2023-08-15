@@ -66,7 +66,7 @@ class SqlCmdMagic(Magics, Configurable):
             command, others = split[0].strip(), split[1:]
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
-                if command not in ["profile"]:
+                if command not in ["profile", "connect"]:
                     util.support_only_sql_alchemy_connection("%sqlcmd")
                 return self.execute(command, others)
             else:

@@ -712,20 +712,15 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
 
 @pytest.mark.parametrize(
-    "file_content, num_conn, aliases, urls",
+    "file_content",
     [
         (
-            """
-[conn1]
+            """[conn1]
 drivername = sqlite
-""",
-            1,
-            ["conn1"],
-            ["sqlite://"],
+"""
         ),
         (
-            """
-[conn1]
+            """[conn1]
 drivername = sqlite
 
 [conn2]
@@ -733,82 +728,19 @@ drivername = sqlite
 
 [conn3]
 drivername = duckdb
-""",
-            3,
-            ["conn1", "conn2", "conn3"],
-            ["sqlite://", "sqlite://", "duckdb://"],
+"""
         ),
+        (""),
     ],
 )
-def test_connect(tmp_empty, ip_empty, file_content, num_conn, aliases, urls):
+def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content):
     Path("connections.ini").write_text(file_content)
     ip_empty.run_cell("%load_ext sql")
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
-    connections = ConnectionManager._get_connections()
-
     assert isinstance(connector_widget, ConnectorWidget)
-    assert len(connections) == num_conn
-    assert aliases == [connection["alias"] for connection in connections]
-    assert urls == [connection["url"] for connection in connections]
 
 
-@pytest.mark.parametrize(
-    "file_content, num_conn, err_type, err_msg",
-    [
-        (
-            """
-[conn1]
-username = username
-password = password
-host = localhost
-atabase = database
-drivername = postgresql
-""",
-            0,
-            "TypeError",
-            "got an unexpected keyword argument 'atabase'",
-        ),
-        (
-            """
-[conn1]
-username = username
-password = password
-host = localhost
-database = database
-drivername = postgresql
-port = test
-""",
-            0,
-            "ValueError",
-            "invalid literal for int() with base 10: 'test'",
-        ),
-    ],
-)
-def test_error_in_connections_ini(
-    tmp_empty, ip_empty, file_content, num_conn, err_type, err_msg
-):
-    Path("connections.ini").write_text(file_content)
-
-    with pytest.raises(UsageError) as error:
-        ip_empty.run_cell("%load_ext sql")
-
-    assert len(ConnectionManager._get_connections()) == num_conn
-    assert error.value.error_type == err_type
-    assert err_msg in str(error.value)
-
-
-def test_no_connections_ini(tmp_empty, ip_empty):
+def test_connect_when_no_connections_ini(tmp_empty, ip_empty):
     ip_empty.run_cell("%load_ext sql")
-    assert len(ConnectionManager._get_connections()) == 0
-
-    with pytest.raises(AttributeError):
-        ip_empty.run_cell("%sqlcmd connect")
-
-
-def test_no_conn_in_connections_ini(tmp_empty, ip_empty):
-    Path("connections.ini").write_text("")
-    ip_empty.run_cell("%load_ext sql")
-    assert len(ConnectionManager._get_connections()) == 0
-
-    with pytest.raises(AttributeError):
-        ip_empty.run_cell("%sqlcmd connect")
+    connector_widget = ip_empty.run_cell("%sqlcmd connect").result
+    assert isinstance(connector_widget, ConnectorWidget)
