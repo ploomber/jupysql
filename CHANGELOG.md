@@ -9,6 +9,7 @@
 * [Fix] Fixed vertical color breaks in histograms (#702)
 * [Fix] Showing feedback when switching connections (#727)
 * [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
+* [Fix] Error when using %sqlplot in snowflake (#697)
 
 ## 0.8.0 (2023-07-18)
 
