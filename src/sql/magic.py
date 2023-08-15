@@ -38,11 +38,7 @@ from sql.magic_plot import SqlPlotMagic
 from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import query_util, util
-from sql.util import (
-    get_suggestions_message,
-    pretty_print,
-    load_conn_config,
-)
+from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
 from sql._current import _set_sql_magic
@@ -714,6 +710,3 @@ def load_ipython_extension(ip):
     patch_ipython_usage_error(ip)
 
     load_SqlMagic_configs(ip)
-
-    displaycon = ip.find_cell_magic("sql").__self__.displaycon
-    load_conn_config(displaycon)
