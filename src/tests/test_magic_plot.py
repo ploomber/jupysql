@@ -156,6 +156,16 @@ def test_validate_breaks_arguments(load_penguin, ip, cell, error_message):
                 "please ensure to pass a positive value."
             ),
         ],
+        [
+            (
+                "%sqlplot histogram --table penguins.csv --column body_mass_g "
+                "--binwidth -10"
+            ),
+            (
+                "Binwidth given : -10.0. When using binwidth, "
+                "please ensure to pass a positive value."
+            ),
+        ],
     ],
 )
 def test_validate_binwidth_arguments(load_penguin, ip, cell, error_message):
@@ -164,6 +174,27 @@ def test_validate_binwidth_arguments(load_penguin, ip, cell, error_message):
 
     assert error_message in str(excinfo.value)
     assert excinfo.value.error_type == "ValueError"
+
+
+def test_validate_binwidth_text_argument(tmp_empty, ip):
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            "%sqlplot histogram --table penguins.csv "
+            "--column body_mass_g --binwidth test"
+        )
+
+    assert "argument -W/--binwidth: invalid float value: 'test'" == str(excinfo.value)
+
+
+def test_binwidth_larger_than_range(load_penguin, ip, capsys):
+    ip.run_cell(
+        "%sqlplot histogram --table penguins.csv --column body_mass_g --binwidth 3601"
+    )
+    out, _ = capsys.readouterr()
+    assert (
+        "Specified binwidth 3601.0 is larger than the range 3600. "
+        "Please choose a smaller binwidth."
+    ) in out
 
 
 @_cleanup_cm()
@@ -530,13 +561,20 @@ def test_hist_breaks(load_penguin, ip):
     )
 
 
+@pytest.mark.parametrize(
+    "binwidth",
+    [
+        "--binwidth",
+        "-W",
+    ],
+)
 @_cleanup_cm()
 @image_comparison(
     baseline_images=["hist_binwidth"], extensions=["png"], remove_text=True
 )
-def test_hist_binwidth(load_penguin, ip):
+def test_hist_binwidth(load_penguin, ip, binwidth):
     ip.run_cell(
-        "%sqlplot histogram --table penguins.csv --column body_mass_g --binwidth 150"
+        f"%sqlplot histogram --table penguins.csv --column body_mass_g {binwidth} 150"
     )
 
 

@@ -2,7 +2,7 @@
 
 ## 0.10.0dev
 
-* [Feature] Add Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
+* [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` (#677)
@@ -21,6 +21,7 @@
 * [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
 * [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
 * [Fix] Fixes a bug when converting a CTE stored with `--save` into a `pandas.DataFrame` via `.DataFrame()`
+* [Doc] Add Redshift tutorial
 
 ## 0.9.0 (2023-08-01)
 

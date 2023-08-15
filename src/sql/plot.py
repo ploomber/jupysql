@@ -8,7 +8,8 @@ from jinja2 import Template
 
 from sql import exceptions, display
 from sql.stats import _summary_stats
-from sql.util import pretty_print
+from sql.util import _are_numeric_values, validate_mutually_exclusive_args
+from sql.display import message
 
 try:
     import matplotlib.pyplot as plt
@@ -265,10 +266,6 @@ FROM "{{table}}"
     return min_, max_
 
 
-def _are_numeric_values(*values):
-    return all([isinstance(value, (int, float)) for value in values])
-
-
 def _get_bar_width(ax, bins, bin_size, binwidth):
     """
     Return a single bar width based on number of bins
@@ -386,26 +383,15 @@ def histogram(
                 "pass a positive value."
             )
         binwidth = float(binwidth)
-    elif binwidth is None:
-        pass
-    else:
+    elif binwidth is not None:
         raise exceptions.ValueError(
             f"Binwidth given : {binwidth}. When using binwidth, please ensure to "
             "pass a numeric value."
         )
 
-    specified_args = [
-        args
-        for args, specified in zip(
-            ["bins", "breaks", "binwidth"], [bins, breaks, binwidth]
-        )
-        if specified
-    ]
-    if len(specified_args) > 1:
-        raise exceptions.ValueError(
-            f"{pretty_print(specified_args)} are specified. "
-            "You can only specify one of them."
-        )
+    validate_mutually_exclusive_args(
+        ["bins", "breaks", "binwidth"], [bins, breaks, binwidth]
+    )
 
     ax = ax or plt.gca()
     payload["connection_info"] = conn._get_database_information()
@@ -640,6 +626,11 @@ def _histogram(
             range_ = max_ - min_
             if binwidth:
                 bin_size = binwidth
+                if binwidth > range_:
+                    message(
+                        f"Specified binwidth {binwidth} is larger than "
+                        f"the range {range_}. Please choose a smaller binwidth."
+                    )
             else:
                 bin_size = range_ / (bins - 1)
             template_ = """

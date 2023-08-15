@@ -153,7 +153,9 @@ When plotting a histogram, it divides a range with the number of bins - 1 to cal
 
 +++
 
-### Number of bins
+### Specifying bins
+
+Bins allow you to set the number of bins in a histogram, and it's useful when you are interested in the overall distribution.
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g  --bins 100
@@ -161,7 +163,7 @@ When plotting a histogram, it divides a range with the number of bins - 1 to cal
 
 ### Specifying breaks
 
-Breaks allow you to set custom intervals for a histogram. You can specify breaks by passing desired each end and break points separated by whitespace after `-B/--breaks`. Since those break points define a range of data points to plot, bar width, and number of bars in a histogram, make sure to pass more than 1 point that is strictly increasing and includes at least one data point.
+Breaks allow you to set custom intervals for a histogram. It is useful when you want to view distribution within a specific range. You can specify breaks by passing desired each end and break points separated by whitespace after `-B/--breaks`. Since those break points define a range of data points to plot, bar width, and number of bars in a histogram, make sure to pass more than 1 point that is strictly increasing and includes at least one data point.
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g --breaks 3200 3400 3600 3800 4000 4200 4400 4600 4800
@@ -169,7 +171,7 @@ Breaks allow you to set custom intervals for a histogram. You can specify breaks
 
 ### Specifying binwidth
 
-Binwidth allows you to set the width of bins in a histogram. To specify the binwidth, pass a desired width after `-W/--binwidth`. Since the binwidth determines details of distribution, make sure to pass a suitable positive numeric value based on your data.
+Binwidth allows you to set the width of bins in a histogram. It is useful when you directly aim to adjust the granularity of the histogram. To specify the binwidth, pass a desired width after `-W/--binwidth`. Since the binwidth determines details of distribution, make sure to pass a suitable positive numeric value based on your data.
 
 ```{code-cell} ipython3
 %sqlplot histogram --table penguins.csv --column body_mass_g --binwidth 150
