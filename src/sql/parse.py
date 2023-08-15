@@ -8,7 +8,7 @@ from sqlalchemy.engine.url import URL
 from IPython.core.magic_arguments import parse_argstring
 
 
-def connection_from_dsn_section(section, config):
+def connection_str_from_dsn_section(section, config):
     parser = CP.ConfigParser()
     parser.read(config.dsn_filename)
     cfg_dict = dict(parser.items(section))

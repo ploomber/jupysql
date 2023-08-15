@@ -467,7 +467,7 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:

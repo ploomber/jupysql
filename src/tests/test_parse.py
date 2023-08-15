@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from sql.parse import (
-    connection_from_dsn_section,
+    connection_str_from_dsn_section,
     parse,
     without_sql_comment,
     magic_args,
@@ -159,9 +159,13 @@ class DummyConfig:
 
 
 def test_connection_from_dsn_section():
-    result = connection_from_dsn_section(section="DB_CONFIG_1", config=DummyConfig())
+    result = connection_str_from_dsn_section(
+        section="DB_CONFIG_1", config=DummyConfig()
+    )
     assert result == "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain"
-    result = connection_from_dsn_section(section="DB_CONFIG_2", config=DummyConfig())
+    result = connection_str_from_dsn_section(
+        section="DB_CONFIG_2", config=DummyConfig()
+    )
     assert result == "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin"
 
 
