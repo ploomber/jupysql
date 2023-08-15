@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import pandas as pd
 import urllib.request
 import requests
-from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap, geom_boxplot
+from sql.ggplot import ggplot, aes, geom_histogram, facet_wrap
 from sql.connection import ConnectionManager
 
 from matplotlib.testing.decorators import image_comparison, _cleanup_cm
@@ -445,6 +445,45 @@ def test_facet_wrap_stacked_histogram_cmap(ip_questdb, diamonds_data):
 
 
 @_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_breaks(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[0, 3000, 5000, 6000, 10000])
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_breaks"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_breaks(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[0, 3000, 5000, 6000, 10000], fill="color")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_breaks_over_max"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_breaks_over_max(ip_questdb, diamonds_data):
+    (
+        ggplot(diamonds_data, aes(x="price"))
+        + geom_histogram(breaks=[15000, 17000, 20000, 21000])
+    )
+
+
+@_cleanup_cm()
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [
@@ -522,7 +561,6 @@ NOT_SUPPORTED_SUFFIX = (
 @pytest.mark.parametrize(
     "query",
     [
-        ("%sqlcmd profile --table penguins.csv"),
         ("%sqlcmd tables"),
         ("%sqlcmd tables --schema some_schema"),
         ("%sqlcmd columns --table penguins.csv"),
@@ -533,57 +571,6 @@ NOT_SUPPORTED_SUFFIX = (
 def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
     expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
 
-    with pytest.raises(UsageError) as excinfo:
-        ip_questdb.run_cell(query)
-
-    error_message = str(excinfo.value)
-    assert str(expected_error_message).lower() in error_message.lower()
-
-
-@_cleanup_cm()
-@pytest.mark.parametrize(
-    "func, expected_error_message",
-    [
-        (
-            lambda: (ggplot(penguins_data, aes(x="body_mass_g")) + geom_boxplot()),
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-        (
-            lambda: (
-                ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
-                + geom_boxplot()
-            ),
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-    ],
-)
-def test_ggplot_boxplot_not_supported_error(
-    ip_questdb, penguins_no_nulls_questdb, penguins_data, func, expected_error_message
-):
-    with pytest.raises(UsageError) as err:
-        func()
-
-    assert err.value.error_type == "RuntimeError"
-    assert expected_error_message in str(err)
-
-
-@_cleanup_cm()
-@pytest.mark.parametrize(
-    "query, expected_error_message",
-    [
-        (
-            "%sqlplot boxplot --column body_mass_g --table penguins.csv",
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-        (
-            "%sqlplot boxplot --column body_mass_g --table no_nulls --with no_nulls",
-            f"boxplot {NOT_SUPPORTED_SUFFIX}",
-        ),
-    ],
-)
-def test_sqlplot_not_supported_error(
-    ip_questdb, penguins_data, penguins_no_nulls_questdb, query, expected_error_message
-):
     with pytest.raises(UsageError) as excinfo:
         ip_questdb.run_cell(query)
 

@@ -15,7 +15,12 @@ from IPython.core.magic import (
     no_var_expand,
 )
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
-from sqlalchemy.exc import OperationalError, ProgrammingError, DatabaseError
+from sqlalchemy.exc import (
+    OperationalError,
+    ProgrammingError,
+    DatabaseError,
+    StatementError,
+)
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
@@ -36,6 +41,7 @@ from sql import query_util, util
 from sql.util import get_suggestions_message, pretty_print
 from sql.exceptions import RuntimeError
 from sql.error_message import detail
+from sql._current import _set_sql_magic
 
 
 from ploomber_core.dependencies import check_installed
@@ -90,15 +96,17 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(True, config=True, help="Show connection string after execution")
+    displaycon = Bool(
+        default_value=True, config=True, help="Show connection string after execution"
+    )
     autolimit = Int(
-        0,
+        default_value=0,
         config=True,
         allow_none=True,
         help="Automatically limit the size of the returned result sets",
     )
     style = Unicode(
-        "DEFAULT",
+        default_value="DEFAULT",
         config=True,
         help=(
             "Set the table printing style to any of prettytable's "
@@ -107,12 +115,12 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     short_errors = Bool(
-        True,
+        default_value=True,
         config=True,
         help="Don't display the full traceback on SQL Programming Error",
     )
     displaylimit = Int(
-        10,
+        default_value=10,
         config=True,
         allow_none=True,
         help=(
@@ -121,17 +129,17 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     autopandas = Bool(
-        False,
+        default_value=False,
         config=True,
         help="Return Pandas DataFrames instead of regular result sets",
     )
     autopolars = Bool(
-        False,
+        default_value=False,
         config=True,
         help="Return Polars DataFrames instead of regular result sets",
     )
     polars_dataframe_kwargs = Dict(
-        {},
+        default_value={},
         config=True,
         help=(
             "Polars DataFrame constructor keyword arguments"
@@ -139,18 +147,36 @@ class SqlMagic(Magics, Configurable):
         ),
     )
     column_local_vars = Bool(
-        False, config=True, help="Return data into local variables from column names"
+        default_value=False,
+        config=True,
+        help="Return data into local variables from column names",
     )
-    feedback = Bool(True, config=True, help="Print number of rows affected by DML")
+
+    feedback = Int(
+        default_value=1,
+        config=True,
+        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+    )
+
     dsn_filename = Unicode(
-        "odbc.ini",
+        default_value="odbc.ini",
         config=True,
         help="Path to DSN file. "
         "When the first argument is of the form [section], "
         "a sqlalchemy connection string is formed from the "
         "matching section in the DSN file.",
     )
-    autocommit = Bool(True, config=True, help="Set autocommit mode")
+
+    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+
+    named_parameters = Bool(
+        default_value=False,
+        config=True,
+        help=(
+            "Allow named parameters in queries "
+            "(i.e., 'SELECT * FROM foo WHERE bar = :bar')"
+        ),
+    )
 
     @telemetry.log_call("init")
     def __init__(self, shell):
@@ -360,17 +386,18 @@ class SqlMagic(Magics, Configurable):
     @telemetry.log_call("execute", payload=True)
     @modify_exceptions
     def _execute(self, payload, line, cell, local_ns, is_interactive_mode=False):
-        def interactive_execute_wrapper(**kwargs):
-            for key, value in kwargs.items():
-                local_ns[key] = value
-            return self._execute(line, cell, local_ns, is_interactive_mode=True)
-
         """
         This function implements the cell logic; we create this private
         method so we can control how the function is called. Otherwise,
         decorating ``SqlMagic.execute`` will break when adding the ``@log_call``
         decorator with ``payload=True``
         """
+
+        def interactive_execute_wrapper(**kwargs):
+            for key, value in kwargs.items():
+                local_ns[key] = value
+            return self._execute(line, cell, local_ns, is_interactive_mode=True)
+
         # line is the text after the magic, cell is the cell's body
 
         # Examples
@@ -395,17 +422,28 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
-        if args.with_:
-            with_ = args.with_
-        else:
-            with_ = self._store.infer_dependencies(command.sql_original, args.save)
-            if with_:
-                command.set_sql_with(with_)
-                display.message(
-                    f"Generating CTE with stored snippets: {pretty_print(with_)}"
-                )
+        is_cte = command.sql_original.strip().lower().startswith("with ")
+
+        # only expand CTE if this is not a CTE itself
+        if not is_cte:
+            if args.with_:
+                with_ = args.with_
             else:
-                with_ = None
+                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                if with_:
+                    command.set_sql_with(with_)
+                    display.message(
+                        f"Generating CTE with stored snippets: {pretty_print(with_)}"
+                    )
+                else:
+                    with_ = None
+        else:
+            if args.with_:
+                raise exceptions.UsageError(
+                    "Cannot use --with with CTEs, remove --with and re-run the cell"
+                )
+
+            with_ = None
 
         # Create the interactive slider
         if args.interact and not is_interactive_mode:
@@ -457,6 +495,7 @@ class SqlMagic(Magics, Configurable):
             connect_args=args.connection_arguments,
             creator=args.creator,
             alias=args.alias,
+            config=self,
         )
         payload["connection_info"] = conn._get_database_information()
 
@@ -513,7 +552,12 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            result = run_statements(conn, command.sql, self)
+            result = run_statements(
+                conn,
+                command.sql,
+                self,
+                parameters=user_ns if self.named_parameters else None,
+            )
 
             if (
                 result is not None
@@ -548,7 +592,13 @@ class SqlMagic(Magics, Configurable):
                 return result
 
         # JA: added DatabaseError for MySQL
-        except (ProgrammingError, OperationalError, DatabaseError) as e:
+        except (
+            ProgrammingError,
+            OperationalError,
+            DatabaseError,
+            # raised when they query has :parameters but no parameters are given
+            StatementError,
+        ) as e:
             # Sqlite apparently return all errors as OperationalError :/
             self._error_handling(e, command.sql)
         except Exception as e:
@@ -609,17 +659,9 @@ class SqlMagic(Magics, Configurable):
         else:
             if_exists = "fail"
 
-        try:
-            frame.to_sql(
-                table_name, conn.connection_sqlalchemy, if_exists=if_exists, index=index
-            )
-        except ValueError:
-            raise exceptions.ValueError(
-                f"""Table {table_name!r} already exists. Consider using \
---persist-replace to drop the table before persisting the data frame"""
-            )
-
-        display.message_success(f"Success! Persisted {table_name} to the database.")
+        conn.to_table(
+            table_name=table_name, data_frame=frame, if_exists=if_exists, index=index
+        )
 
 
 def set_configs(ip, file_path):
@@ -656,14 +698,11 @@ def load_SqlMagic_configs(ip):
 
 
 def load_ipython_extension(ip):
-    """Load the extension in IPython."""
+    """Load the magics, this function is executed when the user runs: %load_ext sql"""
+    sql_magic = SqlMagic(ip)
+    _set_sql_magic(sql_magic)
 
-    # this fails in both Firefox and Chrome for OS X.
-    # I get the error: TypeError: IPython.CodeCell.config_defaults is undefined
-
-    # js = "IPython.CodeCell.config_defaults.highlight_modes['magic_sql'] = {'reg':[/^%%sql/]};" # noqa
-    # display_javascript(js, raw=True)
-    ip.register_magics(SqlMagic)
+    ip.register_magics(sql_magic)
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)

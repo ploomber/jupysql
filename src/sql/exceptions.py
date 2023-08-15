@@ -39,6 +39,7 @@ TypeError = exception_factory("TypeError")
 RuntimeError = exception_factory("RuntimeError")
 ValueError = exception_factory("ValueError")
 FileNotFoundError = exception_factory("FileNotFoundError")
+NotImplementedError = exception_factory("NotImplementedError")
 
 # The following are internal exceptions that should not be raised directly
 
@@ -47,3 +48,6 @@ TableNotFoundError = exception_factory("TableNotFoundError")
 
 # raise it when there is an error in parsing pyproject.toml file
 ConfigurationError = exception_factory("ConfigurationError")
+
+
+InvalidQueryParameters = exception_factory("InvalidQueryParameters")

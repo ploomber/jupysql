@@ -12,6 +12,8 @@ from sql.magic_cmd import SqlCmdMagic
 from sql.connection import ConnectionManager
 from sql._testing import TestingShell
 from sql import connection
+from sql import store
+from sql import _current
 
 PATH_TO_TESTS = Path(__file__).absolute().parent
 PATH_TO_TMP_ASSETS = PATH_TO_TESTS / "tmp"
@@ -19,15 +21,24 @@ PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_connections(monkeypatch):
+def isolate_tests(monkeypatch):
     """
     Fixture to ensure connections are isolated between tests, preventing tests
     from accidentally closing connections created by other tests.
+
+    Also clear up any stored snippets.
     """
+    # reset connections
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+
+    # reset store
+    store.store = store.SQLStore()
+
     yield
+
+    # close connections
     connection.ConnectionManager.close_all()
 
 
@@ -75,7 +86,10 @@ def ip_empty():
     c.HistoryAccessor.enabled = False
     ip_session = TestingShell(config=c)
 
-    ip_session.register_magics(SqlMagic)
+    sql_magic = SqlMagic(ip_session)
+    _current._set_sql_magic(sql_magic)
+
+    ip_session.register_magics(sql_magic)
     ip_session.register_magics(RenderMagic)
     ip_session.register_magics(SqlPlotMagic)
     ip_session.register_magics(SqlCmdMagic)
@@ -89,49 +103,58 @@ def ip_empty():
     ConnectionManager.close_all()
 
 
+def insert_sample_data(ip):
+    ip.run_cell(
+        """%%sql
+CREATE TABLE test (n INT, name TEXT);
+INSERT INTO test VALUES (1, 'foo');
+INSERT INTO test VALUES (2, 'bar');
+CREATE TABLE [table with spaces] (first INT, second TEXT);
+CREATE TABLE author (first_name, last_name, year_of_death);
+INSERT INTO author VALUES ('William', 'Shakespeare', 1616);
+INSERT INTO author VALUES ('Bertold', 'Brecht', 1956);
+CREATE TABLE empty_table (column INT, another INT);
+CREATE TABLE website (person, link, birthyear INT);
+INSERT INTO website VALUES ('Bertold Brecht',
+    'https://en.wikipedia.org/wiki/Bertolt_Brecht', 1954 );
+INSERT INTO website VALUES ('William Shakespeare',
+    'https://en.wikipedia.org/wiki/William_Shakespeare', 1564);
+INSERT INTO website VALUES ('Steve Steve', 'google_link', 2023);
+CREATE TABLE number_table (x INT, y INT);
+INSERT INTO number_table VALUES (4, (-2));
+INSERT INTO number_table VALUES ((-5), 0);
+INSERT INTO number_table VALUES (2, 4);
+INSERT INTO number_table VALUES (0, 2);
+INSERT INTO number_table VALUES ((-5), (-1));
+INSERT INTO number_table VALUES ((-2), (-3));
+INSERT INTO number_table VALUES ((-2), (-3));
+INSERT INTO number_table VALUES ((-4), 2);
+INSERT INTO number_table VALUES (2, (-5));
+INSERT INTO number_table VALUES (4, 3);
+"""
+    )
+
+
 @pytest.fixture
 def ip(ip_empty):
     """Provides an IPython session in which tables have been created"""
+    ip_empty.run_cell("%sql sqlite://")
+    insert_sample_data(ip_empty)
 
-    # runsql creates an inmemory sqlitedatabase
-    runsql(
-        ip_empty,
-        [
-            "CREATE TABLE test (n INT, name TEXT)",
-            "INSERT INTO test VALUES (1, 'foo')",
-            "INSERT INTO test VALUES (2, 'bar')",
-            "CREATE TABLE [table with spaces] (first INT, second TEXT)",
-            "CREATE TABLE author (first_name, last_name, year_of_death)",
-            "INSERT INTO author VALUES ('William', 'Shakespeare', 1616)",
-            "INSERT INTO author VALUES ('Bertold', 'Brecht', 1956)",
-            "CREATE TABLE empty_table (column INT, another INT)",
-            "CREATE TABLE website (person, link, birthyear INT)",
-            """INSERT INTO website VALUES ('Bertold Brecht',
-            'https://en.wikipedia.org/wiki/Bertolt_Brecht', 1954 )""",
-            """INSERT INTO website VALUES ('William Shakespeare',
-            'https://en.wikipedia.org/wiki/William_Shakespeare', 1564)""",
-            "INSERT INTO website VALUES ('Steve Steve', 'google_link', 2023)",
-            "CREATE TABLE number_table (x INT, y INT)",
-            "INSERT INTO number_table VALUES (4, (-2))",
-            "INSERT INTO number_table VALUES ((-5), 0)",
-            "INSERT INTO number_table VALUES (2, 4)",
-            "INSERT INTO number_table VALUES (0, 2)",
-            "INSERT INTO number_table VALUES ((-5), (-1))",
-            "INSERT INTO number_table VALUES ((-2), (-3))",
-            "INSERT INTO number_table VALUES ((-2), (-3))",
-            "INSERT INTO number_table VALUES ((-4), 2)",
-            "INSERT INTO number_table VALUES (2, (-5))",
-            "INSERT INTO number_table VALUES (4, 3)",
-        ],
-    )
     yield ip_empty
 
     ConnectionManager.close_all()
 
-    runsql(ip_empty, "DROP TABLE IF EXISTS test")
-    runsql(ip_empty, "DROP TABLE IF EXISTS author")
-    runsql(ip_empty, "DROP TABLE IF EXISTS website")
-    runsql(ip_empty, "DROP TABLE IF EXISTS number_table")
+
+@pytest.fixture
+def ip_dbapi(ip_empty):
+    ip_empty.run_cell("import sqlite3; conn = sqlite3.connect(':memory:');")
+    ip_empty.run_cell("%sql conn")
+    insert_sample_data(ip_empty)
+
+    yield ip_empty
+
+    ConnectionManager.close_all()
 
 
 @pytest.fixture

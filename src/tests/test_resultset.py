@@ -1,3 +1,4 @@
+import string
 from unittest.mock import Mock, call
 
 import duckdb
@@ -11,7 +12,8 @@ import polars as pl
 import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
-from sql.run.resultset import ResultSet, ResultSetsManager
+from sql.run.resultset import ResultSet
+from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
@@ -27,15 +29,17 @@ def result():
     df = pd.DataFrame({"x": range(3)})  # noqa
     engine = sqlalchemy.create_engine("duckdb://")
 
-    conn = engine.connect()
-    result = conn.execute(sqlalchemy.text("select * from df"))
-    yield result
+    conn = SQLAlchemyConnection(engine)
+    result = conn.raw_execute("select * from df")
+
+    yield result, conn
     conn.close()
 
 
 @pytest.fixture
 def result_set(result, config):
-    return ResultSet(result, config, statement=None, conn=Mock())
+    result_set, conn = result
+    return ResultSet(result_set, config, statement="select * from df", conn=conn)
 
 
 def test_resultset_getitem(result_set):
@@ -55,11 +59,17 @@ def test_resultset_dicts(result_set):
     assert list(result_set.dicts()) == [{"x": 0}, {"x": 1}, {"x": 2}]
 
 
-def test_resultset_dataframe(result_set, monkeypatch):
+def test_resultset_dataframe(result_set, config):
+    # since this will use the native method, the issue will be re-executed
+    # so we need to create the df here so duckdb can find it
+    df = pd.DataFrame({"x": range(3)})  # noqa
     assert result_set.DataFrame().equals(pd.DataFrame({"x": range(3)}))
 
 
-def test_resultset_polars_dataframe(result_set, monkeypatch):
+def test_resultset_polars_dataframe(result_set):
+    # since this will use the native method, the issue will be re-executed
+    # so we need to create the df here so duckdb can find it
+    df = pd.DataFrame({"x": range(3)})  # noqa
     assert result_set.PolarsDataFrame().frame_equal(pl.DataFrame({"x": range(3)}))
 
 
@@ -73,16 +83,34 @@ def test_resultset_str(result_set):
     assert str(result_set) == "+---+\n| x |\n+---+\n| 0 |\n| 1 |\n| 2 |\n+---+"
 
 
-def test_resultset_repr_html(result_set):
+def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.feedback = 2")
+
     html_ = result_set._repr_html_()
     assert (
         "<span style='font-style:italic;font-size:11px'>"
-        "<code>ResultSet</code> : to convert to pandas, call <a href="
+        "<code>ResultSet</code>: to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
+
+    plain = (
+        "ResultSet: to convert to pandas, call .DataFrame() "
+        "or to polars, call .PolarsDataFrame()"
+    )
+    assert plain in str(result_set)
+    assert plain in repr(result_set)
+
+
+@pytest.mark.parametrize("feedback", [0, 1])
+def test_resultset_repr_html_with_reduced_feedback(result_set, ip_empty, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
+    html = result_set._repr_html_()
+    assert "pandas" not in html
+    assert "polars" not in html
 
 
 @pytest.mark.parametrize(
@@ -107,7 +135,8 @@ def test_invalid_operation_error(result_set, fname, parameters):
 
 def test_resultset_config_autolimit_dict(result, config):
     config.autolimit = 1
-    resultset = ResultSet(result, config, statement=None, conn=Mock())
+    resultset = ResultSet(result[0], config, statement=None, conn=result[1])
+
     assert resultset.dict() == {"x": (0,)}
 
 
@@ -162,7 +191,7 @@ def mock_config():
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {}),
+        ("duckdb_sqlalchemy", {"Count": {}} if IS_SQLALCHEMY_ONE else {"Success": {}}),
         ("duckdb_dbapi", {"Count": {}}),
         ("sqlite_sqlalchemy", {}),
     ],
@@ -184,9 +213,20 @@ def test_convert_to_dataframe_create_table(
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {"Count": {0: 5}}),
+        pytest.param(
+            "duckdb_sqlalchemy",
+            {"Count": {0: 5}},
+            marks=pytest.mark.xfail(
+                reason="inconsistent behavior between sqlalchemy 1.x and 2.x"
+            ),
+        ),
         ("duckdb_dbapi", {"Count": {0: 5}}),
         ("sqlite_sqlalchemy", {}),
+    ],
+    ids=[
+        "duckdb_sqlalchemy",
+        "duckdb_dbapi",
+        "sqlite_sqlalchemy",
     ],
 )
 def test_convert_to_dataframe_insert_into(
@@ -211,12 +251,18 @@ def test_convert_to_dataframe_insert_into(
         "sqlite_sqlalchemy",
     ],
 )
-def test_convert_to_dataframe_select(session, request, mock_config):
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT * FROM a",
+        "with something as (SELECT * FROM a) select * from something",
+    ],
+)
+def test_convert_to_dataframe_select(session, request, mock_config, statement):
     session = request.getfixturevalue(session)
 
     session.execute("CREATE TABLE a (x INT);")
     session.execute("INSERT INTO a(x) VALUES (1),(2),(3),(4),(5);")
-    statement = "SELECT * FROM a"
     results = session.execute(statement)
 
     rs = ResultSet(results, mock_config, statement=statement, conn=session)
@@ -469,18 +515,28 @@ def test_display_limit_respected_even_when_feched_all(results):
 @pytest.mark.parametrize(
     "displaylimit, message",
     [
-        (1, "Truncated to displaylimit of 1"),
-        (2, "Truncated to displaylimit of 2"),
+        (1, "Truncated to $DISPLAYLIMIT of 1."),
+        (2, "Truncated to $DISPLAYLIMIT of 2."),
     ],
 )
-def test_displaylimit_message(displaylimit, message, results):
+def test_displaylimit_truncated_footer(displaylimit, message, results):
+    HTML_LINK = (
+        '<a href="https://jupysql.ploomber.io/en/'
+        'latest/api/configuration.html#displaylimit">displaylimit</a>'
+    )
+
     mock = Mock()
     mock.displaylimit = displaylimit
     mock.autolimit = 0
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
-    assert message in rs._repr_html_()
+    message_html = string.Template(message).substitute(DISPLAYLIMIT=HTML_LINK)
+    assert message_html in rs._repr_html_()
+
+    message_plain = string.Template(message).substitute(DISPLAYLIMIT="displaylimit")
+    assert message_plain in repr(rs)
+    assert message_plain in str(rs)
 
 
 @pytest.mark.parametrize("displaylimit", [0, 1000])
@@ -492,6 +548,8 @@ def test_no_displaylimit_message(results, displaylimit):
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert "Truncated to displaylimit" not in rs._repr_html_()
+    assert "Truncated to displaylimit" not in repr(rs)
+    assert "Truncated to displaylimit" not in str(rs)
 
 
 def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():
@@ -577,38 +635,3 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
-
-
-def test_manager_append():
-    m = ResultSetsManager()
-    first = object()
-    second = object()
-
-    m.append_to_key("first", first)
-    assert m._results == {"first": [first]}
-
-    m.append_to_key("second", second)
-    assert m._results == {"first": [first], "second": [second]}
-
-    final = object()
-    m.append_to_key("first", final)
-    assert m._results == {"first": [first, final], "second": [second]}
-
-    # if it already exists, appending should move it to the end
-    m.append_to_key("first", first)
-    assert m._results == {"first": [final, first], "second": [second]}
-
-
-def test_manager_is_last_for_key():
-    m = ResultSetsManager()
-    first = object()
-    second = object()
-
-    m.append_to_key("first", first)
-
-    assert m.is_last_for_key("unknown-key", object()) is True
-    assert m.is_last_for_key("first", first) is True
-
-    m.append_to_key("first", second)
-    assert m.is_last_for_key("first", first) is False
-    assert m.is_last_for_key("first", second) is True

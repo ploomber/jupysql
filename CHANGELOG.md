@@ -1,15 +1,45 @@
 # CHANGELOG
 
-## 0.9.0dev
+## 0.10.0dev
 
-* [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization (#689)
-* [Fix] Fix error that was incorrectly converted into a print message
-* [Fix] Modified histogram query to ensure histogram binning is done correctly (#751)
-* [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
-* [Fix] Fixed vertical color breaks in histograms (#702)
-* [Fix] Showing feedback when switching connections (#727)
-* [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
+* [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
+* [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
+* [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
+* [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` (#677)
+* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
+* [Fix] Shorter `displaylimit` footer
+* [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
+* [Fix] `ResultSet` footer only displayed when `feedback=2`
+* [Fix] Current connection and switching connections message only displayed when `feedback>=1`
+* [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
+* [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
 * [Fix] Error when using %sqlplot in snowflake (#697)
+
+## 0.9.1 (2023-08-10)
+
+* [Feature] Added `--breaks/-B` to ggplot histogram for specifying breaks ([#719](https://github.com/ploomber/jupysql/issues/719))
+* [Feature] Adds Redshift support for `%sqlplot boxplot`
+* [Fix] Fix boxplot for duckdb native ([#728](https://github.com/ploomber/jupysql/issues/728))
+* [Fix] Fix error when using SQL Server with pyodbc that caused queries to fail due to multiple open result sets
+* [Fix] Improves performance when converting DuckDB results to `pandas.DataFrame`
+* [Fix] Fixes a bug when converting a CTE stored with `--save` into a `pandas.DataFrame` via `.DataFrame()`
+* [Doc] Add Redshift tutorial
+
+## 0.9.0 (2023-08-01)
+
+* [Feature] Allow loading configuration value from a `pyproject.toml` file upon magic initialization ([#689](https://github.com/ploomber/jupysql/issues/689))
+* [Feature] Adds `with_` to `{SQLAlchemyConnection, DBAPIConnection}.raw_execute` to resolve CTEs
+* [Feature] allows parametrizing queries with `:variable` with `%config SqlMagic.named_parameters = True`
+* [Fix] Fix error that was incorrectly converted into a print message
+* [Fix] Modified histogram query to ensure histogram binning is done correctly ([#751](https://github.com/ploomber/jupysql/issues/751))
+* [Fix] Fix bug that caused the `COMMIT` not to work when the SQLAlchemy driver did not support `set_isolation_level`
+* [Fix] Fixed vertical color breaks in histograms ([#702](https://github.com/ploomber/jupysql/issues/702))
+* [Fix] Showing feedback when switching connections ([#727](https://github.com/ploomber/jupysql/issues/727))
+* [Fix] Fix error that caused some connections not to be closed when calling `--close/-x`
+* [Fix] Fix bug that caused the query transpilation process to fail when passing multiple statements
+* [Fix] Fixes error when creating tables and querying them in the same cell when using DuckDB + SQLAlchemy ([#674](https://github.com/ploomber/jupysql/issues/674))
+* [Fix] Using native methods to convert to data frames from DuckDB when using native connections and SQLAlchemy
+* [Fix] Fix error that caused literals like `':something'` to be interpreted as query parameters
 
 ## 0.8.0 (2023-07-18)
 

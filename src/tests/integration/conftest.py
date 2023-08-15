@@ -9,17 +9,33 @@ import duckdb
 
 from sql import _testing
 from sql import connection
+from sql import store
+
+
+def _requires_env_variables(database, variables):
+    for variable in variables:
+        if os.getenv(variable) is None:
+            raise ValueError(
+                f"{variable} is required to run {database} integration tests"
+            )
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_connections(monkeypatch):
+def isolate_tests(monkeypatch):
     """
     Fixture to ensure connections are isolated between tests, preventing tests
     from accidentally closing connections created by other tests.
+
+    Also clear up any stored snippets.
     """
+    # reset connections
     connections = {}
     monkeypatch.setattr(connection.ConnectionManager, "connections", connections)
     monkeypatch.setattr(connection.ConnectionManager, "current", None)
+
+    # reset store
+    store.store = store.SQLStore()
+
     yield
 
     # FIXME: cannot close connections because some of them are shared across tests
@@ -367,14 +383,7 @@ def ip_with_MSSQL(ip_empty, setup_MSSQL):
 
 @pytest.fixture(scope="session")
 def setup_Snowflake(test_table_name_dict):
-    username = os.getenv("SF_USERNAME")
-    password = os.getenv("SF_PASSWORD")
-
-    if username is None:
-        raise ValueError("SF_USERNAME is required to run snowflake integration tests")
-
-    if password is None:
-        raise ValueError("SF_PASSWORD is required to run snowflake integration tests")
+    _requires_env_variables("snowflake", ["SF_USERNAME", "SF_PASSWORD"])
 
     engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("Snowflake"))
     engine.connect()
@@ -386,8 +395,39 @@ def setup_Snowflake(test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_Snowflake(ip_empty, setup_Snowflake, pytestconfig):
+def ip_with_Snowflake(ip_empty, setup_Snowflake):
     configKey = "Snowflake"
+    config = _testing.DatabaseConfigHelper.get_database_config(configKey)
+    # Select database engine
+    ip_empty.run_cell(
+        "%sql "
+        + _testing.DatabaseConfigHelper.get_database_url(configKey)
+        + " --alias "
+        + config["alias"]
+    )
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + config["alias"])
+
+
+@pytest.fixture(scope="session")
+def setup_redshift(test_table_name_dict):
+    _requires_env_variables(
+        "redshift", ["REDSHIFT_USERNAME", "REDSHIFT_PASSWORD", "REDSHIFT_HOST"]
+    )
+
+    engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("redshift"))
+    engine.connect()
+    # Load pre-defined datasets
+    load_generic_testing_data(engine, test_table_name_dict, index=False)
+    yield engine
+    tear_down_generic_testing_data(engine, test_table_name_dict)
+    engine.dispose()
+
+
+@pytest.fixture
+def ip_with_redshift(ip_empty, setup_redshift):
+    configKey = "redshift"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine
     ip_empty.run_cell(
@@ -414,7 +454,7 @@ def setup_oracle(test_table_name_dict):
 
 
 @pytest.fixture
-def ip_with_oracle(ip_empty, setup_oracle, pytestconfig):
+def ip_with_oracle(ip_empty, setup_oracle):
     configKey = "oracle"
     config = _testing.DatabaseConfigHelper.get_database_config(configKey)
     # Select database engine

@@ -6,6 +6,7 @@ from sql.connection.connection import (
     is_pep249_compliant,
     PLOOMBER_DOCS_LINK_STR,
     default_alias_for_engine,
+    ResultSetCollection,
 )
 
 
@@ -17,4 +18,5 @@ __all__ = [
     "is_pep249_compliant",
     "PLOOMBER_DOCS_LINK_STR",
     "default_alias_for_engine",
+    "ResultSetCollection",
 ]

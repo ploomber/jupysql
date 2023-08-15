@@ -1,3 +1,4 @@
+import uuid
 import logging
 import platform
 import sqlite3
@@ -7,9 +8,10 @@ import re
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import polars as pl
+import pandas as pd
 import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
@@ -17,6 +19,7 @@ from sql.connection import ConnectionManager
 from sql.magic import SqlMagic
 from sql.run.resultset import ResultSet
 from sql import magic
+from sql.warnings import JupySQLQuotedNamedParametersWarning
 
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
@@ -24,6 +27,11 @@ from ploomber_core.exceptions import COMMUNITY
 import psutil
 
 COMMUNITY = COMMUNITY.strip()
+
+DISPLAYLIMIT_LINK = (
+    '<a href="https://jupysql.ploomber.io/en/'
+    'latest/api/configuration.html#displaylimit">displaylimit</a>'
+)
 
 
 def test_memory_db(ip):
@@ -573,7 +581,7 @@ def test_displaylimit_default(ip):
 
     out = ip.run_cell("%sql SELECT * FROM number_table;").result
 
-    assert "Truncated to displaylimit of 10" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -596,7 +604,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -664,7 +672,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert "Truncated to displaylimit of 10" in out._repr_html_()
+        assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):
@@ -708,7 +716,7 @@ def test_autopolars(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
 
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
     assert not dframe.is_empty()
     assert len(dframe.shape) == 2
     assert dframe["name"][0] == "foo"
@@ -746,28 +754,29 @@ def test_autopolars_infer_schema_length(ip):
 
 
 def test_mutex_autopolars_autopandas(ip):
+    ip.run_line_magic("config", "SqlMagic.autopolars = False")
+    ip.run_line_magic("config", "SqlMagic.autopandas = False")
+
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
-
-    import pandas as pd
+    assert isinstance(dframe, pl.DataFrame)
 
     ip.run_line_magic("config", "SqlMagic.autopandas = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pd.DataFrame
+    assert isinstance(dframe, pd.DataFrame)
 
     # Test that re-enabling autopolars works
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == pl.DataFrame
+    assert isinstance(dframe, pl.DataFrame)
 
     # Disabling autopolars at this point should result in the default behavior
     ip.run_line_magic("config", "SqlMagic.autopolars = False")
     dframe = runsql(ip, "SELECT * FROM test;")
-    assert type(dframe) == ResultSet
+    assert isinstance(dframe, ResultSet)
 
 
 def test_csv(ip):
@@ -1522,3 +1531,242 @@ displaycon = false
 
     # revert back to a default setting
     setattr(sql, "displaycon", True)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_interpolation_ignore_literals(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    # this isn't a parameter because it's quoted (':last_name')
+    result = ip.run_cell(
+        "%sql select * from author where last_name = ':last_name'"
+    ).result
+    assert result.dict() == {}
+
+
+def test_sqlalchemy_interpolation(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    ip.run_cell("last_name = 'Shakespeare'")
+
+    # define another variable to ensure the test doesn't break if there are more
+    # variables in the namespace
+    ip.run_cell("first_name = 'William'")
+
+    result = ip.run_cell(
+        "%sql select * from author where last_name = :last_name"
+    ).result
+
+    assert result.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_sqlalchemy_interpolation_missing_parameter(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql select * from author where last_name = :last_name")
+
+    assert (
+        "Cannot execute query because the following variables are undefined: last_name"
+        in str(excinfo.value)
+    )
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "ip",
+        "ip_dbapi",
+    ],
+)
+def test_sqlalchemy_insert_literals_with_colon_character(fixture_name, request):
+    ip = request.getfixturevalue(fixture_name)
+
+    ip.run_cell(
+        """%%sql
+CREATE TABLE names (
+    name VARCHAR(50) NOT NULL
+);
+
+INSERT INTO names (name)
+VALUES
+    ('John'),
+    (':Mary'),
+    ('Alex'),
+    (':Lily'),
+    ('Michael'),
+    ('Robert'),
+    (':Sarah'),
+    ('Jennifer'),
+    (':Tom'),
+    ('Jessica');
+"""
+    )
+
+    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
+
+    assert result.dict() == {"name": (":Mary",)}
+
+
+def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
+    ip.run_cell("%config SqlMagic.named_parameters = False")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
+
+    suggestion = (
+        "Your query contains named parameters (species) but the named "
+        "parameters feature is disabled. Enable it with: "
+        "%config SqlMagic.named_parameters=True"
+    )
+    assert suggestion in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "cell, expected_warning",
+    [
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name'",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = :first_name",
+            "The following variables are defined: last_name.",
+        ),
+        (
+            "%sql SELECT * FROM author where last_name = ':last_name' "
+            "and first_name = ':first_name'",
+            "The following variables are defined: first_name, last_name.",
+        ),
+    ],
+    ids=[
+        "one-quoted",
+        "one-quoted-one-unquoted",
+        "two-quoted",
+    ],
+)
+def test_warning_if_variable_defined_but_named_param_is_quoted(
+    ip, cell, expected_warning
+):
+    ip.run_cell("%config SqlMagic.named_parameters = True")
+    ip.run_cell("last_name = 'Shakespeare'")
+    ip.run_cell("first_name = 'William'")
+
+    with pytest.warns(
+        JupySQLQuotedNamedParametersWarning,
+        match=expected_warning,
+    ):
+        ip.run_cell(cell)
+
+
+def test_can_run_cte_that_references_a_table_whose_name_is_the_same_as_a_snippet(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    # this should query the table, not the snippet
+    results = ip.run_cell(
+        f"""%%sql
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+    ).result
+
+    assert results.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_error_when_running_a_cte_and_passing_with_argument(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            f"""%%sql --with {identifier}
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+        )
+
+    assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
+        excinfo.value
+    )
+
+
+def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_dbapi.push({"df": df})
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_dbapi.run_cell("%sql --persist df")
+
+    message = (
+        "--persist/--persist-replace is not available for "
+        "DBAPI connections (only available for SQLAlchemy connections)"
+    )
+    assert message in str(excinfo.value)
+
+
+@pytest.mark.parametrize("cell", ["%sql --persist df", "%sql --persist-replace df"])
+def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip.push({"df": df})
+
+    conn = ConnectionManager.current
+    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    monkeypatch.setattr(
+        conn, "_execute_with_error_handling", execute_with_error_handling_mock
+    )
+
+    ip.run_cell(cell)
+
+    # ensure this got called because this function handles several sqlalchemy edge
+    # cases
+    execute_with_error_handling_mock.assert_called_once()
