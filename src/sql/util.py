@@ -1,7 +1,7 @@
 import warnings
 from sql import inspect
 import difflib
-from sql.connection import ConnectionManager, AbstractConnection
+from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
