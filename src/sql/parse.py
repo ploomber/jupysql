@@ -25,8 +25,13 @@ def connection_str_from_dsn_section(section, config):
     return str(URL.create(**cfg_dict).render_as_string(hide_password=False))
 
 
+# NOTE: this is legacy code. I noted that the behavior is inconsistency since it'll
+# pass the raw connection string (password visible) if the input is a raw string
+# but it'll hide the password if the input is a section in the DSN file.
 def _connection_string(s, config):
-    """Given a string, return a SQLAlchemy connection string if possible.
+    """
+    Given a string, return a SQLAlchemy connection string if
+    possible.
 
     Scenarios:
 
