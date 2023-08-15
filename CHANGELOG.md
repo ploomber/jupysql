@@ -13,7 +13,8 @@
 * [Fix] Current connection and switching connections message only displayed when `feedback>=1`
 * [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
 * [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
-* [API Change] When loading connections from a `.ini` file via `--section section_name`, the connection alias is set to the section name automatically
+* [API Change] When loading connections from a `.ini` file via `%sql --section section_name`, the connection alias is set to the section name automatically
+* [API Change] Starting connections from a `.ini` file via `%sql [section_name]` has been deprecated
 
 ## 0.9.1 (2023-08-10)
 

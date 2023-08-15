@@ -1881,7 +1881,6 @@ drivername = duckdb
     assert conns == {"duck": ANY}
 
 
-# TODO: set the alias as well?
 def test_connect_to_db_in_connections_file_using_section_name_between_square_brackets(
     ip_empty, tmp_empty
 ):
@@ -1893,8 +1892,14 @@ drivername = duckdb
     )
 
     ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
-    ip_empty.run_cell("%sql [duck]")
 
+    with pytest.warns(FutureWarning) as record:
+        ip_empty.run_cell("%sql [duck]")
+
+    assert "Starting connections with: %sql [section_name] is deprecated" in str(
+        record[0].message
+    )
+    assert len(record) == 1
     conns = ConnectionManager.connections
     assert conns == {"duckdb://": ANY}
 

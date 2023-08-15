@@ -4,6 +4,7 @@ import shlex
 from os.path import expandvars
 from pathlib import Path
 from configparser import ConfigParser, NoSectionError
+import warnings
 
 from sqlalchemy.engine.url import URL
 from IPython.core.magic_arguments import parse_argstring
@@ -84,7 +85,16 @@ def _connection_string(s, config):
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
         url = URL.create(**cfg_dict)
-        return str(url.render_as_string(hide_password=False))
+        url_ = str(url.render_as_string(hide_password=False))
+
+        warnings.warn(
+            "Starting connections with: %sql [section_name] is deprecated "
+            "and will be removed in a future release. "
+            "Please use: %sql --section section_name instead.",
+            category=FutureWarning,
+        )
+
+        return url_
 
     return ""
 
