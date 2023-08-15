@@ -9,7 +9,6 @@ from sql.connection import SQLAlchemyConnection
 from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
-from sql.connection.connection import ConnectionManager
 from jupysql_plugin.widgets import ConnectorWidget
 import duckdb
 import sqlite3
