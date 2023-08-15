@@ -518,6 +518,7 @@ def _histogram(table, column, bins, with_=None, conn=None, facet=None):
         conn = sql.connection.ConnectionManager.current
     use_backticks = conn.is_use_backtick_template()
 
+    # Snowflake will use UPPERCASE in the table and column name
     column = to_upper_if_snowflake_conn(conn, column)
     table = to_upper_if_snowflake_conn(conn, table)
     # FIXME: we're computing all the with elements twice
