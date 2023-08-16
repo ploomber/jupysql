@@ -215,17 +215,21 @@ class ConnectionManager:
                 if existing and existing.alias == alias:
                     cls.current = existing
                 elif existing and alias is None:
-                    if cls.current != existing:
-                        display.message(f"{SWITCH_PREFIX} {alias or descriptor}")
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current != existing
+                    ):
+                        display.message(f"{SWITCH_PREFIX} {descriptor}")
                     cls.current = existing
-
-                    if _current._config_feedback_normal_or_more():
-                        display.message(f"{SWITCH_PREFIX}  {descriptor}")
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
-                    if cls.current and cls.current.alias != alias:
-                        display.message(f"{SWITCH_PREFIX}  {alias or descriptor}")
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current
+                        and cls.current.alias != alias
+                    ):
+                        display.message(f"{SWITCH_PREFIX} {alias or descriptor}")
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
