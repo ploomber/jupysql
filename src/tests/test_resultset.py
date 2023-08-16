@@ -1,3 +1,4 @@
+import string
 from unittest.mock import Mock, call
 
 import duckdb
@@ -82,16 +83,34 @@ def test_resultset_str(result_set):
     assert str(result_set) == "+---+\n| x |\n+---+\n| 0 |\n| 1 |\n| 2 |\n+---+"
 
 
-def test_resultset_repr_html(result_set):
+def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
+    ip_empty.run_cell("%config SqlMagic.feedback = 2")
+
     html_ = result_set._repr_html_()
     assert (
         "<span style='font-style:italic;font-size:11px'>"
-        "<code>ResultSet</code> : to convert to pandas, call <a href="
+        "<code>ResultSet</code>: to convert to pandas, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
         "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
+
+    plain = (
+        "ResultSet: to convert to pandas, call .DataFrame() "
+        "or to polars, call .PolarsDataFrame()"
+    )
+    assert plain in str(result_set)
+    assert plain in repr(result_set)
+
+
+@pytest.mark.parametrize("feedback", [0, 1])
+def test_resultset_repr_html_with_reduced_feedback(result_set, ip_empty, feedback):
+    ip_empty.run_cell(f"%config SqlMagic.feedback = {feedback}")
+
+    html = result_set._repr_html_()
+    assert "pandas" not in html
+    assert "polars" not in html
 
 
 @pytest.mark.parametrize(
@@ -496,18 +515,28 @@ def test_display_limit_respected_even_when_feched_all(results):
 @pytest.mark.parametrize(
     "displaylimit, message",
     [
-        (1, "Truncated to displaylimit of 1"),
-        (2, "Truncated to displaylimit of 2"),
+        (1, "Truncated to $DISPLAYLIMIT of 1."),
+        (2, "Truncated to $DISPLAYLIMIT of 2."),
     ],
 )
-def test_displaylimit_message(displaylimit, message, results):
+def test_displaylimit_truncated_footer(displaylimit, message, results):
+    HTML_LINK = (
+        '<a href="https://jupysql.ploomber.io/en/'
+        'latest/api/configuration.html#displaylimit">displaylimit</a>'
+    )
+
     mock = Mock()
     mock.displaylimit = displaylimit
     mock.autolimit = 0
 
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
-    assert message in rs._repr_html_()
+    message_html = string.Template(message).substitute(DISPLAYLIMIT=HTML_LINK)
+    assert message_html in rs._repr_html_()
+
+    message_plain = string.Template(message).substitute(DISPLAYLIMIT="displaylimit")
+    assert message_plain in repr(rs)
+    assert message_plain in str(rs)
 
 
 @pytest.mark.parametrize("displaylimit", [0, 1000])
@@ -519,6 +548,8 @@ def test_no_displaylimit_message(results, displaylimit):
     rs = ResultSet(results, mock, statement=None, conn=Mock())
 
     assert "Truncated to displaylimit" not in rs._repr_html_()
+    assert "Truncated to displaylimit" not in repr(rs)
+    assert "Truncated to displaylimit" not in str(rs)
 
 
 def test_refreshes_sqlaproxy_for_sqlalchemy_duckdb():

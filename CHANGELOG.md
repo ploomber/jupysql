@@ -1,6 +1,18 @@
 # CHANGELOG
 
-## 0.9.2dev
+## 0.10.0dev
+
+* [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
+* [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
+* [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
+* [Fix] Perform `ROLLBACK` when `psycopg2` raises `server closed the connection unexpectedly` (#677)
+* [Fix] Fix a bug that caused a cell with a CTE to fail if it referenced a table/view with the same name as an existing snippet (#753)
+* [Fix] Shorter `displaylimit` footer
+* [API Change] `%config SqlMagic.feedback` now takes values `0` (disabled), `1` (normal), `2` (verbose)
+* [Fix] `ResultSet` footer only displayed when `feedback=2`
+* [Fix] Current connection and switching connections message only displayed when `feedback>=1`
+* [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
+* [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
 
 ## 0.9.1 (2023-08-10)
 
