@@ -501,6 +501,17 @@ def _are_numeric_values(*values):
 
 
 def validate_mutually_exclusive_args(arg_names, args):
+    """
+    Raises ValueError if a list of values from arg_names filtered by
+    args' boolean representations is longer than one.
+
+    Parameters
+    ----------
+    arg_names : list
+        args' names in string
+    args : list
+        args values
+    """
     specified_args = [arg_name for arg_name, arg in zip(arg_names, args) if arg]
     if len(specified_args) > 1:
         raise exceptions.ValueError(
