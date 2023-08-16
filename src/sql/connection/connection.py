@@ -219,14 +219,11 @@ class ConnectionManager:
                             f"Switching to connection {alias or descriptor}"
                         )
                     cls.current = existing
-<<<<<<< HEAD
-=======
 
                     if _current._config_feedback_normal_or_more():
                         display.message(f"Switching to connection {descriptor}")
 
                 # passing the same URL but different alias: create a new connection
->>>>>>> master
                 elif existing is None or existing.alias != alias:
                     if cls.current and cls.current.alias != alias:
                         display.message(
