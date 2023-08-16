@@ -98,9 +98,10 @@ Loading connections from the `.ini` (`%sql [section_name]`) file has been deprec
 from urllib.request import urlretrieve
 from pathlib import Path
 
+url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+
 if not Path("penguins.csv").exists():
-    urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
-                "penguins.csv")
+    urlretrieve(url, "penguins.csv")
 ```
 
 ```{code-cell} ipython3
