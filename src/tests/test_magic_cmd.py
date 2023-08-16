@@ -144,6 +144,9 @@ def test_sqlcmd_error_when_no_connection(ip_empty, command):
 
 
 def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
+    for key in list(store):
+        del store[key]
+
     ip_empty.run_cell("%sqlcmd snippets")
     captured = capsys.readouterr()
     assert "No snippets stored" in captured.out
