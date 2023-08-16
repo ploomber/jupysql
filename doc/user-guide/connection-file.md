@@ -95,12 +95,20 @@ Loading connections from the `.ini` (`%sql [section_name]`) file has been deprec
 ```
 
 ```{code-cell} ipython3
+from urllib.request import urlretrieve
+from pathlib import Path
+
+if not Path("penguins.csv").exists():
+    urlretrieve("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv",
+                "penguins.csv")
+```
+
+```{code-cell} ipython3
 %%sql
 drop table if exists penguins;
 
 create table penguins as
-select * from
-'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'
+select * from penguins.csv
 ```
 
 ```{code-cell} ipython3
@@ -111,8 +119,6 @@ select * from penguins
 Let's now define another connection so we can show how we can manage multiple ones:
 
 ```{code-cell} ipython3
-from pathlib import Path
-
 _ = Path("my-connections.ini").write_text("""
 [duck]
 drivername = duckdb
