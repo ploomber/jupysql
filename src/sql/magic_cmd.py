@@ -11,6 +11,7 @@ from sql.cmd.test import test
 from sql.cmd.profile import profile
 from sql.cmd.explore import explore
 from sql.cmd.snippets import snippets
+from sql.connection import ConnectionManager
 
 try:
     from traitlets.config.configurable import Configurable
@@ -51,6 +52,8 @@ class SqlCmdMagic(Magics, Configurable):
             "explore",
             "snippets",
         ]
+        CONNECTION_INDEPENDENT_COMMANDS = ["snippets"]
+        SUPPORTED_BY_BOTH_COMMANDS = ["profile"]
 
         VALID_COMMANDS_MSG = (
             f"Missing argument for %sqlcmd. "
@@ -64,8 +67,18 @@ class SqlCmdMagic(Magics, Configurable):
             command, others = split[0].strip(), split[1:]
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
-                if command not in ["profile"]:
+                if (
+                    command not in CONNECTION_INDEPENDENT_COMMANDS
+                    and not ConnectionManager.current
+                ):
+                    raise exceptions.RuntimeError("No active connection")
+
+                if command not in [
+                    *CONNECTION_INDEPENDENT_COMMANDS,
+                    *SUPPORTED_BY_BOTH_COMMANDS,
+                ]:
                     util.support_only_sql_alchemy_connection("%sqlcmd")
+
                 return self.execute(command, others)
             else:
                 raise exceptions.UsageError(
