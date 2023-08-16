@@ -24,9 +24,10 @@ def connection_str_from_dsn_section(section, config):
         The config object, must have a dsn_filename attribute
     """
     parser = ConfigParser()
+    dsn_file = Path(config.dsn_filename)
 
     try:
-        cfg_content = Path(config.dsn_filename).read_text()
+        cfg_content = dsn_file.read_text()
     except FileNotFoundError as e:
         raise exceptions.FileNotFoundError(
             f"%config SqlMagic.dsn_filename ({config.dsn_filename!r}) not found."
