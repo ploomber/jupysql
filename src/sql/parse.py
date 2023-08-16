@@ -3,7 +3,7 @@ import itertools
 import shlex
 from os.path import expandvars
 from pathlib import Path
-from configparser import ConfigParser, NoSectionError
+import configparser
 import warnings
 
 from sqlalchemy.engine.url import URL
@@ -23,7 +23,7 @@ def connection_str_from_dsn_section(section, config):
     config : Config
         The config object, must have a dsn_filename attribute
     """
-    parser = ConfigParser()
+    parser = configparser.ConfigParser()
     dsn_file = Path(config.dsn_filename)
 
     try:
@@ -35,11 +35,18 @@ def connection_str_from_dsn_section(section, config):
             "%config SqlMagic.dsn_filename = 'path/to/file.ini'"
         ) from e
 
-    parser.read_string(cfg_content)
+    try:
+        parser.read_string(cfg_content)
+    except configparser.Error as e:
+        raise exceptions.RuntimeError(
+            "An error happened when loading "
+            "your %config SqlMagic.dsn_filename "
+            f"({config.dsn_filename!r})\n{type(e).__name__}: {e}"
+        ) from e
 
     try:
         cfg = parser.items(section)
-    except NoSectionError as e:
+    except configparser.NoSectionError as e:
         raise exceptions.KeyError(
             f"The section {section!r} does not exist in the "
             f"connections file {config.dsn_filename!r}"
@@ -82,7 +89,7 @@ def _connection_string(s, config):
     # if it's a section in the DSN file, return the connection string
     if s.startswith("[") and s.endswith("]"):
         section = s.lstrip("[").rstrip("]")
-        parser = ConfigParser()
+        parser = configparser.ConfigParser()
         parser.read(config.dsn_filename)
         cfg_dict = dict(parser.items(section))
         url = URL.create(**cfg_dict)

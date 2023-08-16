@@ -1904,15 +1904,48 @@ drivername = duckdb
     assert conns == {"duckdb://": ANY}
 
 
-def test_switch(ip_empty, tmp_empty):
-    Path("connections.ini").write_text(
-        """
+@pytest.mark.parametrize(
+    "content, error_type, error_detail",
+    [
+        (
+            """
 [duck]
 drivername = duckdb
-"""
-    )
+
+[duck]
+drivername = duckdb
+""",
+            "DuplicateSectionError",
+            "section 'duck' already exists",
+        ),
+        (
+            """
+[duck]
+drivername = duckdb
+drivername = duckdb
+""",
+            "DuplicateOptionError",
+            "option 'drivername' in section 'duck' already exists",
+        ),
+    ],
+    ids=[
+        "duplicate-section",
+        "duplicate-key",
+    ],
+)
+def test_error_when_ini_file_is_corrupted(
+    ip_empty, tmp_empty, content, error_type, error_detail
+):
+    Path("connections.ini").write_text(content)
 
     ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
 
-    ip_empty.run_cell("%sql duckdb:// --alias someduck")
-    ip_empty.run_cell("%sql [duck]")
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck")
+
+    assert "An error happened when loading your %config SqlMagic.dsn_filename" in str(
+        excinfo.value
+    )
+
+    assert error_type in str(excinfo.value)
+    assert error_detail in str(excinfo.value)
