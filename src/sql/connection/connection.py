@@ -199,6 +199,7 @@ class ConnectionManager:
             attributes. As of 0.9.0, only the autocommit option is needed.
         """
         connect_args = connect_args or {}
+        SWITCH_PREFIX = "Switching to connection"
 
         if descriptor:
             if isinstance(descriptor, SQLAlchemyConnection):
@@ -215,20 +216,16 @@ class ConnectionManager:
                     cls.current = existing
                 elif existing and alias is None:
                     if cls.current != existing:
-                        display.message(
-                            f"Switching to connection {alias or descriptor}"
-                        )
+                        display.message(f"{SWITCH_PREFIX} {alias or descriptor}")
                     cls.current = existing
 
                     if _current._config_feedback_normal_or_more():
-                        display.message(f"Switching to connection {descriptor}")
+                        display.message(f"{SWITCH_PREFIX}  {descriptor}")
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
                     if cls.current and cls.current.alias != alias:
-                        display.message(
-                            f"Switching to connection {alias or descriptor}"
-                        )
+                        display.message(f"{SWITCH_PREFIX}  {alias or descriptor}")
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
