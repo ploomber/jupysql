@@ -382,4 +382,3 @@ def if_substring_exists(string, substrings):
     """Function to check if any of substring in
     substrings exist in string"""
     return any(msg in string for msg in substrings)
-
