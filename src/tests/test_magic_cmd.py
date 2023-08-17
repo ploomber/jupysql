@@ -140,13 +140,13 @@ def test_sqlcmd_error_when_no_connection(ip_empty, command):
         ip_empty.run_cell(f"%sqlcmd {command}")
 
     assert excinfo.value.error_type == "RuntimeError"
-    assert str(excinfo.value) == "No active connection"
+    assert str(excinfo.value) == (
+        f"Cannot execute %sqlcmd {command} because there is no "
+        "active connection. Connect to a database and try again."
+    )
 
 
 def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
-    for key in list(store):
-        del store[key]
-
     ip_empty.run_cell("%sqlcmd snippets")
     captured = capsys.readouterr()
     assert "No snippets stored" in captured.out

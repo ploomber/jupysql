@@ -52,8 +52,14 @@ class SqlCmdMagic(Magics, Configurable):
             "explore",
             "snippets",
         ]
-        CONNECTION_INDEPENDENT_COMMANDS = ["snippets"]
-        SUPPORTED_BY_BOTH_COMMANDS = ["profile"]
+        COMMANDS_CONNECTION_REQUIRED = [
+            "tables",
+            "columns",
+            "test",
+            "profile",
+            "explore",
+        ]
+        COMMANDS_SQLALCHEMY_ONLY = ["tables", "columns", "test", "explore"]
 
         VALID_COMMANDS_MSG = (
             f"Missing argument for %sqlcmd. "
@@ -68,15 +74,16 @@ class SqlCmdMagic(Magics, Configurable):
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 if (
-                    command not in CONNECTION_INDEPENDENT_COMMANDS
+                    command in COMMANDS_CONNECTION_REQUIRED
                     and not ConnectionManager.current
                 ):
-                    raise exceptions.RuntimeError("No active connection")
+                    raise exceptions.RuntimeError(
+                        f"Cannot execute %sqlcmd {command} because there "
+                        "is no active connection. Connect to a database "
+                        "and try again."
+                    )
 
-                if command not in [
-                    *CONNECTION_INDEPENDENT_COMMANDS,
-                    *SUPPORTED_BY_BOTH_COMMANDS,
-                ]:
+                if command in COMMANDS_SQLALCHEMY_ONLY:
                     util.support_only_sql_alchemy_connection("%sqlcmd")
 
                 return self.execute(command, others)
