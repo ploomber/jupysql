@@ -3,6 +3,7 @@
 ## 0.10.0dev
 
 * [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
+* [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
 * [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
 * [Fix] Perform `ROLLBACK` when `psycopg2` raises `current transaction is aborted, commands ignored until end of transaction block`
@@ -14,6 +15,7 @@
 * [Fix] Current connection and switching connections message only displayed when `feedback>=1`
 * [Fix] `--persist/--persist-replace` perform `ROLLBACK` automatically when needed
 * [Fix] `ResultSet` footer (when `displaylimit` truncates results and when showing how to convert to a data frame) now appears in the `ResultSet` plain text representation (#682)
+* [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
 
 ## 0.9.1 (2023-08-10)
 
