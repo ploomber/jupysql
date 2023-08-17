@@ -2,6 +2,7 @@
 
 ## 0.10.0dev
 
+* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
 * [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
 * [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
