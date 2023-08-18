@@ -237,8 +237,9 @@ class ConnectionManager:
                         and cls.current
                         and cls.current.alias != alias
                     ):
+                        identifier = alias or descriptor
                         display.message(
-                            f"Connecting and switching to connection {alias or descriptor}"
+                            f"Connecting and switching to connection {identifier}"
                         )
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
