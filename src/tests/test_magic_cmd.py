@@ -156,18 +156,21 @@ def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
 
 
 @pytest.mark.parametrize(
-    "query",
+    "query, command",
     [
-        ("%sqlcmd tables"),
-        ("%sqlcmd columns --table penguins.csv"),
-        ("%sqlcmd test --table penguins.csv  --column body_mass_g --greater 2900"),
-        ("%sqlcmd explore --table penguins.csv"),
+        ("%sqlcmd tables", "tables"),
+        ("%sqlcmd columns --table penguins.csv", "columns"),
+        (
+            "%sqlcmd test --table penguins.csv  --column body_mass_g --greater 2900",
+            "test",
+        ),
+        ("%sqlcmd explore --table penguins.csv", "explore"),
     ],
 )
-def test_sqlcmd_not_supported_error(ip_with_connections, query, capsys):
+def test_sqlcmd_not_supported_error(ip_with_connections, query, command, capsys):
     ip_with_connections.run_cell("%sql duckdb_dbapi")
     expected_error_message = (
-        "%sqlcmd is only supported with SQLAlchemy connections, "
+        f"%sqlcmd {command} is only supported with SQLAlchemy connections, "
         "not with DBAPI connections"
     )
     with pytest.raises(UsageError) as excinfo:

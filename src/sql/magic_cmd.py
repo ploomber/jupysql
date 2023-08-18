@@ -84,7 +84,7 @@ class SqlCmdMagic(Magics, Configurable):
                     )
 
                 if command in COMMANDS_SQLALCHEMY_ONLY:
-                    util.support_only_sql_alchemy_connection("%sqlcmd")
+                    util.support_only_sql_alchemy_connection(f"%sqlcmd {command}")
 
                 return self.execute(command, others)
             else:
