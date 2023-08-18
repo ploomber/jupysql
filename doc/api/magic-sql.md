@@ -174,10 +174,12 @@ Use `--section` to start a connection from the `dsn_filename`. To learn more, se
 ```{code-cell} ipython3
 from pathlib import Path
 
-Path("odbc.ini").write_text("""
+Path("odbc.ini").write_text(
+    """
 [duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 ```{code-cell} ipython3

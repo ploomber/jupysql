@@ -418,6 +418,38 @@ def histogram(
             breaks=breaks,
             binwidth=binwidth,
         )
+
+        view_created = False
+        if type(bin_[0]) is str:
+            use_backticks = conn.is_use_backtick_template()
+            template_ = """
+                CREATE VIEW {{table}}_ranked_jupysql AS
+                select *, DENSE_RANK() OVER (ORDER BY {{column}}) as {{column}}_rank
+                from {{table}}
+                """
+
+            if use_backticks:
+                template_ = template_.replace('"', "`")
+
+            template = Template(template_)
+
+            query = template.render(table=table, column=column)
+            conn.execute(query, with_)
+            table = f"{table}_ranked_jupysql"
+            column = f"{column}_rank"
+
+            bin_, height, bin_size = _histogram(
+                table,
+                column,
+                bins,
+                with_=with_,
+                conn=conn,
+                breaks=breaks,
+                binwidth=binwidth,
+            )
+
+            view_created = True
+
         width = _get_bar_width(ax, bin_, bin_size, binwidth)
         data = _histogram_stacked(
             table,
@@ -471,6 +503,10 @@ def histogram(
         # reverses legend order so alphabetically first goes on top
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles[::-1], labels[::-1])
+
+        if view_created:
+            conn.execute(f"DROP VIEW {table}", with_)
+
     elif isinstance(column, str):
         bin_, height, bin_size = _histogram(
             table,
@@ -482,6 +518,36 @@ def histogram(
             breaks=breaks,
             binwidth=binwidth,
         )
+
+        view_created = False
+        if type(bin_[0]) is str:
+            use_backticks = conn.is_use_backtick_template()
+            template_ = """
+                CREATE VIEW {{table}}_ranked_jupysql AS
+                select *, DENSE_RANK() OVER (ORDER BY {{column}}) as {{column}}_rank
+                from {{table}}
+                """
+
+            if use_backticks:
+                template_ = template_.replace('"', "`")
+
+            template = Template(template_)
+
+            query = template.render(table=table, column=column)
+            conn.execute(query, with_)
+
+            bin_, height, bin_size = _histogram(
+                f"{table}_ranked_jupysql",
+                f"{column}_rank",
+                bins,
+                with_=with_,
+                conn=conn,
+                breaks=breaks,
+                binwidth=binwidth,
+            )
+
+            view_created = True
+
         width = _get_bar_width(ax, bin_, bin_size, binwidth)
 
         ax.bar(
@@ -495,6 +561,9 @@ def histogram(
         )
         ax.set_title(f"{column!r} from {table!r}")
         ax.set_xlabel(column)
+
+        if view_created:
+            conn.execute(f"DROP VIEW {table}_ranked_jupysql", with_)
 
     else:
         if breaks and len(column) > 1:
@@ -512,6 +581,36 @@ def histogram(
                 breaks=breaks,
                 binwidth=binwidth,
             )
+
+            view_created = False
+            if type(bin_[0]) is str:
+                use_backticks = conn.is_use_backtick_template()
+                template_ = """
+                    CREATE VIEW {{table}}_ranked_jupysql AS
+                    select *, DENSE_RANK() OVER (ORDER BY {{column}}) as {{column}}_rank
+                    from {{table}}
+                    """
+
+                if use_backticks:
+                    template_ = template_.replace('"', "`")
+
+                template = Template(template_)
+
+                query = template.render(table=table, column=column)
+                conn.execute(query, with_)
+
+                bin_, height, bin_size = _histogram(
+                    f"{table}_ranked_jupysql",
+                    f"{column[i]}_rank",
+                    bins,
+                    with_=with_,
+                    conn=conn,
+                    breaks=breaks,
+                    binwidth=binwidth,
+                )
+
+                view_created = True
+
             width = _get_bar_width(ax, bin_, bin_size, binwidth)
 
             if isinstance(color, list):
@@ -536,6 +635,9 @@ def histogram(
             )
             ax.set_title(f"Histogram from {table!r}")
             ax.legend()
+
+            if view_created:
+                conn.execute(f"DROP VIEW {table}_ranked_jupysql", with_)
 
     ax.set_ylabel("Count")
 
@@ -652,6 +754,8 @@ def _histogram(
                 table=table, column=column, bin_size=bin_size, filter_query=filter_query
             )
     else:
+        # In case of categorical values, we use bin_size = 1
+        bin_size = 1
         template_ = """
         select
             "{{column}}" as col, count ({{column}})
