@@ -53,8 +53,6 @@ DEV = [
     "jupysql-plugin",
     # for monitoring access to files
     "psutil",
-    # for running tests for %sqlcmd connect
-    "jupyter-server",
 ]
 
 # dependencies for running integration tests
