@@ -2,6 +2,7 @@
 
 ## 0.10.0dev
 
+* [Feature] Added support for categorical hostograms (#774)
 * [Feature] Add `--binwidth/-W` to ggplot histogram for specifying binwidth (#784)
 * [Feature] Add `%sqlcmd profile` support for DBAPI connections (#743)
 * [Fix] Perform `ROLLBACK` when SQLAlchemy raises `PendingRollbackError`
