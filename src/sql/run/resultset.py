@@ -97,7 +97,7 @@ class ResultSet(ColumnGuesserMixin):
         """Store the DB fetched results into the internal list of results"""
         to_add = self._config.displaylimit - len(self._results)
         self._results.extend(elements)
-        self._pretty_table.add_rows(elements[:to_add])
+        self._pretty_table.add_rows(elements[:to_add] if to_add > 0 else elements)
 
     def mark_fetching_as_done(self):
         self._mark_fetching_as_done = True
