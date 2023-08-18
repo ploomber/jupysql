@@ -1,3 +1,4 @@
+from unittest.mock import ANY
 import uuid
 import logging
 import platform
@@ -8,7 +9,7 @@ import re
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import polars as pl
 import pandas as pd
@@ -21,12 +22,18 @@ from sql.run.resultset import ResultSet
 from sql import magic
 from sql.warnings import JupySQLQuotedNamedParametersWarning
 
+
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
 from ploomber_core.exceptions import COMMUNITY
 import psutil
 
 COMMUNITY = COMMUNITY.strip()
+
+DISPLAYLIMIT_LINK = (
+    '<a href="https://jupysql.ploomber.io/en/'
+    'latest/api/configuration.html#displaylimit">displaylimit</a>'
+)
 
 
 def test_memory_db(ip):
@@ -576,7 +583,7 @@ def test_displaylimit_default(ip):
 
     out = ip.run_cell("%sql SELECT * FROM number_table;").result
 
-    assert "Truncated to displaylimit of 10" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -599,7 +606,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -667,7 +674,7 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert "Truncated to displaylimit of 10" in out._repr_html_()
+        assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_column_local_vars(ip):
@@ -1733,3 +1740,212 @@ select * from author_subset
     assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
         excinfo.value
     )
+
+
+def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_dbapi.push({"df": df})
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_dbapi.run_cell("%sql --persist df")
+
+    message = (
+        "--persist/--persist-replace is not available for "
+        "DBAPI connections (only available for SQLAlchemy connections)"
+    )
+    assert message in str(excinfo.value)
+
+
+@pytest.mark.parametrize("cell", ["%sql --persist df", "%sql --persist-replace df"])
+def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip.push({"df": df})
+
+    conn = ConnectionManager.current
+    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    monkeypatch.setattr(
+        conn, "_execute_with_error_handling", execute_with_error_handling_mock
+    )
+
+    ip.run_cell(cell)
+
+    # ensure this got called because this function handles several sqlalchemy edge
+    # cases
+    execute_with_error_handling_mock.assert_called_once()
+
+
+def test_error_when_using_section_argument_but_dsn_is_missing(ip_empty, tmp_empty):
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'path/to/connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section some_section")
+
+    assert excinfo.value.error_type == "FileNotFoundError"
+    assert "%config SqlMagic.dsn_filename ('path/to/connections.ini') not found" in str(
+        excinfo.value
+    )
+
+
+def test_error_when_using_section_argument_but_dsn_section_is_missing(
+    ip_empty, tmp_empty
+):
+    Path("connections.ini").write_text(
+        """
+[section]
+key = value
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section another_section")
+
+    assert excinfo.value.error_type == "KeyError"
+
+    message = (
+        "The section 'another_section' does not exist in the "
+        "connections file 'connections.ini'"
+    )
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_but_keys_are_invalid(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[section]
+key = value
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section section")
+
+    assert excinfo.value.error_type == "TypeError"
+
+    message = "%config SqlMagic.dsn_filename ('connections.ini') is invalid"
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_but_values_are_invalid(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[section]
+drivername = not-a-driver
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section section")
+
+    message = "Could not parse SQLAlchemy URL from string 'not-a-driver://'"
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_and_alias(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck --alias stuff")
+
+    assert excinfo.value.error_type == "UsageError"
+
+    message = "Cannot use --section with --alias"
+    assert message in str(excinfo.value)
+
+
+def test_connect_to_db_in_connections_file_using_section_argument(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    ip_empty.run_cell("%sql --section duck")
+
+    conns = ConnectionManager.connections
+    assert conns == {"duck": ANY}
+
+
+def test_connect_to_db_in_connections_file_using_section_name_between_square_brackets(
+    ip_empty, tmp_empty
+):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.warns(FutureWarning) as record:
+        ip_empty.run_cell("%sql [duck]")
+
+    assert "Starting connections with: %sql [section_name] is deprecated" in str(
+        record[0].message
+    )
+    assert len(record) == 1
+    conns = ConnectionManager.connections
+    assert conns == {"duckdb://": ANY}
+
+
+@pytest.mark.parametrize(
+    "content, error_type, error_detail",
+    [
+        (
+            """
+[duck]
+drivername = duckdb
+
+[duck]
+drivername = duckdb
+""",
+            "DuplicateSectionError",
+            "section 'duck' already exists",
+        ),
+        (
+            """
+[duck]
+drivername = duckdb
+drivername = duckdb
+""",
+            "DuplicateOptionError",
+            "option 'drivername' in section 'duck' already exists",
+        ),
+    ],
+    ids=[
+        "duplicate-section",
+        "duplicate-key",
+    ],
+)
+def test_error_when_ini_file_is_corrupted(
+    ip_empty, tmp_empty, content, error_type, error_detail
+):
+    Path("connections.ini").write_text(content)
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck")
+
+    assert "An error happened when loading your %config SqlMagic.dsn_filename" in str(
+        excinfo.value
+    )
+
+    assert error_type in str(excinfo.value)
+    assert error_detail in str(excinfo.value)
