@@ -29,7 +29,7 @@ Using a connection file is the recommended way to manage connections, it helps y
 %load_ext sql
 ```
 
-By default, connections are read/stored in a `odbc.ini` file:
+By default, connections are read/stored in a `~/.jupysql/connections.ini` file:
 
 ```{code-cell} ipython3
 %config SqlMagic.dsn_filename
@@ -38,7 +38,7 @@ By default, connections are read/stored in a `odbc.ini` file:
 However, you can change this:
 
 ```{code-cell} ipython3
-%config SqlMagic.dsn_filename = "my-connections.ini"
+%config SqlMagic.dsn_filename = "connections.ini"
 ```
 
 The `.ini` format defines sections and you can define key-value pairs within each section. For example:
@@ -68,10 +68,12 @@ drivername = duckdb
 ```{code-cell} ipython3
 from pathlib import Path
 
-_ = Path("my-connections.ini").write_text("""
+_ = Path("connections.ini").write_text(
+    """
 [duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 To connect to a database defined in the connections file, use `--section` and pass the section name:
@@ -120,13 +122,15 @@ select * from penguins
 Let's now define another connection so we can show how we can manage multiple ones:
 
 ```{code-cell} ipython3
-_ = Path("my-connections.ini").write_text("""
+_ = Path("connections.ini").write_text(
+    """
 [duck]
 drivername = duckdb
 
 [second_duck]
 drivername = duckdb
-""")
+"""
+)
 ```
 
 Start a new connection from the `second_duck` section name:
@@ -163,4 +167,8 @@ We can change back to the other connection:
 
 ```{code-cell} ipython3
 %sqlcmd tables
+```
+
+```{code-cell} ipython3
+
 ```

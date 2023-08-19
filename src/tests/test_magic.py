@@ -677,6 +677,28 @@ def test_displaylimit_with_conditional_clause(
         assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
+@pytest.mark.parametrize(
+    "config_value",
+    [
+        (1),
+        (0),
+        (None),
+    ],
+)
+def test_displaylimit_with_count_statement(ip, load_penguin, config_value):
+    ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+    result = ip.run_line_magic("sql", "select count(*) from penguins.csv")
+
+    assert isinstance(result, ResultSet)
+    assert str(result) == (
+        "+--------------+\n"
+        "| count_star() |\n"
+        "+--------------+\n"
+        "|     344      |\n"
+        "+--------------+"
+    )
+
+
 def test_column_local_vars(ip):
     ip.run_line_magic("config", "SqlMagic.column_local_vars = True")
     result = runsql(ip, "SELECT * FROM author;")
@@ -1781,9 +1803,8 @@ def test_error_when_using_section_argument_but_dsn_is_missing(ip_empty, tmp_empt
         ip_empty.run_cell("%sql --section some_section")
 
     assert excinfo.value.error_type == "FileNotFoundError"
-    assert "%config SqlMagic.dsn_filename ('path/to/connections.ini') not found" in str(
-        excinfo.value
-    )
+    assert "%config SqlMagic.dsn_filename" in str(excinfo.value)
+    assert "not found" in str(excinfo.value)
 
 
 def test_error_when_using_section_argument_but_dsn_section_is_missing(
