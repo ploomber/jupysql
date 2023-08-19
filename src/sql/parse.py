@@ -30,7 +30,6 @@ class ConnectionsFile:
         return str(url.render_as_string(hide_password=False))
 
 
-# TODO:  make all the other functions use ConnectionFile
 def connection_str_from_dsn_section(section, config):
     """Return a SQLAlchemy connection string from a section in a DSN file
 
