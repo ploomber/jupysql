@@ -12,6 +12,25 @@ from IPython.core.magic_arguments import parse_argstring
 from sql import exceptions
 
 
+class ConnectionsFile:
+    def __init__(self, path_to_file) -> None:
+        self.parser = configparser.ConfigParser()
+        dsn_file = Path(path_to_file)
+
+        cfg_content = dsn_file.read_text()
+        self.parser.read_string(cfg_content)
+
+    def get_default_connection_url(self):
+        try:
+            section = self.parser.items("default")
+        except configparser.NoSectionError:
+            return None
+
+        url = URL.create(**dict(section))
+        return str(url.render_as_string(hide_password=False))
+
+
+# TODO:  make all the other functions use ConnectionFile
 def connection_str_from_dsn_section(section, config):
     """Return a SQLAlchemy connection string from a section in a DSN file
 
