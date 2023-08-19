@@ -3,7 +3,6 @@ import urllib.request
 from pathlib import Path
 
 import pytest
-from traitlets.config import Config
 
 from sql.magic import SqlMagic, RenderMagic
 from sql.magic_plot import SqlPlotMagic
