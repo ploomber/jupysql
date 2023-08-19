@@ -9,9 +9,9 @@ def test_dsn_filename_default_value(sql_magic):
 
 
 def test_dsn_filename_resolves_user_directory(sql_magic):
-    sql_magic.dsn_filename = "~/connecions.ini"
+    sql_magic.dsn_filename = "~/connections.ini"
 
-    path = Path("~/connecions.ini").expanduser()
+    path = Path("~/connections.ini").expanduser()
     expected = str(path)
 
     # setting the value should not create the file
