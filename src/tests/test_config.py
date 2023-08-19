@@ -19,3 +19,11 @@ def test_dsn_filename_resolves_user_directory(sql_magic):
 
     # but it should resolve the path
     assert sql_magic.dsn_filename == expected
+
+
+def test_start_ini_default_connection_if_any():
+    pass
+
+
+# TODO: move pyproject.toml tests here and add more
+# i don't think they're 100% correct

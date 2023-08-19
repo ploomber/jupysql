@@ -1349,7 +1349,6 @@ def mockValueWidget(monkeypatch):
 
 
 def test_interact_basic_widgets(ip, mockValueWidget, capsys):
-    print("mock", mockValueWidget.value)
     ip.user_global_ns["my_widget"] = mockValueWidget
 
     ip.run_cell(
