@@ -12,6 +12,7 @@ from sql.parse import (
     escape_string_literals_with_colon_prefix,
     find_named_parameters,
     _connection_string,
+    ConnectionsFile,
 )
 
 try:
@@ -383,3 +384,46 @@ def test_escape_string_literals_with_colon_prefix(
 )
 def test_find_named_parameters(query, expected):
     assert find_named_parameters(query) == expected
+
+
+@pytest.mark.parametrize(
+    "content, expected",
+    [
+        (
+            """
+[duck]
+drivername = duckdb
+""",
+            None,
+        ),
+        (
+            """
+[default]
+drivername = duckdb
+""",
+            "duckdb://",
+        ),
+        (
+            """
+[default]
+drivername = postgresql
+host = localhost
+port = 5432
+username = user
+password = pass
+database = db
+""",
+            "postgresql://user:pass@localhost:5432/db",
+        ),
+    ],
+    ids=[
+        "no-default",
+        "default",
+        "default-postgres",
+    ],
+)
+def test_connections_file_get_default_connection_url(tmp_empty, content, expected):
+    Path("conns.ini").write_text(content)
+
+    cf = ConnectionsFile(path_to_file="conns.ini")
+    assert cf.get_default_connection_url() == expected

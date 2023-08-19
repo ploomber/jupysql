@@ -75,18 +75,27 @@ def clean_conns():
 
 
 @pytest.fixture
-def ip_empty():
+def ip_no_magics():
     ip_session = TestingShell.preconfigured_shell()
 
-    sql_magic = SqlMagic(ip_session)
-    _current._set_sql_magic(sql_magic)
-
-    ip_session.register_magics(sql_magic)
-    ip_session.register_magics(RenderMagic)
-    ip_session.register_magics(SqlPlotMagic)
-    ip_session.register_magics(SqlCmdMagic)
+    # to prevent using the actual default, which reads from the home directory
+    ip_session.run_cell("%config SqlMagic.dsn_filename = 'default.ini'")
 
     yield ip_session
+    ConnectionManager.close_all()
+
+
+@pytest.fixture
+def ip_empty(ip_no_magics):
+    sql_magic = SqlMagic(ip_no_magics)
+    _current._set_sql_magic(sql_magic)
+
+    ip_no_magics.register_magics(sql_magic)
+    ip_no_magics.register_magics(RenderMagic)
+    ip_no_magics.register_magics(SqlPlotMagic)
+    ip_no_magics.register_magics(SqlCmdMagic)
+
+    yield ip_no_magics
     ConnectionManager.close_all()
 
 
