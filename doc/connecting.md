@@ -46,7 +46,7 @@ To learn more, see: [](user-guide/connection-file.md).
 ## Connect with a URL string
 
 ```{important}
-If you connect using a URL string, **do not hardcode your password in your notebook**, see: [](#building-url-strings-securely)
+If you connect using a URL string, **do not hardcode your password in your notebook**, see: [](building-url-strings-securely)
 ```
 
 Connection strings follow the [SQLAlchemy URL format](http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls).
@@ -64,6 +64,7 @@ sqlite://
 duckdb://
 ```
 
+(building-url-strings-securely)=
 ### Building URL strings securely
 
 To connect more securely, you can dynamically build your URL string so your password isn't hardcoded; you can use the `getpass` function so you're prompted for your password whenever you want to connect:
