@@ -87,7 +87,7 @@ def connection_str_from_dsn_section(section, config):
     return str(url.render_as_string(hide_password=False))
 
 
-def _connection_string(s, config):
+def _connection_string(arg, path_to_file):
     """
     Given a string, return a SQLAlchemy connection string if possible.
 
@@ -96,19 +96,27 @@ def _connection_string(s, config):
     - If the string is a valid URL, return it
     - If the string is a valid section in the DSN file return the connection string
     - Otherwise return an empty string
+
+    Parameters
+    ----------
+    arg : str
+        The string to parse
+
+    path_to_file : str
+        The path to the DSN file
     """
     # for environment variables
-    s = expandvars(s)
+    arg = expandvars(arg)
 
     # if it's a URL, return it
-    if "@" in s or "://" in s:
-        return s
+    if "@" in arg or "://" in arg:
+        return arg
 
     # if it's a section in the DSN file, return the connection string
-    if s.startswith("[") and s.endswith("]"):
-        section = s.lstrip("[").rstrip("]")
+    if arg.startswith("[") and arg.endswith("]"):
+        section = arg.lstrip("[").rstrip("]")
         parser = configparser.ConfigParser()
-        parser.read(config.dsn_filename)
+        parser.read(path_to_file)
         cfg_dict = dict(parser.items(section))
         url = URL.create(**cfg_dict)
         url_ = str(url.render_as_string(hide_password=False))
@@ -146,7 +154,7 @@ def parse(cell, config):
     if not pieces:
         return result
 
-    result["connection"] = _connection_string(pieces[0], config)
+    result["connection"] = _connection_string(pieces[0], config.dsn_filename)
 
     if result["connection"]:
         if len(pieces) == 1:
