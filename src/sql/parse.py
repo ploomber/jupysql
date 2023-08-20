@@ -133,7 +133,7 @@ def _connection_string(arg, path_to_file):
     return ""
 
 
-def parse(cell, config):
+def parse(arg, path_to_file):
     """Extract connection info and result variable from SQL
 
     Please don't add any more syntax requiring
@@ -142,6 +142,14 @@ def parse(cell, config):
 
     We're grandfathering the
     connection string and `<<` operator in.
+
+    Parameters
+    ----------
+    arg : str
+        The string to parse
+
+    path_to_file : str
+        The path to the DSN file
     """
     result = {
         "connection": "",
@@ -150,21 +158,21 @@ def parse(cell, config):
         "return_result_var": False,
     }
 
-    pieces = cell.split(None, 1)
+    pieces = arg.split(None, 1)
     if not pieces:
         return result
 
-    result["connection"] = _connection_string(pieces[0], config.dsn_filename)
+    result["connection"] = _connection_string(pieces[0], path_to_file)
 
     if result["connection"]:
         if len(pieces) == 1:
             return result
-        cell = pieces[1]
+        arg = pieces[1]
 
-    pointer = cell.find("<<")
+    pointer = arg.find("<<")
     if pointer != -1:
-        left = cell[:pointer].replace(" ", "").replace("\n", "")
-        right = cell[pointer + 2 :].strip(" ")
+        left = arg[:pointer].replace(" ", "").replace("\n", "")
+        right = arg[pointer + 2 :].strip(" ")
 
         if "=" in left:
             result["result_var"] = left[:-1]
@@ -174,7 +182,7 @@ def parse(cell, config):
 
         result["sql"] = right
     else:
-        result["sql"] = cell
+        result["sql"] = arg
     return result
 
 
