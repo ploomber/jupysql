@@ -27,7 +27,6 @@ from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
 
 import warnings
 import shlex
-import ast
 from difflib import get_close_matches
 import sql.connection
 import sql.parse
@@ -499,22 +498,6 @@ class SqlMagic(Magics, Configurable):
             args.connection_arguments = {}
         if args.creator:
             args.creator = user_ns[args.creator]
-
-        if (
-            len(args.line) == 1
-            and not args.line[0].isidentifier()
-            and not command.connection  # When passing connection as a variable
-            and not (args.persist_replace or args.persist or args.append)
-        ):
-            try:
-                ast.parse(args.line[0])
-                raise exceptions.UsageError(
-                    f"'{args.line[0]}' is not a valid connection identifier. "
-                    "Please pass the variable's name directly, as passing "
-                    "object attributes, dictionaries or lists won't work."
-                )
-            except SyntaxError:
-                pass
 
         # this creates a new connection or use an existing one
         # depending on the connect_arg value
