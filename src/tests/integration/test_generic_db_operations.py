@@ -292,12 +292,17 @@ def test_telemetry_execute_command_has_connection_info(
             "%sqlplot histogram --with plot_something_subset --table\
               plot_something_subset --column x --breaks 0 2 3 4 5"
         ),
+        (
+            "%sqlplot histogram --with plot_something_subset --table\
+              plot_something_subset --column x --binwidth 1"
+        ),
     ],
     ids=[
         "histogram",
         "hist",
         "histogram-bins",
         "histogram-breaks",
+        "histogram-binwidth",
     ],
 )
 @pytest.mark.parametrize(
@@ -308,17 +313,12 @@ def test_telemetry_execute_command_has_connection_info(
         ("ip_with_mariaDB"),
         ("ip_with_SQLite"),
         ("ip_with_duckDB"),
+        ("ip_with_Snowflake"),
         ("ip_with_duckDB_native"),
         ("ip_with_redshift"),
         pytest.param(
             "ip_with_MSSQL",
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
-        ),
-        pytest.param(
-            "ip_with_Snowflake",
-            marks=pytest.mark.xfail(
-                reason="Something wrong with sqlplot histogram in snowflake"
-            ),
         ),
     ],
 )

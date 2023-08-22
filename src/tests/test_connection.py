@@ -572,7 +572,21 @@ def test_feedback_when_switching_connection_with_alias(
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.replace("\n", "")
+    assert "Switching to connection one" == captured.out.splitlines()[-1]
+
+
+def test_feedback_when_switching_connection_with_descriptors(
+    ip_empty, tmp_empty, capsys
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql sqlite://")
+
+    captured = capsys.readouterr()
+    assert (
+        "Connecting and switching to connection sqlite://"
+        == captured.out.splitlines()[-1]
+    )
 
 
 @pytest.mark.parametrize("feedback", [1, 2])
@@ -588,7 +602,27 @@ def test_feedback_when_switching_connection_without_alias(
     ip_empty.run_cell("%sql duckdb://")
 
     captured = capsys.readouterr()
-    assert "Switching to connection duckdb://" == captured.out.replace("\n", "")
+    assert "Switching to connection duckdb://" == captured.out.splitlines()[-1]
+
+
+def test_feedback_when_switching_connection_with_existing_connection(
+    ip_empty, tmp_empty, capsys
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb:// --alias one")
+    ip_empty.run_cell("%sql duckdb:// --alias two")
+    ip_empty.run_cell("%sql one")
+
+    captured = capsys.readouterr()
+    assert "Switching to connection one" == captured.out.splitlines()[-1]
+
+
+def test_no_feedback(ip_empty, tmp_empty, capsys):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+
+    captured = capsys.readouterr()
+    assert "" == captured.out
 
 
 def test_no_switching_connection_feedback_if_disabled(ip_empty, capsys):
@@ -988,3 +1022,23 @@ def test_ignore_operationalerror_if_it_doesnt_match_the_selected_patterns(monkey
     assert "(test_connection.SomeError) message" in str(excinfo.value)
     assert isinstance(excinfo.value.orig, SomeError)
     assert str(excinfo.value.orig) == "message"
+
+
+@pytest.mark.parametrize(
+    "uri, expected",
+    [
+        (
+            "sqlite:///path/to.db",
+            "unable to open database file",
+        ),
+        (
+            "duckdb:///path/to.db",
+            "Cannot open file",
+        ),
+    ],
+)
+def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
+    with pytest.raises(UsageError) as excinfo:
+        SQLAlchemyConnection(engine=create_engine(uri))
+
+    assert expected in str(excinfo.value)

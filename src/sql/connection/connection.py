@@ -25,7 +25,11 @@ from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
+from sql.parse import (
+    escape_string_literals_with_colon_prefix,
+    find_named_parameters,
+    ConnectionsFile,
+)
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 from sql import _current
 
@@ -161,6 +165,15 @@ def rough_dict_get(dct, sought, default=None):
     return default
 
 
+def _error_invalid_connection_info(e, connect_str):
+    err = UsageError(
+        "An error happened while creating the connection: "
+        f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
+    )
+    err.modify_exception = True
+    return err
+
+
 class ConnectionManager:
     """A class to manage and create database connections"""
 
@@ -213,15 +226,25 @@ class ConnectionManager:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
                     cls.current = existing
-                # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
-                    cls.current = existing
-
-                    if _current._config_feedback_normal_or_more():
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current != existing
+                    ):
                         display.message(f"Switching to connection {descriptor}")
+                    cls.current = existing
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current
+                        and cls.current.alias != alias
+                    ):
+                        identifier = alias or descriptor
+                        display.message(
+                            f"Connecting and switching to connection {identifier}"
+                        )
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
@@ -371,12 +394,29 @@ class ConnectionManager:
                 )
             ) from e
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
+            raise _error_invalid_connection_info(e, connect_str) from e
 
         connection = SQLAlchemyConnection(engine, alias=alias, config=config)
         connection.connect_args = connect_args
 
         return connection
+
+    @classmethod
+    def load_default_connection_from_file_if_any(cls, config):
+        try:
+            connections_file = ConnectionsFile(path_to_file=config.dsn_filename)
+        except FileNotFoundError:
+            return
+
+        default_url = connections_file.get_default_connection_url()
+
+        if default_url is not None:
+            cls.set(
+                default_url,
+                displaycon=False,
+                alias="default",
+                config=config,
+            )
 
 
 class AbstractConnection(abc.ABC):
@@ -860,20 +900,11 @@ class SQLAlchemyConnection(AbstractConnection):
         except OperationalError as e:
             detailed_msg = detail(e)
             if detailed_msg is not None:
-                raise exceptions.UsageError(detailed_msg)
+                raise exceptions.RuntimeError(detailed_msg) from e
             else:
-                print(e)
+                raise exceptions.RuntimeError(str(e)) from e
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
-
-    @classmethod
-    def _error_invalid_connection_info(cls, e, connect_str):
-        err = UsageError(
-            "An error happened while creating the connection: "
-            f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
-        )
-        err.modify_exception = True
-        return err
+            raise _error_invalid_connection_info(e, connect_str) from e
 
     def to_table(self, table_name, data_frame, if_exists, index):
         """Create a table from a pandas DataFrame"""

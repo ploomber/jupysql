@@ -7,7 +7,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.0
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -129,6 +129,18 @@ One displayed, but all results fetched:
 ```{code-cell} ipython3
 len(res)
 ```
+
+## `dsn_filename`
+
+```{versionchanged} 0.10.0
+`dsn_filename` default changed from `odbc.ini` to `~/.jupysql/connections.ini`.
+```
+
+Default: `~/.jupysql/connections.ini`
+
+File to load connections configuration from. For an example, see: [](../user-guide/connection-file.md)
+
++++
 
 ## `autopandas`
 

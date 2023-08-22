@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 
 try:
     from ipywidgets import interact
@@ -159,7 +160,7 @@ class SqlMagic(Magics, Configurable):
     )
 
     dsn_filename = Unicode(
-        default_value="odbc.ini",
+        default_value=str(Path("~/.jupysql/connections.ini").expanduser()),
         config=True,
         help="Path to DSN file. "
         "When the first argument is of the form [section], "
@@ -187,6 +188,11 @@ class SqlMagic(Magics, Configurable):
 
         # Add ourself to the list of module configurable via %config
         self.shell.configurables.append(self)
+
+    @validate("dsn_filename")
+    def _valid_dsn_filename(self, proposal):
+        path = Path(proposal["value"]).expanduser()
+        return str(path)
 
     # To verify displaylimit is valid positive integer
     # If:
@@ -422,6 +428,12 @@ class SqlMagic(Magics, Configurable):
 
         args = command.args
 
+        if args.section and args.alias:
+            raise exceptions.UsageError(
+                "Cannot use --section with --alias since the section name "
+                "is automatically set as the connection alias"
+            )
+
         is_cte = command.sql_original.strip().lower().startswith("with ")
 
         # only expand CTE if this is not a CTE itself
@@ -467,7 +479,7 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -494,7 +506,7 @@ class SqlMagic(Magics, Configurable):
             displaycon=self.displaycon,
             connect_args=args.connection_arguments,
             creator=args.creator,
-            alias=args.alias,
+            alias=args.section if args.section else args.alias,
             config=self,
         )
         payload["connection_info"] = conn._get_database_information()
@@ -691,7 +703,19 @@ def load_SqlMagic_configs(ip):
     """Loads saved SqlMagic configs in pyproject.toml"""
     file_path = util.find_path_from_root("pyproject.toml")
     if file_path:
-        table_rows = set_configs(ip, file_path)
+        try:
+            table_rows = set_configs(ip, file_path)
+        except Exception as e:
+            if type(e).__name__ == "TomlDecodeError":
+                display.message_warning(
+                    f"Could not load configuration file at {file_path} "
+                    "(default configuration will be used).\nPlease "
+                    f"check that it is valid TOML: {e}"
+                )
+                return
+            else:
+                raise
+
         if table_rows:
             display.message("Settings changed:")
             display.table(["Config", "value"], table_rows)
@@ -701,12 +725,17 @@ def load_ipython_extension(ip):
     """Load the magics, this function is executed when the user runs: %load_ext sql"""
     sql_magic = SqlMagic(ip)
     _set_sql_magic(sql_magic)
-
     ip.register_magics(sql_magic)
+
+    load_SqlMagic_configs(ip)
+
+    # start the default connection if the user has one in their config file
+    sql.connection.ConnectionManager.load_default_connection_from_file_if_any(
+        config=sql_magic
+    )
+
     ip.register_magics(RenderMagic)
     ip.register_magics(SqlPlotMagic)
     ip.register_magics(SqlCmdMagic)
 
     patch_ipython_usage_error(ip)
-
-    load_SqlMagic_configs(ip)
