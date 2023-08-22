@@ -505,8 +505,11 @@ def _nonbreaking_spaces(match_obj):
 
 
 def _statement_is_select(statement):
-    statement_ = statement.lower().strip()
-    # duckdb also allows FROM without SELECT
-    return sqlparse.parse(statement_)[
-        0
-    ].get_type() == "SELECT" or statement_.startswith("from")
+    if statement and type(statement) == str:
+        statement_ = statement.lower().strip()
+        # duckdb also allows FROM without SELECT
+        return sqlparse.parse(statement_)[
+            0
+        ].get_type() == "SELECT" or statement_.startswith("from")
+    else:
+        return False

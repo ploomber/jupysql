@@ -12,7 +12,7 @@ import polars as pl
 import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
-from sql.run.resultset import ResultSet
+from sql.run.resultset import ResultSet, _statement_is_select
 from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
@@ -269,6 +269,20 @@ def test_convert_to_dataframe_select(session, request, mock_config, statement):
     df = rs.DataFrame()
 
     assert df.to_dict() == {"x": {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}}
+
+
+@pytest.mark.parametrize(
+    "session, expected_value",
+    [
+        ("with a as (select * from b) select * from b", True),
+        ("with a as (select * from b) insert into product_log select * from b", False),
+        ("from b", True),
+        ("", False),
+        (3, False),
+    ],
+)
+def test_statement_is_select(session, expected_value):
+    assert _statement_is_select(session) == expected_value
 
 
 @pytest.mark.parametrize(
