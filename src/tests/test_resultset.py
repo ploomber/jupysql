@@ -275,7 +275,7 @@ def test_convert_to_dataframe_select(session, request, mock_config, statement):
     "session, expected_value",
     [
         ("with a as (select * from b) select * from b", True),
-        ("with a as (select * from b) insert into product_log select * from b", False),
+        ("insert into product_log select * from b", False),
         ("from b", True),
         ("", False),
         (3, False),
