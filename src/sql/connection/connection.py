@@ -25,7 +25,11 @@ from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
+from sql.parse import (
+    escape_string_literals_with_colon_prefix,
+    find_named_parameters,
+    ConnectionsFile,
+)
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 from sql import _current
 
@@ -396,6 +400,23 @@ class ConnectionManager:
         connection.connect_args = connect_args
 
         return connection
+
+    @classmethod
+    def load_default_connection_from_file_if_any(cls, config):
+        try:
+            connections_file = ConnectionsFile(path_to_file=config.dsn_filename)
+        except FileNotFoundError:
+            return
+
+        default_url = connections_file.get_default_connection_url()
+
+        if default_url is not None:
+            cls.set(
+                default_url,
+                displaycon=False,
+                alias="default",
+                config=config,
+            )
 
 
 class AbstractConnection(abc.ABC):
@@ -879,9 +900,9 @@ class SQLAlchemyConnection(AbstractConnection):
         except OperationalError as e:
             detailed_msg = detail(e)
             if detailed_msg is not None:
-                raise exceptions.UsageError(detailed_msg)
+                raise exceptions.RuntimeError(detailed_msg) from e
             else:
-                print(e)
+                raise exceptions.RuntimeError(str(e)) from e
         except Exception as e:
             raise _error_invalid_connection_info(e, connect_str) from e
 
