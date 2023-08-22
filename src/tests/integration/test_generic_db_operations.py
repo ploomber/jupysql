@@ -335,12 +335,6 @@ def test_telemetry_execute_command_has_connection_info(
             marks=pytest.mark.xfail(reason="sqlglot does not support SQL server"),
         ),
         pytest.param(
-            "ip_with_Snowflake",
-            marks=pytest.mark.xfail(
-                reason="Something wrong with sqlplot histogram in snowflake"
-            ),
-        ),
-        pytest.param(
             "ip_with_clickhouse",
             marks=pytest.mark.xfail(
                 reason="Plotting from snippet not working in clickhouse"
