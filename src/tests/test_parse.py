@@ -5,25 +5,28 @@ from pathlib import Path
 import pytest
 
 from sql.parse import (
-    connection_from_dsn_section,
+    connection_str_from_dsn_section,
     parse,
     without_sql_comment,
     magic_args,
     escape_string_literals_with_colon_prefix,
     find_named_parameters,
+    _connection_string,
+    ConnectionsFile,
 )
 
-try:
-    from traitlets.config.configurable import Configurable
-except ImportError:
-    from IPython.config.configurable import Configurable
 
-empty_config = Configurable()
 default_connect_args = {"options": "-csearch_path=test"}
+
+PATH_TO_DSN_FILE = "src/tests/test_dsn_config.ini"
+
+
+class DummyConfig:
+    dsn_filename = Path("src/tests/test_dsn_config.ini")
 
 
 def test_parse_no_sql():
-    assert parse("will:longliveliz@localhost/shakes", empty_config) == {
+    assert parse("will:longliveliz@localhost/shakes", PATH_TO_DSN_FILE) == {
         "connection": "will:longliveliz@localhost/shakes",
         "sql": "",
         "result_var": None,
@@ -34,7 +37,7 @@ def test_parse_no_sql():
 def test_parse_with_sql():
     assert parse(
         "postgresql://will:longliveliz@localhost/shakes SELECT * FROM work",
-        empty_config,
+        PATH_TO_DSN_FILE,
     ) == {
         "connection": "postgresql://will:longliveliz@localhost/shakes",
         "sql": "SELECT * FROM work",
@@ -44,7 +47,7 @@ def test_parse_with_sql():
 
 
 def test_parse_sql_only():
-    assert parse("SELECT * FROM work", empty_config) == {
+    assert parse("SELECT * FROM work", PATH_TO_DSN_FILE) == {
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": None,
@@ -53,7 +56,7 @@ def test_parse_sql_only():
 
 
 def test_parse_postgresql_socket_connection():
-    assert parse("postgresql:///shakes SELECT * FROM work", empty_config) == {
+    assert parse("postgresql:///shakes SELECT * FROM work", PATH_TO_DSN_FILE) == {
         "connection": "postgresql:///shakes",
         "sql": "SELECT * FROM work",
         "result_var": None,
@@ -63,7 +66,7 @@ def test_parse_postgresql_socket_connection():
 
 def test_expand_environment_variables_in_connection():
     os.environ["DATABASE_URL"] = "postgresql:///shakes"
-    assert parse("$DATABASE_URL SELECT * FROM work", empty_config) == {
+    assert parse("$DATABASE_URL SELECT * FROM work", PATH_TO_DSN_FILE) == {
         "connection": "postgresql:///shakes",
         "sql": "SELECT * FROM work",
         "result_var": None,
@@ -72,7 +75,7 @@ def test_expand_environment_variables_in_connection():
 
 
 def test_parse_shovel_operator():
-    assert parse("dest << SELECT * FROM work", empty_config) == {
+    assert parse("dest << SELECT * FROM work", PATH_TO_DSN_FILE) == {
         "connection": "",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
@@ -103,7 +106,7 @@ def test_parse_return_shovel_operator_with_equal(input_string, ip):
         "result_var": "dest",
         "return_result_var": True,
     }
-    assert parse(input_string, empty_config) == result_var
+    assert parse(input_string, PATH_TO_DSN_FILE) == result_var
 
 
 @pytest.mark.parametrize(
@@ -124,11 +127,11 @@ def test_parse_return_shovel_operator_without_equal(input_string, ip):
         "result_var": "dest",
         "return_result_var": False,
     }
-    assert parse(input_string, empty_config) == result_var
+    assert parse(input_string, PATH_TO_DSN_FILE) == result_var
 
 
 def test_parse_connect_plus_shovel():
-    assert parse("sqlite:// dest << SELECT * FROM work", empty_config) == {
+    assert parse("sqlite:// dest << SELECT * FROM work", PATH_TO_DSN_FILE) == {
         "connection": "sqlite://",
         "sql": "SELECT * FROM work",
         "result_var": "dest",
@@ -137,7 +140,7 @@ def test_parse_connect_plus_shovel():
 
 
 def test_parse_early_newlines():
-    assert parse("--comment\nSELECT *\n--comment\nFROM work", empty_config) == {
+    assert parse("--comment\nSELECT *\n--comment\nFROM work", PATH_TO_DSN_FILE) == {
         "connection": "",
         "sql": "--comment\nSELECT *\n--comment\nFROM work",
         "result_var": None,
@@ -146,7 +149,7 @@ def test_parse_early_newlines():
 
 
 def test_parse_connect_shovel_over_newlines():
-    assert parse("\nsqlite://\ndest\n<<\nSELECT *\nFROM work", empty_config) == {
+    assert parse("\nsqlite://\ndest\n<<\nSELECT *\nFROM work", PATH_TO_DSN_FILE) == {
         "connection": "sqlite://",
         "sql": "\nSELECT *\nFROM work",
         "result_var": "dest",
@@ -154,15 +157,51 @@ def test_parse_connect_shovel_over_newlines():
     }
 
 
-class DummyConfig:
-    dsn_filename = Path("src/tests/test_dsn_config.ini")
+@pytest.mark.parametrize(
+    "section, expected",
+    [
+        (
+            "DB_CONFIG_1",
+            "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain",
+        ),
+        (
+            "DB_CONFIG_2",
+            "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin",
+        ),
+    ],
+)
+def test_connection_from_dsn_section(section, expected):
+    result = connection_str_from_dsn_section(section=section, config=DummyConfig)
+    assert result == expected
 
 
-def test_connection_from_dsn_section():
-    result = connection_from_dsn_section(section="DB_CONFIG_1", config=DummyConfig())
-    assert result == "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain"
-    result = connection_from_dsn_section(section="DB_CONFIG_2", config=DummyConfig())
-    assert result == "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin"
+@pytest.mark.parametrize(
+    "input_, expected",
+    [
+        ("", ""),
+        (
+            "drivername://user:pass@host:port/db",
+            "drivername://user:pass@host:port/db",
+        ),
+        ("drivername://", "drivername://"),
+        (
+            "[DB_CONFIG_1]",
+            "postgres://goesto11:seentheelephant@my.remote.host:5432/pgmain",
+        ),
+        ("DB_CONFIG_1", ""),
+        ("not-a-url", ""),
+    ],
+    ids=[
+        "empty",
+        "full",
+        "drivername",
+        "section",
+        "not-a-section",
+        "not-a-url",
+    ],
+)
+def test_connection_string(input_, expected):
+    assert _connection_string(input_, "src/tests/test_dsn_config.ini") == expected
 
 
 class Bunch:
@@ -342,3 +381,46 @@ def test_escape_string_literals_with_colon_prefix(
 )
 def test_find_named_parameters(query, expected):
     assert find_named_parameters(query) == expected
+
+
+@pytest.mark.parametrize(
+    "content, expected",
+    [
+        (
+            """
+[duck]
+drivername = duckdb
+""",
+            None,
+        ),
+        (
+            """
+[default]
+drivername = duckdb
+""",
+            "duckdb://",
+        ),
+        (
+            """
+[default]
+drivername = postgresql
+host = localhost
+port = 5432
+username = user
+password = pass
+database = db
+""",
+            "postgresql://user:pass@localhost:5432/db",
+        ),
+    ],
+    ids=[
+        "no-default",
+        "default",
+        "default-postgres",
+    ],
+)
+def test_connections_file_get_default_connection_url(tmp_empty, content, expected):
+    Path("conns.ini").write_text(content)
+
+    cf = ConnectionsFile(path_to_file="conns.ini")
+    assert cf.get_default_connection_url() == expected

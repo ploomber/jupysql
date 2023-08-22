@@ -4,10 +4,17 @@ import abc
 import os
 from difflib import get_close_matches
 import atexit
+from functools import partial
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import NoSuchModuleError, OperationalError, StatementError
+from sqlalchemy.exc import (
+    NoSuchModuleError,
+    OperationalError,
+    StatementError,
+    PendingRollbackError,
+    InternalError,
+)
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
@@ -18,8 +25,13 @@ from sql.store import store
 from sql.telemetry import telemetry
 from sql import exceptions, display
 from sql.error_message import detail
-from sql.parse import escape_string_literals_with_colon_prefix, find_named_parameters
-from sql.warnings import JupySQLQuotedNamedParametersWarning
+from sql.parse import (
+    escape_string_literals_with_colon_prefix,
+    find_named_parameters,
+    ConnectionsFile,
+)
+from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
+from sql import _current
 
 
 PLOOMBER_DOCS_LINK_STR = (
@@ -153,6 +165,15 @@ def rough_dict_get(dct, sought, default=None):
     return default
 
 
+def _error_invalid_connection_info(e, connect_str):
+    err = UsageError(
+        "An error happened while creating the connection: "
+        f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
+    )
+    err.modify_exception = True
+    return err
+
+
 class ConnectionManager:
     """A class to manage and create database connections"""
 
@@ -205,12 +226,25 @@ class ConnectionManager:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
                     cls.current = existing
-                # passing an existing descriptor and not alias: use existing connection
                 elif existing and alias is None:
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current != existing
+                    ):
+                        display.message(f"Switching to connection {descriptor}")
                     cls.current = existing
-                    display.message(f"Switching to connection {descriptor}")
+
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
+                    if (
+                        _current._config_feedback_normal_or_more()
+                        and cls.current
+                        and cls.current.alias != alias
+                    ):
+                        identifier = alias or descriptor
+                        display.message(
+                            f"Connecting and switching to connection {identifier}"
+                        )
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
@@ -221,7 +255,7 @@ class ConnectionManager:
 
         else:
             if cls.connections:
-                if displaycon:
+                if displaycon and _current._config_feedback_normal_or_more():
                     cls.display_current_connection()
             elif os.getenv("DATABASE_URL"):
                 cls.current = cls.from_connect_str(
@@ -360,12 +394,29 @@ class ConnectionManager:
                 )
             ) from e
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
+            raise _error_invalid_connection_info(e, connect_str) from e
 
         connection = SQLAlchemyConnection(engine, alias=alias, config=config)
         connection.connect_args = connect_args
 
         return connection
+
+    @classmethod
+    def load_default_connection_from_file_if_any(cls, config):
+        try:
+            connections_file = ConnectionsFile(path_to_file=config.dsn_filename)
+        except FileNotFoundError:
+            return
+
+        default_url = connections_file.get_default_connection_url()
+
+        if default_url is not None:
+            cls.set(
+                default_url,
+                displaycon=False,
+                alias="default",
+                config=config,
+            )
 
 
 class AbstractConnection(abc.ABC):
@@ -395,6 +446,11 @@ class AbstractConnection(abc.ABC):
         Get the dialect, driver, and database server version info of current
         connection
         """
+        pass
+
+    @abc.abstractmethod
+    def to_table(self, table_name, data_frame, if_exists, index):
+        """Create a table from a pandas DataFrame"""
         pass
 
     def close(self):
@@ -636,12 +692,8 @@ class SQLAlchemyConnection(AbstractConnection):
         # not be a SELECT
         is_select = first_word_statement in {"select", "with", "from"}
 
-        if IS_SQLALCHEMY_ONE:
-            out = self._connection.execute(sqlalchemy.text(query), **parameters)
-        else:
-            out = self._connection.execute(
-                sqlalchemy.text(query), parameters=parameters
-            )
+        operation = partial(self._execute_with_parameters, query, parameters)
+        out = self._execute_with_error_handling(operation)
 
         if self._requires_manual_commit:
             # calling connection.commit() when using duckdb-engine will yield
@@ -663,6 +715,17 @@ class SQLAlchemyConnection(AbstractConnection):
                     pass
             else:
                 self._connection.commit()
+
+        return out
+
+    def _execute_with_parameters(self, query, parameters):
+        """Execute the query with the given parameters"""
+        if IS_SQLALCHEMY_ONE:
+            out = self._connection.execute(sqlalchemy.text(query), **parameters)
+        else:
+            out = self._connection.execute(
+                sqlalchemy.text(query), parameters=parameters
+            )
 
         return out
 
@@ -733,6 +796,69 @@ class SQLAlchemyConnection(AbstractConnection):
                         )
                 raise
 
+    def _execute_with_error_handling(self, operation):
+        """Execute a database operation and handle errors
+
+        Parameters
+        ----------
+        operation : callable
+            A callable that takes no parameters to execute a database operation
+        """
+        rollback_needed = False
+
+        try:
+            out = operation()
+
+        # this is a generic error but we've seen it in postgres. it helps recover
+        # from a idle session timeout (happens in psycopg 2 and psycopg 3)
+        except PendingRollbackError:
+            warnings.warn(
+                "Found invalid transaction. JupySQL executed a ROLLBACK operation.",
+                category=JupySQLRollbackPerformed,
+            )
+            rollback_needed = True
+
+        # postgres error
+        except InternalError as e:
+            # message from psycopg 2 and psycopg 3
+            message = (
+                "current transaction is aborted, "
+                "commands ignored until end of transaction block"
+            )
+            if type(e.orig).__name__ == "InFailedSqlTransaction" and message in str(
+                e.orig
+            ):
+                warnings.warn(
+                    (
+                        "Current transaction is aborted. "
+                        "JupySQL executed a ROLLBACK operation."
+                    ),
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+            else:
+                raise
+
+        # postgres error
+        except OperationalError as e:
+            # message from psycopg 2 and psycopg 3
+            message = "server closed the connection unexpectedly"
+
+            if type(e.orig).__name__ == "OperationalError" and message in str(e.orig):
+                warnings.warn(
+                    "Server closed connection. JupySQL executed a ROLLBACK operation.",
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
+            else:
+                raise
+
+        if rollback_needed:
+            self._connection.rollback()
+            out = operation()
+
+        return out
+
     def _get_database_information(self):
         dialect = self._connection_sqlalchemy.dialect
 
@@ -774,20 +900,32 @@ class SQLAlchemyConnection(AbstractConnection):
         except OperationalError as e:
             detailed_msg = detail(e)
             if detailed_msg is not None:
-                raise exceptions.UsageError(detailed_msg)
+                raise exceptions.RuntimeError(detailed_msg) from e
             else:
-                print(e)
+                raise exceptions.RuntimeError(str(e)) from e
         except Exception as e:
-            raise cls._error_invalid_connection_info(e, connect_str) from e
+            raise _error_invalid_connection_info(e, connect_str) from e
 
-    @classmethod
-    def _error_invalid_connection_info(cls, e, connect_str):
-        err = UsageError(
-            "An error happened while creating the connection: "
-            f"{e}.{_suggest_fix(env_var=False, connect_str=connect_str)}"
+    def to_table(self, table_name, data_frame, if_exists, index):
+        """Create a table from a pandas DataFrame"""
+        operation = partial(
+            data_frame.to_sql,
+            table_name,
+            self.connection_sqlalchemy,
+            if_exists=if_exists,
+            index=index,
         )
-        err.modify_exception = True
-        return err
+
+        try:
+            self._execute_with_error_handling(operation)
+        except ValueError:
+            raise exceptions.ValueError(
+                f"Table {table_name!r} already exists. Consider using "
+                "--persist-replace to drop the table before "
+                "persisting the data frame"
+            )
+
+        display.message_success(f"Success! Persisted {table_name} to the database.")
 
 
 class DBAPIConnection(AbstractConnection):
@@ -877,6 +1015,12 @@ class DBAPIConnection(AbstractConnection):
         """
         raise NotImplementedError(
             "This feature is only available for SQLAlchemy connections"
+        )
+
+    def to_table(self, table_name, data_frame, if_exists, index):
+        raise exceptions.NotImplementedError(
+            "--persist/--persist-replace is not available for DBAPI connections"
+            " (only available for SQLAlchemy connections)"
         )
 
 

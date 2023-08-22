@@ -484,6 +484,62 @@ def test_histogram_breaks_over_max(ip_questdb, diamonds_data):
 
 
 @_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_stacked_with_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_stacked_with_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=150, fill="species")
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_binwidth_with_multiple_cols"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_binwidth_with_multiple_cols(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(
+            table="no_nulls",
+            with_="no_nulls",
+            mapping=aes(x=["bill_length_mm", "bill_depth_mm"]),
+        )
+        + geom_histogram(binwidth=1.5)
+    )
+
+
+@_cleanup_cm()
+@image_comparison(
+    baseline_images=["histogram_with_narrow_binwidth"],
+    extensions=["png"],
+    remove_text=True,
+)
+def test_histogram_with_narrow_binwidth(ip_questdb, penguins_no_nulls_questdb):
+    (
+        ggplot(table="no_nulls", with_="no_nulls", mapping=aes(x="body_mass_g"))
+        + geom_histogram(binwidth=10)
+    )
+
+
+@_cleanup_cm()
 @pytest.mark.parametrize(
     "x, expected_error, expected_error_message",
     [
@@ -559,18 +615,17 @@ NOT_SUPPORTED_SUFFIX = (
 
 
 @pytest.mark.parametrize(
-    "query",
+    "query, command",
     [
-        ("%sqlcmd profile --table penguins.csv"),
-        ("%sqlcmd tables"),
-        ("%sqlcmd tables --schema some_schema"),
-        ("%sqlcmd columns --table penguins.csv"),
-        ("%sqlcmd test"),
-        ("%sqlcmd test --table penguins.csv"),
+        ("%sqlcmd tables", "tables"),
+        ("%sqlcmd tables --schema some_schema", "tables"),
+        ("%sqlcmd columns --table penguins.csv", "columns"),
+        ("%sqlcmd test", "test"),
+        ("%sqlcmd test --table penguins.csv", "test"),
     ],
 )
-def test_sqlcmd_not_supported_error(ip_questdb, query, capsys):
-    expected_error_message = f"%sqlcmd {NOT_SUPPORTED_SUFFIX}"
+def test_sqlcmd_not_supported_error(ip_questdb, query, command, capsys):
+    expected_error_message = f"%sqlcmd {command} {NOT_SUPPORTED_SUFFIX}"
 
     with pytest.raises(UsageError) as excinfo:
         ip_questdb.run_cell(query)

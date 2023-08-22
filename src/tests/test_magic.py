@@ -1,3 +1,5 @@
+from unittest.mock import ANY
+import uuid
 import logging
 import platform
 import sqlite3
@@ -7,7 +9,7 @@ import re
 import sys
 import tempfile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import polars as pl
 import pandas as pd
@@ -20,12 +22,18 @@ from sql.run.resultset import ResultSet
 from sql import magic
 from sql.warnings import JupySQLQuotedNamedParametersWarning
 
+
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
 from ploomber_core.exceptions import COMMUNITY
 import psutil
 
 COMMUNITY = COMMUNITY.strip()
+
+DISPLAYLIMIT_LINK = (
+    '<a href="https://jupysql.ploomber.io/en/'
+    'latest/api/configuration.html#displaylimit">displaylimit</a>'
+)
 
 
 def test_memory_db(ip):
@@ -575,7 +583,7 @@ def test_displaylimit_default(ip):
 
     out = ip.run_cell("%sql SELECT * FROM number_table;").result
 
-    assert "Truncated to displaylimit of 10" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
 
 
 def test_displaylimit(ip):
@@ -598,7 +606,7 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to displaylimit of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -666,7 +674,29 @@ def test_displaylimit_with_conditional_clause(
         out = runsql(ip, query_clause)
 
     if expected_truncated_length:
-        assert "Truncated to displaylimit of 10" in out._repr_html_()
+        assert f"Truncated to {DISPLAYLIMIT_LINK} of 10" in out._repr_html_()
+
+
+@pytest.mark.parametrize(
+    "config_value",
+    [
+        (1),
+        (0),
+        (None),
+    ],
+)
+def test_displaylimit_with_count_statement(ip, load_penguin, config_value):
+    ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
+    result = ip.run_line_magic("sql", "select count(*) from penguins.csv")
+
+    assert isinstance(result, ResultSet)
+    assert str(result) == (
+        "+--------------+\n"
+        "| count_star() |\n"
+        "+--------------+\n"
+        "|     344      |\n"
+        "+--------------+"
+    )
 
 
 def test_column_local_vars(ip):
@@ -1319,7 +1349,6 @@ def mockValueWidget(monkeypatch):
 
 
 def test_interact_basic_widgets(ip, mockValueWidget, capsys):
-    print("mock", mockValueWidget.value)
     ip.user_global_ns["my_widget"] = mockValueWidget
 
     ip.run_cell(
@@ -1345,186 +1374,6 @@ def test_interact_and_missing_ipywidgets_installed(ip):
     assert "'ipywidgets' is required to use '--interactive argument'" in str(
         excinfo.value
     )
-
-
-@pytest.mark.parametrize(
-    "file_content, expect, revert",
-    [
-        (
-            """
-[tool.jupysql.SqlMagic]
-autocommit = false
-autolimit = 1
-style = "RANDOM"
-""",
-            [
-                "Found pyproject.toml from '%s'",
-                "Settings changed:",
-                r"autocommit\s*\|\s*False",
-                r"autolimit\s*\|\s*1",
-                r"style\s*\|\s*RANDOM",
-            ],
-            {"autocommit": True, "autolimit": 0, "style": "DEFAULT"},
-        ),
-        (
-            """
-[tool.jupysql.SqlMagic]
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[test]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[tool.pkgmt]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            """
-[tool.jupysql.test]
-github = "ploomber/jupysql"
-""",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-        (
-            "",
-            ["Found pyproject.toml from '%s'"],
-            {},
-        ),
-    ],
-)
-def test_valid_loading_toml(tmp_empty, ip, capsys, file_content, expect, revert):
-    Path("pyproject.toml").write_text(file_content)
-    toml_dir = os.getcwd()
-    os.makedirs("sub")
-    os.chdir("sub")
-
-    ip.run_cell("%load_ext sql").result
-    out, _ = capsys.readouterr()
-
-    expect[0] = expect[0] % (re.escape(toml_dir))
-    assert all(re.search(substring, out) for substring in expect)
-
-    sql = ip.find_cell_magic("sql").__self__
-    [setattr(sql, config, value) for config, value in revert.items()]
-
-
-def test_no_toml(tmp_empty, ip, capsys):
-    os.makedirs("sub")
-    os.chdir("sub")
-
-    ip.run_cell("%load_ext sql").result
-    out, _ = capsys.readouterr()
-
-    assert out == ""
-
-
-@pytest.mark.parametrize(
-    "file_content, error_msg",
-    [
-        (
-            """
-[tool.jupysql.SqlMagic]
-autocommit = true
-autocommit = true
-""",
-            "Duplicate key found : 'autocommit'",
-        ),
-        (
-            """
-[tool.jupySql.SqlMagic]
-autocommit = true
-""",
-            "'jupySql' is an invalid section name. Did you mean 'jupysql'?",
-        ),
-        (
-            """
-[tool.jupysql.SqlMagic]
-autocommit = True
-""",
-            (
-                "Invalid value 'True' in 'autocommit = True'. "
-                "Valid boolean values: true, false"
-            ),
-        ),
-        (
-            """
-[tool.jupysql.SqlMagic]
-autocommit = invalid
-""",
-            (
-                "Invalid value 'invalid' in 'autocommit = invalid'. "
-                "To use str value, enclose it with ' or \"."
-            ),
-        ),
-    ],
-)
-def test_error_on_toml_parsing(tmp_empty, ip, capsys, file_content, error_msg):
-    Path("pyproject.toml").write_text(file_content)
-    toml_dir = os.getcwd()
-    found_statement = "Found pyproject.toml from '%s'" % (toml_dir)
-    os.makedirs("sub")
-    os.chdir("sub")
-
-    with pytest.raises(UsageError) as excinfo:
-        ip.run_cell("%load_ext sql")
-    out, _ = capsys.readouterr()
-
-    assert out.strip() == found_statement
-    assert excinfo.value.error_type == "ConfigurationError"
-    assert str(excinfo.value) == error_msg
-
-
-def test_valid_and_invalid_configs(tmp_empty, ip, capsys):
-    Path("pyproject.toml").write_text(
-        """
-[tool.jupysql.SqlMagic]
-autocomm = true
-autop = false
-autolimit = "text"
-invalid = false
-displaycon = false
-"""
-    )
-    toml_dir = os.getcwd()
-    os.makedirs("sub")
-    os.chdir("sub")
-
-    ip.run_cell("%load_ext sql")
-    out, _ = capsys.readouterr()
-    expect = [
-        "Found pyproject.toml from '%s'" % (re.escape(toml_dir)),
-        "'autocomm' is an invalid configuration. Did you mean 'autocommit'?",
-        (
-            "'autop' is an invalid configuration. "
-            "Did you mean 'autopandas', or 'autopolars'?"
-        ),
-        (
-            "'text' is an invalid value for 'autolimit'. "
-            "Please use int value instead."
-        ),
-        r"displaycon\s*\|\s*False",
-    ]
-    assert all(re.search(substring, out) for substring in expect)
-
-    # confirm the correct changes are applied
-    confirm = {"displaycon": False, "autolimit": 0}
-    sql = ip.find_cell_magic("sql").__self__
-    assert all([getattr(sql, config) == value for config, value in confirm.items()])
-
-    # revert back to a default setting
-    setattr(sql, "displaycon", True)
 
 
 @pytest.mark.parametrize(
@@ -1664,3 +1513,279 @@ def test_warning_if_variable_defined_but_named_param_is_quoted(
         match=expected_warning,
     ):
         ip.run_cell(cell)
+
+
+def test_can_run_cte_that_references_a_table_whose_name_is_the_same_as_a_snippet(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    # this should query the table, not the snippet
+    results = ip.run_cell(
+        f"""%%sql
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+    ).result
+
+    assert results.dict() == {
+        "first_name": ("William",),
+        "last_name": ("Shakespeare",),
+        "year_of_death": (1616,),
+    }
+
+
+def test_error_when_running_a_cte_and_passing_with_argument(ip):
+    # randomize the name to avoid collisions
+    identifier = "shakespeare_" + str(uuid.uuid4())[:8]
+
+    # create table
+    ip.run_cell(
+        f"""%%sql
+create table {identifier} as select * from author where last_name = 'Shakespeare'
+"""
+    )
+
+    # store a snippet with the same name
+    ip.run_cell(
+        f"""%%sql --save {identifier}
+select * from author where last_name = 'some other last name'
+"""
+    )
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(
+            f"""%%sql --with {identifier}
+with author_subset as (
+    select * from {identifier}
+)
+select * from author_subset
+"""
+        )
+
+    assert "Cannot use --with with CTEs, remove --with and re-run the cell" in str(
+        excinfo.value
+    )
+
+
+def test_error_if_using_persist_with_dbapi_connection(ip_dbapi):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_dbapi.push({"df": df})
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_dbapi.run_cell("%sql --persist df")
+
+    message = (
+        "--persist/--persist-replace is not available for "
+        "DBAPI connections (only available for SQLAlchemy connections)"
+    )
+    assert message in str(excinfo.value)
+
+
+@pytest.mark.parametrize("cell", ["%sql --persist df", "%sql --persist-replace df"])
+def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip.push({"df": df})
+
+    conn = ConnectionManager.current
+    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    monkeypatch.setattr(
+        conn, "_execute_with_error_handling", execute_with_error_handling_mock
+    )
+
+    ip.run_cell(cell)
+
+    # ensure this got called because this function handles several sqlalchemy edge
+    # cases
+    execute_with_error_handling_mock.assert_called_once()
+
+
+def test_error_when_using_section_argument_but_dsn_is_missing(ip_empty, tmp_empty):
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'path/to/connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section some_section")
+
+    assert excinfo.value.error_type == "FileNotFoundError"
+    assert "%config SqlMagic.dsn_filename" in str(excinfo.value)
+    assert "not found" in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_but_dsn_section_is_missing(
+    ip_empty, tmp_empty
+):
+    Path("connections.ini").write_text(
+        """
+[section]
+key = value
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section another_section")
+
+    assert excinfo.value.error_type == "KeyError"
+
+    message = (
+        "The section 'another_section' does not exist in the "
+        "connections file 'connections.ini'"
+    )
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_but_keys_are_invalid(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[section]
+key = value
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section section")
+
+    assert excinfo.value.error_type == "TypeError"
+
+    message = "%config SqlMagic.dsn_filename ('connections.ini') is invalid"
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_but_values_are_invalid(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[section]
+drivername = not-a-driver
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section section")
+
+    message = "Could not parse SQLAlchemy URL from string 'not-a-driver://'"
+    assert message in str(excinfo.value)
+
+
+def test_error_when_using_section_argument_and_alias(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck --alias stuff")
+
+    assert excinfo.value.error_type == "UsageError"
+
+    message = "Cannot use --section with --alias"
+    assert message in str(excinfo.value)
+
+
+def test_connect_to_db_in_connections_file_using_section_argument(ip_empty, tmp_empty):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    ip_empty.run_cell("%sql --section duck")
+
+    conns = ConnectionManager.connections
+    assert conns == {"duck": ANY}
+
+
+def test_connect_to_db_in_connections_file_using_section_name_between_square_brackets(
+    ip_empty, tmp_empty
+):
+    Path("connections.ini").write_text(
+        """
+[duck]
+drivername = duckdb
+"""
+    )
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.warns(FutureWarning) as record:
+        ip_empty.run_cell("%sql [duck]")
+
+    assert "Starting connections with: %sql [section_name] is deprecated" in str(
+        record[0].message
+    )
+    assert len(record) == 1
+    conns = ConnectionManager.connections
+    assert conns == {"duckdb://": ANY}
+
+
+@pytest.mark.parametrize(
+    "content, error_type, error_detail",
+    [
+        (
+            """
+[duck]
+drivername = duckdb
+
+[duck]
+drivername = duckdb
+""",
+            "DuplicateSectionError",
+            "section 'duck' already exists",
+        ),
+        (
+            """
+[duck]
+drivername = duckdb
+drivername = duckdb
+""",
+            "DuplicateOptionError",
+            "option 'drivername' in section 'duck' already exists",
+        ),
+    ],
+    ids=[
+        "duplicate-section",
+        "duplicate-key",
+    ],
+)
+def test_error_when_ini_file_is_corrupted(
+    ip_empty, tmp_empty, content, error_type, error_detail
+):
+    Path("connections.ini").write_text(content)
+
+    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell("%sql --section duck")
+
+    assert "An error happened when loading your %config SqlMagic.dsn_filename" in str(
+        excinfo.value
+    )
+
+    assert error_type in str(excinfo.value)
+    assert error_detail in str(excinfo.value)
