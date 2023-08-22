@@ -45,6 +45,10 @@ However, you can change this:
 %config SqlMagic.dsn_filename = "connections.ini"
 ```
 
+```{tip}
+You can also define your configuration settings in a [`pyproject.toml` file.](../api/configuration.md#loading-from-pyprojecttoml)
+```
+
 The `.ini` format defines sections and you can define key-value pairs within each section. For example:
 
 ```ini
