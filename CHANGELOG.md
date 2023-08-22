@@ -2,6 +2,8 @@
 
 ## 0.10.2dev
 
+* [Feature] Improved messages when loading configurations from `pyproject.toml` file.
+
 ## 0.10.1 (2023-08-30)
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
@@ -14,6 +16,7 @@
 * [Fix] Fix error when a linebreak is included during nonidentifier validation process
 * [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` ([#842](https://github.com/ploomber/jupysql/issues/842))
 * [Doc] Added section on installing database drivers
+* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` (#842)
 
 ## 0.10.0 (2023-08-19)
 
