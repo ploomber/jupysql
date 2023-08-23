@@ -2,7 +2,7 @@
 og:image: /en/685/_static/duckdb.png
 og:image:alt: 'Better SQL in Jupyter. 📊.'
 og:description: 'Duckdb'
-og:title: 5
+og:title: 
 jupytext:
   notebook_metadata_filter: myst
   text_representation:
