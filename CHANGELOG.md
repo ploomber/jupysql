@@ -1,7 +1,9 @@
 # CHANGELOG
 
 ## 0.10.1dev
+
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
+* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
 * [Doc] Opengraph/Sphinxext-opengraph Integration and Optimization for Social Media link Sharing (#253)
 
 ## 0.10.0 (2023-08-19)
