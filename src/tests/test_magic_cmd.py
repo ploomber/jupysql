@@ -798,9 +798,7 @@ def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content, stored_
     ip_empty.run_cell("%load_ext sql")
     current_dir = os.getcwd()
     connections_path = os.path.join(current_dir, "connections.ini")
-    ip_empty.run_cell(
-        f"%config SqlMagic.dsn_filename = '{connections_path}'"
-    )
+    ip_empty.run_cell(f"%config SqlMagic.dsn_filename = '{connections_path}'")
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
     assert isinstance(connector_widget, ConnectorWidget)
     assert connector_widget.stored_connections == stored_conns
@@ -810,9 +808,7 @@ def test_connect_when_no_connections_ini(tmp_empty, ip_empty):
     ip_empty.run_cell("%load_ext sql")
     current_dir = os.getcwd()
     connections_path = os.path.join(current_dir, "connections.ini")
-    ip_empty.run_cell(
-        f"%config SqlMagic.dsn_filename = '{connections_path}'"
-    )
+    ip_empty.run_cell(f"%config SqlMagic.dsn_filename = '{connections_path}'")
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
     assert isinstance(connector_widget, ConnectorWidget)
     assert connector_widget.stored_connections == []
