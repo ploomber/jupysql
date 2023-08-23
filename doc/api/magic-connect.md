@@ -33,7 +33,7 @@ pip install jupysql-plugin --upgrade
 
 ## Store connections in `connections.ini`
 
-For every connection, the alias should be enclosed within brackets [], followed by the corresponding connection details. When connecting using sqlite or duckdb, only the `drivername` needs to be specified. For postgresql and snowflake connections, the `username`, `password`, `host`, `database`, and `drivername` are required, and for mysql and mariadb connections, the `port` also needs to be specified.
+For every connection, the alias should be enclosed within brackets [], followed by the corresponding connection details. When connecting using sqlite or duckdb, `database` and `drivername` need to be specified. For postgresql, mysql, mariadb, and snowflake connections, the `username`, `password`, `host`, `database`, `drivername`, and `port` are required.
 
 ![connections_ini](../static/sample_connections_ini.png)
 
