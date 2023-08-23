@@ -568,3 +568,100 @@ As you can see, output results are different
 From duckdb dialect: `'SELECT TO_TIMESTAMP(1618088028295)'`
 
 From sqlite dialect: `'SELECT UNIX_TO_TIME(1618088028295)'`
+
+## ## Enhancing Social Media/SEO Previews: Integrating OpenGraph Tags
+
+OpenGraph tags hold metadata (such as images and descriptions) that influence how links are presented on social media platforms and in search engine results.
+
+### Page titles 
+#### Entire website
+To change the title of the entire website modify the html_title tag in the conf.py file in the doc folder
+
+    html_title = "JupySQL documentation" # case 1: Sets to JupySQL documentation title
+    html_title = "" # case 2: Empty title
+                    # case 3: no html_title tag will result in default "Python documentation" title by Sphinx
+
+#### Individual pages
+To change the title of individual page add the og:title tag on top of targeted markdown
+
+```
+---
+og:image: /en/685/_static/duckdb.png
+og:image:alt: 'Better SQL in Jupyter. 📊.'
+og:description: 'Duckdb'
+og:title: 'Duckdb title' # Title tag
+jupytext:
+  notebook_metadata_filter: myst
+  text_representation:
+	extension: .md
+	format_name: myst
+	format_version: 0.13
+	jupytext_version: 1.14.7
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
+myst:
+  html_meta:
+	description lang=en: Use DuckDB from Jupyter using JupySQL
+	keywords: jupyter, sql, jupysql, duckdb, plotting
+	property=og:locale: en_US
+---
+
+# DuckDB # default title
+```
+By default the title of the individual page will be the first header + doc title, here are the cases:
+
+                 #case 1: No og:title tag, the page title will be "DuckDB"
+    og:title: '' #case 2: Page title will be empty
+    og:title: 5  #case 3: Page title will be "5"
+    og:title: 	 #case 4: Page title will be "null"
+
+
+### Page Images 
+#### Entire website
+Open Graph image tags control how links are previewed on social media sites, by default the images are null, to add Open Graph image modify the ogp_image and ogp_image_alt tag on the conf.py file in the doc folder. These images will than become default image for all pages.
+
+    ogp_image: "/en/685/_static/html-meta-template.png" #takes a url link to the image
+    ogp_image_alt:"Better SQL in Jupyter. 📊."
+
+In our case the og:image link is created by combining ogp_site_url + ogp_image. ogp_site_url takes the site url as default in our case url:  "https://jupysql--685.org.readthedocs.build", thus the final image link: "https://jupysql--685.org.readthedocs.build/en/685/_static/html-meta-template.png", even if ogp_site_url site tag is not defined in the conf.py file, sphinxext-opengraph package takes site URL as default.
+
+#### Individual page
+Sphinxext-opengraph package provides us with tags to enable Open Graph in individual pages, to add Open Graph Image, add the og:image tag on top of individual markdown file so that the image is considered and will override the default og:image for the entire website. 
+
+```
+---
+og:image: /en/685/_static/duckdb.png # Open Graph image for this page
+og:image:alt: 'Better SQL in Jupyter. 📊.'
+og:description: 'Duckdb'
+og:title: 'Duckdb title'
+jupytext:
+  notebook_metadata_filter: myst
+  text_representation:
+	extension: .md
+	format_name: myst
+	format_version: 0.13
+	jupytext_version: 1.14.7
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
+myst:
+  html_meta:
+	description lang=en: Use DuckDB from Jupyter using JupySQL
+	keywords: jupyter, sql, jupysql, duckdb, plotting
+	property=og:locale: en_US
+---
+
+# DuckDB # default title
+```
+
+##### Hosting images in the repo
+In many cases we won't be using external links as og:image and would use images from our repo, in this case we will store all the static images in "_static" folder under doc folder this will allow us. to access them after the build in the "~/build/_static/" path. 
+
+Things to keep in mind: 
+
+ - Image file should be under 8 MB
+ - 1,200 x 630 pixels is the recommended size for og:image, use https://www.drawio.com/ to make the image and store the image in "_static" folder and drawio file in the "assets" folder under doc folder
+ - Cross check the image after it is hosted in your browser, ensure it is accessible
