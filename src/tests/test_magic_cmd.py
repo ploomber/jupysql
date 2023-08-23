@@ -1,6 +1,7 @@
 import sys
 import math
 import pytest
+import os
 from IPython.core.error import UsageError
 from pathlib import Path
 
@@ -765,12 +766,13 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
 
 @pytest.mark.parametrize(
-    "file_content",
+    "file_content, stored_conns",
     [
         (
             """[conn1]
 drivername = sqlite
-"""
+""",
+            [{"name": "conn1", "driver": "sqlite"}],
         ),
         (
             """[conn1]
@@ -781,19 +783,34 @@ drivername = sqlite
 
 [conn3]
 drivername = duckdb
-"""
+""",
+            [
+                {"name": "conn1", "driver": "sqlite"},
+                {"name": "conn2", "driver": "sqlite"},
+                {"name": "conn3", "driver": "duckdb"},
+            ],
         ),
-        (""),
+        ("", []),
     ],
 )
-def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content):
+def test_connect_with_connections_ini(tmp_empty, ip_empty, file_content, stored_conns):
     Path("connections.ini").write_text(file_content)
     ip_empty.run_cell("%load_ext sql")
+    current_dir = os.getcwd()
+    ip_empty.run_cell(
+        f"%config SqlMagic.dsn_filename = '{current_dir}/connections.ini'"
+    )
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
     assert isinstance(connector_widget, ConnectorWidget)
+    assert connector_widget.stored_connections == stored_conns
 
 
 def test_connect_when_no_connections_ini(tmp_empty, ip_empty):
     ip_empty.run_cell("%load_ext sql")
+    current_dir = os.getcwd()
+    ip_empty.run_cell(
+        f"%config SqlMagic.dsn_filename = '{current_dir}/connections.ini'"
+    )
     connector_widget = ip_empty.run_cell("%sqlcmd connect").result
     assert isinstance(connector_widget, ConnectorWidget)
+    assert connector_widget.stored_connections == []
