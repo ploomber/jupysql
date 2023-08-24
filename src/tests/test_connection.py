@@ -275,7 +275,14 @@ def test_missing_driver(
             ConnectionManager.from_connect_str(connect_str)
 
         assert excinfo.value.error_type == "MissingPackageError"
-        assert "try to install package: " + missing_pkg in str(excinfo.value)
+        assert "install the package: " + missing_pkg in str(excinfo.value)
+
+
+# TODO: test shows appropriate link to docs
+# TODO: it also shows the link when the driver has typos
+# TODO: test new ones: redshift, snowflake
+# TODO: check conda/pip message
+# TODO: test psycopg2-binary special case
 
 
 def test_get_connections():
