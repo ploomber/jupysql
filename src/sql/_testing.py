@@ -6,6 +6,7 @@ import time
 from sqlalchemy.engine import URL
 import sqlalchemy
 from IPython.core.interactiveshell import InteractiveShell
+from traitlets.config import Config
 
 from ploomber_core.dependencies import requires
 
@@ -36,6 +37,24 @@ class TestingShell(InteractiveShell):
         result = super().run_cell(*args, **kwargs)
         result.raise_error()
         return result
+
+    @classmethod
+    def preconfigured_shell(cls):
+        c = Config()
+
+        # By default, InteractiveShell will record command's history in a SQLite
+        # database which leads to "too many open files" error when running tests;
+        # this setting disables the history recording.
+        # https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-HistoryAccessor.enabled
+        c.HistoryAccessor.enabled = False
+        ip = cls(config=c)
+
+        # there is some weird bug in ipython that causes this function to hang the
+        # pytest process when all tests have been executed (an internal call to
+        # gc.collect() hangs). This is a workaround.
+        ip.displayhook.flush = lambda: None
+
+        return ip
 
 
 class DatabaseConfigHelper:
@@ -188,6 +207,22 @@ databaseConfig = {
         "port": 5439,
         "alias": "redshift",
         "docker_ct": None,
+        "query": {},
+    },
+    "clickhouse": {
+        "drivername": "clickhouse+native",
+        "username": "username",
+        "password": "password",
+        # database/schema
+        "host": "localhost",
+        "port": "9000",
+        "alias": "clickhouse",
+        "database": "my_database",
+        "docker_ct": {
+            "name": "clickhouse",
+            "image": "clickhouse/clickhouse-server",
+            "ports": {9000: 9000},
+        },
         "query": {},
     },
 }
@@ -427,9 +462,36 @@ def oracle(is_bypass_init=False):
             yield container
 
 
+@contextmanager
+@requires(["docker", "dockerctx"])
+def clickhouse(is_bypass_init=False):
+    if is_bypass_init:
+        yield None
+        return
+    db_config = DatabaseConfigHelper.get_database_config("clickhouse")
+    try:
+        client = get_docker_client()
+        curr = client.containers.get(db_config["docker_ct"]["name"])
+        yield curr
+    except docker.errors.NotFound:
+        print("Creating new container: clickhouse")
+        with new_container(
+            new_container_name=db_config["docker_ct"]["name"],
+            image_name=db_config["docker_ct"]["image"],
+            ports=db_config["docker_ct"]["ports"],
+            environment={
+                "CLICKHOUSE_USER": db_config["username"],
+                "CLICKHOUSE_PASSWORD": db_config["password"],
+                "CLICKHOUSE_DB": db_config["database"],
+            },
+            ready_test=lambda: database_ready(database="clickhouse"),
+        ) as container:
+            yield container
+
+
 def main():
     print("Starting test containers...")
-    with postgres(), mysql(), mariadb(), mssql(), oracle():
+    with postgres(), mysql(), mariadb(), mssql(), oracle(), clickhouse():
         print("Press CTRL+C to exit")
         try:
             while True:
