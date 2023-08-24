@@ -626,7 +626,7 @@ Open Graph image tags control how links are previewed on social media sites. By 
     ogp_image: "" # case 2: Any other image on the web
     ogp_image_alt:"Better SQL in Jupyter. 📊."
 
-The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io/en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf.py file.
+The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io + /en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf.py file.
 
 #### Individual page
 The Sphinxext-opengraph package provides us with tags to enable Open Graph tags on individual pages. To add an Open Graph Image, include the og:image tag at the top of the individual markdown file. This will ensure that the image is considered and will override the default og:image for that particular page.
