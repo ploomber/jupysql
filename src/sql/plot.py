@@ -233,6 +233,7 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     vert = orient == "v"
 
     set_ticklabels = ax.set_xticklabels if vert else ax.set_yticklabels
+    set_ticks = ax.set_xticks if vert else ax.set_yticks
     set_label = ax.set_ylabel if vert else ax.set_xlabel
 
     if isinstance(column, str):
@@ -240,11 +241,13 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
         ax.bxp(stats, vert=vert)
         ax.set_title(f"{column!r} from {table!r}")
         set_label(column)
+        set_ticks([1])
         set_ticklabels([column])
     else:
         stats = [_boxplot_stats(conn, table, col, with_=with_) for col in column]
         ax.bxp(stats, vert=vert)
         ax.set_title(f"Boxplot from {table!r}")
+        set_ticks(range(1, len(column) + 1))
         set_ticklabels(column)
 
     return ax
