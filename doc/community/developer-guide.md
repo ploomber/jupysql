@@ -623,10 +623,10 @@ By default, the title of the individual page will be the first header on the mar
 Open Graph image tags control how links are previewed on social media sites. By default, the image is set to null. To add an Open Graph image, modify the ogp_image and ogp_image_alt tags in the conf.py file inside the doc folder. These images will than become default image for all pages.
 
     ogp_image: "/en/685/_static/html-meta-template.png" # takes a URL link to the image # case 1: If images are hosted in the repo
-    ogp_image: "https://www.example.com/my_image.png" # case 2: Any other image on the web
+    ogp_image: "" # case 2: Any other image on the web
     ogp_image_alt:"Better SQL in Jupyter. 📊."
 
-The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: "https://jupysql.ploomber.io/en/685/_static/html-meta-template.png", ogp_site_url can be given a different value by adding the tag in the conf.py file.
+The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io/en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf.py file.
 
 #### Individual page
 The Sphinxext-opengraph package provides us with tags to enable Open Graph tags on individual pages. To add an Open Graph Image, include the og:image tag at the top of the individual markdown file. This will ensure that the image is considered and will override the default og:image for that particular page.
@@ -664,5 +664,5 @@ In many cases, we won't be using external links as og:image; instead, we would u
 Things to keep in mind: 
 
  - Image file should be under 8 MB
- - The recommended size for og:image is 1,200 x 630 pixels. Use [https://www.drawio.com/](https://www.drawio.com/) to create the image and store it in the "_static" folder. Also, save the drawio file in the "assets" folder under the doc folder.
+ - The recommended size for og:image is 1,200 x 630 pixels. Use "https://www.drawio.com/" to create the image and store it in the "_static" folder. Also, save the drawio file in the "assets" folder under the doc folder.
  - Double-check the image after it is hosted in your browser to ensure that it is accessible.
