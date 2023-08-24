@@ -5,9 +5,6 @@ import sql.connection
 from sql.util import flatten
 from sql import exceptions
 
-from duckdb import BinderException
-from psycopg2.errors import UndefinedFunction
-
 
 def _summary_stats(conn, table, column, with_=None):
     if conn.dialect in {"duckdb", "postgresql"}:
@@ -114,7 +111,8 @@ def _summary_stats_parallel(conn, table, column, with_=None):
         print(e)
 
         if (
-            isinstance(e.orig, BinderException) or isinstance(e.orig, UndefinedFunction)
+            type(e.orig).__name__ == "UndefinedFunction"
+            or type(e.orig).__name__ == "BinderException"
         ) and msg_numeric_type in e.orig.args[0]:
             raise exceptions.RuntimeError(
                 "Boxplot currently only supports numeric types. "
