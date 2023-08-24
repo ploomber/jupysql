@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from sqlalchemy.exc import OperationalError
 import matplotlib
+from IPython.core.error import UsageError
 
 
 class DictOfFloats(Mapping):
@@ -159,3 +160,33 @@ FROM data.csv
         "%sqlplot histogram --table data.csv --column age --table data.csv"
     )
     assert isinstance(out.result, matplotlib.axes._axes.Axes)
+
+
+def test_duckdb_numeric_exception(ip):
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell(
+        """
+%%sql
+DROP TABLE IF EXISTS box;
+
+CREATE TABLE box (
+    name VARCHAR,
+    varchar_column VARCHAR,
+    int_column INT
+);
+
+INSERT INTO box (name, varchar_column, int_column)
+VALUES ('John', '123', 456),
+       ('Jane', '789', 123),
+       ('Bob', '456', 789);
+                """
+    )
+
+    ip.run_cell("%sqlplot boxplot --table box --column int_column")
+
+    with pytest.raises(UsageError) as e:
+        ip.run_cell("%sqlplot boxplot --table box --column varchar_column")
+        assert (
+            "Boxplot currently only supports numeric types. "
+            "Ensure that the column is of numeric type." in str(e)
+        )

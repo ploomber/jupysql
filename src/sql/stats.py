@@ -5,6 +5,9 @@ import sql.connection
 from sql.util import flatten
 from sql import exceptions
 
+from duckdb import BinderException
+from psycopg2.errors import UndefinedFunction
+
 
 def _summary_stats(conn, table, column, with_=None):
     if conn.dialect in {"duckdb", "postgresql"}:
@@ -107,10 +110,20 @@ def _summary_stats_parallel(conn, table, column, with_=None):
     try:
         values = conn.execute(query, with_).fetchone()
     except ProgrammingError as e:
+        msg_numeric_type = "You might need to add explicit type casts"
         print(e)
-        raise exceptions.RuntimeError(
-            f"\nEnsure that percentile_disc function is available on {driver}."
-        )
+
+        if (
+            isinstance(e.orig, BinderException) or isinstance(e.orig, UndefinedFunction)
+        ) and msg_numeric_type in e.orig.args[0]:
+            raise exceptions.RuntimeError(
+                "Boxplot currently only supports numeric types. "
+                "Ensure that the column is of numeric type."
+            )
+        else:
+            raise exceptions.RuntimeError(
+                f"\nEnsure that percentile_disc function is available on {driver}."
+            )
     except Exception as e:
         raise e
 

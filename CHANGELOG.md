@@ -2,6 +2,7 @@
 
 ## 0.10.1dev
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
+* [Feature] Added clearer error message for non-numeric columns in case of boxplot ([#478](https://github.com/ploomber/jupysql/issues/478))
 
 ## 0.10.0 (2023-08-19)
 
