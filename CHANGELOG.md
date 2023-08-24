@@ -4,6 +4,7 @@
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
 * [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
+* [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found (#825)
 
 ## 0.10.0 (2023-08-19)
 
