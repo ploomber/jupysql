@@ -4,7 +4,7 @@
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
 * [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
-* [Fix] Display a warning (instead of raising an error) if the `default` connection in the `.ini` file cannot start
+* [Fix] Clearer error messages when failing to initialize a connection
 
 ## 0.10.0 (2023-08-19)
 
