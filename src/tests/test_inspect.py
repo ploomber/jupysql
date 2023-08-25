@@ -11,7 +11,7 @@ from prettytable import PrettyTable
 from sql import inspect, connection
 
 
-EXPECTED_SUGGESTIONS_MESSAGE = "Did you mean :"
+EXPECTED_SUGGESTIONS_MESSAGE = "Did you mean:"
 EXPECTED_NO_TABLE_IN_SCHEMA = "There is no table with name {0!r} in schema {1!r}"
 EXPECTED_NO_TABLE_IN_DEFAULT_SCHEMA = (
     "There is no table with name {0!r} in the default schema"
