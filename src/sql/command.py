@@ -104,7 +104,7 @@ class SQLCommand:
         # print("end")
 
         # if not (add_conn or add_alias) and one_arg:
-        if self.sql and len(self.sql.split(" ")) > 0:
+        if not (add_conn or add_alias) and one_arg and self.sql:
             first_arg = self.sql.split(" ")[0]
             # Getting variable value when `%sql {{variable}}` is passed
             # if first_arg.startswith("{{") and first_arg.endswith("}}"):
