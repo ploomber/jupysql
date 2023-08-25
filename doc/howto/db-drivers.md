@@ -11,7 +11,7 @@ To connect to a DuckDB database, install `duckdb-engine`:
 ## PostgreSQL
 
 We recommend using `psycopg2` to connect to a PostgreSQL database. The most reliable
-way to install if is via `conda`:
+way to install it is via `conda`:
 
 ```sh
 # run this in your notebook
