@@ -308,7 +308,7 @@ displaycon = false
     assert all([getattr(sql, config) == value for config, value in confirm.items()])
 
 
-def test_toml_optional(tmp_empty, monkeypatch, ip, capsys):
+def test_toml_optional_message(tmp_empty, monkeypatch, ip, capsys):
     monkeypatch.setitem(sys.modules, "toml", None)
     Path("pyproject.toml").write_text(
         """
