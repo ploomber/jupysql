@@ -37,7 +37,7 @@ from sql.connection import error_handling
 BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
 
 
-PLOOMBER_DOCS_LINK_STR = f"Documentation: {BASE_DOC_URL}/connecting.html"
+PLOOMBER_DOCS_LINK_STR = f"{BASE_DOC_URL}/connecting.html"
 
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
@@ -1118,7 +1118,7 @@ def _suggest_fix(env_var, connect_str=None):
     if len(options) >= 3:
         options.insert(-1, "OR")
 
-    options.append(PLOOMBER_DOCS_LINK_STR)
+    options.append(f"For more details, see: {PLOOMBER_DOCS_LINK_STR}")
 
     return "\n\n".join(options)
 
