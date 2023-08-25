@@ -535,12 +535,7 @@ def test_connection_args_enforce_json(ip):
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell('%sql --connection_arguments {"badlyformed":true')
 
-    expected_message = (
-        "Expecting property name enclosed in double quotes"
-        if platform.system() == "Windows"
-        else "Expecting ',' delimiter"
-    )
-
+    expected_message = "Expecting ',' delimiter"
     assert expected_message in str(excinfo.value)
 
 
