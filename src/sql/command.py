@@ -56,7 +56,7 @@ class SQLCommand:
         else:
             add_alias = False
 
-        '''
+        """
         if not (add_conn or add_alias) and one_arg:
             first_arg = self.args.line[0]
             # Getting variable value when `%sql {{variable}}` is passed
@@ -71,7 +71,7 @@ class SQLCommand:
                 )
             ):
                 validate_nonidentifier_connection(first_arg)
-        '''
+        """
 
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
