@@ -77,7 +77,7 @@ class SqlPlotMagic(Magics, Configurable):
         """
         Plot magic
         """
-        line = util.change_to_double_quotations_in_windows(line)
+
         cmd = SQLPlotCommand(self, line)
 
         if len(cmd.args.column) == 1:

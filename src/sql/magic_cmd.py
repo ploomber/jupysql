@@ -1,7 +1,7 @@
 import sys
 import argparse
+import shlex
 
-from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
 from sql import util
@@ -71,8 +71,7 @@ class SqlCmdMagic(Magics, Configurable):
         if line == "":
             raise exceptions.UsageError(VALID_COMMANDS_MSG)
         else:
-            line = util.change_to_double_quotations_in_windows(line)
-            split = arg_split(line)
+            split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
 
             if command in AVAILABLE_SQLCMD_COMMANDS:

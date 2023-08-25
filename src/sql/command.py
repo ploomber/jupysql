@@ -1,5 +1,5 @@
+import shlex
 from pathlib import Path
-from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
 
 from sqlalchemy.engine import Engine
@@ -11,7 +11,7 @@ from sql.connection import ConnectionManager, is_pep249_compliant
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
-        self.args = parse_argstring(magic.execute, line)
+        self.args = magic.execute.parser.parse_args(shlex.split(line, posix=False))
 
 
 class SQLCommand:

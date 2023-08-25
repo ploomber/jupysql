@@ -5,10 +5,8 @@ from os.path import expandvars
 from pathlib import Path
 import configparser
 import warnings
-import sys
 
 from sqlalchemy.engine.url import URL
-from IPython.core.magic_arguments import parse_argstring
 
 from sql import exceptions
 
@@ -221,9 +219,7 @@ def without_sql_comment(parser, line):
 
 def magic_args(magic_execute, line):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    if sys.platform == "win32":
-        line = line.replace('"', "'")
-    return parse_argstring(magic_execute, line)
+    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
 
 
 def escape_string_literals_with_colon_prefix(query):
