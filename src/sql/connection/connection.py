@@ -37,13 +37,13 @@ from sql.connection import error_handling
 BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
 
 
-PLOOMBER_DOCS_LINK_STR = (
-    "Documentation: https://jupysql.ploomber.io/en/latest/connecting.html"
-)
+PLOOMBER_DOCS_LINK_STR = f"Documentation: {BASE_DOC_URL}/connecting.html"
 
 IS_SQLALCHEMY_ONE = int(sqlalchemy.__version__.split(".")[0]) == 1
 
 # Check Full List: https://docs.sqlalchemy.org/en/20/dialects
+
+
 MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
     # SQLite
     "sqlite": "sqlite",
@@ -71,8 +71,8 @@ MISSING_PACKAGE_LIST_EXCEPT_MATCHERS = {
     # MSSQL
     "pyodbc": "pyodbc",
     "pymssql": "pymssql",
-    # redshift
-    "redshift": "sqlalchemy-redshift",
+    # snowflake
+    "snowflake": "snowflake-sqlalchemy",
 }
 
 BASE_DRIVERS_URL = f"{BASE_DOC_URL}/howto/db-drivers.html"
@@ -86,15 +86,13 @@ DIALECT_NAME_SQLALCHEMY_TO_SQLGLOT_MAPPING = {"postgresql": "postgres", "mssql":
 
 # All the DBs and their respective documentation links
 DB_DOCS_LINKS = {
-    "duckdb": "https://jupysql.ploomber.io/en/latest/integrations/duckdb.html",
-    "mysql": "https://jupysql.ploomber.io/en/latest/integrations/mysql.html",
-    "mssql": "https://jupysql.ploomber.io/en/latest/integrations/mssql.html",
-    "mariadb": "https://jupysql.ploomber.io/en/latest/integrations/mariadb.html",
-    "clickhouse": "https://jupysql.ploomber.io/en/latest/integrations/clickhouse.html",
-    "postgresql": (
-        "https://jupysql.ploomber.io/en/latest/integrations/postgres-connect.html"
-    ),
-    "questdb": "https://jupysql.ploomber.io/en/latest/integrations/questdb.html",
+    "duckdb": f"{BASE_DOC_URL}/integrations/duckdb.html",
+    "mysql": f"{BASE_DOC_URL}/integrations/mysql.html",
+    "mssql": f"{BASE_DOC_URL}/integrations/mssql.html",
+    "mariadb": f"{BASE_DOC_URL}/integrations/mariadb.html",
+    "clickhouse": f"{BASE_DOC_URL}/integrations/clickhouse.html",
+    "postgresql": f"{BASE_DOC_URL}/integrations/postgres-connect.html",
+    "questdb": f"{BASE_DOC_URL}/integrations/questdb.html",
 }
 
 

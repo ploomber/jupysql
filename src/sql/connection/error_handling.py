@@ -1,5 +1,6 @@
 import shutil
 
+
 _CONDA_INSTALLED = shutil.which("conda") is not None
 _PREFER_CONDA = {"psycopg2"}
 
@@ -10,7 +11,7 @@ def install_command(package):
         package = "psycopg2-binary"
 
     if _CONDA_INSTALLED and package in _PREFER_CONDA:
-        template = "%conda install -c conda-forge {package} --yes --quiet"
+        template = "%conda install {package} -c conda-forge --yes --quiet"
     else:
         template = "%pip install {package} --quiet"
 
