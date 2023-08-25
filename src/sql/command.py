@@ -56,23 +56,6 @@ class SQLCommand:
         else:
             add_alias = False
 
-        """
-        if not (add_conn or add_alias) and one_arg:
-            first_arg = self.args.line[0]
-            # Getting variable value when `%sql {{variable}}` is passed
-            if first_arg.startswith("{{") and first_arg.endswith("}}"):
-                first_arg = user_ns[first_arg[2:-2]]
-
-            if (
-                # FIXME Can be removed after %sql [section_name] is removed
-                not (first_arg.startswith("[") and first_arg.endswith("]"))
-                and not (
-                    self.args.persist_replace or self.args.persist or self.args.append
-                )
-            ):
-                validate_nonidentifier_connection(first_arg)
-        """
-
         self.command_text = " ".join(line_for_command) + "\n" + cell
 
         if self.args.file:
@@ -99,16 +82,8 @@ class SQLCommand:
             final = store.render(self.parsed["sql"], with_=self.args.with_)
             self.parsed["sql"] = str(final)
 
-        # print(self.sql)
-
-        # print("end")
-
-        # if not (add_conn or add_alias) and one_arg:
         if not (add_conn or add_alias) and one_arg and self.sql:
             first_arg = self.sql.split(" ")[0]
-            # Getting variable value when `%sql {{variable}}` is passed
-            # if first_arg.startswith("{{") and first_arg.endswith("}}"):
-            #     first_arg = user_ns[first_arg[2:-2]]
 
             if (
                 # FIXME Can be removed after %sql [section_name] is removed
