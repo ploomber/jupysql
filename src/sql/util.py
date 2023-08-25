@@ -5,7 +5,6 @@ from sql.connection import ConnectionManager
 from sql.store import store, _get_dependents_for_key
 from sql import exceptions, display
 import json
-import sys
 from pathlib import Path
 from ploomber_core.dependencies import requires
 
@@ -528,9 +527,3 @@ def validate_mutually_exclusive_args(arg_names, args):
             f"{pretty_print(specified_args)} are specified. "
             "You can only specify one of them."
         )
-
-
-def change_to_double_quotations_in_windows(line):
-    if sys.platform == "win32":
-        line = line.replace("'", '"')
-    return line
