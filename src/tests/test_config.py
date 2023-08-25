@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 
 import pytest
+import sys
 
 from sql.magic import load_ipython_extension
 from sql.connection import ConnectionManager
@@ -107,6 +108,24 @@ drivername = duckdb
 
     assert set(ConnectionManager.connections) == {"default"}
     assert ConnectionManager.current.dialect == "duckdb"
+
+
+def test_magic_initialization_when_default_connection_fails(
+    tmp_empty, ip_no_magics, capsys
+):
+    ip_no_magics.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    Path("connections.ini").write_text(
+        """
+[default]
+drivername = someunknowndriver
+"""
+    )
+
+    load_ipython_extension(ip_no_magics)
+
+    captured = capsys.readouterr()
+    assert "Cannot start default connection" in captured.out
 
 
 def test_magic_initialization_with_no_pyproject(tmp_empty, ip_no_magics):
@@ -305,3 +324,21 @@ displaycon = false
     confirm = {"displaycon": False, "autolimit": 0}
     sql = ip_no_magics.find_cell_magic("sql").__self__
     assert all([getattr(sql, config) == value for config, value in confirm.items()])
+
+
+def test_toml_optional_message(tmp_empty, monkeypatch, ip, capsys):
+    monkeypatch.setitem(sys.modules, "toml", None)
+    Path("pyproject.toml").write_text(
+        """
+[tool.jupysql.SqlMagic]
+autocommit = true
+"""
+    )
+
+    ip.run_cell("%load_ext sql")
+    out, _ = capsys.readouterr()
+    assert (
+        "The 'toml' package isn't installed. "
+        "To load settings from the pyproject.toml file, "
+        "install with: pip install toml"
+    ) in out

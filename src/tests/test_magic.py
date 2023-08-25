@@ -1125,7 +1125,7 @@ OR
 
 Set the environment variable $DATABASE_URL
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """
 
@@ -1143,7 +1143,7 @@ Can't load plugin: sqlalchemy.dialects:something
 To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 
@@ -1169,7 +1169,7 @@ Can't load plugin: sqlalchemy.dialects:sqlit
 
 Perhaps you meant to use driver the dialect: "sqlite"
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 
@@ -1197,7 +1197,7 @@ To fix it:
 Pass a valid connection string:
     Example: %sql postgresql://username:password@hostname/dbname
 
-{PLOOMBER_DOCS_LINK_STR}
+For more details, see: {PLOOMBER_DOCS_LINK_STR}
 {COMMUNITY}
 """  # noqa
 
@@ -1207,6 +1207,46 @@ def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
         ip_empty.run_cell("%sql duckdb://invalid_db")
 
     assert invalid_connection_string_duckdb.strip() == str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "establish_non_identifier, non_identifier",
+    [
+        (
+            "conn_in_lst = [conn]",
+            "conn_in_lst[0]",
+        ),
+        (
+            "conn_in_dict = {'conn1': conn}",
+            "conn_in_dict['conn1']",
+        ),
+        (
+            """
+class ConnInObj(object):
+    def __init__(self, conn):
+        self.conn1 = conn
+
+conn_in_obj = ConnInObj(conn)
+""",
+            "conn_in_obj.conn1",
+        ),
+    ],
+)
+def test_error_on_passing_non_identifier_to_connect(
+    ip_empty, establish_non_identifier, non_identifier
+):
+    ip_empty.run_cell("import duckdb; conn = duckdb.connect();")
+    ip_empty.run_cell(establish_non_identifier)
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(f"%sql {non_identifier}")
+
+    assert excinfo.value.error_type == "UsageError"
+    assert (
+        f"'{non_identifier}' is not a valid connection identifier. "
+        "Please pass the variable's name directly, as passing "
+        "object attributes, dictionaries or lists won't work."
+    ) in str(excinfo.value)
 
 
 def test_jupysql_alias():
