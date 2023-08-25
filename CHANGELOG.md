@@ -3,10 +3,10 @@
 ## 0.10.1dev
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
-* [Fix] Fix argument parsing error on Windows when it contains quotations (#425)
 * [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
 * [Fix] Improve error when passing a non-identifier to start a connection (#764)
 * [Fix] Display a warning (instead of raising an error) if the `default` connection in the `.ini` file cannot start
+* [Fix] Fix argument parsing error on Windows when it contains quotations (#425)
 
 ## 0.10.0 (2023-08-19)
 

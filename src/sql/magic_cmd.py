@@ -71,6 +71,7 @@ class SqlCmdMagic(Magics, Configurable):
         if line == "":
             raise exceptions.UsageError(VALID_COMMANDS_MSG)
         else:
+            # directly use shlex since SqlCmdMagic does not use magic_args from parse.py
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
 
