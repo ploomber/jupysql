@@ -82,17 +82,13 @@ class SQLCommand:
             final = store.render(self.parsed["sql"], with_=self.args.with_)
             self.parsed["sql"] = str(final)
 
-        if not (add_conn or add_alias) and one_arg and self.sql:
-            first_arg = self.sql.split(" ")[0]
-
-            if (
-                # FIXME Can be removed after %sql [section_name] is removed
-                not (first_arg.startswith("[") and first_arg.endswith("]"))
-                and not (
-                    self.args.persist_replace or self.args.persist or self.args.append
-                )
-            ):
-                validate_nonidentifier_connection(first_arg)
+        if (
+            one_arg
+            and self.sql
+            and not (add_conn or add_alias)
+            and not (self.args.persist_replace or self.args.persist or self.args.append)
+        ):
+            validate_nonidentifier_connection(self.sql.split(" ")[0])
 
     @property
     def sql(self):
