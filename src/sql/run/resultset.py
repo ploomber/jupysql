@@ -505,7 +505,7 @@ def _nonbreaking_spaces(match_obj):
 
 
 def _statement_is_select(statement):
-    if statement and isinstance(statement, str):
+    if statement:
         statement_ = statement.lower().strip()
         return sqlparse.parse(statement_)[
             0

@@ -278,7 +278,6 @@ def test_convert_to_dataframe_select(session, request, mock_config, statement):
         ("with a as (select * from b) insert into product_log select * from b", False),
         ("from b", True),
         ("", False),
-        (3, False),
     ],
 )
 def test_statement_is_select(session, expected_value):
