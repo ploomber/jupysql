@@ -617,12 +617,18 @@ def test_feedback_when_switching_connection_with_existing_connection(
     assert "Switching to connection one" == captured.out.splitlines()[-1]
 
 
-def test_no_feedback(ip_empty, tmp_empty, capsys):
+@pytest.mark.parametrize(
+    "connection, identifier",
+    [("duckdb://", "duckdb://"), ("duckdb:// --alias one", "one")],
+)
+def test_feedback_when_connecting_to_new_connection(
+    ip_empty, tmp_empty, capsys, connection, identifier
+):
     ip_empty.run_cell("%load_ext sql")
-    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell(f"%sql {connection}")
 
     captured = capsys.readouterr()
-    assert "" == captured.out
+    assert f"Connecting to connection {identifier}" == captured.out.strip()
 
 
 def test_no_switching_connection_feedback_if_disabled(ip_empty, capsys):
