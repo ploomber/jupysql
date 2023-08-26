@@ -39,7 +39,7 @@ from sql.magic_cmd import SqlCmdMagic
 from sql._patch import patch_ipython_usage_error
 from sql import util
 from sql.util import pretty_print
-from sql.error_handler import ErrorHandler
+from sql.error_handler import handle_exception
 from sql._current import _set_sql_magic
 
 
@@ -583,10 +583,10 @@ class SqlMagic(Magics, Configurable):
             StatementError,
         ) as e:
             # Sqlite apparently return all errors as OperationalError :/
-            ErrorHandler(e, command.sql, self.short_errors).handle_exception()
+            handle_exception(e, command.sql, self.short_errors)
         except Exception as e:
             # Handle non SQLAlchemy errors
-            ErrorHandler(e, command.sql, self.short_errors).handle_exception()
+            handle_exception(e, command.sql, self.short_errors)
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 
