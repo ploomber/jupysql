@@ -88,7 +88,7 @@ class SQLCommand:
             and not (add_conn or add_alias)
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
-            validate_nonidentifier_connection(self.sql.split(" ")[0])
+            validate_nonidentifier_connection(self.sql.split(" ")[0].strip())
 
     @property
     def sql(self):
