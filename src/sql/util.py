@@ -65,7 +65,7 @@ def get_suggestions_message(suggestions):
     suggestions_message = ""
     if len(suggestions) > 0:
         _suggestions_string = pretty_print(suggestions, last_delimiter="or")
-        suggestions_message = f"\nDid you mean : {_suggestions_string}"
+        suggestions_message = f"\nDid you mean: {_suggestions_string}"
     return suggestions_message
 
 
