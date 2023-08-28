@@ -737,7 +737,6 @@ class SQLAlchemyConnection(AbstractConnection):
             # empty results if we commit after a SELECT statement
             # see: https://github.com/Mause/duckdb_engine/issues/734
             if is_select and self.dialect == "duckdb":
-                print("hi")
                 return out
 
             # in sqlalchemy 1.x, connection has no commit attribute
