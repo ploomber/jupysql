@@ -1,8 +1,4 @@
-from IPython.core.magic import (
-    Magics,
-    line_magic,
-    magics_class,
-)
+from IPython.core.magic import Magics, line_magic, magics_class, UsageError
 from IPython.core.magic_arguments import argument, magic_arguments
 from ploomber_core.exceptions import modify_exceptions
 
@@ -28,7 +24,7 @@ class SqlPlotMagic(Magics, Configurable):
 
     @line_magic("sqlplot")
     @magic_arguments()
-    @argument("line", default="", type=str, help="Plot name")
+    @argument("line", type=str, help="Plot name")
     @argument("-t", "--table", type=str, help="Table to use", required=True)
     @argument(
         "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
@@ -80,7 +76,18 @@ class SqlPlotMagic(Magics, Configurable):
         Plot magic
         """
 
-        cmd = SQLPlotCommand(self, line)
+        PLOT_STR = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
+        MISSING_LINE_ERROR = (
+            f"Missing the first argument, must be any of: "
+            f"{PLOT_STR}\nExample: %sqlplot histogram"
+        )
+        try:
+            cmd = SQLPlotCommand(self, line)
+        except UsageError as e:
+            if "the following arguments are required: line" in str(e):
+                raise exceptions.UsageError(MISSING_LINE_ERROR) from e
+            else:
+                raise
 
         if len(cmd.args.column) == 1:
             column = cmd.args.column[0]
@@ -88,17 +95,11 @@ class SqlPlotMagic(Magics, Configurable):
             column = cmd.args.column
 
         if not cmd.args.line:
-            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
-            raise exceptions.UsageError(
-                "Missing the first argument, must be any of: "
-                f"{plot_str}\n"
-                "Example: %sqlplot histogram"
-            )
+            raise exceptions.UsageError(MISSING_LINE_ERROR)
 
         if cmd.args.line not in SUPPORTED_PLOTS + ["hist", "box"]:
-            plot_str = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
             raise exceptions.UsageError(
-                f"Unknown plot {cmd.args.line!r}. Must be any of: " f"{plot_str}"
+                f"Unknown plot {cmd.args.line!r}. Must be any of: " f"{PLOT_STR}"
             )
 
         column = util.sanitize_identifier(column)
