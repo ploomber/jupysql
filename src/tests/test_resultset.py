@@ -191,7 +191,7 @@ def mock_config():
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {"Count": {}} if IS_SQLALCHEMY_ONE else {"Success": {}}),
+        ("duckdb_sqlalchemy", {"Count": {}}),
         ("duckdb_dbapi", {"Count": {}}),
         ("sqlite_sqlalchemy", {}),
     ],
