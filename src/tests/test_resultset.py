@@ -13,7 +13,8 @@ import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
-from sql.connection.connection import IS_SQLALCHEMY_ONE
+
+# from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
