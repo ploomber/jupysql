@@ -727,7 +727,7 @@ class SQLAlchemyConnection(AbstractConnection):
         # TODO: we can parse the query to ensure that it's a SELECT statement
         # for example, it might start with WITH but the final statement might
         # not be a SELECT
-        is_select = first_word_statement in {"select", "with", "from"}
+        is_select = first_word_statement in {"select", "with", "from", "summarize"}
 
         operation = partial(self._execute_with_parameters, query, parameters)
         out = self._execute_with_error_handling(operation)
@@ -751,9 +751,13 @@ class SQLAlchemyConnection(AbstractConnection):
                 except Exception:
                     pass
             else:
-                if "duckdb" not in self._driver:
-                    # print("track this: ", out._fetchall_impl())
-                    self._connection.commit()
+                # if "duckdb" not in self._driver:
+                # print("track this: ", out._fetchall_impl())
+                # print(out._fetchall_impl())
+                # print(out._fetchall_impl())
+                self._connection.commit()
+                # print(out)
+                # print(out._fetchall_impl())
         return out
 
     def _execute_with_parameters(self, query, parameters):
