@@ -737,6 +737,7 @@ class SQLAlchemyConnection(AbstractConnection):
             # empty results if we commit after a SELECT statement
             # see: https://github.com/Mause/duckdb_engine/issues/734
             if is_select and self.dialect == "duckdb":
+                print("hi")
                 return out
 
             # in sqlalchemy 1.x, connection has no commit attribute
@@ -751,13 +752,8 @@ class SQLAlchemyConnection(AbstractConnection):
                 except Exception:
                     pass
             else:
-                # if "duckdb" not in self._driver:
-                # print("track this: ", out._fetchall_impl())
-                # print(out._fetchall_impl())
-                # print(out._fetchall_impl())
                 self._connection.commit()
-                # print(out)
-                # print(out._fetchall_impl())
+
         return out
 
     def _execute_with_parameters(self, query, parameters):
@@ -850,11 +846,6 @@ class SQLAlchemyConnection(AbstractConnection):
 
         try:
             out = operation()
-            # print(LegacyCursorResult())
-            # print(out)
-            # print(out._fetchall_impl())
-            # for r in out:
-            #    print("aaa:", r)
 
         # this is a generic error but we've seen it in postgres. it helps recover
         # from a idle session timeout (happens in psycopg 2 and psycopg 3)
@@ -903,7 +894,7 @@ class SQLAlchemyConnection(AbstractConnection):
         if rollback_needed:
             self._connection.rollback()
             out = operation()
-        # print(out._fetchall_impl())
+
         return out
 
     def _get_database_information(self):
