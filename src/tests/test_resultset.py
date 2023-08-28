@@ -13,8 +13,7 @@ import sqlalchemy
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
-
-# from sql.connection.connection import IS_SQLALCHEMY_ONE
+from sql.connection.connection import IS_SQLALCHEMY_ONE
 
 
 @pytest.fixture
@@ -192,7 +191,7 @@ def mock_config():
 @pytest.mark.parametrize(
     "session, expected_value",
     [
-        ("duckdb_sqlalchemy", {"Count": {}}),
+        ("duckdb_sqlalchemy", {"Count": {}} if IS_SQLALCHEMY_ONE else {"Success": {}}),
         ("duckdb_dbapi", {"Count": {}}),
         ("sqlite_sqlalchemy", {}),
     ],
