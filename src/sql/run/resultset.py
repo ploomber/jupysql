@@ -14,6 +14,8 @@ from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
 from sql._current import _config_feedback_all
 
+import warnings
+
 
 class ResultSet(ColumnGuesserMixin):
     """
@@ -282,6 +284,14 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.pie``.
         """
+        warnings.warn(
+            (
+                ".pie() is deprecated and will be removed in a future version. "
+                "Use %sqlplot pie instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
 
@@ -310,6 +320,14 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.plot``.
         """
+        warnings.warn(
+            (
+                ".plot() is deprecated and will be removed in a future version. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
+
         import matplotlib.pylab as plt
 
         self.guess_plot_columns()
@@ -351,6 +369,15 @@ class ResultSet(ColumnGuesserMixin):
         Any additional keyword arguments will be passed
         through to ``matplotlib.pylab.bar``.
         """
+        warnings.warn(
+            (
+                ".bar() is deprecated and will be removed in a future version. "
+                "Use %sqlplot bar instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+            UserWarning,
+        )
+
         import matplotlib.pylab as plt
 
         ax = plt.gca()

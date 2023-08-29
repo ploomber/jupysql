@@ -15,6 +15,8 @@ from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
 from sql.connection.connection import IS_SQLALCHEMY_ONE
 
+import warnings
+
 
 @pytest.fixture
 def config():
@@ -635,3 +637,56 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
+
+
+@pytest.fixture
+def result_warnings():
+    df = pd.DataFrame({range(3), range(4, 7)})  # noqa
+    engine = sqlalchemy.create_engine("duckdb://")
+
+    conn = SQLAlchemyConnection(engine)
+    result = conn.raw_execute("select * from df")
+
+    yield result, conn
+    conn.close()
+
+
+@pytest.fixture
+def result_set_warnings(result_warnings, config):
+    result_set_warn, conn = result_warnings
+    return ResultSet(result_set_warn, config, statement="select * from df", conn=conn)
+
+
+@pytest.mark.parametrize(
+    "function, expected_warning",
+    [
+        (
+            "pie",
+            (
+                ".pie() is deprecated and will be removed in a future version. "
+                "Use %sqlplot pie instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+        (
+            "bar",
+            (
+                ".bar() is deprecated and will be removed in a future version. "
+                "Use %sqlplot bar instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+        (
+            "plot",
+            (
+                ".plot() is deprecated and will be removed in a future version. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+    ],
+)
+def test_deprecated_warnings(result_set_warnings, function, expected_warning):
+    with warnings.catch_warnings(record=True) as record:
+        getattr(result_set_warnings, function)()
+        assert len(record) == 1
+        assert str(record[0].message) == expected_warning
