@@ -1244,6 +1244,28 @@ def test_error_on_passing_non_identifier_to_connect(
     ) in str(excinfo.value)
 
 
+@pytest.mark.parametrize(
+    "command",
+    [
+        ("commit;"),
+        ("rollback;"),
+    ],
+)
+def test_passing_command_ending_with_semicolon(ip_empty, command):
+    expected_result = "+---------+\n" "| Success |\n" "+---------+\n" "+---------+"
+    ip_empty.run_cell("%sql duckdb://")
+
+    out = ip_empty.run_cell(f"%sql {command}").result
+    assert str(out) == expected_result
+
+    ip_empty.run_cell(
+        f"""%%sql
+{command}
+"""
+    )
+    assert str(out) == expected_result
+
+
 def test_jupysql_alias():
     assert SqlMagic.magics == {
         "line": {"jupysql": "execute", "sql": "execute"},
