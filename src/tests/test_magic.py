@@ -8,6 +8,7 @@ import os.path
 import re
 import sys
 import tempfile
+import sqlalchemy
 from textwrap import dedent
 from unittest.mock import patch, Mock
 
@@ -34,6 +35,8 @@ DISPLAYLIMIT_LINK = (
     '<a href="https://jupysql.ploomber.io/en/'
     'latest/api/configuration.html#displaylimit">displaylimit</a>'
 )
+
+SQLALCHEMY_VERSION = int(sqlalchemy.__version__.split(".")[0])
 
 
 def test_memory_db(ip):
@@ -1244,6 +1247,9 @@ def test_error_on_passing_non_identifier_to_connect(
     ) in str(excinfo.value)
 
 
+@pytest.mark.skipif(
+    SQLALCHEMY_VERSION == 1, reason="no transaction is active error with sqlalchemy 1.x"
+)
 @pytest.mark.parametrize(
     "command",
     [
@@ -1254,7 +1260,6 @@ def test_error_on_passing_non_identifier_to_connect(
 def test_passing_command_ending_with_semicolon(ip_empty, command):
     expected_result = "+---------+\n" "| Success |\n" "+---------+\n" "+---------+"
     ip_empty.run_cell("%sql duckdb://")
-    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
 
     out = ip_empty.run_cell(f"%sql {command}").result
     assert str(out) == expected_result
