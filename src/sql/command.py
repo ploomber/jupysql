@@ -1,5 +1,4 @@
 from pathlib import Path
-from IPython.core.magic_arguments import parse_argstring
 from jinja2 import Template
 
 from sqlalchemy.engine import Engine
@@ -12,7 +11,7 @@ from sql.util import validate_nonidentifier_connection
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
-        self.args = parse_argstring(magic.execute, line)
+        self.args = parse.magic_args(magic.execute, line)
 
 
 class SQLCommand:
@@ -88,7 +87,8 @@ class SQLCommand:
             and not (add_conn or add_alias)
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
-            validate_nonidentifier_connection(self.sql.split(" ")[0])
+            # Apply strip to ensure whitespaces/linebreaks aren't passed
+            validate_nonidentifier_connection(self.sql.strip().split(" ")[0].strip())
 
     @property
     def sql(self):
