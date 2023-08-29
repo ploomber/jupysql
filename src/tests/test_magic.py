@@ -1254,6 +1254,7 @@ def test_error_on_passing_non_identifier_to_connect(
 def test_passing_command_ending_with_semicolon(ip_empty, command):
     expected_result = "+---------+\n" "| Success |\n" "+---------+\n" "+---------+"
     ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql INSTALL 'sqlite_scanner';")
 
     out = ip_empty.run_cell(f"%sql {command}").result
     assert str(out) == expected_result
