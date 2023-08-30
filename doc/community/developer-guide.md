@@ -571,9 +571,7 @@ From sqlite dialect: `'SELECT UNIX_TO_TIME(1618088028295)'`
 
 ## Enhancing Social Media/SEO Previews: Integrating Open Graph Tags
 
-  
-
-Open Graph tags hold metadata (such as images and descriptions) that influence how links are presented on social media platforms and in search engine results.
+Open Graph tags hold metadata (such as images and descriptions) that influence how links are presented on social media platforms and in search engine results. [Sphinxext-opengraph](https://sphinxext-opengraph.readthedocs.io/en/latest/) extension package enables us to add/modify Open Graph Tags.
 
 ### Tab titles
 
@@ -583,72 +581,39 @@ To change the tab title of the entire website modify the html_title tag in the c
     html_title = "" # case 2: Empty title
 				    #case 3: no html_title tag will result in default "Python documentation" title by Sphinx
 
-
-
 ### Page titles
-
 
 #### Individual pages
 
 To change the title of individual page add the og:title tag on top of targeted markdown file
 
-  
-
 ```
-
 ---
-
 og:image: /en/685/_static/duckdb.png
-
 og:image:alt: 'Better SQL in Jupyter. 📊.'
-
 og:description: 'Duckdb'
-
 og:title: 'Duckdb title' # Title tag
-
 jupytext:
-
-notebook_metadata_filter: myst
-
-text_representation:
-
-extension: .md
-
-format_name: myst
-
-format_version: 0.13
-
-jupytext_version: 1.14.7
-
+  notebook_metadata_filter: myst
+  text_representation:
+	extension: .md
+	format_name: myst
+	format_version: 0.13
+	jupytext_version: 1.14.7
 kernelspec:
-
-display_name: Python 3 (ipykernel)
-
-language: python
-
-name: python3
-
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
 myst:
-
-html_meta:
-
-description lang=en: Use DuckDB from Jupyter using JupySQL
-
-keywords: jupyter, sql, jupysql, duckdb, plotting
-
-property=og:locale: en_US
-
+  html_meta:
+	description lang=en: Use DuckDB from Jupyter using JupySQL
+	keywords: jupyter, sql, jupysql, duckdb, plotting
+	property=og:locale: en_US
 ---
-
-  
 
 # DuckDB # default title
-
 ```
-
 By default, the title of the individual page will be the first header on the markdown page. In our case, it's 'DuckDB'. Here are some other cases:
-
-  
 
     # case 1: No og:title tag, the page title will be "DuckDB"
     
@@ -658,16 +623,11 @@ By default, the title of the individual page will be the first header on the mar
     
     og:title: # case 4: Page title will be "null"
 
-  
-  
-
 ### Page Image
 
 #### Entire website
 
 Open Graph image tags control how links are previewed on social media sites. By default, the image is set to null. To add an Open Graph image, add/modify the ogp_image and ogp_image_alt tags in the conf file inside the doc folder. These images will than become default image for all pages.
-
-  
 
     ogp_image: "/en/685/_static/html-meta-template.png" # takes a URL link to the image, case 1: If images are hosted in the repo*
     
@@ -675,83 +635,46 @@ Open Graph image tags control how links are previewed on social media sites. By 
     
     ogp_image_alt:"Better SQL in Jupyter. 📊."
 
-  
-
 *The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url: "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io + /en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf file.
 
     ogp_site_url = "https://jupysql.ploomber.io"
-
-  
 
 #### Individual page
 
 The Sphinxext-opengraph package provides us with tags to enable Open Graph tags on individual pages. To add an Open Graph Image, include the og:image tag at the top of the individual markdown file. This will ensure that the image is considered and will override the default og:image for that particular page.
 
-  
-
 ```
-
 ---
-
-og:image: /en/685/_static/duckdb.png # Open Graph image for this page
-
+og:image: /en/685/_static/duckdb.png  # Open Graph image for this page
 og:image:alt: 'Better SQL in Jupyter. 📊.'
-
 og:description: 'Duckdb'
-
-og:title: 'Duckdb title'
-
+og:title: 'Duckdb title' # Title tag
 jupytext:
-
-notebook_metadata_filter: myst
-
-text_representation:
-
-extension: .md
-
-format_name: myst
-
-format_version: 0.13
-
-jupytext_version: 1.14.7
-
+  notebook_metadata_filter: myst
+  text_representation:
+	extension: .md
+	format_name: myst
+	format_version: 0.13
+	jupytext_version: 1.14.7
 kernelspec:
-
-display_name: Python 3 (ipykernel)
-
-language: python
-
-name: python3
-
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
 myst:
-
-html_meta:
-
-description lang=en: Use DuckDB from Jupyter using JupySQL
-
-keywords: jupyter, sql, jupysql, duckdb, plotting
-
-property=og:locale: en_US
-
+  html_meta:
+	description lang=en: Use DuckDB from Jupyter using JupySQL
+	keywords: jupyter, sql, jupysql, duckdb, plotting
+	property=og:locale: en_US
 ---
 
-  
-
-# DuckDB
-
+# DuckDB # default title
 ```
-
-  
 
 ##### Hosting images in the repo
 
 In many cases, we won't be using external links as og:image; instead, we would use images from our repo. In this case, we will store all the static images in the "_static" folder under the doc folder. This will allow us to access them after the build at the "~/build/_static/" path.
 
-  
-
 Things to keep in mind:
-
-  
 
 - Image file should be under 8 MB
 
