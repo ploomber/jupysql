@@ -11,6 +11,7 @@
 * [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found (#825)
 * [Fix] Fix argument parsing error on Windows when it contains quotations (#425)
 * [Fix] Fix error when a linebreak is included during nonidentifier validation process
+* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` (#842)
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
 
 ## 0.10.0 (2023-08-19)
@@ -36,6 +37,7 @@
 * [Fix] Fix Twice message printing when switching to the current connection ([#772](https://github.com/ploomber/jupysql/issues/772))
 * [Fix] Error when using %sqlplot in snowflake ([#697](https://github.com/ploomber/jupysql/issues/697))
 * [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
+* [Fix] Descriptive error messages when specific syntax error occurs when running query in DuckDB or Oracle.
 
 ## 0.9.1 (2023-08-10)
 
