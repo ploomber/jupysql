@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(__file__)
 
 class TableWidget:
     @telemetry.log_call("TableWidget-init")
-    def __init__(self, table, schema):
+    def __init__(self, table, schema=None):
         """
         Creates an HTML table element and populates it with SQL table
 
