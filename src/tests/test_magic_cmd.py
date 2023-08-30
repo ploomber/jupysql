@@ -592,13 +592,21 @@ def test_test_error(ip, cell, error_message):
 @pytest.mark.parametrize(
     "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
 )
-def test_test_with_schema(ip_empty, sample_schema_with_table, arguments):
+def test_failing_test_with_schema(ip_empty, sample_schema_with_table, arguments):
     expected_error_message = "The above values do not match your test requirements."
 
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell(f"%sqlcmd test {arguments} --column x --less-than 2")
 
     assert expected_error_message in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
+)
+def test_passing_test_with_schema(ip_empty, sample_schema_with_table, arguments):
+    out = ip_empty.run_cell(f"%sqlcmd test {arguments} --column x --less-than 3").result
+    assert out is True
 
 
 @pytest.mark.parametrize(
