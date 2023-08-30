@@ -1,10 +1,10 @@
 import sys
 import argparse
+import shlex
 
-from IPython.utils.process import arg_split
 from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
-from sql import util
+from sql.inspect import support_only_sql_alchemy_connection
 from sql.cmd.tables import tables
 from sql.cmd.columns import columns
 from sql.cmd.test import test
@@ -71,7 +71,8 @@ class SqlCmdMagic(Magics, Configurable):
         if line == "":
             raise exceptions.UsageError(VALID_COMMANDS_MSG)
         else:
-            split = arg_split(line)
+            # directly use shlex since SqlCmdMagic does not use magic_args from parse.py
+            split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
@@ -86,7 +87,7 @@ class SqlCmdMagic(Magics, Configurable):
                     )
 
                 if command in COMMANDS_SQLALCHEMY_ONLY:
-                    util.support_only_sql_alchemy_connection(f"%sqlcmd {command}")
+                    support_only_sql_alchemy_connection(f"%sqlcmd {command}")
 
                 return self.execute(command, others)
             else:

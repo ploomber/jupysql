@@ -6,7 +6,7 @@ import sql.connection
 import difflib
 
 from sql import exceptions
-from sql import query_util
+from sql import util
 
 
 class SQLStore(MutableMapping):
@@ -73,7 +73,7 @@ class SQLStore(MutableMapping):
             saved_key for saved_key in list(self._data.keys()) if saved_key != key
         ]
         if saved_keys and query:
-            tables = query_util.extract_tables_from_query(query)
+            tables = util.extract_tables_from_query(query)
             for table in tables:
                 if table in saved_keys:
                     dependencies.append(table)
@@ -154,15 +154,6 @@ def _get_dependencies(store, keys):
     return list(dict.fromkeys(deps + keys))
 
 
-def _get_dependents_for_key(store, key):
-    key_dependents = []
-    for k in list(store):
-        deps = _get_dependencies_for_key(store, k)
-        if key in deps:
-            key_dependents.append(k)
-    return key_dependents
-
-
 def _get_dependencies_for_key(store, key):
     """Retrieve dependencies for a single key"""
     deps = store[key]._with_
@@ -173,6 +164,62 @@ def _get_dependencies_for_key(store, key):
 def _flatten(elements):
     """Flatten a list of lists"""
     return [element for sub in elements for element in sub]
+
+
+def get_dependents_for_key(store, key):
+    key_dependents = []
+    for k in list(store):
+        deps = _get_dependencies_for_key(store, k)
+        if key in deps:
+            key_dependents.append(k)
+    return key_dependents
+
+
+def get_all_keys():
+    """
+    Function to get list of all stored snippets in the current session
+    """
+    return list(store)
+
+
+def get_key_dependents(key: str) -> list:
+    """
+    Function to find the stored snippets dependent on key
+    Parameters
+    ----------
+    key : str, name of the table
+
+    Returns
+    -------
+    list
+        List of snippets dependent on key
+
+    """
+    deps = get_dependents_for_key(store, key)
+    return deps
+
+
+def del_saved_key(key: str) -> str:
+    """
+    Deletes a stored snippet
+    Parameters
+    ----------
+    key : str, name of the snippet to be deleted
+
+    Returns
+    -------
+    list
+        Remaining stored snippets
+    """
+    all_keys = get_all_keys()
+    if key not in all_keys:
+        raise exceptions.UsageError(f"No such saved snippet found : {key}")
+    del store[key]
+    return get_all_keys()
+
+
+def is_saved_snippet(table: str) -> bool:
+    return table in get_all_keys()
 
 
 # session-wide store
