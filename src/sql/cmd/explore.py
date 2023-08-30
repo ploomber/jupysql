@@ -1,5 +1,4 @@
 from sql.widgets import TableWidget
-from IPython.display import display
 from sql.cmd.cmd_utils import CmdParser
 
 
@@ -21,4 +20,4 @@ def explore(others):
     parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)
     args = parser.parse_args(others)
     table_widget = TableWidget(args.table, args.schema)
-    display(table_widget)
+    return table_widget
