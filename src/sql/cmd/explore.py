@@ -18,7 +18,7 @@ def explore(others):
     """
     parser = CmdParser()
     parser.add_argument("-t", "--table", type=str, help="Table name", required=True)
+    parser.add_argument("-s", "--schema", type=str, help="Schema name", required=False)
     args = parser.parse_args(others)
-
-    table_widget = TableWidget(args.table)
+    table_widget = TableWidget(args.table, args.schema)
     display(table_widget)
