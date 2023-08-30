@@ -575,7 +575,7 @@ Open Graph tags hold metadata (such as images and descriptions) that influence h
 
 ### Page titles 
 #### Entire website
-To change the title of the entire website modify the html_title tag in the conf.py file in the doc folder. Here are a few cases:
+To change the title of the entire website modify the html_title tag in the conf file in the doc folder. Here are a few cases:
 
     html_title = "JupySQL documentation" # case 1: Sets to "JupySQL documentation" as title
     html_title = "" # case 2: Empty title
@@ -610,9 +610,9 @@ myst:
 
 # DuckDB # default title
 ```
-By default, the title of the individual page will be the first header on the markdown page + doc title defined in the conf.py file. In our case, it's 'DuckDB - JupySQL documentation'. Here are some other cases:
+By default, the title of the individual page will be the first header on the markdown page + doc title defined in the conf file. In our case, it's 'DuckDB - JupySQL documentation'. Here are some other cases:
 
-                 # case 1: No og:title tag, the page title will be "DuckDB"
+                 # case 1: No og:title tag, the page title will be "DuckDB - JupySQL documentation"
     og:title: '' # case 2: Page title will be empty
     og:title: 5  # case 3: Page title will be "5"
     og:title: 	 # case 4: Page title will be "null"
@@ -620,13 +620,13 @@ By default, the title of the individual page will be the first header on the mar
 
 ### Page Image
 #### Entire website
-Open Graph image tags control how links are previewed on social media sites. By default, the image is set to null. To add an Open Graph image, modify the ogp_image and ogp_image_alt tags in the conf.py file inside the doc folder. These images will than become default image for all pages.
+Open Graph image tags control how links are previewed on social media sites. By default, the image is set to null. To add an Open Graph image, modify the ogp_image and ogp_image_alt tags in the conf file inside the doc folder. These images will than become default image for all pages.
 
     ogp_image: "/en/685/_static/html-meta-template.png" # takes a URL link to the image # case 1: If images are hosted in the repo
     ogp_image: "" # case 2: Any other image on the web
     ogp_image_alt:"Better SQL in Jupyter. 📊."
 
-The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io + /en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf.py file.
+The Sphinxext-opengraph extension creates an og:image link by combining ogp_site_url and ogp_image. The ogp_site_url tag takes the site url as default, in our case url:  "https://jupysql.ploomber.io", thus the final image link will be: https://jupysql.ploomber.io + /en/685/_static/html-meta-template.png, ogp_site_url can be given a different value by adding the tag in the conf file.
 
 #### Individual page
 The Sphinxext-opengraph package provides us with tags to enable Open Graph tags on individual pages. To add an Open Graph Image, include the og:image tag at the top of the individual markdown file. This will ensure that the image is considered and will override the default og:image for that particular page.
