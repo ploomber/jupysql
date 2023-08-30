@@ -1,17 +1,21 @@
 # CHANGELOG
 
-## 0.10.1dev
+## 0.10.2dev
+
+* [Feature] Show feedback when starting a new connection (#807)
+
+## 0.10.1 (2023-08-30)
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
-* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)
-* [Feature] Show feedback when starting a new connection (#807)
+* [Feature] Add `%sqlcmd connect` to see existing connections and create new ones ([#632](https://github.com/ploomber/jupysql/issues/632))
 * [Fix] Clearer error messages when failing to initialize a connection
-* [Doc] Added section on installing database drivers
-* [Fix] Improve error when passing a non-identifier to start a connection (#764)
+* [Fix] Improve error when passing a non-identifier to start a connection ([#764](https://github.com/ploomber/jupysql/issues/764))
 * [Fix] Display a warning (instead of raising an error) if the `default` connection in the `.ini` file cannot start
-* [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found (#825)
-* [Fix] Fix argument parsing error on Windows when it contains quotations (#425)
+* [Fix] Display a message instead of an error when `toml` isn't installed and `pyproject.toml` is found ([#825](https://github.com/ploomber/jupysql/issues/825))
+* [Fix] Fix argument parsing error on Windows when it contains quotations ([#425](https://github.com/ploomber/jupysql/issues/425))
 * [Fix] Fix error when a linebreak is included during nonidentifier validation process
+* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` ([#842](https://github.com/ploomber/jupysql/issues/842))
+* [Doc] Added section on installing database drivers
 
 ## 0.10.0 (2023-08-19)
 
@@ -36,6 +40,7 @@
 * [Fix] Fix Twice message printing when switching to the current connection ([#772](https://github.com/ploomber/jupysql/issues/772))
 * [Fix] Error when using %sqlplot in snowflake ([#697](https://github.com/ploomber/jupysql/issues/697))
 * [Doc] Fixes documentation inaccuracy that said `:variable` was deprecated (we brought it back in `0.9.0`)
+* [Fix] Descriptive error messages when specific syntax error occurs when running query in DuckDB or Oracle.
 
 ## 0.9.1 (2023-08-10)
 
