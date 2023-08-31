@@ -270,14 +270,11 @@ class ConnectionManager:
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
-                    if _current._config_feedback_normal_or_more():
-                        identifier = alias or descriptor
-                        if cls.current and cls.current.alias != alias:
-                            display.message(
-                                f"Connecting and switching to connection {identifier}"
-                            )
-                        else:
-                            display.message(f"Connecting to connection {identifier}")
+                    is_connect_and_switch, is_connect = False, False
+                    if cls.current and cls.current.alias != alias:
+                        is_connect_and_switch = True
+                    else:
+                        is_connect = True
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
@@ -285,6 +282,14 @@ class ConnectionManager:
                         alias=alias,
                         config=config,
                     )
+                    if _current._config_feedback_normal_or_more():
+                        if is_connect_and_switch:
+                            display.message(
+                                "Connecting and switching to connection "
+                                f"{cls.current.url!r}"
+                            )
+                        if is_connect:
+                            display.message(f"Connecting to {cls.current.url!r}")
 
         else:
             if cls.connections:

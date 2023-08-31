@@ -734,7 +734,7 @@ def test_feedback_when_connecting_to_new_connection(
     ip_empty.run_cell(f"%sql {connection}")
 
     captured = capsys.readouterr()
-    assert f"Connecting to connection {identifier}" == captured.out.splitlines()[-1]
+    assert f"Connecting to {identifier}" == captured.out.splitlines()[-1]
 
 
 def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, capsys):
