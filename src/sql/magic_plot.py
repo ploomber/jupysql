@@ -1,4 +1,4 @@
-from IPython.core.magic import Magics, line_magic, magics_class, UsageError
+from IPython.core.magic import Magics, line_magic, magics_class
 from IPython.core.magic_arguments import argument, magic_arguments
 from ploomber_core.exceptions import modify_exceptions
 
@@ -24,7 +24,7 @@ class SqlPlotMagic(Magics, Configurable):
 
     @line_magic("sqlplot")
     @magic_arguments()
-    @argument("line", type=str, help="Plot name")
+    @argument("plot_name", type=str, help="Plot name")
     @argument("-t", "--table", type=str, help="Table to use", required=True)
     @argument(
         "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
@@ -81,25 +81,23 @@ class SqlPlotMagic(Magics, Configurable):
             f"Missing the first argument, must be any of: "
             f"{PLOT_STR}\nExample: %sqlplot histogram"
         )
-        try:
-            cmd = SQLPlotCommand(self, line)
-        except UsageError as e:
-            if "the following arguments are required: line" in str(e):
-                raise exceptions.UsageError(MISSING_LINE_ERROR) from e
-            else:
-                raise
 
+        cmd = SQLPlotCommand(self, line)
+
+        if cmd is None:
+            raise exceptions.UsageError(MISSING_LINE_ERROR)
+        print(f"cmd.args.column : {cmd.args.column}")
         if len(cmd.args.column) == 1:
             column = cmd.args.column[0]
         else:
             column = cmd.args.column
 
-        if not cmd.args.line:
+        if not cmd.args.plot_name:
             raise exceptions.UsageError(MISSING_LINE_ERROR)
 
-        if cmd.args.line not in SUPPORTED_PLOTS + ["hist", "box"]:
+        if cmd.args.plot_name not in SUPPORTED_PLOTS + ["hist", "box"]:
             raise exceptions.UsageError(
-                f"Unknown plot {cmd.args.line!r}. Must be any of: " f"{PLOT_STR}"
+                f"Unknown plot {cmd.args.plot_name!r}. Must be any of: " f"{PLOT_STR}"
             )
 
         column = util.sanitize_identifier(column)
@@ -110,7 +108,7 @@ class SqlPlotMagic(Magics, Configurable):
         else:
             with_ = self._check_table_exists(table)
 
-        if cmd.args.line in {"box", "boxplot"}:
+        if cmd.args.plot_name in {"box", "boxplot"}:
             return plot.boxplot(
                 table=table,
                 column=column,
@@ -118,7 +116,7 @@ class SqlPlotMagic(Magics, Configurable):
                 orient=cmd.args.orient,
                 conn=None,
             )
-        elif cmd.args.line in {"hist", "histogram"}:
+        elif cmd.args.plot_name in {"hist", "histogram"}:
             # to avoid passing bins default value when breaks or binwidth is specified
             bin_specified = " --bins " in line or " -b " in line
             breaks_specified = " --breaks " in line or " -B " in line
@@ -136,7 +134,7 @@ class SqlPlotMagic(Magics, Configurable):
                 breaks=cmd.args.breaks,
                 binwidth=cmd.args.binwidth,
             )
-        elif cmd.args.line in {"bar"}:
+        elif cmd.args.plot_name in {"bar"}:
             return plot.bar(
                 table=table,
                 column=column,
@@ -145,7 +143,7 @@ class SqlPlotMagic(Magics, Configurable):
                 show_num=cmd.args.show_numbers,
                 conn=None,
             )
-        elif cmd.args.line in {"pie"}:
+        elif cmd.args.plot_name in {"pie"}:
             return plot.pie(
                 table=table,
                 column=column,
