@@ -16,7 +16,6 @@
 * [Fix] Fix error when a linebreak is included during nonidentifier validation process
 * [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` ([#842](https://github.com/ploomber/jupysql/issues/842))
 * [Doc] Added section on installing database drivers
-* [Fix] Fix error when an argument ending with semicolon is passed to `%sql/%%sql` (#842)
 
 ## 0.10.0 (2023-08-19)
 

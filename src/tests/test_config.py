@@ -195,6 +195,7 @@ style = "RANDOM"
         ),
         ("", "Tip: You may define configurations in {path}."),
     ],
+    ids=["empty_sqlmagic_key", "missing_sqlmagic_key"],
 )
 def test_loading_pyproject_toml_display_configuration_docs_link(
     tmp_empty, ip_no_magics, file_content, param, monkeypatch
@@ -238,7 +239,7 @@ github = "ploomber/jupysql"
         ),
     ],
 )
-def test_load_pyproject_toml_configuration_message_not_displayed(
+def test_load_pyproject_toml_user_configurations_not_specified(
     tmp_empty, ip_no_magics, capsys, file_content
 ):
     Path("pyproject.toml").write_text(file_content)

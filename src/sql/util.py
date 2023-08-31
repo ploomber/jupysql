@@ -285,7 +285,7 @@ def get_user_configs(file_path):
                     f"Did you mean '{section_to_find}'?"
                 )
         data = data[section_to_find]
-    if data == {}:
+    if not data:
         if section_to_find == "SqlMagic":
             MESSAGE_PREFIX = (
                 f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
