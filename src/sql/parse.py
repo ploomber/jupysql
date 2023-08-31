@@ -219,6 +219,8 @@ def without_sql_comment(parser, line):
 
 
 def magic_args(magic_execute, line):
+    """Function to parse the magic arguments. Returns None if
+    mandatory positional argument not provided"""
     line = without_sql_comment(parser=magic_execute.parser, line=line)
     split = shlex.split(line, posix=False)
     parser = magic_execute.parser
