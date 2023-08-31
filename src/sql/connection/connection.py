@@ -265,7 +265,7 @@ class ConnectionManager:
                         _current._config_feedback_normal_or_more()
                         and cls.current != existing
                     ):
-                        display.message(f"Switching to connection {descriptor}")
+                        display.message(f"Switching to connection {descriptor!r}")
                     cls.current = existing
 
                 # passing the same URL but different alias: create a new connection
@@ -283,13 +283,13 @@ class ConnectionManager:
                         config=config,
                     )
                     if _current._config_feedback_normal_or_more():
+                        identifier = alias or cls.current.url
                         if is_connect_and_switch:
                             display.message(
-                                "Connecting and switching to connection "
-                                f"{cls.current.url!r}"
+                                f"Connecting and switching to connection {identifier!r}"
                             )
                         if is_connect:
-                            display.message(f"Connecting to {cls.current.url!r}")
+                            display.message(f"Connecting to {identifier!r}")
 
         else:
             if cls.connections:

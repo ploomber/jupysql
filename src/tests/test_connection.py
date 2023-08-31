@@ -672,7 +672,7 @@ def test_feedback_when_switching_connection_with_alias(
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'one'" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_with_descriptors(
@@ -684,7 +684,7 @@ def test_feedback_when_switching_connection_with_descriptors(
 
     captured = capsys.readouterr()
     assert (
-        "Connecting and switching to connection sqlite://"
+        "Connecting and switching to connection 'sqlite://'"
         == captured.out.splitlines()[-1]
     )
 
@@ -702,7 +702,7 @@ def test_feedback_when_switching_connection_without_alias(
     ip_empty.run_cell("%sql duckdb://")
 
     captured = capsys.readouterr()
-    assert "Switching to connection duckdb://" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'duckdb://'" == captured.out.splitlines()[-1]
 
 
 def test_feedback_when_switching_connection_with_existing_connection(
@@ -714,7 +714,7 @@ def test_feedback_when_switching_connection_with_existing_connection(
     ip_empty.run_cell("%sql one")
 
     captured = capsys.readouterr()
-    assert "Switching to connection one" == captured.out.splitlines()[-1]
+    assert "Switching to connection 'one'" == captured.out.splitlines()[-1]
 
 
 @pytest.mark.parametrize(
@@ -734,7 +734,7 @@ def test_feedback_when_connecting_to_new_connection(
     ip_empty.run_cell(f"%sql {connection}")
 
     captured = capsys.readouterr()
-    assert f"Connecting to {identifier}" == captured.out.splitlines()[-1]
+    assert f"Connecting to '{identifier}'" == captured.out.splitlines()[-1]
 
 
 def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, capsys):
