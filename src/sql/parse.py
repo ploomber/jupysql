@@ -225,7 +225,7 @@ def magic_args(magic_execute, line):
     try:
         return parser.parse_args(split)
     except UsageError as e:
-        if "the following arguments are required: line" in str(e):
+        if f"the following arguments are required: {parser._actions[0].dest}" in str(e):
             return None
         else:
             raise

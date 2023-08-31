@@ -84,9 +84,9 @@ class SqlPlotMagic(Magics, Configurable):
 
         cmd = SQLPlotCommand(self, line)
 
-        if cmd is None:
+        if cmd.args is None:
             raise exceptions.UsageError(MISSING_LINE_ERROR)
-        print(f"cmd.args.column : {cmd.args.column}")
+
         if len(cmd.args.column) == 1:
             column = cmd.args.column[0]
         else:
