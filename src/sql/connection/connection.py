@@ -275,6 +275,7 @@ class ConnectionManager:
                         is_connect_and_switch = True
                     else:
                         is_connect = True
+
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,

@@ -749,6 +749,36 @@ def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, c
     assert captured.out == ""
 
 
+@pytest.mark.parametrize(
+    "alias, expected",
+    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+)
+def test_password_in_feedback_when_connecting_to_new_connection(
+    mock_postgres, ip_empty, capsys, alias, expected
+):
+    url = "postgresql://user:topsecret@somedomain.com/db"
+    _ = ConnectionManager.set(url, displaycon=False, alias=alias)
+    captured = capsys.readouterr()
+    assert f"Connecting to '{expected}'" in captured.out.strip()
+
+
+@pytest.mark.parametrize(
+    "alias, expected",
+    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+)
+def test_password_in_feedback_when_connecting_and_switching_connection(
+    mock_postgres, ip_empty, capsys, alias, expected
+):
+    ip_empty.run_cell("%sql duckdb://")
+    url = "postgresql://user:topsecret@somedomain.com/db"
+    _ = ConnectionManager.set(url, displaycon=False, alias=alias)
+    captured = capsys.readouterr()
+    assert (
+        f"Connecting and switching to connection '{expected}'"
+        in captured.out.splitlines()[-1]
+    )
+
+
 @pytest.fixture
 def conn_sqlalchemy_duckdb():
     conn = SQLAlchemyConnection(engine=create_engine("duckdb://"))
