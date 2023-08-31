@@ -10,7 +10,6 @@ except ModuleNotFoundError:
 
 from sql import plot
 from sql.command import SQLPlotCommand
-from sql import exceptions
 from sql import util
 from sql.inspect import is_table_exists
 from sql.store import is_saved_snippet
@@ -24,7 +23,12 @@ class SqlPlotMagic(Magics, Configurable):
 
     @line_magic("sqlplot")
     @magic_arguments()
-    @argument("plot_name", type=str, help="Plot name")
+    @argument(
+        "plot_name",
+        type=str,
+        help="Plot name",
+        choices=["histogram", "hist", "boxplot", "box", "bar", "pie"],
+    )
     @argument("-t", "--table", type=str, help="Table to use", required=True)
     @argument(
         "-c", "--column", type=str, nargs="+", help="Column(s) to use", required=True
@@ -76,29 +80,12 @@ class SqlPlotMagic(Magics, Configurable):
         Plot magic
         """
 
-        PLOT_STR = util.pretty_print(SUPPORTED_PLOTS, last_delimiter="or")
-        MISSING_LINE_ERROR = (
-            f"Missing the first argument, must be any of: "
-            f"{PLOT_STR}\nExample: %sqlplot histogram"
-        )
-
         cmd = SQLPlotCommand(self, line)
-
-        if cmd.args is None:
-            raise exceptions.UsageError(MISSING_LINE_ERROR)
 
         if len(cmd.args.column) == 1:
             column = cmd.args.column[0]
         else:
             column = cmd.args.column
-
-        if not cmd.args.plot_name:
-            raise exceptions.UsageError(MISSING_LINE_ERROR)
-
-        if cmd.args.plot_name not in SUPPORTED_PLOTS + ["hist", "box"]:
-            raise exceptions.UsageError(
-                f"Unknown plot {cmd.args.plot_name!r}. Must be any of: " f"{PLOT_STR}"
-            )
 
         column = util.sanitize_identifier(column)
         table = util.sanitize_identifier(cmd.args.table)

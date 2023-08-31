@@ -7,7 +7,6 @@ import configparser
 import warnings
 
 from sqlalchemy.engine.url import URL
-from IPython.core.magic import UsageError
 
 from sql import exceptions
 
@@ -219,18 +218,8 @@ def without_sql_comment(parser, line):
 
 
 def magic_args(magic_execute, line):
-    """Function to parse the magic arguments. Returns None if
-    mandatory positional argument not provided"""
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    split = shlex.split(line, posix=False)
-    parser = magic_execute.parser
-    try:
-        return parser.parse_args(split)
-    except UsageError as e:
-        if f"the following arguments are required: {parser._actions[0].dest}" in str(e):
-            return None
-        else:
-            raise
+    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
 
 
 def escape_string_literals_with_colon_prefix(query):
