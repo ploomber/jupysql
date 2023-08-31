@@ -2,6 +2,7 @@
 
 ## 0.10.2dev
 
+* [Feature] Improved messages when loading configurations from `pyproject.toml` file.
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
 
 ## 0.10.1 (2023-08-30)
