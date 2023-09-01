@@ -732,6 +732,7 @@ class SQLAlchemyConnection(AbstractConnection):
         # TODO: we can parse the query to ensure that it's a SELECT statement
         # for example, it might start with WITH but the final statement might
         # not be a SELECT
+        # `summarize` is added to support %sql SUMMARIZE table in duckdb
         is_select = first_word_statement in {"select", "with", "from", "summarize"}
 
         operation = partial(self._execute_with_parameters, query, parameters)
