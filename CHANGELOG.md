@@ -4,6 +4,7 @@
 
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
 * [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
+* [Feature] Add `schema/-s` for `%sqlplot` and ensure `--table schema.table` works (#854)
 * [Feature] Show feedback when starting a new connection (#807)
 * [Doc] Add chDB integration tutorial
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)

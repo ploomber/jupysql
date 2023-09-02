@@ -2,6 +2,7 @@ from jinja2 import Template
 import math
 import sql.connection
 from sql.telemetry import telemetry
+from sql.util import enclose_table_with_double_quotations
 
 
 class facet:
@@ -9,11 +10,12 @@ class facet:
         pass
 
     def get_facet_values(self, table, column, with_):
+        table = enclose_table_with_double_quotations(table)
         template = Template(
             """
             SELECT
             distinct ({{column}})
-            FROM "{{table}}"
+            FROM {{table}}
             """
         )
         query = template.render(table=table, column=column)
