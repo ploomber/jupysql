@@ -9,6 +9,7 @@ class facet:
         pass
 
     def get_facet_values(self, table, column, with_):
+        # print(table)
         template = Template(
             """
             SELECT
