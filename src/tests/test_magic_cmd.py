@@ -1,4 +1,3 @@
-import sys
 import math
 import pytest
 from IPython.core.error import UsageError
@@ -6,9 +5,9 @@ from pathlib import Path
 
 from sqlalchemy import create_engine
 from sql.connection import SQLAlchemyConnection
-from sql.store import store
 from sql.inspect import _is_numeric
 from sql.display import Table, Message
+from sql.widgets import TableWidget
 from jupysql_plugin.widgets import ConnectorWidget
 import duckdb
 import sqlite3
@@ -36,8 +35,6 @@ def _get_row_string(row, column_name):
 
 @pytest.fixture
 def ip_snippets(ip):
-    for key in list(store):
-        del store[key]
     ip.run_cell("%sql sqlite://")
     ip.run_cell(
         """
@@ -68,8 +65,6 @@ WHERE symbol == 'b'
 
 @pytest.fixture
 def ip_with_connections(ip_empty):
-    for key in list(store):
-        del store[key]
     ip_empty.run_cell("%sql duckdb:// --alias duckdb_sqlalchemy")
     ip_empty.run_cell("%sql sqlite:// --alias sqlite_sqlalchemy")
     duckdb_dbapi = duckdb.connect("")
@@ -83,10 +78,21 @@ def ip_with_connections(ip_empty):
 
 @pytest.fixture
 def test_snippet_ip(ip):
-    for key in list(store):
-        del store[key]
     ip.run_cell("%sql sqlite://")
     yield ip
+
+
+@pytest.fixture
+def sample_schema_with_table(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell(
+        """%%sql
+CREATE SCHEMA schema1;
+CREATE TABLE schema1.table1 (x INT, y TEXT);
+INSERT INTO schema1.table1 VALUES (1, 'one');
+INSERT INTO schema1.table1 VALUES (2, 'two');
+"""
+    )
 
 
 @pytest.mark.parametrize(
@@ -148,9 +154,6 @@ def test_sqlcmd_error_when_no_connection(ip_empty, command):
 
 
 def test_sqlcmd_snippets_when_no_connection(ip_empty, capsys):
-    for key in list(store):
-        del store[key]
-
     ip_empty.run_cell("%sqlcmd snippets")
     captured = capsys.readouterr()
     assert "No snippets stored" in captured.out
@@ -202,10 +205,6 @@ ATTACH DATABASE 'my.db' AS some_schema
     assert "numbers" in out
 
 
-@pytest.mark.xfail(
-    sys.platform == "win32",
-    reason="problem in IPython.core.magic_arguments.parse_argstring",
-)
 @pytest.mark.parametrize(
     "cmd, cols",
     [
@@ -225,7 +224,10 @@ def test_columns(ip, cmd, cols):
     assert all(col in out for col in cols)
 
 
-def test_columns_with_schema(ip, tmp_empty):
+@pytest.mark.parametrize(
+    "arguments", ["--table numbers --schema some_schema", "--table some_schema.numbers"]
+)
+def test_columns_with_schema(ip, tmp_empty, arguments):
     conn = SQLAlchemyConnection(engine=create_engine("sqlite:///my.db"))
     conn.execute("CREATE TABLE numbers (some_number FLOAT)")
 
@@ -235,9 +237,7 @@ ATTACH DATABASE 'my.db' AS some_schema
 """
     )
 
-    out = ip.run_cell(
-        "%sqlcmd columns --table numbers --schema some_schema"
-    ).result._repr_html_()
+    out = ip.run_cell(f"%sqlcmd columns {arguments}").result._repr_html_()
 
     assert "some_number" in out
 
@@ -360,7 +360,10 @@ def test_table_profile_with_stdev(ip_with_connections, tmp_empty, conn):
     assert "position: sticky;" in out._table_html
 
 
-def test_table_schema_profile(ip, tmp_empty):
+@pytest.mark.parametrize(
+    "arguments", ["--table t --schema b_schema", "--table b_schema.t"]
+)
+def test_table_schema_profile(ip, tmp_empty, arguments):
     ip.run_cell("%sql sqlite:///a.db")
     ip.run_cell("%sql CREATE TABLE t (n FLOAT)")
     ip.run_cell("%sql INSERT INTO t VALUES (1)")
@@ -394,7 +397,7 @@ def test_table_schema_profile(ip, tmp_empty):
         "top": [math.nan],
     }
 
-    out = ip.run_cell("%sqlcmd profile -t t --schema b_schema").result
+    out = ip.run_cell(f"%sqlcmd profile {arguments}").result
 
     stats_table = out._table
 
@@ -407,7 +410,11 @@ def test_table_schema_profile(ip, tmp_empty):
             assert cell == str(expected[profile_metric][0])
 
 
-def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_empty, tmp_empty):
+@pytest.mark.parametrize(
+    "arguments",
+    ["--table sample_table --schema test_schema", "--table test_schema.sample_table"],
+)
+def test_sqlcmd_profile_with_schema_argument_and_dbapi(ip_empty, tmp_empty, arguments):
     sqlite_dbapi_testdb_conn = sqlite3.connect("test.db")
     ip_empty.push({"sqlite_dbapi_testdb_conn": sqlite_dbapi_testdb_conn})
 
@@ -438,9 +445,7 @@ INSERT INTO sample_table VALUES (33);
         "top": [math.nan],
     }
 
-    out = ip_empty.run_cell(
-        "%sqlcmd profile --table sample_table --schema test_schema"
-    ).result
+    out = ip_empty.run_cell(f"%sqlcmd profile {arguments}").result
 
     stats_table = out._table
 
@@ -582,6 +587,26 @@ def test_test_error(ip, cell, error_message):
 
     assert excinfo.value.error_type == "UsageError"
     assert str(excinfo.value) == error_message
+
+
+@pytest.mark.parametrize(
+    "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
+)
+def test_failing_test_with_schema(ip_empty, sample_schema_with_table, arguments):
+    expected_error_message = "The above values do not match your test requirements."
+
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(f"%sqlcmd test {arguments} --column x --less-than 2")
+
+    assert expected_error_message in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
+)
+def test_passing_test_with_schema(ip_empty, sample_schema_with_table, arguments):
+    out = ip_empty.run_cell(f"%sqlcmd test {arguments} --column x --less-than 3").result
+    assert out is True
 
 
 @pytest.mark.parametrize(
@@ -762,6 +787,17 @@ def test_delete_invalid_snippet(arg, ip_snippets):
 
     assert excinfo.value.error_type == "UsageError"
     assert str(excinfo.value) == "No such saved snippet found : non_existent_snippet"
+
+
+@pytest.mark.parametrize(
+    "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
+)
+def test_explore_with_schema(ip_empty, sample_schema_with_table, arguments):
+    expected_rows = ['"x": 1', '"y": "one"', '"x": 2', '"y": "two"']
+
+    out = ip_empty.run_cell(f"%sqlcmd explore {arguments}").result
+    assert isinstance(out, TableWidget)
+    assert [row in out._repr_html_() for row in expected_rows]
 
 
 @pytest.mark.parametrize(

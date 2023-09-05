@@ -8,6 +8,7 @@ import os.path
 import re
 import sys
 import tempfile
+import sqlalchemy
 from textwrap import dedent
 from unittest.mock import patch, Mock
 
@@ -34,6 +35,8 @@ DISPLAYLIMIT_LINK = (
     '<a href="https://jupysql.ploomber.io/en/'
     'latest/api/configuration.html#displaylimit">displaylimit</a>'
 )
+
+SQLALCHEMY_VERSION = int(sqlalchemy.__version__.split(".")[0])
 
 
 def test_memory_db(ip):
@@ -535,12 +538,7 @@ def test_connection_args_enforce_json(ip):
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell('%sql --connection_arguments {"badlyformed":true')
 
-    expected_message = (
-        "Expecting property name enclosed in double quotes"
-        if platform.system() == "Windows"
-        else "Expecting ',' delimiter"
-    )
-
+    expected_message = "Expecting ',' delimiter"
     assert expected_message in str(excinfo.value)
 
 
@@ -1249,6 +1247,31 @@ def test_error_on_passing_non_identifier_to_connect(
     ) in str(excinfo.value)
 
 
+@pytest.mark.skipif(
+    SQLALCHEMY_VERSION == 1, reason="no transaction is active error with sqlalchemy 1.x"
+)
+@pytest.mark.parametrize(
+    "command",
+    [
+        ("commit;"),
+        ("rollback;"),
+    ],
+)
+def test_passing_command_ending_with_semicolon(ip_empty, command):
+    expected_result = "+---------+\n" "| Success |\n" "+---------+\n" "+---------+"
+    ip_empty.run_cell("%sql duckdb://")
+
+    out = ip_empty.run_cell(f"%sql {command}").result
+    assert str(out) == expected_result
+
+    ip_empty.run_cell(
+        f"""%%sql
+{command}
+"""
+    )
+    assert str(out) == expected_result
+
+
 def test_jupysql_alias():
     assert SqlMagic.magics == {
         "line": {"jupysql": "execute", "sql": "execute"},
@@ -1829,3 +1852,115 @@ def test_error_when_ini_file_is_corrupted(
 
     assert error_type in str(excinfo.value)
     assert error_detail in str(excinfo.value)
+
+
+def test_spaces_in_variable_name(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql create table 'table with spaces' (n INT)")
+    ip_empty.run_cell('%sql create table "table with spaces2" (n INT)')
+    tables_result = ip_empty.run_cell("%sqlcmd tables").result
+    assert "table with spaces" in str(tables_result)
+    assert "table with spaces2" in str(tables_result)
+
+    ip_empty.run_cell("%sql INSERT INTO 'table with spaces' VALUES (1)")
+    ip_empty.run_cell('%sql INSERT INTO "table with spaces" VALUES (2)')
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO 'table with spaces' VALUES (3)
+"""
+    )
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO "table with spaces" VALUES (4)
+"""
+    )
+    select_result_with_single_quote = ip_empty.run_cell(
+        "%sql SELECT * FROM 'table with spaces'"
+    ).result
+    assert select_result_with_single_quote.dict() == {"n": (1, 2, 3, 4)}
+
+    select_result_with_double_quote = ip_empty.run_cell(
+        '%sql SELECT * FROM "table with spaces"'
+    ).result
+    assert select_result_with_double_quote.dict() == {"n": (1, 2, 3, 4)}
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        (" SELECT * FROM test"),
+        ("  SELECT * FROM test"),
+        ("  SELECT  * FROM test"),
+        (
+            """
+SELECT * FROM test"""
+        ),
+        (
+            """
+
+SELECT * FROM test"""
+        ),
+        (
+            """
+SELECT
+ * FROM test"""
+        ),
+        (
+            """
+
+SELECT
+ * FROM test"""
+        ),
+    ],
+)
+def test_whitespaces_linebreaks_near_first_token(ip, query):
+    expected_result = (
+        "+---+------+\n"
+        "| n | name |\n"
+        "+---+------+\n"
+        "| 1 | foo  |\n"
+        "| 2 | bar  |\n"
+        "+---+------+"
+    )
+
+    ip.user_global_ns["query"] = query
+    out = ip.run_cell("%sql {{query}}").result
+    assert str(out) == expected_result
+
+    out = ip.run_cell(
+        """%%sql
+{{query}}"""
+    ).result
+    assert str(out) == expected_result
+
+
+def test_summarize_in_duckdb(ip_empty):
+    expected_result = {
+        "column_name": ("id", "x"),
+        "column_type": ("INTEGER", "INTEGER"),
+        "min": ("1", "-1"),
+        "max": ("3", "2"),
+        "approx_unique": ("3", "3"),
+        "avg": ("2.0", "0.6666666666666666"),
+        "std": ("1.0", "1.5275252316519468"),
+        "q25": ("1", "0"),
+        "q50": ("2", "1"),
+        "q75": ("3", "2"),
+        "count": (3, 3),
+        "null_percentage": ("0.0%", "0.0%"),
+    }
+
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE TABLE table1 (id INTEGER, x INTEGER)")
+    ip_empty.run_cell(
+        """%%sql
+INSERT INTO table1 VALUES (1, -1), (2, 1), (3, 2)"""
+    )
+    out = ip_empty.run_cell("%sql SUMMARIZE table1").result
+    assert out.dict() == expected_result
+
+    out = ip_empty.run_cell(
+        """%%sql
+SUMMARIZE table1"""
+    ).result
+    assert out.dict() == expected_result

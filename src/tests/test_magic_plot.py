@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 import pytest
 from IPython.core.error import UsageError
@@ -46,19 +45,21 @@ WHERE x > 2
     [
         [
             "%sqlplot someplot -t a -c b",
-            f"Unknown plot 'someplot'. Must be any of: {plot_str}",
+            "argument plot_name: invalid choice: 'someplot' "
+            "(choose from 'histogram', 'hist', 'boxplot', 'box', 'bar', 'pie')",
         ],
         [
             "%sqlplot -t a -c b",
-            f"Missing the first argument, must be any of: {plot_str}",
+            "the following arguments are required: plot_name",
         ],
     ],
+    ids=["invalid_plot_name", "missing_plot_name"],
 )
 def test_validate_plot_name(tmp_empty, ip, cell, error_message):
     with pytest.raises(UsageError) as excinfo:
         ip.run_cell(cell)
 
-    assert excinfo.value.error_type == "UsageError"
+    assert excinfo.typename == "UsageError"
     assert str(error_message).lower() in str(excinfo.value).lower()
 
 
@@ -231,34 +232,10 @@ def test_binwidth_larger_than_range(load_penguin, ip, capsys):
         '%sqlplot histogram --table spaces.csv --column "some column"',
         '%sqlplot bar --table spaces.csv --column "some column"',
         '%sqlplot pie --table spaces.csv --column "some column"',
-        pytest.param(
-            "%sqlplot boxplot --table 'file with spaces.csv' --column x",
-            marks=pytest.mark.xfail(
-                sys.platform == "win32",
-                reason="problem in IPython.core.magic_arguments.parse_argstring",
-            ),
-        ),
-        pytest.param(
-            "%sqlplot histogram --table 'file with spaces.csv' --column x",
-            marks=pytest.mark.xfail(
-                sys.platform == "win32",
-                reason="problem in IPython.core.magic_arguments.parse_argstring",
-            ),
-        ),
-        pytest.param(
-            "%sqlplot bar --table 'file with spaces.csv' --column x",
-            marks=pytest.mark.xfail(
-                sys.platform == "win32",
-                reason="problem in IPython.core.magic_arguments.parse_argstring",
-            ),
-        ),
-        pytest.param(
-            "%sqlplot pie --table 'file with spaces.csv' --column x",
-            marks=pytest.mark.xfail(
-                sys.platform == "win32",
-                reason="problem in IPython.core.magic_arguments.parse_argstring",
-            ),
-        ),
+        "%sqlplot boxplot --table 'file with spaces.csv' --column x",
+        "%sqlplot histogram --table 'file with spaces.csv' --column x",
+        "%sqlplot bar --table 'file with spaces.csv' --column x",
+        "%sqlplot pie --table 'file with spaces.csv' --column x",
     ],
     ids=[
         "histogram",
@@ -602,7 +579,7 @@ def test_sqlplot_snippet_deletion(ip_snippets, arg):
 
 TABLE_NAME_TYPO_MSG = """
 There is no table with name 'subst' in the default schema
-Did you mean : 'subset'
+Did you mean: 'subset'
 If you need help solving this issue, send us a message: https://ploomber.io/community
 """
 
