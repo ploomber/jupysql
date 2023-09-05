@@ -98,7 +98,8 @@ WHERE "{{column}}" < {{whislo}}
 OR  "{{column}}" > {{whishi}}
 """
     )
-    query = template.render(table=table, column=column, whislo=whislo, whishi=whishi)
+    query = template.render(table=table, column=column,
+                            whislo=whislo, whishi=whishi)
 
     results = [float(n[0]) for n in conn.execute(query, with_).fetchall()]
     return results
@@ -163,7 +164,8 @@ def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
 
     # compute a single array of outliers
     stats["fliers"] = np.array(
-        _between(conn, table, column, stats["whislo"], stats["whishi"], with_=with_)
+        _between(conn, table, column,
+                 stats["whislo"], stats["whishi"], with_=with_)
     )
 
     # add in the remaining stats
@@ -242,7 +244,8 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
         set_label(column)
         set_ticklabels([column])
     else:
-        stats = [_boxplot_stats(conn, table, col, with_=with_) for col in column]
+        stats = [_boxplot_stats(conn, table, col, with_=with_)
+                 for col in column]
         ax.bxp(stats, vert=vert)
         ax.set_title(f"Boxplot from {table!r}")
         set_ticklabels(column)
@@ -250,9 +253,9 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
     return ax
 
 
-def _min_max(con, table, column, with_=None, use_backticks=False):
-    if not con:
-        con = sql.connection.ConnectionManager.current
+def _min_max(conn, table, column, with_=None, use_backticks=False):
+    if not conn:
+        conn = sql.connection.ConnectionManager.current
     template_ = """
 SELECT
     MIN("{{column}}"),
@@ -265,7 +268,7 @@ FROM "{{table}}"
     template = Template(template_)
     query = template.render(table=table, column=column)
 
-    min_, max_ = con.execute(query, with_).fetchone()
+    min_, max_ = conn.execute(query, with_).fetchone()
     return min_, max_
 
 
@@ -558,7 +561,8 @@ def _histogram(
     column = to_upper_if_snowflake_conn(conn, column)
     table = to_upper_if_snowflake_conn(conn, table)
     # FIXME: we're computing all the with elements twice
-    min_, max_ = _min_max(conn, table, column, with_=with_, use_backticks=use_backticks)
+    min_, max_ = _min_max(conn, table, column, with_=with_,
+                          use_backticks=use_backticks)
 
     # Define all relevant filters here
     filter_query_1 = f'"{column}" IS NOT NULL'
@@ -590,7 +594,8 @@ def _histogram(
             bin_midpoints = [
                 (b_start + b_end) / 2 for b_start, b_end in zip(breaks[:-1], breaks[1:])
             ]
-            all_bins = " union ".join([f"select {mid} as bin" for mid in bin_midpoints])
+            all_bins = " union ".join(
+                [f"select {mid} as bin" for mid in bin_midpoints])
 
             # Group data based on the intervals in breaks
             # Left join is used to ensure count=0
@@ -672,7 +677,8 @@ def _histogram(
 
         template = Template(template_)
 
-        query = template.render(table=table, column=column, filter_query=filter_query)
+        query = template.render(
+            table=table, column=column, filter_query=filter_query)
 
     data = conn.execute(query, with_).fetchall()
 
@@ -809,7 +815,8 @@ def _bar(table, column, with_=None, conn=None):
         x_ = column[0]
         height_ = column[1]
 
-        display.message(f"Removing NULLs, if there exists any from {x_} and {height_}")
+        display.message(
+            f"Removing NULLs, if there exists any from {x_} and {height_}")
         template_ = """
             select "{{x_}}" as x,
             "{{height_}}" as height
