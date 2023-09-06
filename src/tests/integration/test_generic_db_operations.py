@@ -485,11 +485,6 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
         ("ip_with_Snowflake"),
         ("ip_with_duckDB_native"),
         ("ip_with_redshift"),
-        ("ip_with_SQLite"),
-        ("ip_with_mariaDB"),
-        ("ip_with_mySQL"),
-        ("ip_with_MSSQL"),
-        ("ip_with_clickhouse"),
         pytest.param(
             "ip_with_SQLite",
             marks=pytest.mark.xfail(reason="does not support schema"),
