@@ -232,7 +232,7 @@ def boxplot(
 
     payload["connection_info"] = conn._get_database_information()
 
-    _table = enclose_table_with_double_quotations(table)
+    _table = enclose_table_with_double_quotations(table, conn)
     if schema:
         _table = f'"{schema}"."{_table}"'
 
@@ -404,7 +404,7 @@ def histogram(
         ["bins", "breaks", "binwidth"], [bins, breaks, binwidth]
     )
 
-    _table = enclose_table_with_double_quotations(table)
+    _table = enclose_table_with_double_quotations(table, conn)
     if schema:
         _table = f'"{schema}"."{_table}"'
 
@@ -918,7 +918,7 @@ def bar(
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
-    _table = enclose_table_with_double_quotations(table)
+    _table = enclose_table_with_double_quotations(table, conn)
     if schema:
         _table = f'"{schema}"."{_table}"'
 
@@ -1095,7 +1095,7 @@ def pie(
     if not conn:
         conn = sql.connection.ConnectionManager.current
 
-    _table = enclose_table_with_double_quotations(table)
+    _table = enclose_table_with_double_quotations(table, conn)
     if schema:
         _table = f'"{schema}"."{_table}"'
 

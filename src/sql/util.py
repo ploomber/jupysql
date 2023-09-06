@@ -407,7 +407,7 @@ def if_substring_exists(string, substrings):
     return any(msg in string for msg in substrings)
 
 
-def enclose_table_with_double_quotations(table):
+def enclose_table_with_double_quotations(table, conn):
     """
     Function to enclose a file path, schema name,
     or table name with double quotations
@@ -419,5 +419,9 @@ def enclose_table_with_double_quotations(table):
         _table = f'"{parts[0]}"."{parts[1]}"'
     else:
         _table = table
+
+    use_backticks = conn.is_use_backtick_template()
+    if use_backticks:
+        _table = _table.replace('"', "`")
 
     return _table
