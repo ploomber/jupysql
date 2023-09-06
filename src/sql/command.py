@@ -68,7 +68,7 @@ class SQLCommand:
         self.parsed = parse.parse(self.command_text, magic.dsn_filename)
 
         self.parsed["sql_original"] = self.parsed["sql"] = self._var_expand(
-            self.parsed["sql"], user_ns, magic
+            self.parsed["sql"], user_ns
         )
 
         if add_conn:
@@ -88,7 +88,8 @@ class SQLCommand:
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
             # Apply strip to ensure whitespaces/linebreaks aren't passed
-            validate_nonidentifier_connection(self.sql.strip().split(" ")[0].strip())
+            validate_nonidentifier_connection(
+                self.sql.strip().split(" ")[0].strip())
 
     @property
     def sql(self):
