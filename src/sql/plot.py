@@ -257,9 +257,9 @@ def boxplot(
     return ax
 
 
-def _min_max(con, table, column, with_=None, use_backticks=False):
-    if not con:
-        con = sql.connection.ConnectionManager.current
+def _min_max(conn, table, column, with_=None, use_backticks=False):
+    if not conn:
+        conn = sql.connection.ConnectionManager.current
     template_ = """
 SELECT
     MIN("{{column}}"),
@@ -272,7 +272,7 @@ FROM {{table}}
     template = Template(template_)
     query = template.render(table=table, column=column)
 
-    min_, max_ = con.execute(query, with_).fetchone()
+    min_, max_ = conn.execute(query, with_).fetchone()
     return min_, max_
 
 
