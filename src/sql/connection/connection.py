@@ -265,20 +265,17 @@ class ConnectionManager:
                         _current._config_feedback_normal_or_more()
                         and cls.current != existing
                     ):
-                        display.message(f"Switching to connection {descriptor}")
+                        display.message(f"Switching to connection {descriptor!r}")
                     cls.current = existing
 
                 # passing the same URL but different alias: create a new connection
                 elif existing is None or existing.alias != alias:
-                    if (
-                        _current._config_feedback_normal_or_more()
-                        and cls.current
-                        and cls.current.alias != alias
-                    ):
-                        identifier = alias or descriptor
-                        display.message(
-                            f"Connecting and switching to connection {identifier}"
-                        )
+                    is_connect_and_switch, is_connect = False, False
+                    if cls.current and cls.current.alias != alias:
+                        is_connect_and_switch = True
+                    else:
+                        is_connect = True
+
                     cls.current = cls.from_connect_str(
                         connect_str=descriptor,
                         connect_args=connect_args,
@@ -286,6 +283,14 @@ class ConnectionManager:
                         alias=alias,
                         config=config,
                     )
+                    if _current._config_feedback_normal_or_more():
+                        identifier = alias or cls.current.url
+                        if is_connect_and_switch:
+                            display.message(
+                                f"Connecting and switching to connection {identifier!r}"
+                            )
+                        if is_connect:
+                            display.message(f"Connecting to {identifier!r}")
 
         else:
             if cls.connections:
@@ -727,7 +732,8 @@ class SQLAlchemyConnection(AbstractConnection):
         # TODO: we can parse the query to ensure that it's a SELECT statement
         # for example, it might start with WITH but the final statement might
         # not be a SELECT
-        is_select = first_word_statement in {"select", "with", "from"}
+        # `summarize` is added to support %sql SUMMARIZE table in duckdb
+        is_select = first_word_statement in {"select", "with", "from", "summarize"}
 
         operation = partial(self._execute_with_parameters, query, parameters)
         out = self._execute_with_error_handling(operation)

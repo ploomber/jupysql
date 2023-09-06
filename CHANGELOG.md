@@ -2,6 +2,13 @@
 
 ## 0.10.2dev
 
+* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
+* [Feature] Improved messages when loading configurations from `pyproject.toml` file.
+* [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
+* [Feature] Show feedback when starting a new connection (#807)
+* [Doc] Add chDB integration tutorial
+* [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
+* [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
 * [Doc] Opengraph/Sphinxext-opengraph Integration and Optimization for Social Media link Sharing (#253)
 
 ## 0.10.1 (2023-08-30)
