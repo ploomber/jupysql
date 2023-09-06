@@ -119,7 +119,7 @@ class SQLCommand:
         """Returns the return_result_var"""
         return self.parsed["return_result_var"]
 
-    def _var_expand(self, sql, user_ns, magic):
+    def _var_expand(self, sql, user_ns):
         return Template(sql).render(user_ns)
 
     def __repr__(self) -> str:
