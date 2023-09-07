@@ -11,6 +11,7 @@
 * [Doc] Add chDB integration tutorial
 * [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
 * [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
+* [Fix] Fix error when trying to access previously non-existing file (#840)
 
 ## 0.10.1 (2023-08-30)
 
