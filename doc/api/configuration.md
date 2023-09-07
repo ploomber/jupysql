@@ -147,6 +147,13 @@ print(f"Rating: {rating}")
 print(f"Change: {change}")
 ```
 
+Note that ```column_local_vars``` cannot be used when either of
+```autopandas``` or ```autopolars``` is enabled, and vice-versa.
+
+```{code-cell} ipython3
+%config SqlMagic.column_local_vars = False
+```
+
 ## `dsn_filename`
 
 ```{versionchanged} 0.10.0
