@@ -514,8 +514,8 @@ def test_sqlplot_using_schema(ip_with_dynamic_db, request):
     plt.cla()
     ip_with_dynamic_db.run_cell(
         """%%sql
-CREATE SCHEMA schema1;
-CREATE TABLE schema1.table1 (
+CREATE SCHEMA IF NOT EXISTS schema1;
+CREATE TABLE IF NOT EXISTS schema1.table1 (
     x INTEGER,
     y INTEGER
 );
