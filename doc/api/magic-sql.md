@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.15.0
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -327,7 +327,7 @@ WHERE x > 1
 ```
 
 ```{code-cell} ipython3
-%%sql --with larger_than_one
+%%sql
 SELECT x, y
 FROM larger_than_one
 WHERE y < 5
