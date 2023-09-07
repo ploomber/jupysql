@@ -110,9 +110,9 @@ Return Pandas DataFrames instead of regular result sets.
 
 ```{code-cell} ipython3
 %config SqlMagic.autopandas = True
-    df = %sql SELECT * FROM languages
+df = %sql SELECT * FROM languages
 type(df)
-    ```
+```
 
 ```{code-cell} ipython3
 %config SqlMagic.autopandas = False
