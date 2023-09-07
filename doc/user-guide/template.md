@@ -189,7 +189,7 @@ FROM one_species
 ```
 
 ```{important}
-When storing a snippet with `$variable` in {{template}}, the values are replaced upon saving, so assigning a new value to `variable` won't have any effect.
+When storing a snippet with `$variable` in `{{template}}`, the values are replaced upon saving, so assigning a new value to `variable` won't have any effect.
 ```
 
 ```{code-cell} ipython3
