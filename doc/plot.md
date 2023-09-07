@@ -160,7 +160,7 @@ _ = ax.set_xlabel("Trip distance")
 
 ## Bar plot
 
-To create a bar plot, call `%sqlplot bar`, and pass the name of the table and the column you want to plot. We will use the snippet created in the [Boxplot](#boxplot) example and JupySQL will plot for that subset of data.
+To create a bar plot, call `%sqlplot bar`, and pass the name of the table and the column you want to plot. We will use the snippet created in the [Boxplot](#boxplot) example and JupySQL will plot for that subset of data. 
 
 ```{code-cell} ipython3
 %sqlplot bar --table short_trips --column payment_type

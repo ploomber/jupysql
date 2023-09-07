@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.15.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -64,29 +64,42 @@ The simplest use case is to use a variable to determine which data to filter:
 ### Data filtering
 
 ```{code-cell} ipython3
+from string import Template
+
 sex = "MALE"
+template = Template(
+    """
+SELECT *
+FROM penguins.csv
+WHERE sex = '$sex'
+"""
+)
+
+sex_male = template.substitute(sex=sex)
 ```
 
 ```{code-cell} ipython3
-%%sql
-SELECT *
-FROM penguins.csv
-WHERE  sex = '{{sex}}'
+%sql {{sex_male}}
 ```
 
-Note that we have to add quotes around `{{sex}}`, since the literal is replaced.
+Note that we have to add quotes around `$sex`, since the literal is replaced.
 
 +++
 
-`{{variable}}` parameters are not limited to `WHERE` clauses, you can use them anywhere:
+`$variable` parameters are not limited to `WHERE` clauses, you can use them anywhere:
 
 ```{code-cell} ipython3
 dynamic_limit = 5
 dynamic_column = "island, sex"
+template = Template(
+    "SELECT $columns FROM penguins.csv LIMIT $limit"
+)
+
+dynamic_template = template.substitute(columns=dynamic_column, limit=dynamic_limit)
 ```
 
 ```{code-cell} ipython3
-%sql SELECT {{dynamic_column}} FROM penguins.csv LIMIT {{dynamic_limit}}
+%sql {{dynamic_template}}
 ```
 
 ### SQL generation
@@ -153,16 +166,20 @@ print(final)
 
 ### Using snippets
 
-You can combine the snippets feature with `{{variable}}`:
+You can combine the snippets feature with `{{template}}`:
 
 ```{code-cell} ipython3
 species = "Adelie"
+template = Template("""
+SELECT * FROM penguins.csv
+WHERE species = '$species'
+""")
+
+species_adelie = template.substitute(species=species)
 ```
 
 ```{code-cell} ipython3
-%%sql --save one_species --no-execute
-SELECT * FROM penguins.csv
-WHERE species = '{{species}}'
+%sql --save one_species --no-execute {{species_adelie}}
 ```
 
 ```{code-cell} ipython3
@@ -172,7 +189,7 @@ FROM one_species
 ```
 
 ```{important}
-When storing a snippet with `{{variable}}`, the values are replaced upon saving, so assigning a new value to `variable` won't have any effect.
+When storing a snippet with `$variable` in {{template}}, the values are replaced upon saving, so assigning a new value to `variable` won't have any effect.
 ```
 
 ```{code-cell} ipython3
@@ -185,15 +202,20 @@ SELECT *
 FROM one_species
 ```
 
-### Combining Python and `{{variable}}`
+### Combining Python and `{{template}}`
 
 You can combine Python code with the `%sql` magic to execute parametrized queries.
 
 Let's see how we can create multiple tables, each one containing the penguins for a given `island`.
 
 ```{code-cell} ipython3
+template = Template(
+    "CREATE TABLE $island AS (SELECT * from penguins.csv WHERE island = '$island')"
+)
+
 for island in ("Torgersen", "Biscoe", "Dream"):
-    %sql CREATE TABLE {{island}} AS (SELECT * from penguins.csv WHERE island = '{{island}}')
+    island_template = template.substitute(island=island)
+    %sql {{island_template}}
 ```
 
 ```{code-cell} ipython3

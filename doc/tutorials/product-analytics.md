@@ -121,7 +121,7 @@ The user growth rate between January and February is 33.33% while that of the Fe
 
 The use of self join in the query might be confusing. Here is a brief explanation of what the self join is doing. After we run the command
 `FROM monthly_user_count c1, monthly_user_count c2`
-The table we get is a cartesian product of these three rows:
+The table we get is a cartesian product of these three rows: 
 
 ```{code-cell} ipython3
 %%sql
