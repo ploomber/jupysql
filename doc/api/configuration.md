@@ -109,15 +109,15 @@ Default: `False`
 Return Pandas DataFrames instead of regular result sets.
 
 ```{code-cell} ipython3
+%config SqlMagic.autopandas = True
+    df = %sql SELECT * FROM languages
+type(df)
+    ```
+
+```{code-cell} ipython3
 %config SqlMagic.autopandas = False
 res = %sql SELECT * FROM languages
 type(res)
-```
-
-```{code-cell} ipython3
-%config SqlMagic.autopandas = True
-df = %sql SELECT * FROM languages
-type(df)
 ```
 
 ## `autopolars`
@@ -127,16 +127,16 @@ Default: `False`
 Return Polars DataFrames instead of regular result sets.
 
 ```{code-cell} ipython3
-%config SqlMagic.autopolars = False
-res = %sql SELECT * FROM languages
-type(res)
-```
-
-```{code-cell} ipython3
 %config SqlMagic.autopolars = True
 df = %sql SELECT * FROM languages
 type(df)
 ```
+
+```{code-cell} ipython3
+%config SqlMagic.autopolars = False
+    res = %sql SELECT * FROM languages
+type(res)
+    ```
 
 ## `column_local_vars`
 Default: `False`
@@ -169,12 +169,12 @@ Default: `True`
 Show connection string after execution.
 
 ```{code-cell} ipython3
-%config SqlMagic.displaycon = True
+%config SqlMagic.displaycon = False
 %sql SELECT * FROM languages LIMIT 2
 ```
 
 ```{code-cell} ipython3
-%config SqlMagic.displaycon = False
+%config SqlMagic.displaycon = True
 %sql SELECT * FROM languages LIMIT 2
 ```
 
