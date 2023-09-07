@@ -95,11 +95,7 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(
-        default_value=True,
-        config=True,
-        help="Set autocommit mode"
-    )
+    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -122,9 +118,7 @@ class SqlMagic(Magics, Configurable):
         help="Return data into local variables from column names",
     )
     displaycon = Bool(
-        default_value=True,
-        config=True,
-        help="Show connection string after execution"
+        default_value=True, config=True, help="Show connection string after execution"
     )
     displaylimit = Int(
         default_value=10,
@@ -202,20 +196,17 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message(
-                "displaylimit: Value None will be treated as 0 (no limit)")
+            display.message("displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(
-                        value)
+                    "{}: displaylimit cannot be a negative integer".format(value)
                 )
             return value
         except ValueError:
-            raise TraitError(
-                "{}: displaylimit is not an integer".format(value))
+            raise TraitError("{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -246,8 +237,7 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(
-                SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -418,8 +408,7 @@ class SqlMagic(Magics, Configurable):
             if args.with_:
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(
-                    command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(command.sql_original, args.save)
                 if with_:
                     command.set_sql_with(with_)
                     display.message(
@@ -457,8 +446,7 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(
-                args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
 
         if args.connection_arguments:
             try:
@@ -566,8 +554,7 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(
-                            ", ".join(keys))
+                        "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
