@@ -95,37 +95,16 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    displaycon = Bool(
-        default_value=True, config=True, help="Show connection string after execution"
+    autocommit = Bool(
+        default_value=True,
+        config=True,
+        help="Set autocommit mode"
     )
     autolimit = Int(
         default_value=0,
         config=True,
         allow_none=True,
         help="Automatically limit the size of the returned result sets",
-    )
-    style = Unicode(
-        default_value="DEFAULT",
-        config=True,
-        help=(
-            "Set the table printing style to any of prettytable's "
-            "defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, "
-            "RANDOM, SINGLE_BORDER, DOUBLE_BORDER, MARKDOWN )"
-        ),
-    )
-    short_errors = Bool(
-        default_value=True,
-        config=True,
-        help="Don't display the full traceback on SQL Programming Error",
-    )
-    displaylimit = Int(
-        default_value=10,
-        config=True,
-        allow_none=True,
-        help=(
-            "Automatically limit the number of rows "
-            "displayed (full result set is still stored)"
-        ),
     )
     autopandas = Bool(
         default_value=False,
@@ -137,26 +116,25 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Return Polars DataFrames instead of regular result sets",
     )
-    polars_dataframe_kwargs = Dict(
-        default_value={},
-        config=True,
-        help=(
-            "Polars DataFrame constructor keyword arguments"
-            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
-        ),
-    )
     column_local_vars = Bool(
         default_value=False,
         config=True,
         help="Return data into local variables from column names",
     )
-
-    feedback = Int(
-        default_value=1,
+    displaycon = Bool(
+        default_value=True,
         config=True,
-        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+        help="Show connection string after execution"
     )
-
+    displaylimit = Int(
+        default_value=10,
+        config=True,
+        allow_none=True,
+        help=(
+            "Automatically limit the number of rows "
+            "displayed (full result set is still stored)"
+        ),
+    )
     dsn_filename = Unicode(
         default_value=str(Path("~/.jupysql/connections.ini").expanduser()),
         config=True,
@@ -165,15 +143,39 @@ class SqlMagic(Magics, Configurable):
         "a sqlalchemy connection string is formed from the "
         "matching section in the DSN file.",
     )
-
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
-
+    feedback = Int(
+        default_value=1,
+        config=True,
+        help="Verbosity level. 0=minimal, 1=normal, 2=all",
+    )
     named_parameters = Bool(
         default_value=False,
         config=True,
         help=(
             "Allow named parameters in queries "
             "(i.e., 'SELECT * FROM foo WHERE bar = :bar')"
+        ),
+    )
+    polars_dataframe_kwargs = Dict(
+        default_value={},
+        config=True,
+        help=(
+            "Polars DataFrame constructor keyword arguments"
+            "(e.g. infer_schema_length, nan_to_null, schema_overrides, etc)"
+        ),
+    )
+    short_errors = Bool(
+        default_value=True,
+        config=True,
+        help="Don't display the full traceback on SQL Programming Error",
+    )
+    style = Unicode(
+        default_value="DEFAULT",
+        config=True,
+        help=(
+            "Set the table printing style to any of prettytable's "
+            "defined styles (currently DEFAULT, MSWORD_FRIENDLY, PLAIN_COLUMNS, "
+            "RANDOM, SINGLE_BORDER, DOUBLE_BORDER, MARKDOWN )"
         ),
     )
 
@@ -200,17 +202,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -241,7 +246,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -412,7 +418,8 @@ class SqlMagic(Magics, Configurable):
             if args.with_:
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save)
                 if with_:
                     command.set_sql_with(with_)
                     display.message(
@@ -450,7 +457,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -558,7 +566,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
