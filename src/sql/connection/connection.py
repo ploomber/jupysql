@@ -896,6 +896,10 @@ class SQLAlchemyConnection(AbstractConnection):
             else:
                 raise
 
+        except Exception as e:
+            if "duckdb.InvalidInputException" in str(e) and "please ROLLBACK" in str(e):
+                rollback_needed = True
+
         if rollback_needed:
             self._connection.rollback()
             out = operation()
