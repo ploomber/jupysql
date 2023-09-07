@@ -134,9 +134,9 @@ type(df)
 
 ```{code-cell} ipython3
 %config SqlMagic.autopolars = False
-    res = %sql SELECT * FROM languages
+res = %sql SELECT * FROM languages
 type(res)
-    ```
+```
 
 ## `column_local_vars`
 Default: `False`
