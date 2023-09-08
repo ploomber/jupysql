@@ -102,6 +102,8 @@ FROM penguins.csv
 WHERE island = 'Biscoe'
 ```
 
+Since we saved `biscoe` from the cell above, we can pass it as an argument to `--table` since jupysql autogenerates the CTE.
+
 ```{code-cell} ipython3
 %sqlplot boxplot --table biscoe --column body_mass_g
 ```

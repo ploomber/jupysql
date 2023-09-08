@@ -293,29 +293,21 @@ LIMIT 3
 ## Templated SQL queries
 
 ```{code-cell} ipython3
-from string import Template
+target = 1
+```
 
-template = Template(
-    """
+```{code-cell} ipython3
+%%sql
 SELECT *
 FROM my_data
-LIMIT $limit
-"""
-)
-
-limit_one = template.substitute(limit=1)
-limit_two = template.substitute(limit=2)
+WHERE x = {{target}}
 ```
 
 **Important:** Ensure you sanitize the input parameters; as malicious parameters will be able to run arbitrary SQL queries.
 
-```{code-cell} ipython3
-%sql {{limit_one}}
-```
+For more information, visit [Parameterizing SQL queries](../user-guide/template.md) section.
 
-```{code-cell} ipython3
-%sql {{limit_two}}
-```
++++
 
 ## Compose large queries
 

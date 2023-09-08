@@ -106,6 +106,7 @@ GROUP BY MONTH(date)
 ```
 
 Here, we will group the dataset by the month of the date, and then count the number of distinct users as the total number of users.
+We can use `monthly_user_count` in the cell below because it is saved from the cell above and jupysql automatically infers it when `monthly_user_count` is passed. 
 Also, note that '/' in SQL between two integers performs integer division. For example, 10/3 would be 3 instead of 3.33333. So the result needs to be multiplied by 1.0 to convert it to float.
 
 ```{code-cell} ipython3
