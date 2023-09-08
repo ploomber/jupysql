@@ -14,6 +14,7 @@ from sqlalchemy.exc import (
     StatementError,
     PendingRollbackError,
     InternalError,
+    ProgrammingError
 )
 from IPython.core.error import UsageError
 import sqlglot
@@ -896,7 +897,7 @@ class SQLAlchemyConnection(AbstractConnection):
             else:
                 raise
 
-        except Exception as e:
+        except ProgrammingError as e:
             if "duckdb.InvalidInputException" in str(e) and "please ROLLBACK" in str(e):
                 rollback_needed = True
             else:
