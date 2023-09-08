@@ -14,7 +14,7 @@ from sqlalchemy.exc import (
     StatementError,
     PendingRollbackError,
     InternalError,
-    ProgrammingError
+    ProgrammingError,
 )
 from IPython.core.error import UsageError
 import sqlglot
