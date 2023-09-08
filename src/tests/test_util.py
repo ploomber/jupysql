@@ -86,7 +86,9 @@ INSERT INTO numbers (x) VALUES (1), (2), (3);
         FROM numbers
         """
     )
-
+    print('!!!!!!!!')
+    print(store_table)
+    print('!!!!!!!!')
     out = ip_empty.run_cell(query.format(store_table, store_table))
     assert out.success
 

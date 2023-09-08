@@ -1,6 +1,20 @@
 # CHANGELOG
 
-## 0.10.1dev
+## 0.10.2dev
+
+* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
+* [Feature] Improved messages when loading configurations from `pyproject.toml` file.
+* [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works (#519)
+* [Feature] Add `schema/-s` for `%sqlplot` and ensure `--table schema.table` works (#854)
+* [Feature] Expose link in feedback when it is shown in a terminal (#846)
+* [Feature] Show feedback when starting a new connection (#807)
+* [Doc] Add chDB integration tutorial
+* [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations (#850)
+* [Fix] Fix result not displayed when `SUMMARIZE` argument is used in duckdb with a sqlalchemy connection (#836)
+* [Fix] Show deprecation warnings for legacy plot API (#513)
+
+
+## 0.10.1 (2023-08-30)
 
 * [Feature] Automatically connect if the `dsn_filename` (defaults to `~/.jupysql/connections.ini`) contains a `default` section
 * [Feature] Add `%sqlcmd connect` to see existing connections and create new ones (#632)

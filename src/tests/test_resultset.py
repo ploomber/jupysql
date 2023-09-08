@@ -638,7 +638,10 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
     assert id(first_set._sqlaproxy) == original_id
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 @pytest.fixture
 def result_warnings():
     df = pd.DataFrame({range(3), range(4, 7)})  # noqa
@@ -655,7 +658,6 @@ def result_warnings():
 def result_set_warnings(result_warnings, config):
     result_set_warn, conn = result_warnings
     return ResultSet(result_set_warn, config, statement="select * from df", conn=conn)
-
 
 @pytest.mark.parametrize(
     "function, expected_warning",

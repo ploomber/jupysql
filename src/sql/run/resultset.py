@@ -5,8 +5,8 @@ from io import StringIO
 from html import unescape
 from collections.abc import Iterable
 
-
 import prettytable
+import warnings
 
 from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor

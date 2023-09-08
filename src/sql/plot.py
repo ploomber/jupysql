@@ -240,6 +240,7 @@ def boxplot(payload, table, column, *, orient="v", with_=None, conn=None, ax=Non
         ax.bxp(stats, vert=vert)
         ax.set_title(f"{column!r} from {table!r}")
         set_label(column)
+        print(column)
         set_ticklabels([column])
     else:
         stats = [_boxplot_stats(conn, table, col, with_=with_) for col in column]
