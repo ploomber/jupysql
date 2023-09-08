@@ -898,6 +898,8 @@ class SQLAlchemyConnection(AbstractConnection):
                 raise
 
         except ProgrammingError as e:
+            # error when accessing previously non-existing file with duckdb using
+            # sqlalchemy 2.x
             if "duckdb.InvalidInputException" in str(e) and "please ROLLBACK" in str(e):
                 rollback_needed = True
             else:
