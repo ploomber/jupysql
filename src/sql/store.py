@@ -47,12 +47,10 @@ class SQLStore(MutableMapping):
             matches = difflib.get_close_matches(key, self._data)
             error = f'"{key}" is not a valid snippet identifier.'
             if matches:
-                raise exceptions.UsageError(
-                    error + f' Did you mean "{matches[0]}"?')
+                raise exceptions.UsageError(error + f' Did you mean "{matches[0]}"?')
             else:
                 valid = ", ".join(f'"{key}"' for key in self._data.keys())
-                raise exceptions.UsageError(
-                    error + f" Valid identifiers are {valid}.")
+                raise exceptions.UsageError(error + f" Valid identifiers are {valid}.")
         return self._data[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -161,8 +159,7 @@ def _get_dependencies(store, keys):
 def _get_dependencies_for_key(store, key):
     """Retrieve dependencies for a single key"""
     deps = store[key]._with_
-    deps_of_deps = _flatten(
-        [_get_dependencies_for_key(store, dep) for dep in deps])
+    deps_of_deps = _flatten([_get_dependencies_for_key(store, dep) for dep in deps])
     return deps_of_deps + deps
 
 
