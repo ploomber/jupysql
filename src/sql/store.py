@@ -47,10 +47,12 @@ class SQLStore(MutableMapping):
             matches = difflib.get_close_matches(key, self._data)
             error = f'"{key}" is not a valid snippet identifier.'
             if matches:
-                raise exceptions.UsageError(error + f' Did you mean "{matches[0]}"?')
+                raise exceptions.UsageError(
+                    error + f' Did you mean "{matches[0]}"?')
             else:
                 valid = ", ".join(f'"{key}"' for key in self._data.keys())
-                raise exceptions.UsageError(error + f" Valid identifiers are {valid}.")
+                raise exceptions.UsageError(
+                    error + f" Valid identifiers are {valid}.")
         return self._data[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -116,10 +118,14 @@ class SQLQuery:
         ` (backtick)
         """
         with_clause_template = Template(
-            """WITH{% for name in with_ %} {{name}} AS ({{'\n\t' + rts(saved[name]._query) + '\n'}}){{ "," if not loop.last }}{% endfor %}{{'\n' + query}}"""
+            """WITH{% for name in with_ %} {{name}} AS (\
+{{'\n\t' + rts(saved[name]._query) + '\n'}}\
+){{ "," if not loop.last }}{% endfor %}{{'\n' + query}}"""
         )
         with_clause_template_backtick = Template(
-            """WITH{% for name in with_ %} `{{name}}` AS ({{'\n\t' + rts(saved[name]._query) + '\n'}}){{ "," if not loop.last }}{% endfor %}{{'\n' + query}}"""
+            """WITH{% for name in with_ %} `{{name}}` AS (\
+{{'\n\t' + rts(saved[name]._query) + '\n'}}\
+){{ "," if not loop.last }}{% endfor %}{{'\n' + query}}"""
         )
         is_use_backtick = (
             sql.connection.ConnectionManager.current.is_use_backtick_template()
@@ -155,7 +161,8 @@ def _get_dependencies(store, keys):
 def _get_dependencies_for_key(store, key):
     """Retrieve dependencies for a single key"""
     deps = store[key]._with_
-    deps_of_deps = _flatten([_get_dependencies_for_key(store, dep) for dep in deps])
+    deps_of_deps = _flatten(
+        [_get_dependencies_for_key(store, dep) for dep in deps])
     return deps_of_deps + deps
 
 
