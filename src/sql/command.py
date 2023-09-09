@@ -89,8 +89,7 @@ class SQLCommand:
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
             # Apply strip to ensure whitespaces/linebreaks aren't passed
-            validate_nonidentifier_connection(
-                self.sql.strip().split(" ")[0].strip())
+            validate_nonidentifier_connection(self.sql.strip().split(" ")[0].strip())
 
     @property
     def sql(self):
