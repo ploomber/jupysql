@@ -15,6 +15,8 @@ from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
 from sql.connection.connection import IS_SQLALCHEMY_ONE
 
+import warnings
+
 
 @pytest.fixture
 def config():
@@ -635,3 +637,48 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
     list(first_set)
 
     assert id(first_set._sqlaproxy) == original_id
+
+
+@pytest.mark.parametrize(
+    "function, expected_warning",
+    [
+        (
+            "pie",
+            (
+                ".pie() is deprecated and will be removed in a future version. "
+                "Use %sqlplot pie instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+        (
+            "bar",
+            (
+                ".bar() is deprecated and will be removed in a future version. "
+                "Use %sqlplot bar instead. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+        (
+            "plot",
+            (
+                ".plot() is deprecated and will be removed in a future version. "
+                "For more help, find us at https://ploomber.io/community "
+            ),
+        ),
+    ],
+)
+def test_deprecated_warnings(config, function, expected_warning):
+    with warnings.catch_warnings(record=True) as record:
+        if function == "pie":
+            df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+        else:
+            df = pd.DataFrame({"x": [1, 2, 3]})
+
+        engine = sqlalchemy.create_engine("duckdb://")
+        conn = SQLAlchemyConnection(engine)
+        result = conn.raw_execute("select * from df")
+        rs = ResultSet(result, config, statement="select * from df", conn=conn)
+
+        getattr(rs, function)()
+        assert len(record) == 1
+        assert str(record[0].message) == expected_warning
