@@ -109,11 +109,11 @@ def test_parsed_sql_when_using_with(ip, sql_magic):
     cmd = SQLCommand(
         sql_magic, ip.user_ns, line="--with author_one", cell="SELECT * FROM author_one"
     )
+    print(cmd)
 
-    sql = "WITH `author_one` AS (\n\n        SELECT * FROM author LIMIT 1\n        )\n\
-SELECT * FROM author_one"
+    sql = "WITH `author_one` AS (SELECT * FROM author LIMIT 1)SELECT * FROM author_one"
 
-    sql_original = "\nSELECT * FROM author_one"
+    sql_original = "SELECT * FROM author_one"
 
     assert cmd.parsed == {
         "connection": "",
@@ -136,13 +136,13 @@ def test_parsed_sql_when_using_file(ip, sql_magic, tmp_empty):
         "connection": "",
         "result_var": None,
         "return_result_var": False,
-        "sql": "SELECT * FROM author\n",
-        "sql_original": "SELECT * FROM author\n",
+        "sql": "SELECT * FROM author",
+        "sql_original": "SELECT * FROM author",
     }
 
     assert cmd.connection == ""
-    assert cmd.sql == "SELECT * FROM author\n"
-    assert cmd.sql_original == "SELECT * FROM author\n"
+    assert cmd.sql == "SELECT * FROM author"
+    assert cmd.sql_original == "SELECT * FROM author"
 
 
 def test_args(ip, sql_magic):
@@ -190,7 +190,7 @@ def test_parse_sql_when_passing_engine(ip, sql_magic, tmp_empty, line):
 
     cmd = SQLCommand(sql_magic, ip.user_ns, line, cell="SELECT * FROM author")
 
-    sql_expected = "\nSELECT * FROM author"
+    sql_expected = "SELECT * FROM author"
 
     assert cmd.parsed == {
         "connection": engine,
@@ -215,7 +215,7 @@ def test_variable_substitution_double_curly_cell_magic(ip, sql_magic):
         cell="GRANT CONNECT ON DATABASE postgres TO {{username}};",
     )
 
-    assert cmd.parsed["sql"] == "\nGRANT CONNECT ON DATABASE postgres TO some-user;"
+    assert cmd.parsed["sql"] == "GRANT CONNECT ON DATABASE postgres TO some-user;"
 
 
 def test_variable_substitution_double_curly_line_magic(ip, sql_magic):
@@ -241,3 +241,14 @@ def test_with_contains_dash_show_warning_message(ip, sql_magic, capsys):
 
     assert error.value.error_type == "UsageError"
     assert "Using hyphens (-) in save argument isn't allowed" in str(error.value)
+
+
+def test_remove_leading_parentheses(ip, sql_magic):
+    cmd = SQLCommand(
+        sql_magic,
+        ip.user_ns,
+        line="(WITH langs as (select * from languages) select * from langs)",
+        cell="",
+    )
+
+    assert cmd.parsed["sql"] == "WITH langs as (select * from languages) select * from langs"
