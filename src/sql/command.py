@@ -89,8 +89,7 @@ class SQLCommand:
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
             # Apply strip to ensure whitespaces/linebreaks aren't passed
-            validate_nonidentifier_connection(
-                self.sql.strip().split(" ")[0].strip())
+            validate_nonidentifier_connection(self.sql.strip().split(" ")[0].strip())
 
     @property
     def sql(self):
@@ -160,7 +159,7 @@ class SQLCommand:
                     else:
                         break
 
-                return rendered_sql_command[count: -(count)]
+                return rendered_sql_command[count:-(count)]
         return rendered_sql_command
 
     def __repr__(self) -> str:

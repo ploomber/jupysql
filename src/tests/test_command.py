@@ -251,4 +251,7 @@ def test_remove_leading_parentheses(ip, sql_magic):
         cell="",
     )
 
-    assert cmd.parsed["sql"] == "WITH langs as (select * from languages) select * from langs"
+    assert (
+        cmd.parsed["sql"]
+        == "WITH langs as (select * from languages) select * from langs"
+    )

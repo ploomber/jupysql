@@ -172,8 +172,7 @@ def test_parse_connect_shovel_over_newlines():
     ],
 )
 def test_connection_from_dsn_section(section, expected):
-    result = connection_str_from_dsn_section(
-        section=section, config=DummyConfig)
+    result = connection_str_from_dsn_section(section=section, config=DummyConfig)
     assert result == expected
 
 
@@ -203,8 +202,7 @@ def test_connection_from_dsn_section(section, expected):
     ],
 )
 def test_connection_string(input_, expected):
-    assert _connection_string(
-        input_, "src/tests/test_dsn_config.ini") == expected
+    assert _connection_string(input_, "src/tests/test_dsn_config.ini") == expected
 
 
 class Bunch:
@@ -327,8 +325,7 @@ def test_magic_args(ip, line, expected):
 @pytest.mark.parametrize(
     "query, expected_escaped, expected_found",
     [
-        ("SELECT * FROM table where x > :x",
-         "SELECT * FROM table where x > :x", []),
+        ("SELECT * FROM table where x > :x", "SELECT * FROM table where x > :x", []),
         (
             "SELECT * FROM table where x > ':x'",
             "SELECT * FROM table where x > '\\:x'",
@@ -437,8 +434,8 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
         ("()()()", True),
         ("(()", False),
         ("(", False),
-        ("(()())", True)
-    ]
+        ("(()())", True),
+    ],
 )
 def test_is_valid_parentheses(input_string: str, expected: bool):
     assert is_valid_parentheses(input_string) == expected
