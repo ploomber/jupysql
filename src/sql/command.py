@@ -123,7 +123,7 @@ class SQLCommand:
 
     def _var_expand(self, sql, user_ns):
         template_render = Template(sql).render(user_ns)
-        # template_render = self.remove_leading_parentheses(template_render)
+        template_render = self.remove_leading_parentheses(template_render)
         return template_render
 
     def remove_leading_parentheses(self, rendered_sql_command):
