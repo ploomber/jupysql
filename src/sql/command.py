@@ -7,6 +7,7 @@ from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
 from sql.util import validate_nonidentifier_connection
+from sql.parse import is_valid_parentheses
 
 
 class SQLPlotCommand:
@@ -88,7 +89,8 @@ class SQLCommand:
             and not (self.args.persist_replace or self.args.persist or self.args.append)
         ):
             # Apply strip to ensure whitespaces/linebreaks aren't passed
-            validate_nonidentifier_connection(self.sql.strip().split(" ")[0].strip())
+            validate_nonidentifier_connection(
+                self.sql.strip().split(" ")[0].strip())
 
     @property
     def sql(self):
@@ -120,7 +122,46 @@ class SQLCommand:
         return self.parsed["return_result_var"]
 
     def _var_expand(self, sql, user_ns):
-        return Template(sql).render(user_ns)
+        template_render = Template(sql).render(user_ns)
+        # template_render = self.remove_leading_parentheses(template_render)
+        return template_render
+
+    def remove_leading_parentheses(self, rendered_sql_command):
+        """
+        Removes any leading parentheses from the sql_command_string
+
+        Example:
+            (WITH my_penguins as (
+                select * from penguins.csv
+            )
+            select * from my_penguins)
+
+            becomes
+
+            WITH my_penguins as (
+                select * from penguins.csv
+            )
+            select * from my_penguins
+        """
+        rendered_sql_command = rendered_sql_command.strip()
+        count = 0
+
+        if len(rendered_sql_command) > 1:
+            if "(" == rendered_sql_command[0] and ")" == rendered_sql_command[-1]:
+                parentheses_string = ""
+                for letter in rendered_sql_command:
+                    if letter in ["(", ")"]:
+                        parentheses_string += letter
+
+                while is_valid_parentheses(parentheses_string):
+                    if len(parentheses_string) >= 2:
+                        parentheses_string = parentheses_string[1:-2]
+                        count += 1
+                    else:
+                        break
+
+                return rendered_sql_command[count: -(count)]
+        return rendered_sql_command
 
     def __repr__(self) -> str:
         return (

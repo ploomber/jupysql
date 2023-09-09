@@ -112,7 +112,7 @@ class SQLQuery:
 
     def __str__(self) -> str:
         """
-        We use the ' (backtick symbol) to wrap the CTE alias if the dialect supports
+        We use the ` (backtick symbol) to wrap the CTE alias if the dialect supports
         ` (backtick)
         """
         with_clause_template = Template(

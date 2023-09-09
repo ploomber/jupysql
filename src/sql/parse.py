@@ -259,3 +259,26 @@ def find_named_parameters(input_string):
     matches = re.findall(variable_pattern, input_string)
 
     return matches
+
+
+def is_valid_parentheses(input_string: str) -> bool:
+    if len(input_string) < 2:
+        return False
+
+    open_parentheses = "("
+
+    stack = []
+
+    for parentheses in input_string:
+        if parentheses == open_parentheses:
+            stack.append(parentheses)
+        else:
+            if len(stack) > 0:
+                stack.pop()
+            else:
+                return False
+
+    if len(stack) > 0:
+        return False
+
+    return True

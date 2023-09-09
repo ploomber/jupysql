@@ -391,6 +391,7 @@ class SqlMagic(Magics, Configurable):
         user_ns.update(local_ns)
 
         command = SQLCommand(self, user_ns, line, cell)
+
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
@@ -436,6 +437,7 @@ class SqlMagic(Magics, Configurable):
             )
             interact(interactive_execute_wrapper, **interactive_dict)
             return
+
         if args.connections:
             return sql.connection.ConnectionManager.connections_table()
         elif args.close:
