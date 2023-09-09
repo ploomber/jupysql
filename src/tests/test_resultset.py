@@ -638,26 +638,6 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
     assert id(first_set._sqlaproxy) == original_id
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-@pytest.fixture
-def result_warnings():
-    df = pd.DataFrame({range(3), range(4, 7)})  # noqa
-    engine = sqlalchemy.create_engine("duckdb://")
-
-    conn = SQLAlchemyConnection(engine)
-    result = conn.raw_execute("select * from df")
-
-    yield result, conn
-    conn.close()
-
-
-@pytest.fixture
-def result_set_warnings(result_warnings, config):
-    result_set_warn, conn = result_warnings
-    return ResultSet(result_set_warn, config, statement="select * from df", conn=conn)
 
 @pytest.mark.parametrize(
     "function, expected_warning",
@@ -687,8 +667,18 @@ def result_set_warnings(result_warnings, config):
         ),
     ],
 )
-def test_deprecated_warnings(result_set_warnings, function, expected_warning):
+def test_deprecated_warnings(config, function, expected_warning):
     with warnings.catch_warnings(record=True) as record:
-        getattr(result_set_warnings, function)()
+        if function == "pie":
+            df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+        else:
+            df = pd.DataFrame({"x": [1, 2, 3]})
+
+        engine = sqlalchemy.create_engine("duckdb://")
+        conn = SQLAlchemyConnection(engine)
+        result = conn.raw_execute("select * from df")
+        rs = ResultSet(result, config, statement="select * from df", conn=conn)
+
+        getattr(rs, function)()
         assert len(record) == 1
         assert str(record[0].message) == expected_warning
