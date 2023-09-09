@@ -168,9 +168,14 @@ def test_serial(with_, is_dialect_support_backtick, monkeypatch):
 
     assert (
         str(result)
-        == "WITH {0}first{0} AS (SELECT * FROM a WHERE x > 10), \
-{0}second{0} AS (SELECT * FROM first WHERE x > 20), \
-{0}third{0} AS (SELECT * FROM second WHERE x > 30)SELECT * FROM third".format(
+        == "WITH {0}first{0} AS (\
+\n\tSELECT * FROM a WHERE x > 10\
+\n), {0}second{0} AS (\
+\n\tSELECT * FROM first WHERE x > 20\
+\n), {0}third{0} AS (\
+\n\tSELECT * FROM second WHERE x > 30\
+\n)\
+\nSELECT * FROM third".format(
             identifier
         )
     )
@@ -214,10 +219,16 @@ def test_branch_root(is_dialect_support_backtick, monkeypatch):
     result = sql_store.render("SELECT * FROM third", with_=["third_a", "first_b"])
     assert (
         str(result)
-        == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
-{0}second_a{0} AS (SELECT * FROM first_a WHERE x > 20), \
-{0}third_a{0} AS (SELECT * FROM second_a WHERE x > 30), \
-{0}first_b{0} AS (SELECT * FROM b WHERE y > 10)SELECT * FROM third".format(
+        == "WITH {0}first_a{0} AS (\
+\n\tSELECT * FROM a WHERE x > 10\
+\n), {0}second_a{0} AS (\
+\n\tSELECT * FROM first_a WHERE x > 20\
+\n), {0}third_a{0} AS (\
+\n\tSELECT * FROM second_a WHERE x > 30\
+\n), {0}first_b{0} AS (\
+\n\tSELECT * FROM b WHERE y > 10\
+\n)\
+\nSELECT * FROM third".format(
             identifier
         )
     )
@@ -263,10 +274,16 @@ def test_branch_root_reverse_final_with(is_dialect_support_backtick, monkeypatch
     result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
-        == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
-{0}second_a{0} AS (SELECT * FROM first_a WHERE x > 20), \
-{0}first_b{0} AS (SELECT * FROM b WHERE y > 10), \
-{0}third_a{0} AS (SELECT * FROM second_a WHERE x > 30)SELECT * FROM third".format(
+        == "WITH {0}first_a{0} AS (\
+\n\tSELECT * FROM a WHERE x > 10\
+\n), {0}second_a{0} AS (\
+\n\tSELECT * FROM first_a WHERE x > 20\
+\n), {0}first_b{0} AS (\
+\n\tSELECT * FROM b WHERE y > 10\
+\n), {0}third_a{0} AS (\
+\n\tSELECT * FROM second_a WHERE x > 30\
+\n)\
+\nSELECT * FROM third".format(
             identifier
         )
     )
@@ -312,10 +329,16 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
     result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
-        == "WITH {0}first_a{0} AS (SELECT * FROM a WHERE x > 10), \
-{0}second_a{0} AS (SELECT * FROM first_a WHERE x > 20), \
-{0}first_b{0} AS (SELECT * FROM second_a WHERE y > 10), \
-{0}third_a{0} AS (SELECT * FROM second_a WHERE x > 30)SELECT * FROM third".format(
+        == "WITH {0}first_a{0} AS (\
+\n\tSELECT * FROM a WHERE x > 10\
+\n), {0}second_a{0} AS (\
+\n\tSELECT * FROM first_a WHERE x > 20\
+\n), {0}first_b{0} AS (\
+\n\tSELECT * FROM second_a WHERE y > 10\
+\n), {0}third_a{0} AS (\
+\n\tSELECT * FROM second_a WHERE x > 30\
+\n)\
+\nSELECT * FROM third".format(
             identifier
         )
     )
