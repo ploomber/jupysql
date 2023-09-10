@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+import sqlparse
+
 try:
     from ipywidgets import interact
 except ModuleNotFoundError:
@@ -95,7 +97,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+    autocommit = Bool(default_value=True, config=True,
+                      help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -196,17 +199,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -237,7 +243,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -406,22 +413,50 @@ class SqlMagic(Magics, Configurable):
         # only expand CTE if this is not a CTE itself
         if not is_cte:
             if args.with_:
+                query_type = sqlparse.parse(command.sql)[0].get_type() \
+                    if sqlparse.parse(command.sql) else None
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save
+                )
                 if with_:
                     command.set_sql_with(with_)
+                    query_type = sqlparse.parse(command.sql)[0].get_type() \
+                        if sqlparse.parse(command.sql) \
+                        else None
+
+                    if query_type != "SELECT":
+                        raise exceptions.UsageError(
+                            f"Cannot use snippets with {query_type}"
+                        )
+
                     display.message(
                         f"Generating CTE with stored snippets: {pretty_print(with_)}"
                     )
                 else:
+                    query_type = sqlparse.parse(command.sql)[0].get_type() \
+                        if sqlparse.parse(command.sql) else None
+                    print(f"not a cte and no dependencies {query_type}")
                     with_ = None
         else:
+            query_type = sqlparse.parse(command.sql)[0].get_type() \
+                if sqlparse.parse(command.sql) else None
             if args.with_:
                 raise exceptions.UsageError(
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
+            print("Is CTE", query_type)
 
+            if self._store.infer_dependencies(
+                command.sql_original, args.save
+            ):
+                # display.message(
+                #     "Cannot use snippets with CTEs"
+                # )
+                raise exceptions.UsageError(
+                    "Cannot use snippets with CTEs"
+                )
             with_ = None
 
         # Create the interactive slider
@@ -436,6 +471,7 @@ class SqlMagic(Magics, Configurable):
             )
             interact(interactive_execute_wrapper, **interactive_dict)
             return
+
         if args.connections:
             return sql.connection.ConnectionManager.connections_table()
         elif args.close:
@@ -446,7 +482,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -554,7 +591,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
