@@ -437,7 +437,6 @@ class SqlMagic(Magics, Configurable):
                 else:
                     query_type = sqlparse.parse(command.sql)[0].get_type() \
                         if sqlparse.parse(command.sql) else None
-                    print(f"not a cte and no dependencies {query_type}")
                     with_ = None
         else:
             query_type = sqlparse.parse(command.sql)[0].get_type() \
@@ -446,7 +445,6 @@ class SqlMagic(Magics, Configurable):
                 raise exceptions.UsageError(
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
-            print("Is CTE", query_type)
 
             if self._store.infer_dependencies(
                 command.sql_original, args.save
@@ -454,9 +452,10 @@ class SqlMagic(Magics, Configurable):
                 # display.message(
                 #     "Cannot use snippets with CTEs"
                 # )
-                raise exceptions.UsageError(
-                    "Cannot use snippets with CTEs"
-                )
+                if query_type != "SELECT":
+                    raise exceptions.UsageError(
+                        "Cannot use snippets with CTEs"
+                    )
             with_ = None
 
         # Create the interactive slider
