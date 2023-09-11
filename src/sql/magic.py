@@ -451,7 +451,9 @@ class SqlMagic(Magics, Configurable):
                 )
 
             """
-            dependencies = self._store.infer_dependencies(command.sql_original, args.save)
+            dependencies = self._store.infer_dependencies(
+                command.sql_original, args.save
+            )
             if len(dependencies) > 0:
                 for dependency in dependencies:
                     if dependency is not table:
