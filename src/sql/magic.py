@@ -450,11 +450,14 @@ class SqlMagic(Magics, Configurable):
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
 
-            if self._store.infer_dependencies(command.sql_original, args.save):
-                # display.message(
-                #     "Cannot use snippets with CTEs"
-                # )
-                raise exceptions.UsageError("Cannot use snippets with CTEs")
+            """
+            dependencies = self._store.infer_dependencies(command.sql_original, args.save)
+            if len(dependencies) > 0:
+                for dependency in dependencies:
+                    if dependency is not table:
+                        raise exceptions.UsageError("Cannot use snippets with CTEs")
+                print(query_type)
+            """
             with_ = None
 
         # Create the interactive slider
