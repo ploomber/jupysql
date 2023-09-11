@@ -670,9 +670,9 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 def test_deprecated_warnings(config, function, expected_warning):
     with warnings.catch_warnings(record=True) as record:
         if function == "pie":
-            df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+            df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})  # noqa
         else:
-            df = pd.DataFrame({"x": [1, 2, 3]})
+            df = pd.DataFrame({"x": [1, 2, 3]})  # noqa
 
         engine = sqlalchemy.create_engine("duckdb://")
         conn = SQLAlchemyConnection(engine)

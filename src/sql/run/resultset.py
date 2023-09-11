@@ -14,8 +14,6 @@ from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
 from sql._current import _config_feedback_all
 
-import warnings
-
 
 class ResultSet(ColumnGuesserMixin):
     """
