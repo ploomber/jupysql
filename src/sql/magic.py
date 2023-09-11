@@ -422,8 +422,8 @@ class SqlMagic(Magics, Configurable):
                 )
                 if with_:
                     command.set_sql_with(with_)
-                    query_type = sqlparse.parse(command.sql)[0].get_type() \
-                        if sqlparse.parse(command.sql) \
+                    query_type = sqlparse.parse(command.sql_original)[0].get_type() \
+                        if sqlparse.parse(command.sql_original) \
                         else None
 
                     if query_type != "SELECT":
@@ -452,10 +452,10 @@ class SqlMagic(Magics, Configurable):
                 # display.message(
                 #     "Cannot use snippets with CTEs"
                 # )
-                if query_type != "SELECT":
-                    raise exceptions.UsageError(
-                        "Cannot use snippets with CTEs"
-                    )
+                print(query_type)
+                raise exceptions.UsageError(
+                    "Cannot use snippets with CTEs"
+                )
             with_ = None
 
         # Create the interactive slider
