@@ -454,7 +454,6 @@ class SqlMagic(Magics, Configurable):
                 # display.message(
                 #     "Cannot use snippets with CTEs"
                 # )
-                print(query_type)
                 raise exceptions.UsageError("Cannot use snippets with CTEs")
             with_ = None
 
