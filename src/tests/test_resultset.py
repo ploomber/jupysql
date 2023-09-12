@@ -661,7 +661,9 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
                 "Use %sqlplot bar instead. "
                 "For more help, find us at https://ploomber.io/community "
             ),
-            {"x": [1, 2, 3]},
+            {
+                "x": [1, 2, 3],
+            },
         ),
         (
             "plot",
@@ -669,7 +671,9 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
                 ".plot() is deprecated and will be removed in a future version. "
                 "For more help, find us at https://ploomber.io/community "
             ),
-            {"x": [1, 2, 3]},
+            {
+                "x": [1, 2, 3],
+            },
         ),
     ],
 )
