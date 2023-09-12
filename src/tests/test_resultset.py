@@ -640,7 +640,7 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
 
 
 @pytest.mark.parametrize(
-    "function, expected_warning",
+    "function, expected_warning, dataset",
     [
         (
             "pie",
@@ -649,6 +649,10 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
                 "Use %sqlplot pie instead. "
                 "For more help, find us at https://ploomber.io/community "
             ),
+            {
+                "x": [1, 2, 3],
+                "y": [4, 5, 6],
+            },
         ),
         (
             "bar",
@@ -657,6 +661,7 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
                 "Use %sqlplot bar instead. "
                 "For more help, find us at https://ploomber.io/community "
             ),
+            {"x": [1, 2, 3]},
         ),
         (
             "plot",
@@ -664,21 +669,22 @@ def test_doesnt_refresh_sqlaproxy_if_different_connection():
                 ".plot() is deprecated and will be removed in a future version. "
                 "For more help, find us at https://ploomber.io/community "
             ),
+            {"x": [1, 2, 3]},
         ),
     ],
 )
-def test_deprecated_warnings(config, function, expected_warning):
+def test_calling_legacy_plotting_functions_displays_warning(
+    config, function, expected_warning, dataset
+):
+    df = pd.DataFrame(dataset)  # noqa
+    engine = sqlalchemy.create_engine("duckdb://")
+    conn = SQLAlchemyConnection(engine)
+    result = conn.raw_execute("select * from df")
+
+    rs = ResultSet(result, config, statement="select * from df", conn=conn)
+
     with warnings.catch_warnings(record=True) as record:
-        if function == "pie":
-            df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
-        else:
-            df = pd.DataFrame({"x": [1, 2, 3]})
-
-        engine = sqlalchemy.create_engine("duckdb://")
-        conn = SQLAlchemyConnection(engine)
-        result = conn.raw_execute("select * from df")
-        rs = ResultSet(result, config, statement="select * from df", conn=conn)
-
         getattr(rs, function)()
-        assert len(record) == 1
-        assert str(record[0].message) == expected_warning
+
+    assert len(record) == 1
+    assert str(record[0].message) == expected_warning
