@@ -247,7 +247,6 @@ def boxplot(
         ax.bxp(stats, vert=vert)
         ax.set_title(f"{column!r} from {table!r}")
         set_label(column)
-        print(column)
         set_ticklabels([column])
     else:
         stats = [_boxplot_stats(conn, _table, col, with_=with_) for col in column]
