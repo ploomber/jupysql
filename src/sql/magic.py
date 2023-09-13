@@ -1,6 +1,7 @@
 import json
 import re
 from pathlib import Path
+from ipywidgets.widgets.widget import comm
 
 import sqlparse
 
@@ -97,7 +98,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+    autocommit = Bool(default_value=True, config=True,
+                      help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -198,17 +200,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -239,7 +244,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -403,63 +409,56 @@ class SqlMagic(Magics, Configurable):
                 "is automatically set as the connection alias"
             )
 
-        is_cte = command.sql_original.strip().lower().startswith("with ")
+        is_cte = self.remove_leading_parentheses(
+            command.sql_original.strip().lower()
+        ).startswith("with ")
 
         # only expand CTE if this is not a CTE itself
         if not is_cte:
             if args.with_:
-                query_type = (
-                    sqlparse.parse(command.sql)[0].get_type()
-                    if sqlparse.parse(command.sql)
-                    else None
-                )
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save)
                 if with_:
-                    command.set_sql_with(with_)
-                    query_type = (
-                        sqlparse.parse(command.sql_original)[0].get_type()
-                        if sqlparse.parse(command.sql_original)
-                        else None
-                    )
+                    query_type = self.get_query_type(command, original=True)
 
                     if query_type != "SELECT":
-                        raise exceptions.UsageError(
+                        display.message_warning(
                             f"Cannot use snippets with {query_type}"
                         )
-
-                    display.message(
-                        f"Generating CTE with stored snippets: {pretty_print(with_)}"
-                    )
+                    else:
+                        command.set_sql_with(with_)
+                        display.message(
+                            f"Generating CTE with stored snippets: {pretty_print(with_)}"
+                        )
                 else:
-                    query_type = (
-                        sqlparse.parse(command.sql)[0].get_type()
-                        if sqlparse.parse(command.sql)
-                        else None
-                    )
                     with_ = None
         else:
-            query_type = (
-                sqlparse.parse(command.sql)[0].get_type()
-                if sqlparse.parse(command.sql)
-                else None
-            )
+            query_type = self.get_query_type(command, original=True)
             if args.with_:
                 raise exceptions.UsageError(
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
 
-            """
+            if query_type != "SELECT":
+                display.message_warning(
+                    "Cannot use snippets in CTEs"
+                )
+
             dependencies = self._store.infer_dependencies(
                 command.sql_original, args.save
             )
-            if len(dependencies) > 0:
+
+            parentheses_content = re.findall(
+                r"\((.*)\)", command.sql_original.replace('\n', ' ')
+            )
+            for query in parentheses_content:
                 for dependency in dependencies:
-                    if dependency is not table:
-                        raise exceptions.UsageError("Cannot use snippets with CTEs")
-                print(query_type)
-            """
+                    if dependency in query:
+                        display.message_warning(
+                            f"Cannot use snippet {dependency} in CTE"
+                        )
             with_ = None
 
         # Create the interactive slider
@@ -485,7 +484,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -593,7 +593,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -677,6 +678,77 @@ class SqlMagic(Magics, Configurable):
         conn.to_table(
             table_name=table_name, data_frame=frame, if_exists=if_exists, index=index
         )
+
+    def get_query_type(self, command: SQLCommand, original: bool):
+        """
+        Returns the query type of the original sql command
+        """
+        to_parse = self.remove_leading_parentheses(command.sql_original) \
+            if original else self.remove_leading_parentheses(command.sql)
+        query_type = (
+            sqlparse.parse(to_parse)[0].get_type()
+            if sqlparse.parse(to_parse)
+            else None
+        )
+        return query_type
+
+    def remove_leading_parentheses(self, sql_command):
+        """
+        Removes any leading parentheses from the sql_command_string
+        Example:
+            (WITH my_penguins as (
+                select * from penguins.csv
+            )
+            select * from my_penguins
+
+            becomes
+
+            WITH my_penguins as (
+                select * from penguins.csv
+            )
+            select * from my_penguins
+        """
+        def is_valid_parentheses(input_string: str) -> bool:
+            if len(input_string) < 2:
+                return False
+
+            open_parentheses = "("
+
+            stack = []
+
+            for parentheses in input_string:
+                if parentheses == open_parentheses:
+                    stack.append(parentheses)
+                else:
+                    if len(stack) > 0:
+                        stack.pop()
+                    else:
+                        return False
+
+            if len(stack) > 0:
+                return False
+
+            return True
+
+        sql_command = sql_command.strip()
+        count = 0
+
+        if len(sql_command) > 1:
+            if "(" == sql_command[0] and ")" == sql_command[-1]:
+                parentheses_string = ""
+                for letter in sql_command:
+                    if letter in ["(", ")"]:
+                        parentheses_string += letter
+
+                while is_valid_parentheses(parentheses_string):
+                    if len(parentheses_string) >= 2:
+                        parentheses_string = parentheses_string[1:-2]
+                        count += 1
+                    else:
+                        break
+
+                return sql_command[count: -(count)]
+        return sql_command
 
 
 def set_configs(ip, file_path):
