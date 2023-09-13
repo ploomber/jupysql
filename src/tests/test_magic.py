@@ -2014,4 +2014,3 @@ create table langs as (
 
     out, _ = capsys.readouterr()
     assert "Cannot use snippets with CREATE" in out
->>>>>>> f0d1af3 (added tests)
