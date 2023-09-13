@@ -690,7 +690,7 @@ class SqlMagic(Magics, Configurable):
             (WITH my_penguins as (
                 select * from penguins.csv
             )
-            select * from my_penguins
+            select * from my_penguins)
 
             becomes
 
