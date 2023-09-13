@@ -290,6 +290,7 @@ class ResultSet(ColumnGuesserMixin):
             ),
             UserWarning,
         )
+        
         self.guess_pie_columns(xlabel_sep=key_word_sep)
         import matplotlib.pylab as plt
 
