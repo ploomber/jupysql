@@ -3,6 +3,9 @@
 # Sqlalchemy version: 2+
 name: CI - DB Integration - Local
 on:
+  push:
+    branches:
+      - integration-clean-up
   workflow_call:
 
 jobs:
