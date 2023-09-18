@@ -26,7 +26,7 @@ def test_cte(ip_with_MSSQL, test_table_name_dict):
     )
     assert len(out_query_with_save_arg.result) == 3
 
-
+# DUPLICATE HERE
 def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     ip_with_MSSQL.run_cell("%config SqlMagic.displaylimit = 0")
 
@@ -57,7 +57,7 @@ def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     assert persist_out.error_in_exec is None and query_out.error_in_exec is None
     assert len(query_out.result) == 15
 
-
+# DUPLICATE HERE
 @pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
@@ -84,7 +84,7 @@ def test_sqlplot_histogram(ip_with_MSSQL, cell):
 
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
-
+# DUPLICATE HERE
 @pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
