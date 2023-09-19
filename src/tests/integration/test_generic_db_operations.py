@@ -131,7 +131,7 @@ def test_handle_multiple_open_result_sets(
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, args",
+    "ip_with_dynamic_db, args, prefix, suffix",
     [
         ("ip_with_postgreSQL", ""),
         ("ip_with_mySQL", ""),
