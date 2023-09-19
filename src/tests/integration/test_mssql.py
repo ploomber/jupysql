@@ -58,7 +58,7 @@ def test_create_table_with_indexed_df(ip_with_MSSQL, test_table_name_dict):
     assert len(query_out.result) == 15
 
 
-#@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
+@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
     [
@@ -85,7 +85,7 @@ def test_sqlplot_histogram(ip_with_MSSQL, cell):
     assert type(out.result).__name__ in {"Axes", "AxesSubplot"}
 
 
-#@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
+@pytest.mark.xfail(reason="Known sqlglot issue, addressing in: jupysql/issues/307")
 @pytest.mark.parametrize(
     "cell",
     [

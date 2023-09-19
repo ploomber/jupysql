@@ -131,32 +131,37 @@ def test_handle_multiple_open_result_sets(
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, args",
+    "ip_with_dynamic_db, args, prefix, suffix",
     [
-        ("ip_with_postgreSQL", ""),
-        ("ip_with_mySQL", ""),
-        ("ip_with_mariaDB", ""),
-        ("ip_with_SQLite", ""),
-        ("ip_with_duckDB", ""),
+        ("ip_with_postgreSQL", "", "", "LIMIT{limit}"),
+        ("ip_with_mySQL", "", "", "LIMIT{limit}"),
+        ("ip_with_mariaDB", "", "", "LIMIT{limit}"),
+        ("ip_with_SQLite", "", "", "LIMIT{limit}"),
+        ("ip_with_duckDB", "", "", "LIMIT{limit}"),
         pytest.param(
             "ip_with_duckDB_native",
             "",
+            "", 
+            "LIMIT{limit}",
             marks=pytest.mark.xfail(
                 reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
             ),
         ),
         # snowflake and redshift do not support "CREATE INDEX", so we need to
         # pass --no-index
-        ("ip_with_Snowflake", "--no-index"),
-        ("ip_with_redshift", "--no-index"),
+        ("ip_with_Snowflake", "--no-index", "", "LIMIT{limit}"),
+        ("ip_with_redshift", "--no-index", "", "LIMIT{limit}"),
         pytest.param(
             "ip_with_clickhouse",
             "",
+            "", 
+            "LIMIT{limit}",
             marks=pytest.mark.xfail(
                 reason="sqlalchemy.exc.CompileError: "
                 "No engine for table <table_name>"
             ),
         ),
+        ("ip_with_MSSQL", "", "TOP {limit}", ""),
     ],
 )
 def test_create_table_with_indexed_df(
