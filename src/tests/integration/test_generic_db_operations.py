@@ -131,37 +131,33 @@ def test_handle_multiple_open_result_sets(
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, args, prefix, suffix",
+    "ip_with_dynamic_db, args",
     [
-        ("ip_with_postgreSQL", "", "", "LIMIT {limit}"),
-        ("ip_with_mySQL", "", "", "LIMIT {limit}"),
-        ("ip_with_mariaDB", "", "", "LIMIT {limit}"),
-        ("ip_with_SQLite", "", "", "LIMIT {limit}"),
-        ("ip_with_duckDB", "", "", "LIMIT {limit}"),
+        ("ip_with_postgreSQL", ""),
+        ("ip_with_mySQL", "", ""),
+        ("ip_with_mariaDB", "", ""),
+        ("ip_with_SQLite", "", ""),
+        ("ip_with_duckDB", "", ""),
         pytest.param(
             "ip_with_duckDB_native",
             "",
-            "", 
-            "LIMIT {limit}",
             marks=pytest.mark.xfail(
                 reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
             ),
         ),
         # snowflake and redshift do not support "CREATE INDEX", so we need to
         # pass --no-index
-        ("ip_with_Snowflake", "--no-index", "", "LIMIT {limit}"),
-        ("ip_with_redshift", "--no-index", "", "LIMIT {limit}"),
+        ("ip_with_Snowflake", "--no-index"),
+        ("ip_with_redshift", "--no-index"),
         pytest.param(
             "ip_with_clickhouse",
             "",
-            "", 
-            "LIMIT {limit}",
             marks=pytest.mark.xfail(
                 reason="sqlalchemy.exc.CompileError: "
                 "No engine for table <table_name>"
             ),
         ),
-        ("ip_with_MSSQL", "", "TOP {limit}", ""),
+        ("ip_with_MSSQL", ""),
     ],
 )
 def test_create_table_with_indexed_df(
@@ -180,23 +176,23 @@ def test_create_table_with_indexed_df(
     )
 
     # Prepare DF
-    # ip_with_dynamic_db.run_cell(
-    #     f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
-    #       LIMIT {limit}"
-    # )
     ip_with_dynamic_db.run_cell(
-        f"results = %sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-          {suffix.format(limit=limit)}"
+        f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
+          LIMIT {limit}"
     )
-    # Prepare expected df
-    # expected_df = ip_with_dynamic_db.run_cell(
-    #     f"%sql SELECT * FROM {test_table_name_dict['taxi']}\
-    #       LIMIT {limit}"
+    # ip_with_dynamic_db.run_cell(
+    #     f"results = %sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+    #       {suffix.format(limit=limit)}"
     # )
+    # Prepare expected df
     expected_df = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-          {suffix.format(limit=limit)}"
+        f"%sql SELECT * FROM {test_table_name_dict['taxi']}\
+          LIMIT {limit}"
     )
+    # expected_df = ip_with_dynamic_db.run_cell(
+    #     f"%sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+    #       {suffix.format(limit=limit)}"
+    # )
     ip_with_dynamic_db.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
     )
