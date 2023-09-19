@@ -63,7 +63,8 @@ def test_run_query(
 
     # run a query
     out = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT {query_prefix} * FROM {test_table_name_dict['taxi']} {query_suffix}"
+        f"%sql SELECT {query_prefix} * FROM {test_table_name_dict['taxi']} \
+            {query_suffix}"
     )
 
     # test --save
