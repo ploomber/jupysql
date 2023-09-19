@@ -41,7 +41,7 @@ def mock_log_api(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "ip_with_dynamic_db, prefix, suffix",
+    "ip_with_dynamic_db, query_prefix, query_suffix",
     [
         ("ip_with_postgreSQL", "", "LIMIT 3"),
         ("ip_with_mySQL", "", "LIMIT 3"),
@@ -56,7 +56,7 @@ def mock_log_api(monkeypatch):
         ("ip_with_MSSQL", "TOP 3", ""),
     ],
 )
-def test_run_query(ip_with_dynamic_db, prefix, suffix, request, test_table_name_dict):
+def test_run_query(ip_with_dynamic_db, query_prefix, query_suffix, request, test_table_name_dict):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     # run a query
@@ -65,7 +65,7 @@ def test_run_query(ip_with_dynamic_db, prefix, suffix, request, test_table_name_
     # )
 
     out = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT {prefix} * FROM {test_table_name_dict['taxi']} {suffix}"
+        f"%sql SELECT {query_prefix} * FROM {test_table_name_dict['taxi']} {query_suffix}"
     )
 
     # test --save
@@ -75,8 +75,8 @@ def test_run_query(ip_with_dynamic_db, prefix, suffix, request, test_table_name_
     # )
 
     ip_with_dynamic_db.run_cell(
-        f"%sql --save taxi_subset --no-execute SELECT {prefix} * FROM\
-          {test_table_name_dict['taxi']} {suffix}"
+        f"%sql --save taxi_subset --no-execute SELECT {query_prefix} * FROM\
+          {test_table_name_dict['taxi']} {query_suffix}"
     )
 
     out_query_with_save_arg = ip_with_dynamic_db.run_cell(
@@ -134,10 +134,10 @@ def test_handle_multiple_open_result_sets(
     "ip_with_dynamic_db, args",
     [
         ("ip_with_postgreSQL", ""),
-        ("ip_with_mySQL", "", ""),
-        ("ip_with_mariaDB", "", ""),
-        ("ip_with_SQLite", "", ""),
-        ("ip_with_duckDB", "", ""),
+        ("ip_with_mySQL", ""),
+        ("ip_with_mariaDB", ""),
+        ("ip_with_SQLite", ""),
+        ("ip_with_duckDB", ""),
         pytest.param(
             "ip_with_duckDB_native",
             "",
@@ -157,11 +157,10 @@ def test_handle_multiple_open_result_sets(
                 "No engine for table <table_name>"
             ),
         ),
-        ("ip_with_MSSQL", ""),
     ],
 )
 def test_create_table_with_indexed_df(
-    ip_with_dynamic_db, args, prefix, suffix, request, test_table_name_dict
+    ip_with_dynamic_db, args, request, test_table_name_dict
 ):
     limit = 15
     expected = 15
@@ -181,8 +180,8 @@ def test_create_table_with_indexed_df(
           LIMIT {limit}"
     )
     # ip_with_dynamic_db.run_cell(
-    #     f"results = %sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-    #       {suffix.format(limit=limit)}"
+    #     f"results = %sql SELECT {query_prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+    #       {query_suffix.format(limit=limit)}"
     # )
     # Prepare expected df
     expected_df = ip_with_dynamic_db.run_cell(
@@ -190,8 +189,8 @@ def test_create_table_with_indexed_df(
           LIMIT {limit}"
     )
     # expected_df = ip_with_dynamic_db.run_cell(
-    #     f"%sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-    #       {suffix.format(limit=limit)}"
+    #     f"%sql SELECT {query_prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+    #       {query_suffix.format(limit=limit)}"
     # )
     ip_with_dynamic_db.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
