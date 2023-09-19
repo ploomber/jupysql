@@ -185,8 +185,8 @@ def test_create_table_with_indexed_df(
     #       LIMIT {limit}"
     # )
     ip_with_dynamic_db.run_cell(
-        f"results = %sql SELECT {prefix.format(limit)} * FROM {test_table_name_dict['taxi']}\
-          {suffix.format(limit)}"
+        f"results = %sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+          {suffix.format(limit=limit)}"
     )
     # Prepare expected df
     # expected_df = ip_with_dynamic_db.run_cell(
@@ -194,8 +194,8 @@ def test_create_table_with_indexed_df(
     #       LIMIT {limit}"
     # )
     expected_df = ip_with_dynamic_db.run_cell(
-        f"%sql SELECT {prefix.format(limit)} * FROM {test_table_name_dict['taxi']}\
-          {suffix.format(limit)}"
+        f"%sql SELECT {prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
+          {suffix.format(limit=limit)}"
     )
     ip_with_dynamic_db.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
