@@ -56,24 +56,17 @@ def mock_log_api(monkeypatch):
         ("ip_with_MSSQL", "TOP 3", ""),
     ],
 )
-def test_run_query(ip_with_dynamic_db, query_prefix, query_suffix, request, test_table_name_dict):
+def test_run_query(
+    ip_with_dynamic_db, query_prefix, query_suffix, request, test_table_name_dict
+):
     ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
 
     # run a query
-    # out = ip_with_dynamic_db.run_cell(
-    #     f"%sql SELECT * FROM {test_table_name_dict['taxi']} LIMIT 3"
-    # )
-
     out = ip_with_dynamic_db.run_cell(
         f"%sql SELECT {query_prefix} * FROM {test_table_name_dict['taxi']} {query_suffix}"
     )
 
     # test --save
-    # ip_with_dynamic_db.run_cell(
-    #     f"%sql --save taxi_subset --no-execute SELECT * FROM\
-    #       {test_table_name_dict['taxi']} LIMIT 3"
-    # )
-
     ip_with_dynamic_db.run_cell(
         f"%sql --save taxi_subset --no-execute SELECT {query_prefix} * FROM\
           {test_table_name_dict['taxi']} {query_suffix}"
@@ -179,19 +172,13 @@ def test_create_table_with_indexed_df(
         f"results = %sql SELECT * FROM {test_table_name_dict['taxi']}\
           LIMIT {limit}"
     )
-    # ip_with_dynamic_db.run_cell(
-    #     f"results = %sql SELECT {query_prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-    #       {query_suffix.format(limit=limit)}"
-    # )
+
     # Prepare expected df
     expected_df = ip_with_dynamic_db.run_cell(
         f"%sql SELECT * FROM {test_table_name_dict['taxi']}\
           LIMIT {limit}"
     )
-    # expected_df = ip_with_dynamic_db.run_cell(
-    #     f"%sql SELECT {query_prefix.format(limit=limit)} * FROM {test_table_name_dict['taxi']}\
-    #       {query_suffix.format(limit=limit)}"
-    # )
+
     ip_with_dynamic_db.run_cell(
         f"{test_table_name_dict['new_table_from_df']} = results.DataFrame()"
     )
