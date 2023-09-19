@@ -1925,7 +1925,6 @@ def test_whitespaces_linebreaks_near_first_token(ip, query):
 
     ip.user_global_ns["query"] = query
     out = ip.run_cell("%sql {{query}}").result
-    print(out)
     assert str(out) == expected_result
 
     out = ip.run_cell(
