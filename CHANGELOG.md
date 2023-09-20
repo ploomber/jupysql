@@ -15,6 +15,8 @@
 * [Fix] Show deprecation warnings for legacy plot API (#513)
 * [Fix] Fix error when trying to access previously non-existing file (#840)
 * [Feature] `jupysql-plugin` is now bundled with `jupysql` by default
+* [Fix] Testing with latest DuckDB version (#498)
+* [Fix] Remove duplicate integration tests (#827)
 
 ## 0.10.1 (2023-08-30)
 
