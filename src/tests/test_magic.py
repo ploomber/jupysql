@@ -400,7 +400,8 @@ def test_persist_replace_override(
         ip, table=second_test_table, name=saved_df_name
     )
     # To test the second --persist-replace executes successfully
-    persist_replace_out = ip.run_cell(f"%sql --persist-replace sqlite:// {table_df}")
+    persist_replace_out = ip.run_cell(
+        f"%sql --persist-replace sqlite:// {table_df}")
     assert persist_replace_out.error_in_exec is None
 
     # To test the persisted data is from --persist
@@ -459,7 +460,8 @@ def test_persist_and_append_use_together(ip, test_table):
     saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
 
     with pytest.raises(UsageError) as excinfo:
-        ip.run_cell(f"%sql --persist-replace --append sqlite:// {saved_df_name}")
+        ip.run_cell(
+            f"%sql --persist-replace --append sqlite:// {saved_df_name}")
 
     assert """You cannot simultaneously persist and append data to a dataframe;
                   please choose to utilize either one or the other.""" in str(
@@ -493,7 +495,8 @@ def test_persist_and_persist_replace_use_together(
     saved_df_name = get_table_rows_as_dataframe(ip, table=test_table)
     # check UserWarning is raised
     with pytest.warns(UserWarning) as w:
-        ip.run_cell(f"%sql --persist --persist-replace sqlite:// {saved_df_name}")
+        ip.run_cell(
+            f"%sql --persist --persist-replace sqlite:// {saved_df_name}")
 
     # check that the message matches
     assert w[0].message.args[0] == "Please use either --persist or --persist-replace"
@@ -544,14 +547,16 @@ def test_connection_args_enforce_json(ip):
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_in_connection(ip):
-    ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
+    ip.run_cell(
+        '%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_single_quotes(ip):
-    ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
+    ip.run_cell(
+        "%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
     result = ip.run_cell("%sql --connections")
     assert "timeout" in result.result["sqlite:///:memory:"].connect_args
 
@@ -604,7 +609,8 @@ def test_displaylimit_enabled_truncated_length(ip, config_value, expected_length
 
     ip.run_cell(f"%config SqlMagic.displaylimit = {config_value}")
     out = runsql(ip, "SELECT * FROM number_table;")
-    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_()
+    assert f"Truncated to {DISPLAYLIMIT_LINK} of {expected_length}" in out._repr_html_(
+    )
 
 
 @pytest.mark.parametrize("config_value", [(None), (0)])
@@ -667,7 +673,8 @@ def test_displaylimit_with_conditional_clause(
 
     if is_saved_by_cte:
         ip.run_cell(f"%sql --save saved_cte --no-execute {query_clause}")
-        out = ip.run_line_magic("sql", "--with saved_cte SELECT * from saved_cte")
+        out = ip.run_line_magic(
+            "sql", "--with saved_cte SELECT * from saved_cte")
     else:
         out = runsql(ip, query_clause)
 
@@ -753,7 +760,8 @@ def test_autopolars_infer_schema_length(ip):
     ip.run_line_magic("config", "SqlMagic.autopolars = True")
     sql = ["CREATE TABLE test_autopolars_infer_schema (n INT, name TEXT)"]
     for i in range(100):
-        sql.append(f"INSERT INTO test_autopolars_infer_schema VALUES ({i}, NULL)")
+        sql.append(
+            f"INSERT INTO test_autopolars_infer_schema VALUES ({i}, NULL)")
     sql.append("INSERT INTO test_autopolars_infer_schema VALUES (100, 'foo')")
     runsql(ip, sql)
 
@@ -947,7 +955,8 @@ def test_close_connection(ip, tmp_empty):
     ip.run_cell("%sql sqlite:///two.db")
 
     # check files are open
-    assert {Path(f.path).name for f in process.open_files()} >= {"one.db", "two.db"}
+    assert {Path(f.path).name for f in process.open_files()} >= {
+        "one.db", "two.db"}
 
     # close connections
     ip.run_cell("%sql -x sqlite:///one.db")
@@ -1521,7 +1530,8 @@ VALUES
 """
     )
 
-    result = ip.run_cell("%sql SELECT * FROM names WHERE name = ':Mary'").result
+    result = ip.run_cell(
+        "%sql SELECT * FROM names WHERE name = ':Mary'").result
 
     assert result.dict() == {"name": (":Mary",)}
 
@@ -1666,7 +1676,8 @@ def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
     ip.push({"df": df})
 
     conn = ConnectionManager.current
-    execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
+    execute_with_error_handling_mock = Mock(
+        wraps=conn._execute_with_error_handling)
     monkeypatch.setattr(
         conn, "_execute_with_error_handling", execute_with_error_handling_mock
     )
@@ -1679,7 +1690,8 @@ def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
 
 
 def test_error_when_using_section_argument_but_dsn_is_missing(ip_empty, tmp_empty):
-    ip_empty.run_cell("%config SqlMagic.dsn_filename = 'path/to/connections.ini'")
+    ip_empty.run_cell(
+        "%config SqlMagic.dsn_filename = 'path/to/connections.ini'")
 
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql --section some_section")
@@ -1991,7 +2003,8 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
 
 def test_warn_when_using_snippets_in_non_SELECT_command(ip_empty, capsys):
     ip_empty.run_cell("%sql duckdb://")
-    ip_empty.run_cell("%sql create table languages (name VARCHAR, rating INTEGER)")
+    ip_empty.run_cell(
+        "%sql create table languages (name VARCHAR, rating INTEGER)")
     ip_empty.run_cell(
         """%%sql
 INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
@@ -2000,6 +2013,16 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
     ip_empty.run_cell(
         """%%sql --save language_lt1
 select * from languages where rating < 1"""
+    )
+
+    ip_empty.run_cell(
+        """%%sql --save language_lt2
+select * from languages where rating < 2"""
+    )
+
+    ip_empty.run_cell(
+        """%%sql --save language_lt3
+select * from languages where rating < 3"""
     )
 
     with pytest.raises(UsageError) as _:
@@ -2011,5 +2034,34 @@ create table langs as (
 """
         )
 
+    with pytest.raises(UsageError) as _:
+        ip_empty.run_cell(
+            """%%sql
+with langs as (
+    select * from language_lt2
+) select * from langs
+"""
+        )
+
+    ip_empty.run_cell(
+        """%%sql
+create table langs1 as (
+    WITH language_lt3 as (
+        select * from languages where rating < 3
+    )
+    select * from language_lt3
+)
+"""
+    )
+
     out, _ = capsys.readouterr()
-    assert "Cannot use snippets with CREATE" in out
+    print(out)
+    assert """Your query is using the following snippets: language_lt1. \
+The query is not a SELECT type query and as snippets only work \
+with SELECT queries, CTE generation is disabled""" in out
+    assert """Your query is using the following snippets: language_lt2. \
+JupySQL does not support snippet expansion within CTEs yet, \
+CTE generation is disabled""" in out
+    assert """Your query is using the following snippets: language_lt3. \
+The query is not a SELECT type query and as snippets only work \
+with SELECT queries, CTE generation is disabled""" in out
