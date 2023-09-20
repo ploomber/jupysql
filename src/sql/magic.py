@@ -100,7 +100,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+    autocommit = Bool(default_value=True, config=True,
+                      help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -201,17 +202,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -242,7 +246,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -416,7 +421,8 @@ class SqlMagic(Magics, Configurable):
             if args.with_:
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save)
                 if with_:
                     query_type = self.get_query_type(command, original=True)
 
@@ -460,9 +466,13 @@ class SqlMagic(Magics, Configurable):
                         dependency_in_CTE.append(dependency)
 
             if dependency_in_CTE:
+                if query_type != "SELECT":
+                    display_message = IF_NOT_SELECT_MESSAGE
+                else:
+                    display_message = IF_SELECT_MESSAGE
                 display.message_warning(
                     f"Your query is using the following snippets: \
-{', '.join(dependency_in_CTE)}. {[IF_SELECT_MESSAGE, IF_NOT_SELECT_MESSAGE][query_type != 'SELECT']}\
+{', '.join(dependency_in_CTE)}. {display_message}\
  CTE generation is disabled"
                 )
             with_ = None
@@ -490,7 +500,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -598,7 +609,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -687,9 +699,14 @@ class SqlMagic(Magics, Configurable):
         """
         Returns the query type of the original sql command
         """
-        to_parse = command.sql_original if original else command.sql
+        to_parse = (
+            command.sql_original
+            if original
+            else command.sql
+        )
         query_type = (
-            sqlparse.parse(to_parse)[0].get_type() if sqlparse.parse(to_parse) else None
+            sqlparse.parse(to_parse)[0].get_type(
+            ) if sqlparse.parse(to_parse) else None
         )
         return query_type
 
