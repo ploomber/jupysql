@@ -58,6 +58,9 @@ from sql.telemetry import telemetry
 
 
 SUPPORT_INTERACTIVE_WIDGETS = ["Checkbox", "Text", "IntSlider", ""]
+IF_NOT_SELECT_MESSAGE = "The query is not a SELECT type query and as \
+snippets only work with SELECT queries,"
+IF_SELECT_MESSAGE = "JupySQL does not support snippet expansion within CTEs yet,"
 
 
 @magics_class
@@ -97,7 +100,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+    autocommit = Bool(default_value=True, config=True,
+                      help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -198,17 +202,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -239,7 +246,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -403,22 +411,25 @@ class SqlMagic(Magics, Configurable):
                 "is automatically set as the connection alias"
             )
 
-        is_cte = self.remove_leading_parentheses(
-            command.sql_original.strip().lower()
-        ).startswith("with ")
+        # TODO: DuckDB allows queries to be wrapped in parentheses
+        # which needs to be accounted for here. If there is a (WITH ....)
+        # query, then there is an issue of is_CTE not being true.
+        is_cte = command.sql_original.strip().lower().startswith("with ")
 
         # only expand CTE if this is not a CTE itself
         if not is_cte:
             if args.with_:
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save)
                 if with_:
                     query_type = self.get_query_type(command, original=True)
 
                     if query_type != "SELECT":
                         display.message_warning(
-                            f"Cannot use snippets with {query_type}"
+                            f"Your query is using the following snippets: \
+{', '.join(with_)}. {IF_NOT_SELECT_MESSAGE} CTE generation is disabled"
                         )
                     else:
                         command.set_sql_with(with_)
@@ -435,22 +446,31 @@ class SqlMagic(Magics, Configurable):
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
 
-            if query_type != "SELECT":
-                display.message_warning("Cannot use snippets in CTEs")
-
             dependencies = self._store.infer_dependencies(
                 command.sql_original, args.save
             )
 
+            # The following bit of code checks for dependencies within the parentheses
+            # We do not care about the name outside the parentheses being the same as
+            # another table / snippet here and only check if there are dependencies
+            # in the parentheses.
+            # This is for generating more relevant warnings.
             parentheses_content = re.findall(
                 r"\((.*)\)", command.sql_original.replace("\n", " ")
             )
+
+            dependency_in_CTE = []
             for query in parentheses_content:
                 for dependency in dependencies:
                     if dependency in query:
-                        display.message_warning(
-                            f"Cannot use snippet {dependency} in CTE"
-                        )
+                        dependency_in_CTE.append(dependency)
+
+            if dependency_in_CTE:
+                display.message_warning(
+                    f"Your query is using the following snippets: \
+{', '.join(dependency_in_CTE)}. {[IF_SELECT_MESSAGE, IF_NOT_SELECT_MESSAGE][query_type != 'SELECT']}\
+ CTE generation is disabled"
+                )
             with_ = None
 
         # Create the interactive slider
@@ -476,7 +496,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -584,7 +605,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -674,73 +696,15 @@ class SqlMagic(Magics, Configurable):
         Returns the query type of the original sql command
         """
         to_parse = (
-            self.remove_leading_parentheses(command.sql_original)
+            command.sql_original
             if original
-            else self.remove_leading_parentheses(command.sql)
+            else command.sql
         )
         query_type = (
-            sqlparse.parse(to_parse)[0].get_type() if sqlparse.parse(to_parse) else None
+            sqlparse.parse(to_parse)[0].get_type(
+            ) if sqlparse.parse(to_parse) else None
         )
         return query_type
-
-    def remove_leading_parentheses(self, sql_command):
-        """
-        Removes any leading parentheses from the sql_command_string
-        Example:
-            (WITH my_penguins as (
-                select * from penguins.csv
-            )
-            select * from my_penguins)
-
-            becomes
-
-            WITH my_penguins as (
-                select * from penguins.csv
-            )
-            select * from my_penguins
-        """
-
-        def is_valid_parentheses(input_string: str) -> bool:
-            if len(input_string) < 2:
-                return False
-
-            open_parentheses = "("
-
-            stack = []
-
-            for parentheses in input_string:
-                if parentheses == open_parentheses:
-                    stack.append(parentheses)
-                else:
-                    if len(stack) > 0:
-                        stack.pop()
-                    else:
-                        return False
-
-            if len(stack) > 0:
-                return False
-
-            return True
-
-        sql_command = sql_command.strip()
-        count = 0
-
-        if len(sql_command) > 1:
-            if "(" == sql_command[0] and ")" == sql_command[-1]:
-                parentheses_string = ""
-                for letter in sql_command:
-                    if letter in ["(", ")"]:
-                        parentheses_string += letter
-
-                while is_valid_parentheses(parentheses_string):
-                    if len(parentheses_string) >= 2:
-                        parentheses_string = parentheses_string[1:-2]
-                        count += 1
-                    else:
-                        break
-
-                return sql_command[count:-(count)]
-        return sql_command
 
 
 def set_configs(ip, file_path):
