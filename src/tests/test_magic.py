@@ -2042,13 +2042,15 @@ def test_comments_in_duckdb_select_summarize(ip_empty):
     ).result
     assert out.dict() == expected_summarize
 
+    expected_select = {"memid": (1, 2, 3, 5, 8)}
+
     out = ip_empty.run_cell(
         """%%sql
         /*x*/
         SELECT * FROM df
         """
     ).result
-    assert out.DataFrame().equals(df)
+    assert out.dict() == expected_select
 
     out = ip_empty.run_cell(
         """%%sql
@@ -2056,4 +2058,4 @@ def test_comments_in_duckdb_select_summarize(ip_empty):
         FROM df SELECT *
         """
     ).result
-    assert out.DataFrame().equals(df)
+    assert out.dict() == expected_select
