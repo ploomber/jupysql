@@ -18,6 +18,7 @@ from sqlalchemy.exc import (
 )
 from IPython.core.error import UsageError
 import sqlglot
+from sqlglot import parse_one, exp
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
@@ -722,29 +723,24 @@ class SQLAlchemyConnection(AbstractConnection):
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
 
-        words = query.split()
-
-        if words:
-            first_word_statement = words[0].lower()
-        else:
-            first_word_statement = ""
-
-        # NOTE: in duckdb db "from TABLE_NAME" is valid
-        # TODO: we can parse the query to ensure that it's a SELECT statement
-        # for example, it might start with WITH but the final statement might
-        # not be a SELECT
-        # `summarize` is added to support %sql SUMMARIZE table in duckdb
-        is_select = first_word_statement in {"select", "with", "from", "summarize"}
-
         operation = partial(self._execute_with_parameters, query, parameters)
         out = self._execute_with_error_handling(operation)
 
         if self._requires_manual_commit:
-            # calling connection.commit() when using duckdb-engine will yield
-            # empty results if we commit after a SELECT statement
-            # see: https://github.com/Mause/duckdb_engine/issues/734
-            if is_select and self.dialect == "duckdb":
-                return out
+            # Calling connection.commit() when using duckdb-engine will yield
+            # empty results if we commit after a SELECT or SUMMARIZE statement,
+            # see: https://github.com/Mause/duckdb_engine/issues/734.
+            # We parse the query to ensure it's a SELECT expression or SUMMARIZE statement.
+            # Parsing the query makes this robust to e.g. leading comments.
+            # Note: sqlglot represents the duckdb SUMMARIZE statement as a
+            # sqlglot ALIAS expression so for SUMMARIZE it's easier to just check
+            # the output of expression.sql()
+            if self.dialect == "duckdb":
+                expression = parse_one(query, dialect="duckdb")
+                words = expression.sql().split()
+                if isinstance(expression, exp.Select) or words and words[0].lower() == "summarize":
+                    return out
+
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:

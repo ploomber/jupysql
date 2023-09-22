@@ -1987,3 +1987,73 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
     ip_empty.run_cell("%sql SELECT * FROM 'data.csv' LIMIT 3")
     out, _ = capsys.readouterr()
     assert expected in out
+
+
+def test_comments_in_duckdb_select_summarize(ip_empty):
+    expected_summarize = {
+        "column_name": ("memid",),
+        "column_type": ("BIGINT",),
+        "min": ("1",),
+        "max": ("8",),
+        "approx_unique":("5",),
+        "avg": ("3.8",),
+        "std": ("2.7748873851023217",),
+        "q25": ("2",),
+        "q50": ("3",),
+        "q75": ("6",),
+        "count": (5,),
+        "null_percentage": ("0.0%",),
+    }
+
+    df = pd.DataFrame(
+        data=dict(
+            memid=[1, 2, 3, 5, 8],
+        ),
+    )
+
+    ip_empty.run_cell("%sql duckdb://")
+
+    out = ip_empty.run_cell("%sql /* x */ SUMMARIZE df").result
+    assert out.dict() == expected_summarize
+
+    out = ip_empty.run_cell("%sql /*x*//*x*/ SUMMARIZE /*x*/ df").result
+    assert out.dict() == expected_summarize
+
+    out = ip_empty.run_cell("%sql /*x*//*x*/ SUMMARIZE /*x*/ df").result
+    assert out.dict() == expected_summarize
+
+    out = ip_empty.run_cell(
+        """%%sql
+        /*x*/
+        SUMMARIZE df
+        """
+    ).result
+    assert out.dict() == expected_summarize
+
+    out = ip_empty.run_cell(
+        """%%sql
+        /*x*/
+
+        /*x*/
+        -- comment
+        SUMMARIZE df
+        /*x*/
+        """
+    ).result
+    assert out.dict() == expected_summarize
+
+    out = ip_empty.run_cell(
+        """%%sql
+        /*x*/
+        SELECT * FROM df
+        """
+    ).result
+    assert out.DataFrame().equals(df)
+
+    out = ip_empty.run_cell(
+        """%%sql
+        /*x*/
+        FROM df SELECT *
+        """
+    ).result
+    assert out.DataFrame().equals(df)

@@ -17,6 +17,7 @@
 * [Feature] `jupysql-plugin` is now bundled with `jupysql` by default
 * [Fix] Testing with latest DuckDB version (#498)
 * [Fix] Remove duplicate integration tests (#827)
+* [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments (#892)
 
 ## 0.10.1 (2023-08-30)
 
