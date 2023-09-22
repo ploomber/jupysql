@@ -2019,9 +2019,6 @@ def test_comments_in_duckdb_select_summarize(ip_empty):
     out = ip_empty.run_cell("%sql /*x*//*x*/ SUMMARIZE /*x*/ df").result
     assert out.dict() == expected_summarize
 
-    out = ip_empty.run_cell("%sql /*x*//*x*/ SUMMARIZE /*x*/ df").result
-    assert out.dict() == expected_summarize
-
     out = ip_empty.run_cell(
         """%%sql
         /*x*/
