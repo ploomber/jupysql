@@ -1995,7 +1995,7 @@ def test_comments_in_duckdb_select_summarize(ip_empty):
         "column_type": ("BIGINT",),
         "min": ("1",),
         "max": ("8",),
-        "approx_unique":("5",),
+        "approx_unique": ("5",),
         "avg": ("3.8",),
         "std": ("2.7748873851023217",),
         "q25": ("2",),

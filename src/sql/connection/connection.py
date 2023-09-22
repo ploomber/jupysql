@@ -738,9 +738,12 @@ class SQLAlchemyConnection(AbstractConnection):
             if self.dialect == "duckdb":
                 expression = parse_one(query, dialect="duckdb")
                 words = expression.sql().split()
-                if isinstance(expression, exp.Select) or words and words[0].lower() == "summarize":
+                if (
+                    isinstance(expression, exp.Select)
+                    or words
+                    and words[0].lower() == "summarize"
+                ):
                     return out
-
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
