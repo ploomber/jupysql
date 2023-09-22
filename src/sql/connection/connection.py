@@ -730,7 +730,8 @@ class SQLAlchemyConnection(AbstractConnection):
             # Calling connection.commit() when using duckdb-engine will yield
             # empty results if we commit after a SELECT or SUMMARIZE statement,
             # see: https://github.com/Mause/duckdb_engine/issues/734.
-            # We parse the query to ensure it's a SELECT expression or SUMMARIZE statement.
+            # We parse the query to ensure it's a SELECT expression
+            # or SUMMARIZE statement.
             # Parsing the query makes this robust to e.g. leading comments.
             # Note: sqlglot represents the duckdb SUMMARIZE statement as a
             # sqlglot ALIAS expression so for SUMMARIZE it's easier to just check
