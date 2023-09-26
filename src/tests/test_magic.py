@@ -2010,6 +2010,7 @@ def test_comments_in_duckdb_select_summarize(ip_empty):
             memid=[1, 2, 3, 5, 8],
         ),
     )
+    _ = df
 
     ip_empty.run_cell("%sql duckdb://")
 
