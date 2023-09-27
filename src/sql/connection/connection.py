@@ -731,7 +731,10 @@ class SQLAlchemyConnection(AbstractConnection):
             # empty results if we commit after a SELECT or SUMMARIZE statement,
             # see: https://github.com/Mause/duckdb_engine/issues/734.
             if self.dialect == "duckdb":
-                expression = parse_one(query, dialect="duckdb")
+                try:
+                    expression = parse_one(query, dialect="duckdb")
+                except sqlglot.errors.ParseError:
+                    expression = parse_one(query, dialect=self._get_sqlglot_dialect())
                 sql_stripped = Generator(comments=False).generate(expression)
                 words = sql_stripped.split()
                 if (
