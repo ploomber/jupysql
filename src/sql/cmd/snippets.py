@@ -104,6 +104,8 @@ def snippets(others):
         key = args.delete_force
         deps = store.get_key_dependents(key)
         remaining_keys = store.del_saved_key(key)
+        for dep in deps:
+            store[dep].remove_snippet_dependency(key)
         return _modify_display_msg(key, remaining_keys, deps)
 
     elif args.delete_force_all:

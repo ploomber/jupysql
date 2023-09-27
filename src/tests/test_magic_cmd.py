@@ -794,7 +794,7 @@ def test_delete_snippet_when_dependency_force_deleted(ip_snippets, arg):
     ip_snippets.run_cell(f"%sqlcmd snippets {arg} high_price")
     out = ip_snippets.run_cell("%sqlcmd snippets --delete high_price_a").result
     assert "high_price_a has been deleted.Stored snippets : high_price_b" in out
-
+    
 
 @pytest.mark.parametrize(
     "arguments", ["--table schema1.table1", "--table table1 --schema schema1"]
