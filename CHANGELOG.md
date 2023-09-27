@@ -3,6 +3,7 @@
 ## 0.10.3dev
 
 * [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments (#892)
+* [Fix] Remove force deleted snippets from dependent snippet's `with` (#717)
 
 ## 0.10.2 (2023-09-22)
 
