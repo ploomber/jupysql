@@ -96,6 +96,9 @@ def test_load_home_jupysql_toml_if_no_pyproject_toml(tmp_empty, ip_no_magics, ca
     if primary.exists():
         primary.unlink()
     alternate = Path("~/.jupysql/config").expanduser()
+    alternate.parent.mkdir(exist_ok=True)
+    if alternate.exists():
+        alternate.unlink()
     alternate.write_text(
         """
 [tool.jupysql.SqlMagic]
