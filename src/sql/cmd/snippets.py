@@ -26,7 +26,7 @@ def _modify_display_msg(key, remaining_keys, dependent_keys=None):
     if dependent_keys:
         msg = f"{msg}{', '.join(dependent_keys)} depend on {key}\n"
     if remaining_keys:
-        msg = f"{msg}Stored snippets : {', '.join(remaining_keys)}"
+        msg = f"{msg}Stored snippets: {', '.join(remaining_keys)}"
     else:
         msg = f"{msg}There are no stored snippets"
     return msg
