@@ -18,7 +18,7 @@ from sqlalchemy.exc import (
 )
 from IPython.core.error import UsageError
 import sqlglot
-from sqlglot import parse_one
+from sqlglot import parse_one, exp
 from sqlglot.generator import Generator
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
@@ -734,9 +734,7 @@ class SQLAlchemyConnection(AbstractConnection):
                 expression = parse_one(query, dialect="duckdb")
                 sql_stripped = Generator(comments=False).generate(expression)
                 words = sql_stripped.split()
-                if words and (
-                    words[0].lower() == "select" or words[0].lower() == "summarize"
-                ):
+                if words and (words[0].lower() == "select" or words[0].lower() == "summarize") or isinstance(expression, exp.Select):
                     return out
 
             # in sqlalchemy 1.x, connection has no commit attribute
