@@ -18,7 +18,8 @@ from sqlalchemy.exc import (
 )
 from IPython.core.error import UsageError
 import sqlglot
-from sqlglot import parse_one, exp
+from sqlglot import parse_one
+from sqlglot.generator import Generator
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
@@ -718,7 +719,6 @@ class SQLAlchemyConnection(AbstractConnection):
             Parameters to use in the query (:variable format)
         """
         parameters = parameters or {}
-
         # we do not support multiple statements
         if len(sqlparse.split(query)) > 1:
             raise NotImplementedError("Only one statement is supported.")
@@ -730,19 +730,12 @@ class SQLAlchemyConnection(AbstractConnection):
             # Calling connection.commit() when using duckdb-engine will yield
             # empty results if we commit after a SELECT or SUMMARIZE statement,
             # see: https://github.com/Mause/duckdb_engine/issues/734.
-            # We parse the query to ensure it's a SELECT expression
-            # or SUMMARIZE statement.
-            # Parsing the query makes this robust to e.g. leading comments.
-            # Note: sqlglot represents the duckdb SUMMARIZE statement as a
-            # sqlglot ALIAS expression so for SUMMARIZE it's easier to just check
-            # the output of expression.sql()
             if self.dialect == "duckdb":
                 expression = parse_one(query, dialect="duckdb")
-                words = expression.sql().split()
-                if (
-                    isinstance(expression, exp.Select)
-                    or words
-                    and words[0].lower() == "summarize"
+                sql_stripped = Generator(comments=False).generate(expression)
+                words = sql_stripped.split()
+                if words and (
+                    words[0].lower() == "select" or words[0].lower() == "summarize"
                 ):
                     return out
 
