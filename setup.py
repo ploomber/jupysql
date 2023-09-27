@@ -33,14 +33,14 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    "pandas==2.0.3",
+    "pandas",
     "polars==0.17.2",  # 04/18/23 this breaks our CI
     "pyarrow",
     "invoke",
     "pkgmt",
     "twine",
     # tests
-    "duckdb<0.9.0",
+    "duckdb",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
