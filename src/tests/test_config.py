@@ -125,6 +125,17 @@ style = "RANDOM"
     magic = ip_no_magics.find_magic("sql").__self__
     combined = {**get_default_testing_configs(magic), **config_expected}
     out, _ = capsys.readouterr()
+    # debugging windows
+    for substring in expect:
+        try:
+            print(substring)
+            print(out)
+            print()
+            re.search(substring, out)
+        except Exception as e:
+            print("^^")
+            print(e)
+            print()
     assert all(re.search(substring, out) for substring in expect)
     assert get_current_configs(magic) == combined
 
