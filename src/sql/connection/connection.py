@@ -736,17 +736,23 @@ class SQLAlchemyConnection(AbstractConnection):
                     parse_dialect = "tsql"
                 else:
                     parse_dialect = "duckdb"
-                expression = parse_one(query, dialect=parse_dialect)
-                sql_stripped = Generator(comments=False).generate(expression)
-                words = sql_stripped.split()
-                if (
-                    words
-                    and (
-                        words[0].lower() == "select" or words[0].lower() == "summarize"
-                    )
-                    or isinstance(expression, exp.Select)
-                ):
-                    return out
+
+                # Attempt to use sqlglot to detect SELECT and SUMMARIZE.
+                try:
+                    expression = parse_one(query, dialect=parse_dialect)
+                    sql_stripped = Generator(comments=False).generate(expression)
+                    words = sql_stripped.split()
+                    if (
+                        words
+                        and (
+                            words[0].lower() == "select"
+                            or words[0].lower() == "summarize"
+                        )
+                        or isinstance(expression, exp.Select)
+                    ):
+                        return out
+                except sqlglot.errors.ParseError:
+                    pass
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
