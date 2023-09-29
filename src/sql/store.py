@@ -91,7 +91,9 @@ class SQLStore(MutableMapping):
             raise exceptions.UsageError(
                 f"Script name ({key!r}) cannot appear in with_ argument"
             )
-
+        # We need to strip comments before storing else the comments
+        # are added within brackets as part of the CTE query, which
+        # causes the query to fail
         query = sqlparse.format(query, strip_comments=True)
         self._data[key] = SQLQuery(self, query, with_)
 

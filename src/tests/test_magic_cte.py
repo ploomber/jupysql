@@ -184,7 +184,7 @@ def test_query_syntax_error(ip):
     assert CTE_MSG.strip() in str(excinfo.value)
 
 
-def test_comment_in_query_added_after_bracket(ip):
+def test_comment_in_query_stripped(ip):
     ip.run_cell(
         """%%sql --save positive_x
 SELECT * FROM number_table WHERE x > 0;
@@ -204,7 +204,7 @@ SELECT * FROM positive_x
     )
 
 
-def test_inline_comment_in_query_added_after_bracket(ip):
+def test_inline_comment_in_query_stripped(ip):
     ip.run_cell(
         """%%sql --save positive_x
 SELECT * FROM number_table
@@ -223,7 +223,7 @@ SELECT * FROM positive_x
     )
 
 
-def test_comment_in_multiple_with_query_added_after_bracket(ip):
+def test_comments_in_multiple_with_query_stripped(ip):
     ip.run_cell(
         """%%sql --save positive_x
 /* select all
@@ -258,7 +258,7 @@ WHERE positive_x.x = positive_x_another.x
     )
 
 
-def test_multiple_comments_in_query_added_after_bracket(ip):
+def test_multiple_comments_in_query_stripped(ip):
     ip.run_cell(
         """%%sql --save positive_x
 --select all rows
@@ -281,7 +281,7 @@ SELECT * FROM positive_x
     )
 
 
-def test_single_and_multiline_comments_in_query_added_after_bracket(ip):
+def test_single_and_multiline_comments_in_query_stripped(ip):
     ip.run_cell(
         """%%sql --save positive_x
 /* select all
