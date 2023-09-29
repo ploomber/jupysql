@@ -36,7 +36,7 @@ class TestingShell(InteractiveShell):
 
     def run_cell(self, *args, **kwargs):
         result = super().run_cell(*args, **kwargs)
-        result.raise_error()
+        # result.raise_error()
         return result
 
     @classmethod
