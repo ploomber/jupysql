@@ -9,7 +9,6 @@
 
 ## 0.10.2 (2023-09-22)
 
-* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
 * [Feature] Improved messages when loading configurations from `pyproject.toml` file.
 * [Feature] Add `--schema/-s` for `%sqlcmd` commands that support `--table/-t` and ensure `--table schema.table` works ([#519](https://github.com/ploomber/jupysql/issues/519))
 * [Feature] Add `schema/-s` for `%sqlplot` and ensure `--table schema.table` works ([#854](https://github.com/ploomber/jupysql/issues/854))
@@ -21,6 +20,7 @@
 * [Fix] Fix error when trying to access previously non-existing file ([#840](https://github.com/ploomber/jupysql/issues/840))
 * [Fix] Testing with latest DuckDB version ([#498](https://github.com/ploomber/jupysql/issues/498))
 * [Fix] Remove duplicate integration tests ([#827](https://github.com/ploomber/jupysql/issues/827))
+* [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) (#845)
 * [Doc] Fixed typo in the `./doc/integrations/postgres-connect.ipynb` file (Line 180) ([#845](https://github.com/ploomber/jupysql/issues/845))
 * [Doc] Add chDB integration tutorial
 * [Doc] Clarify the use of `pyproject.toml` and `connections.ini` in documentations ([#850](https://github.com/ploomber/jupysql/issues/850))
