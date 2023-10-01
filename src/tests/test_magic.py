@@ -2066,24 +2066,26 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
     assert (expected_result in out)
 
 
-def test_get_query_type():
-    assert (
-        get_query_type(
+@pytest.mark.parametrize(
+    "query, query_type",
+    [
+        (
             "CREATE TABLE penguins AS ( \
     WITH my_penguins AS ( \
         SELECT * FROM penguins.csv \
     ) \
     SELECT * FROM my_penguins \
-)"
-        )
-        == "CREATE"
-    )
-    assert (
-        get_query_type(
+)",
+            "CREATE"
+        ),
+        (
             " WITH my_penguins AS ( \
     SELECT * FROM penguins.csv \
 ) \
-SELECT * FROM my_penguins"
+SELECT * FROM my_penguins",
+            "SELECT"
         )
-        == "SELECT"
-    )
+    ]
+)
+def test_get_query_type(query, query_type):
+    assert (get_query_type(query) == query_type)
