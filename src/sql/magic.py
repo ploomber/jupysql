@@ -406,9 +406,6 @@ class SqlMagic(Magics, Configurable):
                 "is automatically set as the connection alias"
             )
 
-        # TODO: DuckDB allows queries to be wrapped in parentheses
-        # which needs to be accounted for here. If there is a (WITH ....)
-        # query, then there is an issue of is_CTE not being true.
         is_cte = command.sql_original.strip().lower().startswith("with ")
 
         # only expand CTE if this is not a CTE itself
