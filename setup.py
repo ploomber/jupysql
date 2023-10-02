@@ -37,7 +37,7 @@ DEV = [
     "polars==0.17.2",  # 04/18/23 this breaks our CI
     "pyarrow",
     "invoke",
-    "pkgmt",
+    "pkgmt==0.7.3",
     "twine",
     # tests
     "duckdb<0.9.0",
