@@ -18,7 +18,7 @@ import pytest
 from sqlalchemy import create_engine
 from IPython.core.error import UsageError
 from sql.connection import ConnectionManager
-from sql.magic import SqlMagic, get_query_type
+from sql.magic import SqlMagic, get_dependency_in_CTE, get_query_type
 from sql.run.resultset import ResultSet
 from sql import magic
 from sql.warnings import JupySQLQuotedNamedParametersWarning
@@ -2074,7 +2074,41 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
 SELECT * FROM my_penguins",
             "SELECT",
         ),
+        (
+            " WITH my_penguins ( \
+    SELECT * FROM penguins.csv \
+) \
+SELECT * FROM my_penguins",
+            None
+        ),
     ],
 )
 def test_get_query_type(query, query_type):
     assert get_query_type(query) == query_type
+
+
+@pytest.mark.parametrize(
+    "sql_original, dependencies, expected_result",
+    [
+        (
+            "CREATE TABLE penguins AS ( \
+    WITH my_penguins AS ( \
+        SELECT * FROM penguins.csv \
+    ) \
+    SELECT * FROM my_penguins \
+)",
+            ["my_penguins"],
+            ["my_penguins"],
+        ),
+        (
+            " WITH my_penguins AS ( \
+    SELECT * FROM penguins.csv \
+) \
+SELECT * FROM my_penguins",
+            ["my_penguins"],
+            []
+        ),
+    ],
+)
+def test_get_dependency_in_CTE(sql_original, dependencies, expected_result):
+    assert get_dependency_in_CTE(sql_original, dependencies) == expected_result

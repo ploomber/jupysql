@@ -100,7 +100,8 @@ class SqlMagic(Magics, Configurable):
 
     Provides the %%sql magic."""
 
-    autocommit = Bool(default_value=True, config=True, help="Set autocommit mode")
+    autocommit = Bool(default_value=True, config=True,
+                      help="Set autocommit mode")
     autolimit = Int(
         default_value=0,
         config=True,
@@ -201,17 +202,20 @@ class SqlMagic(Magics, Configurable):
     @validate("displaylimit")
     def _valid_displaylimit(self, proposal):
         if proposal["value"] is None:
-            display.message("displaylimit: Value None will be treated as 0 (no limit)")
+            display.message(
+                "displaylimit: Value None will be treated as 0 (no limit)")
             return 0
         try:
             value = int(proposal["value"])
             if value < 0:
                 raise TraitError(
-                    "{}: displaylimit cannot be a negative integer".format(value)
+                    "{}: displaylimit cannot be a negative integer".format(
+                        value)
                 )
             return value
         except ValueError:
-            raise TraitError("{}: displaylimit is not an integer".format(value))
+            raise TraitError(
+                "{}: displaylimit is not an integer".format(value))
 
     @observe("autopandas", "autopolars")
     def _mutex_autopandas_autopolars(self, change):
@@ -242,7 +246,8 @@ class SqlMagic(Magics, Configurable):
                     if breakLoop:
                         break
 
-            declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
+            declared_argument = _option_strings_from_parser(
+                SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
                     raise exceptions.UsageError(
@@ -413,7 +418,8 @@ class SqlMagic(Magics, Configurable):
             if args.with_:
                 with_ = args.with_
             else:
-                with_ = self._store.infer_dependencies(command.sql_original, args.save)
+                with_ = self._store.infer_dependencies(
+                    command.sql_original, args.save)
                 if with_:
                     query_type = get_query_type(command.sql_original)
 
@@ -441,20 +447,8 @@ class SqlMagic(Magics, Configurable):
                 command.sql_original, args.save
             )
 
-            # The following bit of code checks for dependencies within the parentheses
-            # We do not care about the name outside the parentheses being the same as
-            # another table / snippet here and only check if there are dependencies
-            # in the parentheses.
-            # This is for generating more relevant warnings.
-            parentheses_content = re.findall(
-                r"\((.*)\)", command.sql_original.replace("\n", " ")
-            )
-
-            dependency_in_CTE = []
-            for query in parentheses_content:
-                for dependency in dependencies:
-                    if dependency in query:
-                        dependency_in_CTE.append(dependency)
+            dependency_in_CTE = get_dependency_in_CTE(
+                command.sql_original, dependencies)
 
             if dependency_in_CTE:
                 if query_type != "SELECT":
@@ -491,7 +485,8 @@ class SqlMagic(Magics, Configurable):
         connect_arg = command.connection
 
         if args.section:
-            connect_arg = sql.parse.connection_str_from_dsn_section(args.section, self)
+            connect_arg = sql.parse.connection_str_from_dsn_section(
+                args.section, self)
 
         if args.connection_arguments:
             try:
@@ -599,7 +594,8 @@ class SqlMagic(Magics, Configurable):
 
                 if self.feedback:
                     display.message(
-                        "Returning data to local variables [{}]".format(", ".join(keys))
+                        "Returning data to local variables [{}]".format(
+                            ", ".join(keys))
                     )
 
                 self.shell.user_ns.update(result)
@@ -690,9 +686,34 @@ def get_query_type(command: str):
     Returns the query type of the original sql command
     """
     query_type = (
-        sqlparse.parse(command)[0].get_type() if sqlparse.parse(command) else None
+        sqlparse.parse(command)[0].get_type(
+        ) if sqlparse.parse(command) else None
     )
+    if query_type == "UNKNOWN":
+        return None
     return query_type
+
+
+def get_dependency_in_CTE(sql_original, dependencies):
+    """
+    The following bit of code checks for dependencies within the parentheses
+    We do not care about the name outside the parentheses being the same as
+    another table / snippet here and only check if there are dependencies
+    in the parentheses.
+    This is for generating more relevant warnings.
+    """
+
+    parentheses_content = re.findall(
+        r"\((.*)\)", sql_original.replace("\n", " ")
+    )
+
+    dependency_in_CTE = []
+    for query in parentheses_content:
+        for dependency in dependencies:
+            if dependency in query:
+                dependency_in_CTE.append(dependency)
+
+    return dependency_in_CTE
 
 
 def set_configs(ip, file_path):
