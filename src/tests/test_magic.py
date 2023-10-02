@@ -2079,7 +2079,7 @@ SELECT * FROM my_penguins",
     SELECT * FROM penguins.csv \
 ) \
 SELECT * FROM my_penguins",
-            None
+            None,
         ),
     ],
 )
@@ -2106,7 +2106,7 @@ def test_get_query_type(query, query_type):
 ) \
 SELECT * FROM my_penguins",
             ["my_penguins"],
-            []
+            [],
         ),
     ],
 )
