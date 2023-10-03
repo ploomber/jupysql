@@ -441,18 +441,14 @@ class SqlMagic(Magics, Configurable):
                 command.sql_original, args.save
             )
 
-            dependency_in_CTE = get_dependency_in_CTE(
-                command.sql_original, dependencies
-            )
-
-            if dependency_in_CTE:
+            if dependencies:
                 if query_type != "SELECT":
                     display_message = IF_NOT_SELECT_MESSAGE
                 else:
                     display_message = IF_SELECT_MESSAGE
                 display.message_warning(
-                    f"Your query is using the following snippets: \
-{', '.join(dependency_in_CTE)}. {display_message}\
+                    f"Your query is using one or more of the following snippets: \
+{', '.join(dependencies)}. {display_message}\
  CTE generation is disabled"
                 )
             with_ = None
@@ -678,32 +674,11 @@ def get_query_type(command: str):
     """
     Returns the query type of the original sql command
     """
-    query_type = (
-        sqlparse.parse(command)[0].get_type() if sqlparse.parse(command) else None
-    )
+    parsed = sqlparse.parse(command)
+    query_type = parsed[0].get_type() if parsed else None
     if query_type == "UNKNOWN":
         return None
     return query_type
-
-
-def get_dependency_in_CTE(sql_original, dependencies):
-    """
-    The following bit of code checks for dependencies within the parentheses
-    We do not care about the name outside the parentheses being the same as
-    another table / snippet here and only check if there are dependencies
-    in the parentheses.
-    This is for generating more relevant warnings.
-    """
-
-    parentheses_content = re.findall(r"\((.*)\)", sql_original.replace("\n", " "))
-
-    dependency_in_CTE = []
-    for query in parentheses_content:
-        for dependency in dependencies:
-            if dependency in query:
-                dependency_in_CTE.append(dependency)
-
-    return dependency_in_CTE
 
 
 def set_configs(ip, file_path):
