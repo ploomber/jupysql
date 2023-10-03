@@ -2011,8 +2011,8 @@ select * from languages where rating < 2""",
 with langs as (
     select * from language_lt2
 ) select * from langs """,
-            """Your query is using the following snippets: language_lt2. \
-JupySQL does not support snippet expansion within CTEs yet, \
+            """Your query is using one or more of the following snippets: \
+language_lt2. JupySQL does not support snippet expansion within CTEs yet, \
 CTE generation is disabled""",
             True,
         ),
@@ -2052,6 +2052,7 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
         ip_empty.run_cell(sql_query)
 
     out, _ = capsys.readouterr()
+    print(out)
     assert expected_result in out
 
 
