@@ -4,6 +4,7 @@
 
 * [Feature] Allow user-level config using ~/.jupysql/config (#880)
 * [Fix] Remove force deleted snippets from dependent snippet's `with` (#717)
+* [Fix] Comments added in SQL query to be stripped before saved as snippet (#886)
 
 ## 0.10.2 (2023-09-22)
 
