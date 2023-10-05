@@ -737,22 +737,9 @@ class SQLAlchemyConnection(AbstractConnection):
                 else:
                     parse_dialect = "duckdb"
 
-                # Attempt to use sqlglot to detect SELECT and SUMMARIZE.
-                try:
-                    expression = parse_one(query, dialect=parse_dialect)
-                    sql_stripped = Generator(comments=False).generate(expression)
-                    words = sql_stripped.split()
-                    if (
-                        words
-                        and (
-                            words[0].lower() == "select"
-                            or words[0].lower() == "summarize"
-                        )
-                        or isinstance(expression, exp.Select)
-                    ):
-                        return out
-                except sqlglot.errors.ParseError:
-                    pass
+                no_commit = detect_duckdb_summarize_or_select(query, parse_dialect)
+                if no_commit:
+                    return out
 
             # in sqlalchemy 1.x, connection has no commit attribute
             if IS_SQLALCHEMY_ONE:
@@ -1085,6 +1072,24 @@ def _check_if_duckdb_dbapi_connection(conn):
     # NOTE: duckdb defines df and pl to efficiently convert results to
     # pandas.DataFrame and polars.DataFrame respectively
     return hasattr(conn, "df") and hasattr(conn, "pl")
+
+
+def detect_duckdb_summarize_or_select(query, parse_dialect):
+    # Attempt to use sqlglot to detect SELECT and SUMMARIZE.
+    try:
+        expression = parse_one(query, dialect=parse_dialect)
+        sql_stripped = Generator(comments=False).generate(expression)
+        words = sql_stripped.split()
+        return (
+            words
+            and (
+                words[0].lower() == "select"
+                or words[0].lower() == "summarize"
+            )
+            or isinstance(expression, exp.Select)
+        )
+    except sqlglot.errors.ParseError:
+        return False
 
 
 def _suggest_fix(env_var, connect_str=None):
