@@ -1187,7 +1187,7 @@ def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
     assert expected in str(excinfo.value)
 
 
-_query_expected_outputs = [
+query_expected_outputs = [
     ("SELECT * FROM table", True),
     ("SUMMARIZE table", True),
     ("FROM table SELECT *", True),
@@ -1234,6 +1234,6 @@ _query_expected_outputs = [
 ]
 
 
-@pytest.mark.parametrize("query, expected_output", _query_expected_outputs)
+@pytest.mark.parametrize("query, expected_output", query_expected_outputs)
 def test_detect_duckdb_summarize_or_select(query, expected_output):
     assert detect_duckdb_summarize_or_select(query) == expected_output
