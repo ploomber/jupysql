@@ -1191,13 +1191,10 @@ def detect_duckdb_summarize_or_select(query):
             # Further analysis is required
             sql_stripped = sqlparse.format(query, strip_comments=True)
             words = sql_stripped.split()
-            return (
-                len(words) > 0
-                and (
-                    words[0].lower() == "from"
-                    or words[0].lower() == "summarize"
-                )
+            return len(words) > 0 and (
+                words[0].lower() == "from" or words[0].lower() == "summarize"
             )
     return False
+
 
 atexit.register(ConnectionManager.close_all, verbose=True)
