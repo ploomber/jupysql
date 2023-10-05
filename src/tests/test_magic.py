@@ -2014,31 +2014,31 @@ expected_select = {"memid": (1, 2, 3, 5, 8)}
         (
             """%%sql
             /*x*/
-               SUMMARIZE df
+            SUMMARIZE df
             """,
             expected_summarize,
         ),
         (
             """%%sql
             /*x*/
-               /*x*/
-               -- comment
-               SUMMARIZE df
-               /*x*/
+            /*x*/
+            -- comment
+            SUMMARIZE df
+            /*x*/
             """,
             expected_summarize,
         ),
         (
             """%%sql
             /*x*/
-               SELECT * FROM df
+            SELECT * FROM df
             """,
             expected_select,
         ),
         (
             """%%sql
             /*x*/
-               FROM df SELECT *
+            FROM df SELECT *
             """,
             expected_select,
         ),
