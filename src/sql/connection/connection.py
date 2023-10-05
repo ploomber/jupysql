@@ -18,8 +18,6 @@ from sqlalchemy.exc import (
 )
 from IPython.core.error import UsageError
 import sqlglot
-from sqlglot import parse_one, exp
-from sqlglot.generator import Generator
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
@@ -731,13 +729,7 @@ class SQLAlchemyConnection(AbstractConnection):
             # empty results if we commit after a SELECT or SUMMARIZE statement,
             # see: https://github.com/Mause/duckdb_engine/issues/734.
             if self.dialect == "duckdb":
-                is_duckdb_sqlalchemy = not self.is_dbapi_connection
-                if is_duckdb_sqlalchemy:
-                    parse_dialect = "tsql"
-                else:
-                    parse_dialect = "duckdb"
-
-                no_commit = detect_duckdb_summarize_or_select(query, parse_dialect)
+                no_commit = detect_duckdb_summarize_or_select(query)
                 if no_commit:
                     return out
 
@@ -1074,24 +1066,6 @@ def _check_if_duckdb_dbapi_connection(conn):
     return hasattr(conn, "df") and hasattr(conn, "pl")
 
 
-def detect_duckdb_summarize_or_select(query, parse_dialect):
-    # Attempt to use sqlglot to detect SELECT and SUMMARIZE.
-    try:
-        expression = parse_one(query, dialect=parse_dialect)
-        sql_stripped = Generator(comments=False).generate(expression)
-        words = sql_stripped.split()
-        return (
-            words
-            and (
-                words[0].lower() == "select"
-                or words[0].lower() == "summarize"
-            )
-            or isinstance(expression, exp.Select)
-        )
-    except sqlglot.errors.ParseError:
-        return False
-
-
 def _suggest_fix(env_var, connect_str=None):
     """
     Returns an error message that we can display to the user
@@ -1199,5 +1173,31 @@ def set_sqlalchemy_isolation_level(conn):
     except Exception:
         return False
 
+
+def detect_duckdb_summarize_or_select(query):
+    """
+    Checks if the SQL query is a DuckDB SELECT or SUMMARIZE statement.
+
+    Note:
+    Assumes there is only one SQL statement in the query.
+    """
+    statements = sqlparse.parse(query)
+    if statements:
+        assert len(statements) == 1
+        stype = statements[0].get_type()
+        if stype == "SELECT":
+            return True
+        elif stype == "UNKNOWN":
+            # Further analysis is required
+            sql_stripped = sqlparse.format(query, strip_comments=True)
+            words = sql_stripped.split()
+            return (
+                len(words) > 0
+                and (
+                    words[0].lower() == "from"
+                    or words[0].lower() == "summarize"
+                )
+            )
+    return False
 
 atexit.register(ConnectionManager.close_all, verbose=True)
