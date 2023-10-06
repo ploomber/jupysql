@@ -92,7 +92,9 @@ drivername = sqlite
 
 
 def test_load_home_toml_if_no_pyproject_toml(tmp_empty, ip_no_magics, capsys):
-    with patch.object(Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))):
+    with patch.object(
+        Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))
+    ):
         home_toml = Path("~/.jupysql/config").expanduser()
         home_toml.parent.mkdir(exist_ok=True)
         home_toml.write_text(
@@ -167,7 +169,9 @@ def test_magic_initialization_with_no_toml(tmp_empty, ip_no_magics):
     load_ipython_extension(ip_no_magics)
 
 
-def test_magic_initialization_with_corrupted_pyproject_toml(tmp_empty, ip_no_magics, capsys):
+def test_magic_initialization_with_corrupted_pyproject_toml(
+    tmp_empty, ip_no_magics, capsys
+):
     Path("pyproject.toml").write_text(
         """
 [tool.jupysql.SqlMagic]
@@ -180,8 +184,11 @@ dsn_filename = myconnections.ini
     captured = capsys.readouterr()
     assert "Could not load configuration file" in captured.out
 
+
 def test_magic_initialization_with_corrupted_home_toml(tmp_empty, ip_no_magics, capsys):
-    with patch.object(Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))):
+    with patch.object(
+        Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))
+    ):
         home_toml = Path("~/.jupysql/config").expanduser()
         home_toml.parent.mkdir(exist_ok=True)
         home_toml.write_text(
@@ -232,14 +239,17 @@ style = "RANDOM"
     assert all(re.search(substring, out) for substring in expect)
     assert get_current_configs(magic) == combined
 
+
 def test_loading_valid_home_toml_shows_feedback_and_modifies_config(
     tmp_empty, ip_no_magics, capsys
 ):
-    with patch.object(Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))):
+    with patch.object(
+        Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))
+    ):
         home_toml = Path("~/.jupysql/config").expanduser()
         home_toml.parent.mkdir(exist_ok=True)
         home_toml.write_text(
-        """
+            """
     [tool.jupysql.SqlMagic]
     autocommit = false
     autolimit = 1
