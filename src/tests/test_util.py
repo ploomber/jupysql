@@ -16,12 +16,14 @@ EXPECTED_STORE_SUGGESTIONS = (
         pytest.param(
             "a",
             "%sqlcmd columns --table {}",
-            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(
+                reason="this is not working yet, see #658"),
         ),
         pytest.param(
             "bbb",
             "%sqlcmd profile --table {}",
-            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(
+                reason="this is not working yet, see #658"),
         ),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
@@ -147,36 +149,39 @@ def test_is_sqlalchemy_error(string, substrings, expected):
 
 
 @pytest.mark.parametrize(
-    "args, cmd_from, raises, expected_error_message",
+    "args, cmd_from, expected_error_message",
     [
         (
             ["--table", "--table"],
             "sqlcmd",
-            True,
             "Duplicate arguments in %sqlcmd. \
 Please use only one of each of the following: --table",
         ),
         (
             ["--alias", "--alias"],
             "sql",
-            True,
             "Duplicate arguments in %sql. \
 Please use only one of each of the following: --alias",
         ),
         (
             ["--table", "--table", "--column", "--column"],
             "sqlplot",
-            True,
             "Duplicate arguments in %sqlplot. \
 Please use only one of each of the following: --column, --table",
         ),
-        (["--table", "--column"], "sqlplot", False, None),
     ],
 )
-def test_check_duplicate_arguments(args, cmd_from, raises, expected_error_message):
-    if raises:
-        with pytest.raises(UsageError) as excinfo:
-            util.check_duplicate_arguments(args, cmd_from)
-        assert expected_error_message in str(excinfo.value)
-    else:
-        assert util.check_duplicate_arguments(args, cmd_from)
+def test_check_duplicate_arguments_raises_UsageError(args, cmd_from, expected_error_message):
+    with pytest.raises(UsageError) as excinfo:
+        util.check_duplicate_arguments(args, cmd_from)
+    assert expected_error_message in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "args, cmd_from",
+    [
+        (["--table", "--column"], "sqlplot"),
+    ]
+)
+def test_check_duplicate_arguments_does_not_raise_UsageError(args, cmd_from):
+    assert util.check_duplicate_arguments(args, cmd_from)
