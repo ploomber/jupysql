@@ -3,8 +3,8 @@
 ## 0.10.4dev
 * [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
 * [Fix] Fix bug %sql not parsing JSON arrow operators correctly (#918)
-
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
+* [Fix] Added guards to check and raise errors when arguments are entered twice in %sql, %sqlcmd and %sqlplot (#806)
 
 ## 0.10.3 (2023-11-06)
 
