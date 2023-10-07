@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 import pytest
+from IPython.core.error import UsageError
 
 from sql.parse import (
     connection_str_from_dsn_section,
@@ -299,28 +300,49 @@ def complete_with_defaults(mapping):
 
 
 @pytest.mark.parametrize(
-    "line, expected",
+    "line, expected_out, cmd_from, expected_error_message, raises",
     [
         (
             "some-argument",
             {"line": ["some-argument"]},
+            None,
+            None,
+            False
         ),
         (
             "a b c",
             {"line": ["a", "b", "c"]},
+            None,
+            None,
+            False
         ),
         (
             "a b c --file query.sql",
             {"line": ["a", "b", "c"], "file": "query.sql"},
+            None,
+            None,
+            False
+        ),
+        (
+            "duckdb:// --alias test1 --alias test2",
+            None,
+            "sql",
+            "Duplicate arguments in %sql. Please use only one of each of the following: --alias",
+            True
         ),
     ],
 )
-def test_magic_args(ip, line, expected):
+def test_magic_args(ip, line, expected_out, cmd_from, expected_error_message, raises):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    args = magic_args(sql_line, line)
+    if not raises:
+        args = magic_args(sql_line, line)
 
-    assert args.__dict__ == complete_with_defaults(expected)
+        assert args.__dict__ == complete_with_defaults(expected_out)
+    else:
+        with pytest.raises(UsageError) as excinfo:
+            args = magic_args(sql_line, line, cmd_from)
+        assert expected_error_message == str(excinfo.value)
 
 
 @pytest.mark.parametrize(
