@@ -124,7 +124,7 @@ def flatten(src, ltypes=(list, tuple)):
                 i -= 1
                 break
             else:
-                process_list[i : i + 1] = process_list[i]
+                process_list[i: i + 1] = process_list[i]
         i += 1
 
     # If input src data type is tuple, return tuple
@@ -155,6 +155,24 @@ def show_deprecation_warning():
         "raise an exception in the next major release so please remove it.",
         FutureWarning,
     )
+
+
+def check_duplicate_arguments(args, cmd_from):
+    """
+    Raises UsageError when duplicate arguments are passed to magics.
+    """
+
+    args = [arg for arg in args if "--" in arg]
+    print(args)
+    if len(args) != len(set(args)):
+        duplicate_args = set([arg for arg in args if args.count(arg) != 1])
+        print(duplicate_args)
+        raise exceptions.UsageError(
+            f"Duplicate arguments in %{cmd_from}. "
+            f"Please use only one of each of the following: "
+            f"{', '.join(duplicate_args)}"
+        )
+    return True
 
 
 def find_path_from_root(file_name):
@@ -269,7 +287,8 @@ def get_user_configs(file_path):
     while section_names:
         section_to_find, sections_from_user = section_names.pop(0), data.keys()
         if section_to_find not in sections_from_user:
-            close_match = difflib.get_close_matches(section_to_find, sections_from_user)
+            close_match = difflib.get_close_matches(
+                section_to_find, sections_from_user)
             if not close_match:
                 MESSAGE_PREFIX = (
                     f"Tip: You may define configurations in "
@@ -329,7 +348,8 @@ def validate_mutually_exclusive_args(arg_names, args):
     args : list
         args values
     """
-    specified_args = [arg_name for arg_name, arg in zip(arg_names, args) if arg]
+    specified_args = [arg_name for arg_name,
+                      arg in zip(arg_names, args) if arg]
     if len(specified_args) > 1:
         raise exceptions.ValueError(
             f"{pretty_print(specified_args)} are specified. "
