@@ -300,40 +300,42 @@ def complete_with_defaults(mapping):
 
 
 @pytest.mark.parametrize(
-    "line, expected_out, cmd_from, expected_error_message, raises",
+    "line, cmd_from, expected_error_message",
     [
-        ("some-argument", {"line": ["some-argument"]}, None, None, False),
-        ("a b c", {"line": ["a", "b", "c"]}, None, None, False),
-        (
-            "a b c --file query.sql",
-            {"line": ["a", "b", "c"], "file": "query.sql"},
-            None,
-            None,
-            False,
-        ),
         (
             "duckdb:// --alias test1 --alias test2",
-            None,
             "sql",
             (
                 "Duplicate arguments in %sql. \
 Please use only one of each of the following: --alias"
             ),
-            True,
         ),
     ],
 )
-def test_magic_args(ip, line, expected_out, cmd_from, expected_error_message, raises):
+def test_magic_args_raises_UsageError(ip, line, cmd_from, expected_error_message):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    if not raises:
-        args = magic_args(sql_line, line)
+    with pytest.raises(UsageError) as excinfo:
+        magic_args(sql_line, line, cmd_from)
+    assert expected_error_message == str(excinfo.value)
 
-        assert args.__dict__ == complete_with_defaults(expected_out)
-    else:
-        with pytest.raises(UsageError) as excinfo:
-            args = magic_args(sql_line, line, cmd_from)
-        assert expected_error_message == str(excinfo.value)
+
+@pytest.mark.parametrize(
+    "line, expected_out, cmd_from, expected_error_message, raises",
+    [
+        ("some-argument", {"line": ["some-argument"]}),
+        ("a b c", {"line": ["a", "b", "c"]}),
+        (
+            "a b c --file query.sql",
+            {"line": ["a", "b", "c"], "file": "query.sql"},
+        ),
+    ],
+)
+def test_magic_args_does_not_raise_UsageError(ip, line, expected_out):
+    sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
+
+    args = magic_args(sql_line, line)
+    assert args.__dict__ == complete_with_defaults(expected_out)
 
 
 @pytest.mark.parametrize(
