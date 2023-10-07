@@ -162,7 +162,7 @@ def check_duplicate_arguments(args, cmd_from):
     Raises UsageError when duplicate arguments are passed to magics.
     """
 
-    args = [arg for arg in args if "--" in arg]
+    args = [arg for arg in args if "--" in arg and arg != "--with"]
     if len(args) != len(set(args)):
         duplicate_args = set([arg for arg in args if args.count(arg) != 1])
         raise exceptions.UsageError(
