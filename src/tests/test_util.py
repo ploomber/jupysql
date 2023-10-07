@@ -16,14 +16,12 @@ EXPECTED_STORE_SUGGESTIONS = (
         pytest.param(
             "a",
             "%sqlcmd columns --table {}",
-            marks=pytest.mark.xfail(
-                reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
         ),
         pytest.param(
             "bbb",
             "%sqlcmd profile --table {}",
-            marks=pytest.mark.xfail(
-                reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
         ),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
@@ -171,7 +169,9 @@ Please use only one of each of the following: --column, --table",
         ),
     ],
 )
-def test_check_duplicate_arguments_raises_UsageError(args, cmd_from, expected_error_message):
+def test_check_duplicate_arguments_raises_UsageError(
+    args, cmd_from, expected_error_message
+):
     with pytest.raises(UsageError) as excinfo:
         util.check_duplicate_arguments(args, cmd_from)
     assert expected_error_message in str(excinfo.value)
@@ -181,7 +181,7 @@ def test_check_duplicate_arguments_raises_UsageError(args, cmd_from, expected_er
     "args, cmd_from",
     [
         (["--table", "--column"], "sqlplot"),
-    ]
+    ],
 )
 def test_check_duplicate_arguments_does_not_raise_UsageError(args, cmd_from):
     assert util.check_duplicate_arguments(args, cmd_from)
