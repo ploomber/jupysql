@@ -238,9 +238,15 @@ def escape_string_literals_with_colon_prefix(query):
     # Define the regular expression pattern for matching ':variable' format
     single_quoted_variable_pattern = r"(?<!\\)':(" + identifier_pattern + r")(?<!\\)\'"
 
+    # Define the regular expression pattern for matching [x:y]
+    index_variable_pattern = r'(?<!\\):(' + r"\b[a-zA-Z0-9_]*\b" + r')(?<!\\)\]'
+
     # Replace ":variable" and ':variable' with "\:variable"
     query_quoted = re.sub(double_quoted_variable_pattern, r'"\\:\1"', query)
     query_quoted = re.sub(single_quoted_variable_pattern, r"'\\:\1'", query_quoted)
+
+    # Replace [x:y] with [x\:y]
+    query_quoted = re.sub(index_variable_pattern, r"\\:\1]", query_quoted)
 
     double_found = re.findall(double_quoted_variable_pattern, query)
     single_found = re.findall(single_quoted_variable_pattern, query)
@@ -253,7 +259,7 @@ def find_named_parameters(input_string):
     identifier_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
 
     # Define the regular expression pattern for matching :variable format
-    variable_pattern = r'(?<!["\'])\:(' + identifier_pattern + ")"
+    variable_pattern = r'(?<!["\']\[)\:(' + identifier_pattern + ")"
 
     # Use findall to extract all matches of :variable from the input string
     matches = re.findall(variable_pattern, input_string)
