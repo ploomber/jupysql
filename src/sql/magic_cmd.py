@@ -13,6 +13,7 @@ from sql.cmd.explore import explore
 from sql.cmd.snippets import snippets
 from sql.cmd.connect import connect
 from sql.connection import ConnectionManager
+from sql.util import check_duplicate_arguments
 
 try:
     from traitlets.config.configurable import Configurable
@@ -74,6 +75,7 @@ class SqlCmdMagic(Magics, Configurable):
             # directly use shlex since SqlCmdMagic does not use magic_args from parse.py
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
+            check_duplicate_arguments(others, "sqlcmd")
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 if (

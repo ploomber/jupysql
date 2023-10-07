@@ -11,7 +11,7 @@ from sql.util import validate_nonidentifier_connection
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
-        self.args = parse.magic_args(magic.execute, line)
+        self.args = parse.magic_args(magic.execute, line, "sqlplot")
 
 
 class SQLCommand:
@@ -24,7 +24,7 @@ class SQLCommand:
         self._line = line
         self._cell = cell
 
-        self.args = parse.magic_args(magic.execute, line)
+        self.args = parse.magic_args(magic.execute, line, "sql")
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1
