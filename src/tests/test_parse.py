@@ -302,33 +302,24 @@ def complete_with_defaults(mapping):
 @pytest.mark.parametrize(
     "line, expected_out, cmd_from, expected_error_message, raises",
     [
-        (
-            "some-argument",
-            {"line": ["some-argument"]},
-            None,
-            None,
-            False
-        ),
-        (
-            "a b c",
-            {"line": ["a", "b", "c"]},
-            None,
-            None,
-            False
-        ),
+        ("some-argument", {"line": ["some-argument"]}, None, None, False),
+        ("a b c", {"line": ["a", "b", "c"]}, None, None, False),
         (
             "a b c --file query.sql",
             {"line": ["a", "b", "c"], "file": "query.sql"},
             None,
             None,
-            False
+            False,
         ),
         (
             "duckdb:// --alias test1 --alias test2",
             None,
             "sql",
-            "Duplicate arguments in %sql. Please use only one of each of the following: --alias",
-            True
+            (
+                "Duplicate arguments in %sql. \
+Please use only one of each of the following: --alias"
+            ),
+            True,
         ),
     ],
 )
