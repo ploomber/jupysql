@@ -321,7 +321,7 @@ def test_magic_args_raises_UsageError(ip, line, cmd_from, expected_error_message
 
 
 @pytest.mark.parametrize(
-    "line, expected_out, cmd_from, expected_error_message, raises",
+    "line, expected_out",
     [
         ("some-argument", {"line": ["some-argument"]}),
         ("a b c", {"line": ["a", "b", "c"]}),
