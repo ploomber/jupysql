@@ -1,4 +1,5 @@
 from datetime import datetime
+from IPython.core.error import UsageError
 import pytest
 from sql import util
 import json
@@ -15,12 +16,14 @@ EXPECTED_STORE_SUGGESTIONS = (
         pytest.param(
             "a",
             "%sqlcmd columns --table {}",
-            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(
+                reason="this is not working yet, see #658"),
         ),
         pytest.param(
             "bbb",
             "%sqlcmd profile --table {}",
-            marks=pytest.mark.xfail(reason="this is not working yet, see #658"),
+            marks=pytest.mark.xfail(
+                reason="this is not working yet, see #658"),
         ),
         ("c_c", "%sqlplot histogram --table {} --column x"),
         ("d_d_d", "%sqlplot boxplot --table {} --column x"),
@@ -143,3 +146,41 @@ def test_parse_sql_results_to_json(ip, capsys, rows, columns, expected_json):
 def test_is_sqlalchemy_error(string, substrings, expected):
     result = util.if_substring_exists(string, substrings)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "args, cmd_from, raises, expected_error_message",
+    [
+        (
+            ["--table", "--table"],
+            "sqlcmd",
+            True,
+            "Duplicate arguments in %sqlcmd. Please use only one of each of the following: --table"
+        ),
+        (
+            ["--alias", "--alias"],
+            "sql",
+            True,
+            "Duplicate arguments in %sql. Please use only one of each of the following: --alias"
+        ),
+        (
+            ["--table", "--table", "--column", "--column"],
+            "sqlplot",
+            True,
+            "Duplicate arguments in %sqlplot. Please use only one of each of the following: --table, --column"
+        ),
+        (
+            ["--table", "--column"],
+            "sqlplot",
+            False,
+            None
+        ),
+    ]
+)
+def test_check_duplicate_arguments(args, cmd_from, raises, expected_error_message):
+    if raises:
+        with pytest.raises(UsageError) as excinfo:
+            util.check_duplicate_arguments(args, cmd_from)
+        assert expected_error_message in str(excinfo.value)
+    else:
+        assert util.check_duplicate_arguments(args, cmd_from)
