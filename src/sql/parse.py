@@ -254,7 +254,7 @@ def escape_string_literals_with_colon_prefix(query):
 
 def escape_string_slicing_notation(query):
     """
-    Given a query, replaces all occurences of 'example'[x:y] with 'example'[x\:y].
+    Given a query, replaces all occurrences of 'example'[x:y] with 'example'[x\:y].
     Escaping the colon using \ ensures correct string slicing behavior rather
     than being interpreted as a bind parameter.
 
@@ -281,7 +281,7 @@ def find_named_parameters(input_string):
     identifier_pattern = r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"
 
     # Define the regular expression pattern for matching :variable format
-    variable_pattern = r'(?<!["\']\[)\:(' + identifier_pattern + ")"
+    variable_pattern = r'(?<!["\'])\:(' + identifier_pattern + ")"
 
     # Use findall to extract all matches of :variable from the input string
     matches = re.findall(variable_pattern, input_string)
