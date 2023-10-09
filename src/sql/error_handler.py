@@ -47,7 +47,7 @@ def _detailed_message_with_error_type(error, query):
         "invalid sql",
     ]
     not_found_substrings = [
-        "does not exist",
+        "table with name",
         "not found",
         "could not find",
         "no such table",
