@@ -246,7 +246,7 @@ def escape_string_literals_with_colon_prefix(query):
     double_found = re.findall(double_quoted_variable_pattern, query)
     single_found = re.findall(single_quoted_variable_pattern, query)
 
-    # Escape occurences of : for string slicing
+    # Escape occurrences of : for string slicing
     query_quoted, _ = escape_string_slicing_notation(query_quoted)
 
     return query_quoted, double_found + single_found
