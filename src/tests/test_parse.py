@@ -428,6 +428,37 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
 
 
 @pytest.mark.parametrize(
+    "query_jupysql, expected_duckdb",
+    [
+        (
+            "select 'hello'[:2]",
+            "he",
+        ),
+        (
+            "select 'hello'[2:]",
+            "ello",
+        ),
+        (
+            "select 'hello'[2:4]",
+            "ell",
+        ),
+        (
+            "select 'hello'[:-1]",
+            "hell",
+        ),
+    ],
+)
+def test_slicing_jupysql_matches_duckdb_expected(
+    ip_empty, query_jupysql, expected_duckdb
+):
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    raw_result = ip_empty.run_line_magic("sql", query_jupysql)
+    result_jupysql = list(raw_result.dict().values())[0][0]
+    assert result_jupysql == expected_duckdb
+
+
+@pytest.mark.parametrize(
     "query, expected_escaped, expected_found",
     [
         (
