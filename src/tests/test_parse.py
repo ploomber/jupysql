@@ -472,6 +472,5 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
 )
 def test_escape_string_slicing_notation(query, expected_escaped, expected_found):
     escaped, found = escape_string_slicing_notation(query)
-    print(escaped, found)
     assert escaped == expected_escaped
     assert found == expected_found
