@@ -1183,7 +1183,8 @@ def detect_duckdb_summarize_or_select(query):
     """
     statements = sqlparse.parse(query)
     if statements:
-        assert len(statements) == 1
+        if len(statements) > 1:
+            raise NotImplementedError("Multiple statements are not supported")
         stype = statements[0].get_type()
         if stype == "SELECT":
             return True
