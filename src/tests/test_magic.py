@@ -2060,32 +2060,32 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
     "query, query_type",
     [
         (
-            (
-                "CREATE TABLE penguins AS ( "
-                "WITH my_penguins AS ( "
-                "SELECT * FROM penguins.csv "
-                ") "
-                "SELECT * FROM my_penguins "
-                ")"
-            ),
+            """
+            CREATE TABLE penguins AS (
+                WITH my_penguins AS (
+                    SELECT * FROM penguins.csv
+                )
+                SELECT * FROM my_penguins
+            )
+            """,
             "CREATE",
         ),
         (
-            (
-                "WITH my_penguins AS ( "
-                "SELECT * FROM penguins.csv "
-                ") "
-                "SELECT * FROM my_penguins"
-            ),
+            """
+            WITH my_penguins AS (
+                SELECT * FROM penguins.csv
+            )
+            SELECT * FROM my_penguins
+            """,
             "SELECT",
         ),
         (
-            (
-                "WITH my_penguins AS ("
-                "SELECT * FROM penguins.csv "
-                ") "
-                "* FROM my_penguins"
-            ),
+            """
+            WITH my_penguins AS (
+                SELECT * FROM penguins.csv
+            )
+            * FROM my_penguins
+            """,
             None,
         ),
     ],
