@@ -1987,3 +1987,61 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
     ip_empty.run_cell("%sql SELECT * FROM 'data.csv' LIMIT 3")
     out, _ = capsys.readouterr()
     assert expected in out
+
+
+@pytest.mark.parametrize(
+    "query, desired_error_msgs, unwanted_error_msgs",
+    [
+        (
+            "%sql select not_a_function(body_mass_g) from mysnippet",
+            [
+                "Scalar Function with name not_a_function does not exist!",
+            ],
+            [
+                "There is no table with name 'mysnippet'",
+                "Did you mean: 'mysnippet'",
+                "Table with name mysnippet does not exist!",
+            ],
+        ),
+        (
+            "%sql select not_a_function(body_mass_g) from mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'mysnip'",
+                "Table with name mysnip does not exist!",
+            ],
+            [
+                "Scalar Function with name not_a_function does not exist!",
+            ],
+        ),
+    ],
+    ids=[
+        "no-snippet-typo",
+        "snippet-typo",
+    ],
+)
+def test_query_snippet_bad_function_error_message(
+    ip_empty, query, desired_error_msgs, unwanted_error_msgs
+):
+    # Set up snippet
+    ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell(
+        """%%sql
+create table penguins as
+select * from
+ 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'"""
+    )
+    ip_empty.run_cell(
+        """%%sql --save mysnippet
+select * from penguins"""
+    )
+
+    # Run query
+    with pytest.raises(UsageError) as excinfo:
+        ip_empty.run_cell(query)
+
+    # Save result and test error message
+    result = str(excinfo.value)
+    assert all(msg in result for msg in desired_error_msgs)
+    assert all(msg not in result for msg in unwanted_error_msgs)
