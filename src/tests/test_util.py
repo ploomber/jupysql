@@ -169,7 +169,7 @@ Please use only one of each of the following: --column, --table",
         ),
     ],
 )
-def test_check_duplicate_arguments_raises_UsageError(
+def test_check_duplicate_arguments_raises_usageerror(
     args, cmd_from, expected_error_message
 ):
     with pytest.raises(UsageError) as excinfo:
@@ -183,5 +183,5 @@ def test_check_duplicate_arguments_raises_UsageError(
         (["--table", "--column"], "sqlplot"),
     ],
 )
-def test_check_duplicate_arguments_does_not_raise_UsageError(args, cmd_from):
+def test_check_duplicate_arguments_does_not_raise_usageerror(args, cmd_from):
     assert util.check_duplicate_arguments(args, cmd_from)
