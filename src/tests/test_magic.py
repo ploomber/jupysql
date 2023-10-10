@@ -2033,7 +2033,7 @@ with SELECT queries, CTE generation is disabled""",
         ),
     ],
 )
-def test_warn_when_using_snippets_in_non_SELECT_command(
+def test_warn_when_using_snippets_in_non_select_command(
     ip_empty, capsys, sql_snippet, sql_query, expected_result, raises
 ):
     ip_empty.run_cell("%sql duckdb://")
