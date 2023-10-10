@@ -312,7 +312,7 @@ Please use only one of each of the following: --alias"
         ),
     ],
 )
-def test_magic_args_raises_UsageError(ip, line, cmd_from, expected_error_message):
+def test_magic_args_raises_usageerror(ip, line, cmd_from, expected_error_message):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
     with pytest.raises(UsageError) as excinfo:
