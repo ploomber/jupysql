@@ -306,8 +306,8 @@ def complete_with_defaults(mapping):
             "duckdb:// --alias test1 --alias test2",
             "sql",
             (
-                "Duplicate arguments in %sql. \
-Please use only one of each of the following: --alias"
+                "Duplicate arguments in %sql. "
+                "Please use only one of each of the following: --alias"
             ),
         ),
     ],
@@ -334,7 +334,7 @@ def test_magic_args_raises_usageerror(ip, line, cmd_from, expected_error_message
 def test_magic_args_does_not_raise_UsageError(ip, line, expected_out):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    args = magic_args(sql_line, line)
+    args = magic_args(sql_line, line, "somewhere")
     assert args.__dict__ == complete_with_defaults(expected_out)
 
 
