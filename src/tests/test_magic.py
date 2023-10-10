@@ -2025,6 +2025,13 @@ def test_query_snippet_bad_function_error_message(
 ):
     # Set up snippet
     ip_empty.run_cell("%load_ext sql")
+    ip_empty.run_cell(
+        """
+import duckdb
+conn = duckdb.connect()
+conn.execute('INSTALL httpfs')
+"""
+    )
     ip_empty.run_cell("%sql duckdb://")
     ip_empty.run_cell(
         """%%sql
@@ -2045,8 +2052,8 @@ select * from penguins"""
     result = str(excinfo.value)
     assert all(msg in result for msg in desired_error_msgs)
     assert all(msg not in result for msg in unwanted_error_msgs)
-    
-    
+
+
 @pytest.mark.parametrize(
     "sql_snippet, sql_query, expected_result, raises",
     [
