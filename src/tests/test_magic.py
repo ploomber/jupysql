@@ -2053,6 +2053,8 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
     )
     out = ip_empty.run_cell(cell).result
     assert out.dict() == expected_output
+
+
 @pytest.mark.parametrize(
     "sql_snippet, sql_query, expected_result, raises",
     [
