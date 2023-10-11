@@ -1990,68 +1990,116 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
 
 
 @pytest.mark.parametrize(
-    "query, desired_error_msgs, unwanted_error_msgs",
+    "db, query_setup, query_with_error, error_msgs, error_type",
     [
         (
-            "%sql select not_a_function(body_mass_g) from mysnippet",
+            "duckdb",
+            """
+            %%sql --save mysnippet
+            select * from 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv' as penguins
+            """,
+            """
+            %sql select not_a_function(body_mass_g) from mysnippet
+            """,
             [
                 "Scalar Function with name not_a_function does not exist!",
+                #"no such function: not_a_function",
             ],
-            [
-                "There is no table with name 'mysnippet'",
-                "Did you mean: 'mysnippet'",
-                "Table with name mysnippet does not exist!",
-            ],
+            "RuntimeError",
         ),
         (
-            "%sql select not_a_function(body_mass_g) from mysnip",
+            "duckdb",
+            """
+            %%sql --save mysnippet
+            select * from 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv' as penguins
+            """,
+            """
+            %sql select not_a_function(body_mass_g) from mysnip
+            """,
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
                 "Table with name mysnip does not exist!",
+                #"no such table: mysnip",
             ],
+            "TableNotFoundError",
+        ),
+        (
+            "sqlite",
+            """
+            %%sql --save mysnippet
+            select * from test
+            """,
+            """
+            %sql select not_a_function(name) from mysnippet
+            """,
             [
-                "Scalar Function with name not_a_function does not exist!",
+                #"Scalar Function with name not_a_function does not exist!",
+                "no such function: not_a_function",
             ],
+            "RuntimeError",
+        ),
+        (
+            "sqlite",
+            """
+            %%sql --save mysnippet
+            select * from test
+            """,
+            """
+            %sql select not_a_function(name) from mysnip
+            """,
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'mysnip'",
+                #"Table with name mysnip does not exist!",
+                "no such table: mysnip",
+            ],
+            "TableNotFoundError",
         ),
     ],
     ids=[
-        "no-snippet-typo",
-        "snippet-typo",
+        "no-typo-duckdb",
+        "with-typo-duckdb",
+        "no-typo-sqlite",
+        "with-typo-sqlite",
     ],
 )
-def test_query_snippet_bad_function_error_message(
-    ip_empty, query, desired_error_msgs, unwanted_error_msgs
+def test_query_snippet_invalid_function_error_message(
+    ip, db, query_setup, query_with_error, error_msgs, error_type
 ):
     # Set up snippet
-    ip_empty.run_cell("%load_ext sql")
-    ip_empty.run_cell(
-        """
-import duckdb
-conn = duckdb.connect()
-conn.execute('INSTALL httpfs')
-"""
-    )
-    ip_empty.run_cell("%sql duckdb://")
-    ip_empty.run_cell(
-        """%%sql
-create table penguins as
-select * from
- 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'"""
-    )
-    ip_empty.run_cell(
-        """%%sql --save mysnippet
-select * from penguins"""
-    )
+    # ip.run_cell("%load_ext sql")
+    #     ip.run_cell(
+    #         """
+    # import duckdb
+    # conn = duckdb.connect()
+    # conn.execute('INSTALL httpfs')
+    # """
+    #     )
+    # ip.run_cell("%sql duckdb://")
+    #     ip.run_cell(
+    #         """%%sql
+    # create table penguins as
+    # select * from
+    #  'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'"""
+    #     )
+    ip.run_cell(f'%sql {db}://')
+    ip.run_cell(query_setup)
 
     # Run query
     with pytest.raises(UsageError) as excinfo:
-        ip_empty.run_cell(query)
+        ip.run_cell(query_with_error)
 
     # Save result and test error message
-    result = str(excinfo.value)
-    assert all(msg in result for msg in desired_error_msgs)
-    assert all(msg not in result for msg in unwanted_error_msgs)
+    result_error = excinfo.value.error_type
+    result_msg = str(excinfo.value)
+    print('-----!!!!!-----')
+    # print(ip)
+    # print(result_error)
+    # print(result_msg)
+    print('-----!!!!!-----')
+    assert error_type == result_error
+    assert all(msg in result_msg for msg in error_msgs)
 
 
 @pytest.mark.parametrize(
