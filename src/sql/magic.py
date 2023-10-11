@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+import sqlparse
+
 try:
     from ipywidgets import interact
 except ModuleNotFoundError:
@@ -56,6 +58,9 @@ from sql.telemetry import telemetry
 
 
 SUPPORT_INTERACTIVE_WIDGETS = ["Checkbox", "Text", "IntSlider", ""]
+IF_NOT_SELECT_MESSAGE = "The query is not a SELECT type query and as \
+snippets only work with SELECT queries,"
+IF_SELECT_MESSAGE = "JupySQL does not support snippet expansion within CTEs yet,"
 
 
 @magics_class
@@ -410,18 +415,42 @@ class SqlMagic(Magics, Configurable):
             else:
                 with_ = self._store.infer_dependencies(command.sql_original, args.save)
                 if with_:
-                    command.set_sql_with(with_)
-                    display.message(
-                        f"Generating CTE with stored snippets: {pretty_print(with_)}"
-                    )
+                    query_type = get_query_type(command.sql_original)
+
+                    if query_type != "SELECT":
+                        display.message_warning(
+                            f"Your query is using the following snippets: \
+{', '.join(with_)}. {IF_NOT_SELECT_MESSAGE} CTE generation is disabled"
+                        )
+                    else:
+                        command.set_sql_with(with_)
+                        display.message(
+                            f"Generating CTE with stored snippets: \
+{pretty_print(with_)}"
+                        )
                 else:
                     with_ = None
         else:
+            query_type = get_query_type(command.sql_original)
             if args.with_:
                 raise exceptions.UsageError(
                     "Cannot use --with with CTEs, remove --with and re-run the cell"
                 )
 
+            dependencies = self._store.infer_dependencies(
+                command.sql_original, args.save
+            )
+
+            if dependencies:
+                if query_type != "SELECT":
+                    display_message = IF_NOT_SELECT_MESSAGE
+                else:
+                    display_message = IF_SELECT_MESSAGE
+                display.message_warning(
+                    f"Your query is using one or more of the following snippets: \
+{', '.join(dependencies)}. {display_message}\
+ CTE generation is disabled"
+                )
             with_ = None
 
         # Create the interactive slider
@@ -436,6 +465,7 @@ class SqlMagic(Magics, Configurable):
             )
             interact(interactive_execute_wrapper, **interactive_dict)
             return
+
         if args.connections:
             return sql.connection.ConnectionManager.connections_table()
         elif args.close:
@@ -640,6 +670,17 @@ class SqlMagic(Magics, Configurable):
         )
 
 
+def get_query_type(command: str):
+    """
+    Returns the query type of the original sql command
+    """
+    parsed = sqlparse.parse(command)
+    query_type = parsed[0].get_type() if parsed else None
+    if query_type == "UNKNOWN":
+        return None
+    return query_type
+
+
 def set_configs(ip, file_path):
     """Set user defined SqlMagic configuration settings"""
     sql = ip.find_cell_magic("sql").__self__
@@ -664,8 +705,12 @@ def set_configs(ip, file_path):
 
 
 def load_SqlMagic_configs(ip):
-    """Loads saved SqlMagic configs in pyproject.toml"""
+    """Loads saved SqlMagic configs in pyproject.toml or ~/.jupysql/config"""
     file_path = util.find_path_from_root("pyproject.toml")
+    if not file_path:
+        alternate_path = Path("~/.jupysql/config").expanduser()
+        if alternate_path.exists():
+            file_path = str(alternate_path)
     if file_path:
         try:
             table_rows = set_configs(ip, file_path)
@@ -680,7 +725,8 @@ def load_SqlMagic_configs(ip):
             if type(e).__name__ == "ModuleNotFoundError":
                 display.message(
                     "The 'toml' package isn't installed. To load settings from "
-                    "the pyproject.toml file, install with: pip install toml"
+                    "pyproject.toml or ~/.jupysql/config, install with: "
+                    "pip install toml"
                 )
                 return
             else:
