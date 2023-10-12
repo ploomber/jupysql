@@ -1990,68 +1990,64 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
 
 
 @pytest.mark.parametrize(
-    "db, query_setup, query_with_error, error_msgs, error_type",
+    "setup, save_snippet, query_with_error, error_msgs, error_type",
     [
         (
-            "duckdb",
+            """
+            %sql duckdb://
+            %sql CREATE TABLE penguins (id INTEGER)
+            %sql INSERT INTO penguins VALUES (1)
+            """,
             """
             %%sql --save mysnippet
             SELECT * FROM penguins
             """,
-            """
-            %sql select not_a_function(id) from mysnippet
-            """,
+            "%sql select not_a_function(id) from mysnippet",
             [
                 "Scalar Function with name not_a_function does not exist!",
-                # "no such function: not_a_function",
             ],
             "RuntimeError",
         ),
         (
-            "duckdb",
+            """
+            %sql duckdb://
+            %sql CREATE TABLE penguins (id INTEGER)
+            %sql INSERT INTO penguins VALUES (1)
+            """,
             """
             %%sql --save mysnippet
             SELECT * FROM penguins
             """,
-            """
-            %sql select not_a_function(id) from mysnip
-            """,
+            "%sql select not_a_function(id) from mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
                 "Table with name mysnip does not exist!",
-                # "no such table: mysnip",
             ],
             "TableNotFoundError",
         ),
         (
-            "sqlite",
+            "%sql sqlite://",
             """
             %%sql --save mysnippet
             select * from test
             """,
-            """
-            %sql select not_a_function(name) from mysnippet
-            """,
+            "%sql select not_a_function(name) from mysnippet",
             [
-                # "Scalar Function with name not_a_function does not exist!",
                 "no such function: not_a_function",
             ],
             "RuntimeError",
         ),
         (
-            "sqlite",
+            "%sql sqlite://",
             """
             %%sql --save mysnippet
             select * from test
             """,
-            """
-            %sql select not_a_function(name) from mysnip
-            """,
+            "%sql select not_a_function(name) from mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
-                # "Table with name mysnip does not exist!",
                 "no such table: mysnip",
             ],
             "TableNotFoundError",
@@ -2065,14 +2061,11 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
     ],
 )
 def test_query_snippet_invalid_function_error_message(
-    ip, db, query_setup, query_with_error, error_msgs, error_type
+    ip, setup, save_snippet, query_with_error, error_msgs, error_type
 ):
     # Set up snippet
-    ip.run_cell(f"%sql {db}://")
-    ip.run_cell("%sql CREATE TABLE penguins (id INTEGER)")
-    ip.run_cell("%sql INSERT INTO penguins VALUES (1)")
-
-    ip.run_cell(query_setup)
+    ip.run_cell(setup)
+    ip.run_cell(save_snippet)
 
     # Run query
     with pytest.raises(UsageError) as excinfo:
