@@ -1996,14 +1996,16 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             "duckdb",
             """
             %%sql --save mysnippet
-            select * from 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv' as penguins
+            select * from
+            'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'
+            as penguins
             """,
             """
             %sql select not_a_function(body_mass_g) from mysnippet
             """,
             [
                 "Scalar Function with name not_a_function does not exist!",
-                #"no such function: not_a_function",
+                # "no such function: not_a_function",
             ],
             "RuntimeError",
         ),
@@ -2011,7 +2013,9 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             "duckdb",
             """
             %%sql --save mysnippet
-            select * from 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv' as penguins
+            select * from
+            'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'
+            as penguins
             """,
             """
             %sql select not_a_function(body_mass_g) from mysnip
@@ -2020,7 +2024,7 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
                 "Table with name mysnip does not exist!",
-                #"no such table: mysnip",
+                # "no such table: mysnip",
             ],
             "TableNotFoundError",
         ),
@@ -2034,7 +2038,7 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             %sql select not_a_function(name) from mysnippet
             """,
             [
-                #"Scalar Function with name not_a_function does not exist!",
+                # "Scalar Function with name not_a_function does not exist!",
                 "no such function: not_a_function",
             ],
             "RuntimeError",
@@ -2051,7 +2055,7 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
-                #"Table with name mysnip does not exist!",
+                # "Table with name mysnip does not exist!",
                 "no such table: mysnip",
             ],
             "TableNotFoundError",
@@ -2083,7 +2087,7 @@ def test_query_snippet_invalid_function_error_message(
     # select * from
     #  'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'"""
     #     )
-    ip.run_cell(f'%sql {db}://')
+    ip.run_cell(f"%sql {db}://")
     ip.run_cell(query_setup)
 
     # Run query
@@ -2093,11 +2097,11 @@ def test_query_snippet_invalid_function_error_message(
     # Save result and test error message
     result_error = excinfo.value.error_type
     result_msg = str(excinfo.value)
-    print('-----!!!!!-----')
+    # print("-----!!!!!-----")
     # print(ip)
     # print(result_error)
     # print(result_msg)
-    print('-----!!!!!-----')
+    # print("-----!!!!!-----")
     assert error_type == result_error
     assert all(msg in result_msg for msg in error_msgs)
 
