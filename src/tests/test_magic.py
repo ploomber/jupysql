@@ -1996,12 +1996,10 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             "duckdb",
             """
             %%sql --save mysnippet
-            select * from
-            'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'
-            as penguins
+            SELECT * FROM penguins
             """,
             """
-            %sql select not_a_function(body_mass_g) from mysnippet
+            %sql select not_a_function(id) from mysnippet
             """,
             [
                 "Scalar Function with name not_a_function does not exist!",
@@ -2013,12 +2011,10 @@ def test_accessing_previously_nonexisting_file(ip_empty, tmp_empty, capsys):
             "duckdb",
             """
             %%sql --save mysnippet
-            select * from
-            'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'
-            as penguins
+            SELECT * FROM penguins
             """,
             """
-            %sql select not_a_function(body_mass_g) from mysnip
+            %sql select not_a_function(id) from mysnip
             """,
             [
                 "If using snippets, you may pass the --with argument explicitly.",
@@ -2072,22 +2068,10 @@ def test_query_snippet_invalid_function_error_message(
     ip, db, query_setup, query_with_error, error_msgs, error_type
 ):
     # Set up snippet
-    # ip.run_cell("%load_ext sql")
-    #     ip.run_cell(
-    #         """
-    # import duckdb
-    # conn = duckdb.connect()
-    # conn.execute('INSTALL httpfs')
-    # """
-    #     )
-    # ip.run_cell("%sql duckdb://")
-    #     ip.run_cell(
-    #         """%%sql
-    # create table penguins as
-    # select * from
-    #  'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv'"""
-    #     )
     ip.run_cell(f"%sql {db}://")
+    ip.run_cell("%sql CREATE TABLE penguins (id INTEGER)")
+    ip.run_cell("%sql INSERT INTO penguins VALUES (1)")
+
     ip.run_cell(query_setup)
 
     # Run query
@@ -2097,11 +2081,7 @@ def test_query_snippet_invalid_function_error_message(
     # Save result and test error message
     result_error = excinfo.value.error_type
     result_msg = str(excinfo.value)
-    # print("-----!!!!!-----")
-    # print(ip)
-    # print(result_error)
-    # print(result_msg)
-    # print("-----!!!!!-----")
+
     assert error_type == result_error
     assert all(msg in result_msg for msg in error_msgs)
 
