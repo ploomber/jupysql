@@ -1253,3 +1253,100 @@ SELECT * FROM {__TABLE_NAME__};
     ).result
 
     assert len(result) == 3
+
+
+@pytest.mark.parametrize(
+    "ip_with_dynamic_db, snippet_name, error_msgs, error_type",
+    [
+        (
+            "ip_with_postgreSQL",
+            "mysnippet",
+            [
+                "function not_a_function(integer) does not exist",
+                "No function matches the given name and argument types",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_postgreSQL",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                'relation "mysnippe" does not exist',
+            ],
+            "TableNotFoundError",
+        ),
+        (
+            "ip_with_mySQL",
+            "mysnippet",
+            [
+                "FUNCTION db.not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mySQL",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Table 'db.mysnip' doesn't exist",
+            ],
+            "TableNotFoundError",
+        ),
+        (
+            "ip_with_mariaDB",
+            "mysnippet",
+            [
+                "FUNCTION db.not_a_function does not exist",
+            ],
+            "RuntimeError",
+        ),
+        (
+            "ip_with_mariaDB",
+            "mysnip",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Table 'db.mysnip' doesn't exist",
+            ],
+            "TableNotFoundError",
+        ),
+    ],
+    ids=[
+        "no-typo-postgreSQL",
+        "with-typo-postgreSQL",
+        "no-typo-mySQL",
+        "with-typo-mySQL",
+        "no-typo-mariaDB",
+        "with-typo-mariaDB",
+    ],
+)
+def test_query_snippet_invalid_function_error_message(
+    request, ip_with_dynamic_db, snippet_name, error_msgs, error_type
+):
+    # Set up snippet
+    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
+    ip_with_dynamic_db.run_cell(
+        """
+                %sql CREATE TABLE IF NOT EXISTS penguins (id INTEGER)
+                %sql INSERT INTO penguins VALUES (1)
+                """
+    )
+    ip_with_dynamic_db.run_cell(
+        """
+            %%sql --save mysnippet
+            SELECT * FROM penguins
+            """
+    )
+
+    # Run query
+    with pytest.raises(UsageError) as excinfo:
+        ip_with_dynamic_db.run_cell(
+            f"%sql SELECT not_a_function(id) FROM {snippet_name}"
+        )
+
+    # Save result and test error message
+    result_error = excinfo.value.error_type
+    result_msg = str(excinfo.value)
+
+    assert error_type == result_error
+    assert all(msg in result_msg for msg in error_msgs)

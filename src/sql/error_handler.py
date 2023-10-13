@@ -48,6 +48,8 @@ def _detailed_message_with_error_type(error, query):
     ]
     not_found_substrings = [
         r"(\btable with name\b).+(\bdoes not exist\b)",
+        r"(\brelation\b).+(\bdoes not exist\b)",
+        r"(\btable\b).+(\bdoesn't exist\b)",
         "not found",
         "could not find",
         "no such table",
@@ -65,7 +67,7 @@ def _detailed_message_with_error_type(error, query):
         else:
             return (
                 f"{CTE_MSG}\n\n{ORIGINAL_ERROR}{original_error}\n",
-                RuntimeError,
+                TableNotFoundError,
             )
     elif "fe_sendauth: no password supplied" in original_error:
         return f"{POSTGRES_MSG}\n{ORIGINAL_ERROR}{original_error}\n", RuntimeError
