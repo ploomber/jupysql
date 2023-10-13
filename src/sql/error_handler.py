@@ -67,7 +67,7 @@ def _detailed_message_with_error_type(error, query):
         else:
             return (
                 f"{CTE_MSG}\n\n{ORIGINAL_ERROR}{original_error}\n",
-                TableNotFoundError,
+                RuntimeError,
             )
     elif "fe_sendauth: no password supplied" in original_error:
         return f"{POSTGRES_MSG}\n{ORIGINAL_ERROR}{original_error}\n", RuntimeError

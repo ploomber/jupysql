@@ -1272,9 +1272,9 @@ SELECT * FROM {__TABLE_NAME__};
             "mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
-                'relation "mysnippe" does not exist',
+                'relation "mysnip" does not exist',
             ],
-            "TableNotFoundError",
+            "RuntimeError",
         ),
         (
             "ip_with_mySQL",
@@ -1291,7 +1291,7 @@ SELECT * FROM {__TABLE_NAME__};
                 "If using snippets, you may pass the --with argument explicitly.",
                 "Table 'db.mysnip' doesn't exist",
             ],
-            "TableNotFoundError",
+            "RuntimeError",
         ),
         (
             "ip_with_mariaDB",
@@ -1308,7 +1308,7 @@ SELECT * FROM {__TABLE_NAME__};
                 "If using snippets, you may pass the --with argument explicitly.",
                 "Table 'db.mysnip' doesn't exist",
             ],
-            "TableNotFoundError",
+            "RuntimeError",
         ),
     ],
     ids=[
