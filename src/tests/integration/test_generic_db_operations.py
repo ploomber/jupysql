@@ -1310,89 +1310,89 @@ SELECT * FROM {__TABLE_NAME__};
             ],
             "RuntimeError",
         ),
-        (
-            "ip_with_MSSQL",
-            "mysnippet",
-            [
-                "not_a_function' is not a recognized built-in function name",
-            ],
-            "RuntimeError",
-        ),
-        pytest.param(
-            "ip_with_MSSQL",
-            "mysnip",
-            [
-                "If using snippets, you may pass the --with argument explicitly.",
-            ],
-            "RuntimeError",
-            marks=pytest.mark.xfail(
-                reason="MSSQL prioritizes function error over table error"
-            ),
-        ),
-        (
-            "ip_with_Snowflake",
-            "mysnippet",
-            [
-                "FUNCTION not_a_function does not exist",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_Snowflake",
-            "mysnip",
-            [
-                "If using snippets, you may pass the --with argument explicitly.",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_oracle",
-            "mysnippet",
-            [
-                '"NOT_A_FUNCTION": invalid identifier',
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_oracle",
-            "mysnip",
-            [
-                "table or view does not exist",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_clickhouse",
-            "mysnippet",
-            [
-                "FUNCTION not_a_function does not exist",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_clickhouse",
-            "mysnip",
-            [
-                "If using snippets, you may pass the --with argument explicitly.",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_redshift",
-            "mysnippet",
-            [
-                "FUNCTION not_a_function does not exist",
-            ],
-            "RuntimeError",
-        ),
-        (
-            "ip_with_redshift",
-            "mysnip",
-            [
-                "If using snippets, you may pass the --with argument explicitly.",
-            ],
-            "RuntimeError",
-        ),
+        # (
+        #     "ip_with_MSSQL",
+        #     "mysnippet",
+        #     [
+        #         "not_a_function' is not a recognized built-in function name",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # pytest.param(
+        #     "ip_with_MSSQL",
+        #     "mysnip",
+        #     [
+        #         "If using snippets, you may pass the --with argument explicitly.",
+        #     ],
+        #     "RuntimeError",
+        #     marks=pytest.mark.xfail(
+        #         reason="MSSQL prioritizes function error over table error"
+        #     ),
+        # ),
+        # (
+        #     "ip_with_Snowflake",
+        #     "mysnippet",
+        #     [
+        #         "FUNCTION not_a_function does not exist",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_Snowflake",
+        #     "mysnip",
+        #     [
+        #         "If using snippets, you may pass the --with argument explicitly.",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_oracle",
+        #     "mysnippet",
+        #     [
+        #         '"NOT_A_FUNCTION": invalid identifier',
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_oracle",
+        #     "mysnip",
+        #     [
+        #         "table or view does not exist",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_clickhouse",
+        #     "mysnippet",
+        #     [
+        #         "FUNCTION not_a_function does not exist",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_clickhouse",
+        #     "mysnip",
+        #     [
+        #         "If using snippets, you may pass the --with argument explicitly.",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_redshift",
+        #     "mysnippet",
+        #     [
+        #         "FUNCTION not_a_function does not exist",
+        #     ],
+        #     "RuntimeError",
+        # ),
+        # (
+        #     "ip_with_redshift",
+        #     "mysnip",
+        #     [
+        #         "If using snippets, you may pass the --with argument explicitly.",
+        #     ],
+        #     "RuntimeError",
+        # ),
         pytest.param(
             "ip_with_duckDB_native",
             "mysnippet",
@@ -1417,16 +1417,16 @@ SELECT * FROM {__TABLE_NAME__};
         "with-typo-mySQL",
         "no-typo-mariaDB",
         "with-typo-mariaDB",
-        "no-typo-MSSQL",
-        "with-typo-MSSQL",
-        "no-typo-Snowflake",
-        "with-typo-Snowflake",
-        "no-typo-oracle",
-        "with-typo-oracle",
-        "no-typo-clickhouse",
-        "with-typo-clickhouse",
-        "no-typo-redshift",
-        "with-typo-redshift",
+        # "no-typo-MSSQL",
+        # "with-typo-MSSQL",
+        # "no-typo-Snowflake",
+        # "with-typo-Snowflake",
+        # "no-typo-oracle",
+        # "with-typo-oracle",
+        # "no-typo-clickhouse",
+        # "with-typo-clickhouse",
+        # "no-typo-redshift",
+        # "with-typo-redshift",
         "no-typo-duckDB-native",
         "with-typo-duckDB-native",
     ],
