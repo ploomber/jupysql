@@ -157,20 +157,96 @@ def show_deprecation_warning():
     )
 
 
-def check_duplicate_arguments(args, cmd_from):
+def check_duplicate_arguments(cmd_from, args) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
+    Returns true if no duplicates in arguments or aliases.
     """
-    ALLOWED_DUPLICATES = ["--with", "--interact"]
+    if len(args) <= 1:
+        return True
 
-    args = [arg for arg in args if "--" in arg and arg not in ALLOWED_DUPLICATES]
-    if len(args) != len(set(args)):
-        duplicate_args = set([arg for arg in args if args.count(arg) != 1])
-        raise exceptions.UsageError(
+    allowed_duplicates = {
+        "sql": ["-w", "--with", "--append", "--interact"],
+        "sqlplot": ["-w", "--with"],
+        "sqlcmd": [],
+    }
+
+    disallowed_aliases = {
+        "sql": {
+            "-l": "--connections",
+            "-x": "--close",
+            "-c": "--creator",
+            "-s": "--section",
+            "-p": "--persist",
+            "-a": "--connection-arguments",
+            "-f": "--file",
+            "-n": "--no-index",
+            "-S": "--save",
+            "-A": "--alias",
+        },
+        "sqlplot": {
+            "-t": "--table",
+            "-s": "--schema",
+            "-c": "--column",
+            "-o": "--orient",
+            "-b": "--bins",
+            "-B": "--breaks",
+            "-W": "--binwidth",
+            "-S": "--show-numbers",
+        },
+        "sqlcmd": {
+            "-t": "--table",
+            "-s": "--schema",
+            "-o": "--output",
+        },
+    }
+
+    args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
+
+    single_hyphen_opts = set()
+    double_hyphen_opts = set()
+
+    for arg in args:
+        if arg.startswith("--"):
+            double_hyphen_opts.add(arg)
+        elif arg.startswith("-"):
+            single_hyphen_opts.add(arg)
+
+    duplicate_args = []
+    visited_args = set()
+    for arg in args:
+        if arg not in allowed_duplicates[cmd_from]:
+            if arg not in visited_args:
+                visited_args.add(arg)
+            else:
+                duplicate_args.append(arg)
+
+    either_or = [
+        (opt, disallowed_aliases[cmd_from][opt])
+        for opt in single_hyphen_opts
+        if opt in disallowed_aliases[cmd_from]
+        if disallowed_aliases[cmd_from][opt] in double_hyphen_opts
+    ]
+
+    error_message = ""
+    if duplicate_args:
+        error_message += (
             f"Duplicate arguments in %{cmd_from}. "
-            f"Please use only one of each of the following: "
-            f"{', '.join(sorted(duplicate_args))}"
+            "Please use only one of each of the following: "
+            f"{', '.join(sorted(duplicate_args))}. "
         )
+
+    if either_or:
+        arg_list = sorted([" or ".join(pair) for pair in either_or])
+        error_message += (
+            f"Duplicate aliases for arguments in %{cmd_from}. "
+            "Please use either one of "
+            f"{', '.join(arg_list)}."
+        )
+
+    if error_message:
+        raise exceptions.UsageError(error_message)
+
     return True
 
 
