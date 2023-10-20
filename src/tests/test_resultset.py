@@ -766,7 +766,6 @@ INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
         "autopolars",
     ],
 )
-# Add another test that runs pivot inside select statement
 def test_pivot_in_subquery_returns_no_error(ip, capsys, df_type):
     # Setup connection, data
     ip.run_cell(
@@ -800,11 +799,9 @@ WHERE "2000" > 1000
     """
     )
 
-    # Make sure there is no error
     error = "InvalidInputException: Invalid Input Error: "
     "Attempting to execute an unsuccessful or closed pending query result "
     "Error: TransactionContext Error: cannot start "
     "a transaction within a transaction"
-
     out, _ = capsys.readouterr()
     assert error not in out
