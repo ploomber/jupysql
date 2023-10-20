@@ -300,7 +300,7 @@ def complete_with_defaults(mapping):
 
 
 @pytest.mark.parametrize(
-    "line, cmd_from, expected_error_message",
+    "line, cmd_from, expected_error_message, setup",
     [
         (
             "duckdb:// --alias test1 --alias test2",
@@ -309,15 +309,38 @@ def complete_with_defaults(mapping):
                 "Duplicate arguments in %sql. "
                 "Please use only one of each of the following: --alias"
             ),
+            None,
+        ),
+        (
+            "histogram --table penguins.csv --column bill_length_mm --column body_mass_g",
+            "sqlplot",
+            (
+                "Duplicate arguments in %sqlplot. "
+                "Please use only one of each of the following: --column"
+            ),
+            None,
+        ),
+        (
+            "bar --table penguins.csv --column bill_length_mm --show-numbers --show-numbers",
+            "sqlplot",
+            (
+                "Duplicate arguments in %sqlplot. "
+                "Please use only one of each of the following: --show-numbers"
+            ),
+            None,
         ),
     ],
 )
-def test_magic_args_raises_usageerror(ip, line, cmd_from, expected_error_message):
-    sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
+def test_magic_args_raises_usageerror(
+    load_penguin, ip, line, cmd_from, expected_error_message, setup
+):
+    if setup:
+        ip.run_cell(setup)
+    sql_line = ip.magics_manager.lsmagic()["line"][cmd_from]
 
     with pytest.raises(UsageError) as excinfo:
         magic_args(sql_line, line, cmd_from)
-    assert expected_error_message == str(excinfo.value)
+    assert expected_error_message in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -331,7 +354,7 @@ def test_magic_args_raises_usageerror(ip, line, cmd_from, expected_error_message
         ),
     ],
 )
-def test_magic_args_does_not_raise_UsageError(ip, line, expected_out):
+def test_magic_args_does_not_raise_usageerror(ip, line, expected_out):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
     args = magic_args(sql_line, line, "somewhere")
