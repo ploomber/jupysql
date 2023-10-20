@@ -312,7 +312,8 @@ def complete_with_defaults(mapping):
             None,
         ),
         (
-            "histogram --table penguins.csv --column bill_length_mm --column body_mass_g",
+            """histogram --table penguins.csv --column bill_length_mm
+--column body_mass_g""",
             "sqlplot",
             (
                 "Duplicate arguments in %sqlplot. "
@@ -321,7 +322,8 @@ def complete_with_defaults(mapping):
             None,
         ),
         (
-            "bar --table penguins.csv --column bill_length_mm --show-numbers --show-numbers",
+            """bar --table penguins.csv --column bill_length_mm
+--show-numbers --show-numbers""",
             "sqlplot",
             (
                 "Duplicate arguments in %sqlplot. "
