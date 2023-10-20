@@ -359,7 +359,7 @@ def test_magic_args_raises_usageerror(
 def test_magic_args_does_not_raise_usageerror(ip, line, expected_out):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    args = magic_args(sql_line, line, "somewhere")
+    args = magic_args(sql_line, line, "sql")
     assert args.__dict__ == complete_with_defaults(expected_out)
 
 
