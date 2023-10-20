@@ -692,3 +692,47 @@ def test_calling_legacy_plotting_functions_displays_warning(
 
     assert len(record) == 1
     assert str(record[0].message) == expected_warning
+
+@pytest.mark.parametrize(
+    "df_type",
+    [
+        "autopandas",
+        "autopolars",
+    ]
+)
+def test_pivot_dataframe_conversion_results(ip, df_type):
+    # Setup connection, data
+    ip.run_cell("""import duckdb
+conn = duckdb.connect()""")
+    ip.run_cell("%sql conn --alias duckdb-mem")
+    ip.run_cell("""
+    %%sql
+CREATE OR REPLACE TABLE Cities(Country VARCHAR, Name VARCHAR, Year INT, Population INT);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2000, 1005);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2010, 1065);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2020, 1158);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2000, 564);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2010, 608);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2020, 738);
+INSERT INTO Cities VALUES ('US', 'New York City', 2000, 8015);
+INSERT INTO Cities VALUES ('US', 'New York City', 2010, 8175);
+INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
+    """)
+    # Run Pivot statement as baseline
+    expected = ip.run_cell("""%%sql 
+    PIVOT Cities ON Year USING SUM(Population)""").result.DataFrame()
+
+    # Turn on auto-convert (also do with autopolars)
+    ip.run_cell(f"%config SqlMagic.{df_type} = True")
+
+    # Run Pivot statement again and ensure equal
+    result = ip.run_cell("""%%sql 
+    PIVOT Cities ON Year USING SUM(Population)""").result
+
+    assert len(expected) == len(result)
+
+
+
+# Add another test that runs pivot inside select statement
+    
+

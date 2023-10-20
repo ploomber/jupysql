@@ -507,7 +507,7 @@ def _convert_to_data_frame(
             # TransactionContext Error: cannot start a transaction within a transaction
             if result_set._statement.lower().startswith("pivot"):
                 native_connection.begin()
-                
+
             native_connection.execute(result_set._statement)
 
         return getattr(native_connection, converter_name)()
