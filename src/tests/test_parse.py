@@ -174,7 +174,8 @@ def test_parse_connect_shovel_over_newlines():
     ],
 )
 def test_connection_from_dsn_section(section, expected):
-    result = connection_str_from_dsn_section(section=section, config=DummyConfig)
+    result = connection_str_from_dsn_section(
+        section=section, config=DummyConfig)
     assert result == expected
 
 
@@ -204,7 +205,8 @@ def test_connection_from_dsn_section(section, expected):
     ],
 )
 def test_connection_string(input_, expected):
-    assert _connection_string(input_, "src/tests/test_dsn_config.ini") == expected
+    assert _connection_string(
+        input_, "src/tests/test_dsn_config.ini") == expected
 
 
 class Bunch:
@@ -300,7 +302,7 @@ def complete_with_defaults(mapping):
 
 
 @pytest.mark.parametrize(
-    "line, cmd_from, expected_error_message, setup",
+    "line, cmd_from, expected_error_message",
     [
         (
             "duckdb:// --alias test1 --alias test2",
@@ -309,7 +311,6 @@ def complete_with_defaults(mapping):
                 "Duplicate arguments in %sql. "
                 "Please use only one of each of the following: --alias"
             ),
-            None,
         ),
         (
             """histogram --table penguins.csv --column bill_length_mm
@@ -319,7 +320,6 @@ def complete_with_defaults(mapping):
                 "Duplicate arguments in %sqlplot. "
                 "Please use only one of each of the following: --column"
             ),
-            None,
         ),
         (
             """bar --table penguins.csv --column bill_length_mm
@@ -329,15 +329,12 @@ def complete_with_defaults(mapping):
                 "Duplicate arguments in %sqlplot. "
                 "Please use only one of each of the following: --show-numbers"
             ),
-            None,
         ),
     ],
 )
 def test_magic_args_raises_usageerror(
-    load_penguin, ip, line, cmd_from, expected_error_message, setup
+    load_penguin, ip, line, cmd_from, expected_error_message
 ):
-    if setup:
-        ip.run_cell(setup)
     sql_line = ip.magics_manager.lsmagic()["line"][cmd_from]
 
     with pytest.raises(UsageError) as excinfo:
@@ -366,7 +363,8 @@ def test_magic_args_does_not_raise_usageerror(ip, line, expected_out):
 @pytest.mark.parametrize(
     "query, expected_escaped, expected_found",
     [
-        ("SELECT * FROM table where x > :x", "SELECT * FROM table where x > :x", []),
+        ("SELECT * FROM table where x > :x",
+         "SELECT * FROM table where x > :x", []),
         (
             "SELECT * FROM table where x > ':x'",
             "SELECT * FROM table where x > '\\:x'",
