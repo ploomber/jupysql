@@ -174,8 +174,7 @@ def test_parse_connect_shovel_over_newlines():
     ],
 )
 def test_connection_from_dsn_section(section, expected):
-    result = connection_str_from_dsn_section(
-        section=section, config=DummyConfig)
+    result = connection_str_from_dsn_section(section=section, config=DummyConfig)
     assert result == expected
 
 
@@ -205,8 +204,7 @@ def test_connection_from_dsn_section(section, expected):
     ],
 )
 def test_connection_string(input_, expected):
-    assert _connection_string(
-        input_, "src/tests/test_dsn_config.ini") == expected
+    assert _connection_string(input_, "src/tests/test_dsn_config.ini") == expected
 
 
 class Bunch:
@@ -363,8 +361,7 @@ def test_magic_args_does_not_raise_usageerror(ip, line, expected_out):
 @pytest.mark.parametrize(
     "query, expected_escaped, expected_found",
     [
-        ("SELECT * FROM table where x > :x",
-         "SELECT * FROM table where x > :x", []),
+        ("SELECT * FROM table where x > :x", "SELECT * FROM table where x > :x", []),
         (
             "SELECT * FROM table where x > ':x'",
             "SELECT * FROM table where x > '\\:x'",
