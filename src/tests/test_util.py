@@ -501,7 +501,6 @@ def test_check_duplicate_arguments_raises_usageerror(
 ):
     with pytest.raises(UsageError) as excinfo:
         util.check_duplicate_arguments(cmd_from, args)
-    print(str(excinfo.value))
     assert check_duplicate_message_factory(cmd_from, args, aliases) in str(
         excinfo.value
     )
