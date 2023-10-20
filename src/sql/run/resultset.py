@@ -503,9 +503,9 @@ def _convert_to_data_frame(
         is_select = _statement_is_select(result_set._statement)
 
         if is_select:
-            # If command is PIVOT, begin a new transaction otherwise duckDB returns
+            # If command includes PIVOT begin a new transaction otherwise duckDB returns
             # TransactionContext Error: cannot start a transaction within a transaction
-            if result_set._statement.lower().startswith("pivot"):
+            if "pivot" in result_set._statement.lower():
                 native_connection.begin()
 
             native_connection.execute(result_set._statement)
