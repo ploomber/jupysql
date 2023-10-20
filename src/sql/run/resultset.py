@@ -499,7 +499,7 @@ def _convert_to_data_frame(
         # we need to re-execute the statement because if we fetched some rows
         # already, .df() will return None. But only if it's a select statement
         # otherwise we might end up re-execute INSERT INTO or CREATE TABLE
-        # statements
+        # statements.
         is_select = _statement_is_select(result_set._statement)
 
         if is_select:
