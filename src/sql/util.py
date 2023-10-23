@@ -221,7 +221,7 @@ def check_duplicate_arguments(cmd_from, args) -> bool:
             else:
                 duplicate_args.append(arg)
 
-    either_or = [
+    alias_pairs_present = [
         (opt, disallowed_aliases[cmd_from][opt])
         for opt in single_hyphen_opts
         if opt in disallowed_aliases[cmd_from]
@@ -230,19 +230,25 @@ def check_duplicate_arguments(cmd_from, args) -> bool:
 
     error_message = ""
     if duplicate_args:
-        error_message += (
+        duplicates_error = (
             f"Duplicate arguments in %{cmd_from}. "
             "Please use only one of each of the following: "
             f"{', '.join(sorted(duplicate_args))}. "
         )
+    else:
+        duplicates_error = ""
 
-    if either_or:
-        arg_list = sorted([" or ".join(pair) for pair in either_or])
-        error_message += (
+    if alias_pairs_present:
+        arg_list = sorted([" or ".join(pair) for pair in alias_pairs_present])
+        alias_error = (
             f"Duplicate aliases for arguments in %{cmd_from}. "
             "Please use either one of "
             f"{', '.join(arg_list)}."
         )
+    else:
+        alias_error = ""
+
+    error_message = f"{duplicates_error}{alias_error}"
 
     if error_message:
         raise exceptions.UsageError(error_message)
