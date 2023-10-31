@@ -1,7 +1,7 @@
 from sql.run import run
 from sqlalchemy import create_engine
 from sql.connection import SQLAlchemyConnection
-from sql.magic import SqlMagic, load_ipython_extension
+from sql.magic import SqlMagic
 from IPython.core.interactiveshell import InteractiveShell
 
 ip = InteractiveShell()
