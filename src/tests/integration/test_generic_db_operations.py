@@ -1458,4 +1458,3 @@ def test_query_snippet_invalid_function_error_message(
 
     assert error_type == result_error
     assert all(msg in result_msg for msg in error_msgs)
-
