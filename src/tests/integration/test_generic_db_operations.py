@@ -1333,7 +1333,7 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_Snowflake",
             "mysnippet",
             [
-                "FUNCTION not_a_function does not exist",
+                "Unknown function NOT_A_FUNCTION",
             ],
             "RuntimeError",
         ),
