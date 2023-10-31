@@ -75,7 +75,7 @@ jobs:
 
   integration-test-live:
     needs: [preliminary]
-    if: needs.preliminary.outputs.check_doc_modified == 'failure'
+    if: needs.preliminary.outputs.check_doc_modified != 'failure'
     uses: ./.github/workflows/ci-integration-db-live.yaml
     secrets: inherit
 
