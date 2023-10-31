@@ -49,7 +49,7 @@ if not Path("penguins.csv").is_file():
 
 ```{code-cell} ipython3
 %%sql
-SELECT * FROM "penguins.csv" LIMIT 3
+SELECT * FROM "penguins.csv" LIMIT 5
 ```
 
 ```{note}
