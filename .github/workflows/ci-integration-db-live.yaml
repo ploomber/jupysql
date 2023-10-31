@@ -6,7 +6,7 @@
 name: CI - DB Integration - Cloud 
 
 on:
-  workflow_call:
+  pull_request:
 
 jobs:
   database-live-integration-test:
