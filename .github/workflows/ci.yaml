@@ -8,7 +8,7 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
-      
+
 jobs:
   preliminary:
     runs-on: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 1000
 
-      - name: Set up Python 
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
@@ -71,6 +71,12 @@ jobs:
             exit 0
           fi
 
+
+  integration-test-live:
+    needs: [preliminary]
+    if: needs.preliminary.outputs.check_doc_modified == 'failure'
+    uses: ./.github/workflows/ci-integration-db-live.yaml
+    secrets: inherit
 
   integration-test-non-live:
     needs: [preliminary]
@@ -191,8 +197,8 @@ jobs:
 
 
   release:
-    needs: [test, test-sqlalchemy-v1, check, integration-test-non-live]
-    if: startsWith(github.ref, 'refs/tags')
+    needs: [test, test-sqlalchemy-v1, check, integration-test-non-live, integration-test-live]
+    if: startsWith(github.ref, 'refs/tags') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
