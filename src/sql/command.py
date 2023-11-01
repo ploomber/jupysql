@@ -7,7 +7,7 @@ from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
 from sql.util import validate_nonidentifier_connection
-
+from sql import display
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
@@ -23,8 +23,10 @@ class SQLCommand:
     def __init__(self, magic, user_ns, line, cell) -> None:
         self._line = line
         self._cell = cell
-
-        self.args = parse.magic_args(magic.execute, line)
+        
+        display.message("Command 1")
+        self.args = parse.magic_args(magic.execute, line) 
+        display.message("Command 2")
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1

@@ -9,7 +9,7 @@ import warnings
 from sqlalchemy.engine.url import URL
 
 from sql import exceptions
-
+from sql import display
 
 class ConnectionsFile:
     def __init__(self, path_to_file) -> None:
@@ -195,6 +195,8 @@ def _option_strings_from_parser(parser):
     :type parser: IPython.core.magic_arguments.MagicArgumentParser
     """
     opts = [a.option_strings for a in parser._actions]
+    display.message(f"{list(itertools.chain.from_iterable(opts))}")
+    display.message("Parse 2")
     return list(itertools.chain.from_iterable(opts))
 
 
@@ -210,16 +212,24 @@ def without_sql_comment(parser, line):
     """
 
     args = _option_strings_from_parser(parser)
+    display.message("Parse 3")
     result = itertools.takewhile(
         lambda word: (not word.startswith("--")) or (word in args),
         shlex.split(line, posix=False),
     )
+    display.message(f"{' '.join(result)}")
+    display.message("Parse 4")
     return " ".join(result)
 
 
 def magic_args(magic_execute, line):
+    display.message("Parse 1")
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
+    d = shlex.split(line, posix=False)
+    display.message(f"{d}")
+    display.message(f"{line}")
+    display.message("Parse 5")
+    return magic_execute.parser.parse_args(shlex.split(line, posix=False)) # Error right here - see line 195
 
 
 def escape_string_literals_with_colon_prefix(query):
