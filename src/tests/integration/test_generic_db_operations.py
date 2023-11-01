@@ -1382,7 +1382,7 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_redshift",
             "mysnippet",
             [
-                "FUNCTION not_a_function does not exist",
+                "function not_a_function(character varying) does not exist",
             ],
             "RuntimeError",
         ),
