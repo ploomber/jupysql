@@ -1372,7 +1372,7 @@ SELECT * FROM {__TABLE_NAME__};
         ),
         (
             "ip_with_clickhouse",
-            "mysnips",
+            "mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
             ],
