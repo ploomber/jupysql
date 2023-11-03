@@ -1337,14 +1337,13 @@ SELECT * FROM {__TABLE_NAME__};
             ],
             "RuntimeError",
         ),
-        pytest.param(
+        (
             "ip_with_Snowflake",
             "mysnip",
             [
                 "If using snippets, you may pass the --with argument explicitly.",
             ],
             "RuntimeError",
-            marks=pytest.mark.xfail(reason="Not yet implemented"),
         ),
         (
             "ip_with_oracle",
