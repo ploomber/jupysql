@@ -110,8 +110,7 @@ def test_key():
     sql_store = store.SQLStore()
 
     with pytest.raises(UsageError) as excinfo:
-        sql_store.store(
-            "first", "SELECT * FROM first WHERE x > 20", with_=["first"])
+        sql_store.store("first", "SELECT * FROM first WHERE x > 20", with_=["first"])
 
     assert "cannot appear in with_ argument" in str(excinfo.value)
 
@@ -159,8 +158,7 @@ def test_serial(with_, is_dialect_support_backtick, monkeypatch):
 
     sql_store = store.SQLStore()
     sql_store.store("first", "SELECT * FROM a WHERE x > 10")
-    sql_store.store(
-        "second", "SELECT * FROM first WHERE x > 20", with_=["first"])
+    sql_store.store("second", "SELECT * FROM first WHERE x > 20", with_=["first"])
 
     sql_store.store(
         "third", "SELECT * FROM second WHERE x > 30", with_=["second", "first"]
@@ -211,16 +209,14 @@ def test_branch_root(is_dialect_support_backtick, monkeypatch):
 
     sql_store = store.SQLStore()
     sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    sql_store.store(
-        "second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
     sql_store.store(
         "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
     )
 
     sql_store.store("first_b", "SELECT * FROM b WHERE y > 10")
 
-    result = sql_store.render("SELECT * FROM third",
-                              with_=["third_a", "first_b"])
+    result = sql_store.render("SELECT * FROM third", with_=["third_a", "first_b"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (\
@@ -268,16 +264,14 @@ def test_branch_root_reverse_final_with(is_dialect_support_backtick, monkeypatch
     sql_store = store.SQLStore()
 
     sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    sql_store.store(
-        "second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
     sql_store.store(
         "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
     )
 
     sql_store.store("first_b", "SELECT * FROM b WHERE y > 10")
 
-    result = sql_store.render("SELECT * FROM third",
-                              with_=["first_b", "third_a"])
+    result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (\
@@ -323,8 +317,7 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
     sql_store = store.SQLStore()
 
     sql_store.store("first_a", "SELECT * FROM a WHERE x > 10")
-    sql_store.store(
-        "second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
+    sql_store.store("second_a", "SELECT * FROM first_a WHERE x > 20", with_=["first_a"])
     sql_store.store(
         "third_a", "SELECT * FROM second_a WHERE x > 30", with_=["second_a"]
     )
@@ -333,8 +326,7 @@ def test_branch(is_dialect_support_backtick, monkeypatch):
         "first_b", "SELECT * FROM second_a WHERE y > 10", with_=["second_a"]
     )
 
-    result = sql_store.render("SELECT * FROM third",
-                              with_=["first_b", "third_a"])
+    result = sql_store.render("SELECT * FROM third", with_=["first_b", "third_a"])
     assert (
         str(result)
         == "WITH {0}first_a{0} AS (\
@@ -374,5 +366,4 @@ def test_del_saved_key(ip_snippets):
 def test_del_saved_key_error(ip_snippets):
     with pytest.raises(UsageError) as excinfo:
         store.del_saved_key("non_existent_key")
-    assert "No such saved snippet found : non_existent_key" in str(
-        excinfo.value)
+    assert "No such saved snippet found : non_existent_key" in str(excinfo.value)
