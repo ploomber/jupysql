@@ -1366,7 +1366,8 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_clickhouse",
             "mysnippet",
             [
-                "FUNCTION not_a_function does not exist",
+                "Unknown function not_a_function: While processing "
+                "not_a_function(taxi_driver_name)",
             ],
             "RuntimeError",
         ),
