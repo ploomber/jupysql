@@ -8,6 +8,7 @@ from IPython.core.error import UsageError
 from sql.parse import (
     connection_str_from_dsn_section,
     parse,
+    is_valid_parentheses,
     without_sql_comment,
     split_args_and_sql,
     magic_args,
@@ -916,3 +917,17 @@ def test_split_args_and_sql(line, expected_args, expected_sql):
     args_line, sql_line = split_args_and_sql(line)
     assert args_line == expected_args
     assert sql_line == expected_sql
+
+
+@pytest.mark.parametrize(
+    "input_string, expected",
+    [
+        ("((()))", True),
+        ("()()()", True),
+        ("(()", False),
+        ("(", False),
+        ("(()())", True),
+    ],
+)
+def test_is_valid_parentheses(input_string: str, expected: bool):
+    assert is_valid_parentheses(input_string) == expected

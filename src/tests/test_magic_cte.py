@@ -30,9 +30,9 @@ SELECT * FROM positive_y;
 
     assert cell_execution.success
     assert cell_final_query.result == (
-        "WITH `positive_x` AS (\nSELECT * "
-        "FROM number_table WHERE x > 0), `positive_y` AS (\nSELECT * "
-        "FROM number_table WHERE y > 0)\nSELECT * FROM positive_x\n"
+        "WITH `positive_x` AS (\n\tSELECT * "
+        "FROM number_table WHERE x > 0\n), `positive_y` AS (\n\tSELECT * "
+        "FROM number_table WHERE y > 0\n)\nSELECT * FROM positive_x\n"
         "UNION\nSELECT * FROM positive_y;"
     )
 
@@ -52,8 +52,8 @@ def test_infer_dependencies(ip, capsys):
     out, _ = capsys.readouterr()
     result = ip.run_cell("%sqlcmd snippets final").result
     expected = (
-        "WITH `author_sub` AS (\nSELECT last_name FROM author "
-        "WHERE year_of_death > 1900)\nSELECT last_name FROM author_sub;"
+        "WITH `author_sub` AS (\n\tSELECT last_name FROM author "
+        "WHERE year_of_death > 1900\n)\nSELECT last_name FROM author_sub;"
     )
 
     assert result == expected
@@ -199,8 +199,8 @@ SELECT * FROM positive_x
     )
     cell_final_query = ip.run_cell("%sqlcmd snippets final").result
     assert (
-        cell_final_query == "WITH `positive_x` AS (\nSELECT * FROM number_table WHERE "
-        "x > 0)\nSELECT * FROM positive_x"
+        cell_final_query == "WITH `positive_x` AS (\n\tSELECT * FROM number_table WHERE"
+        " x > 0\n)\nSELECT * FROM positive_x"
     )
 
 
@@ -218,8 +218,8 @@ SELECT * FROM positive_x
     )
     cell_final_query = ip.run_cell("%sqlcmd snippets final").result
     assert (
-        cell_final_query == "WITH `positive_x` AS (\nSELECT * FROM "
-        "number_table\nWHERE x > 0)\nSELECT * FROM positive_x"
+        cell_final_query == "WITH `positive_x` AS (\n\tSELECT * FROM "
+        "number_table\nWHERE x > 0\n)\nSELECT * FROM positive_x"
     )
 
 
@@ -251,8 +251,8 @@ WHERE positive_x.x = positive_x_another.x
     cell_final_query = ip.run_cell("%sqlcmd snippets final").result
     assert (
         cell_final_query
-        == "WITH `positive_x` AS (\n\nSELECT * FROM number_table WHERE x > 0), "
-        "`positive_x_another` AS (\n\nSELECT * FROM number_table WHERE x > 0)\n"
+        == "WITH `positive_x` AS (\n\tSELECT * FROM number_table WHERE x > 0\n), "
+        "`positive_x_another` AS (\n\tSELECT * FROM number_table WHERE x > 0\n)\n"
         "SELECT * FROM positive_x, positive_x_another\nWHERE "
         "positive_x.x = positive_x_another.x"
     )
@@ -276,8 +276,8 @@ SELECT * FROM positive_x
     )
     cell_final_query = ip.run_cell("%sqlcmd snippets final").result
     assert (
-        cell_final_query == "WITH `positive_x` AS (\n\nSELECT * FROM number_table\n\n"
-        "WHERE x > 0)\nSELECT * FROM positive_x"
+        cell_final_query == "WITH `positive_x` AS (\n\tSELECT * FROM number_table\n\n"
+        "WHERE x > 0\n)\nSELECT * FROM positive_x"
     )
 
 
@@ -300,6 +300,6 @@ SELECT * FROM positive_x
     )
     cell_final_query = ip.run_cell("%sqlcmd snippets final").result
     assert (
-        cell_final_query == "WITH `positive_x` AS (\n\nSELECT * FROM number_table\n\n"
-        "WHERE x > 0)\nSELECT * FROM positive_x"
+        cell_final_query == "WITH `positive_x` AS (\n\tSELECT * FROM number_table\n\n"
+        "WHERE x > 0\n)\nSELECT * FROM positive_x"
     )
