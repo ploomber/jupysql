@@ -226,10 +226,10 @@ class SqlMagic(Magics, Configurable):
                 )
 
     def check_random_arguments(self, line="", cell=""):
-        display.message("Here 1")
+        display.message("Check 1")
         # check only for cell magic
         if cell != "":
-            display.message("Here 2")
+            display.message("Check 2")
             tokens = shlex.split(line, posix=False)
             arguments = []
 
@@ -237,6 +237,7 @@ class SqlMagic(Magics, Configurable):
             # If the token starts with "--", it is an argument
             breakLoop = False
             for token in tokens:
+                display.message(f"{token}")
                 if token.startswith("--") or token.startswith("-"):
                     arguments.append(token)
                     breakLoop = True
@@ -247,7 +248,7 @@ class SqlMagic(Magics, Configurable):
             declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
-                    display.message("Here 3")
+                    display.message("Check 3")
                     raise exceptions.UsageError(
                         "Unrecognized argument(s): {}".format(check_argument)
                     )
