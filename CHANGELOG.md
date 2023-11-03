@@ -23,6 +23,17 @@
 * [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments ([#892](https://github.com/ploomber/jupysql/issues/892))
 * [Fix] Fix incorrect conversion to Pandas/Polars dataframe for PIVOT statement results and InvalidInputException in PIVOT subqueries ([#917](https://github.com/ploomber/jupysql/issues/917))
 * [Doc] Added `run_statements` to the Python API docs ([#922](https://github.com/ploomber/jupysql/issues/922))
+* [Feature] Allow user-level config using ~/.jupysql/config (#880)
+* [Fix] Remove force deleted snippets from dependent snippet's `with` (#717)
+* [Fix] Comments added in SQL query to be stripped before saved as snippet (#886)
+* [Fix] Fixed bug passing :NUMBER while string slicing in query (#901)
+* [Fix] Fixed bug that showed wrong error when querying snippet with invalid function (#902)
+* [Fix] Disabled CTE generation when snippets are detected in a non-SELECT type query. (#651, #652)
+* [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments (#892)
+* [Fix] Fix incorrect conversion to Pandas/Polars dataframe for PIVOT statement results and InvalidInputException in PIVOT subqueries (#917)
+* [Doc] Added `run_statements` to the Python API docs (#922)
+* [Fix] Fix queries with leading parentheses not showing expected control flow behavior (used to break `is_cte` logic) (#879)
+>>>>>>> a833bb3 (added to changelog)
 
 ## 0.10.2 (2023-09-22)
 
