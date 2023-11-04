@@ -696,57 +696,64 @@ def get_query_type(command: str):
 def set_configs(ip, file_path):
     """Set user defined SqlMagic configuration settings"""
     sql = ip.find_cell_magic("sql").__self__
-    user_configs = util.get_user_configs(file_path)
+    success, user_configs = util.get_user_configs(file_path)
     default_configs = util.get_default_configs(sql)
     table_rows = []
-    for config, value in user_configs.items():
-        if config in default_configs.keys():
-            default_type = type(default_configs[config])
-            if isinstance(value, default_type):
-                setattr(sql, config, value)
-                table_rows.append([config, value])
-            else:
-                display.message(
-                    f"'{value}' is an invalid value for '{config}'. "
-                    f"Please use {default_type.__name__} value instead."
-                )
-        else:
-            util.find_close_match_config(config, default_configs.keys())
 
-    return table_rows
+    if success:
+        for config, value in user_configs.items():
+            if config in default_configs.keys():
+                default_type = type(default_configs[config])
+                if isinstance(value, default_type):
+                    setattr(sql, config, value)
+                    table_rows.append([config, value])
+                else:
+                    display.message(
+                        f"'{value}' is an invalid value for '{config}'. "
+                        f"Please use {default_type.__name__} value instead."
+                    )
+            else:
+                util.find_close_match_config(config, default_configs.keys())
+
+    return (success, table_rows)
 
 
 def load_SqlMagic_configs(ip):
     """Loads saved SqlMagic configs in pyproject.toml or ~/.jupysql/config"""
-    file_path = util.find_path_from_root("pyproject.toml")
-    if not file_path:
-        alternate_path = Path("~/.jupysql/config").expanduser()
-        if alternate_path.exists():
-            file_path = str(alternate_path)
-    if file_path:
-        try:
-            table_rows = set_configs(ip, file_path)
-        except Exception as e:
-            if type(e).__name__ == "TomlDecodeError":
-                display.message_warning(
-                    f"Could not load configuration file at {file_path} "
-                    "(default configuration will be used).\nPlease "
-                    f"check that it is valid TOML: {e}"
-                )
-                return
-            if type(e).__name__ == "ModuleNotFoundError":
-                display.message(
-                    "The 'toml' package isn't installed. To load settings from "
-                    "pyproject.toml or ~/.jupysql/config, install with: "
-                    "pip install toml"
-                )
-                return
-            else:
-                raise
 
-        if table_rows:
-            display.message("Settings changed:")
-            display.table(["Config", "value"], table_rows)
+    file_path = util.find_path_from_root("pyproject.toml")
+    alternate_path = Path("~/.jupysql/config").expanduser()
+    if not alternate_path.exists():
+        alternate_path = None
+
+    table_rows = []
+    success = False
+    try:
+        if file_path:
+            success, table_rows = set_configs(ip, file_path)
+        if not success and alternate_path is not None:
+            success, table_rows = set_configs(ip, alternate_path)
+    except Exception as e:
+        if type(e).__name__ == "TomlDecodeError":
+            display.message_warning(
+                f"Could not load configuration file at {file_path} "
+                "(default configuration will be used).\nPlease "
+                f"check that it is valid TOML: {e}"
+            )
+            return
+        if type(e).__name__ == "ModuleNotFoundError":
+            display.message(
+                "The 'toml' package isn't installed. To load settings from "
+                "pyproject.toml or ~/.jupysql/config, install with: "
+                "pip install toml"
+            )
+            return
+        else:
+            raise
+
+    if table_rows:
+        display.message("Settings changed:")
+        display.table(["Config", "value"], table_rows)
 
 
 def load_ipython_extension(ip):

@@ -379,6 +379,8 @@ def get_user_configs(file_path):
     """
     data = load_toml(file_path)
     section_names = ["tool", "jupysql", "SqlMagic"]
+    section_to_find = ""
+
     while section_names:
         section_to_find, sections_from_user = section_names.pop(0), data.keys()
         if section_to_find not in sections_from_user:
@@ -392,7 +394,7 @@ def get_user_configs(file_path):
                     f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
                     "configuration guideline</a>."
                 )
-                return {}
+                return (False, {})
             else:
                 raise exceptions.ConfigurationError(
                     f"{pretty_print(close_match)} is an invalid section "
@@ -412,7 +414,7 @@ def get_user_configs(file_path):
             )
     else:
         display.message(f"Loading configurations from {file_path}")
-    return data
+    return (True, data)
 
 
 def get_default_configs(sql):
