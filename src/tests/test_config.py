@@ -128,6 +128,49 @@ style = "RANDOM"
     assert get_current_configs(magic) == combined
 
 
+def test_load_home_toml_if_sqlmagic_section_not_in_pyproject_toml(
+    tmp_empty, ip_no_magics, capsys, monkeypatch
+):
+    monkeypatch.setattr(
+        Path, "expanduser", lambda path: Path(str(path).replace("~", tmp_empty))
+    )
+    home_toml = Path("~/.jupysql/config").expanduser()
+    home_toml.parent.mkdir(exist_ok=True)
+    home_toml.write_text(
+        """
+[tool.jupysql.SqlMagic]
+autocommit = false
+autolimit = 1
+style = "RANDOM"
+"""
+    )
+
+    Path("pyproject.toml").write_text(
+        """
+[tool.jupysql]
+"""
+    )
+
+    expect = [
+        "Settings changed:",
+        r"autocommit\s*\|\s*False",
+        r"autolimit\s*\|\s*1",
+        r"style\s*\|\s*RANDOM",
+    ]
+
+    config_expected = {"autocommit": False, "autolimit": 1, "style": "RANDOM"}
+
+    os.mkdir("sub")
+    os.chdir("sub")
+
+    load_ipython_extension(ip_no_magics)
+    magic = ip_no_magics.find_magic("sql").__self__
+    combined = {**get_default_testing_configs(magic), **config_expected}
+    out, _ = capsys.readouterr()
+    assert all(re.search(substring, out) for substring in expect)
+    assert get_current_configs(magic) == combined
+
+
 def test_start_ini_default_connection_using_toml_if_any(tmp_empty, ip_no_magics):
     Path("pyproject.toml").write_text(
         """
@@ -341,6 +384,9 @@ github = "ploomber/jupysql"
 def test_load_toml_user_configurations_not_specified(
     tmp_empty, ip_no_magics, capsys, file_content
 ):
+    home_toml = Path("~/.jupysql/config").expanduser()
+    if home_toml.exists():
+        os.remove(home_toml)
     Path("pyproject.toml").write_text(file_content)
     os.mkdir("sub")
     os.chdir("sub")
