@@ -177,6 +177,43 @@ def test_is_sqlalchemy_error(string, substrings, expected):
     assert result == expected
 
 
+ALLOWED_DUPLICATES = {
+    "sql": ["-w", "--with", "--append", "--interact"],
+    "sqlplot": ["-w", "--with"],
+    "sqlcmd": [],
+}
+
+DISALLOWED_ALIASES = {
+    "sql": {
+        "-l": "--connections",
+        "-x": "--close",
+        "-c": "--creator",
+        "-s": "--section",
+        "-p": "--persist",
+        "-a": "--connection-arguments",
+        "-f": "--file",
+        "-n": "--no-index",
+        "-S": "--save",
+        "-A": "--alias",
+    },
+    "sqlplot": {
+        "-t": "--table",
+        "-s": "--schema",
+        "-c": "--column",
+        "-o": "--orient",
+        "-b": "--bins",
+        "-B": "--breaks",
+        "-W": "--binwidth",
+        "-S": "--show-numbers",
+    },
+    "sqlcmd": {
+        "-t": "--table",
+        "-s": "--schema",
+        "-o": "--output",
+    },
+}
+
+
 @pytest.mark.parametrize(
     "cmd_from, args, aliases",
     [
@@ -500,14 +537,16 @@ def test_check_duplicate_arguments_raises_usageerror(
     aliases,
 ):
     with pytest.raises(UsageError) as excinfo:
-        util.check_duplicate_arguments(cmd_from, args)
+        util.check_duplicate_arguments(
+            cmd_from, args, ALLOWED_DUPLICATES[cmd_from], DISALLOWED_ALIASES[cmd_from]
+        )
     assert check_duplicate_message_factory(cmd_from, args, aliases) in str(
         excinfo.value
     )
 
 
 @pytest.mark.parametrize(
-    "cmd_from, args",
+    "args, cmd_from",
     [
         (["--creator"], "sql"),
         (["-c"], "sql"),
@@ -544,5 +583,7 @@ def test_check_duplicate_arguments_raises_usageerror(
         (["--table", "-s"], "sqlcmd"),
     ],
 )
-def test_check_duplicate_arguments_does_not_raise_usageerror(cmd_from, args):
-    assert util.check_duplicate_arguments(cmd_from, args)
+def test_check_duplicate_arguments_does_not_raise_usageerror(args, cmd_from):
+    assert util.check_duplicate_arguments(
+        cmd_from, args, ALLOWED_DUPLICATES[cmd_from], DISALLOWED_ALIASES[cmd_from]
+    )

@@ -69,13 +69,22 @@ class SqlCmdMagic(Magics, Configurable):
             f"Valid commands are: {', '.join(AVAILABLE_SQLCMD_COMMANDS)}"
         )
 
+        ALLOWED_DUPLICATES = []
+        DISALLOWED_ALIASES = {
+            "-t": "--table",
+            "-s": "--schema",
+            "-o": "--output",
+        }
+
         if line == "":
             raise exceptions.UsageError(VALID_COMMANDS_MSG)
         else:
             # directly use shlex since SqlCmdMagic does not use magic_args from parse.py
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
-            check_duplicate_arguments("sqlcmd", split)
+            check_duplicate_arguments(
+                "sqlcmd", split, ALLOWED_DUPLICATES, DISALLOWED_ALIASES
+            )
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 if (

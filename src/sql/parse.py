@@ -235,6 +235,7 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
+<<<<<<< HEAD
 def split_args_and_sql(line):
     """Separates line into args and sql query
 
@@ -280,6 +281,9 @@ def split_args_and_sql(line):
 
 
 def magic_args(magic_execute, line, cmd_from):
+=======
+def magic_args(magic_execute, line, cmd_from, allowed_duplicates, disallowed_aliases):
+>>>>>>> 3353e01 (Modified code to contain the allowed duplicates and disallowed aliases within the Magic Class itself)
     """
     Returns the parsed arguments from the line as parsed by magic_execute
     """
@@ -288,12 +292,19 @@ def magic_args(magic_execute, line, cmd_from):
 
     args = shlex.split(arg_line, posix=False)
     if len(args) > 1:
+<<<<<<< HEAD
         check_duplicate_arguments(args[1:], cmd_from)
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
         parsed.line = shlex.split(sql_line, posix=False)
     return parsed
+=======
+        check_duplicate_arguments(
+            cmd_from, args, allowed_duplicates, disallowed_aliases
+        )
+    return magic_execute.parser.parse_args(args)
+>>>>>>> 3353e01 (Modified code to contain the allowed duplicates and disallowed aliases within the Magic Class itself)
 
 
 def escape_string_literals_with_colon_prefix(query):

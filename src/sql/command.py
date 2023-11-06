@@ -11,7 +11,20 @@ from sql.util import validate_nonidentifier_connection
 
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
-        self.args = parse.magic_args(magic.execute, line, "sqlplot")
+        ALLOWED_DUPLICATES = ["-w", "--with"]
+        DISALLOWED_ALIASES = {
+            "-t": "--table",
+            "-s": "--schema",
+            "-c": "--column",
+            "-o": "--orient",
+            "-b": "--bins",
+            "-B": "--breaks",
+            "-W": "--binwidth",
+            "-S": "--show-numbers",
+        }
+        self.args = parse.magic_args(
+            magic.execute, line, "sqlplot", ALLOWED_DUPLICATES, DISALLOWED_ALIASES
+        )
 
 
 class SQLCommand:
@@ -24,7 +37,23 @@ class SQLCommand:
         self._line = line
         self._cell = cell
 
-        self.args = parse.magic_args(magic.execute, line, "sql")
+        ALLOWED_DUPLICATES = ["-w", "--with", "--append", "--interact"]
+        DISALLOWED_ALIASES = {
+            "-l": "--connections",
+            "-x": "--close",
+            "-c": "--creator",
+            "-s": "--section",
+            "-p": "--persist",
+            "-a": "--connection-arguments",
+            "-f": "--file",
+            "-n": "--no-index",
+            "-S": "--save",
+            "-A": "--alias",
+        }
+        self.args = parse.magic_args(
+            magic.execute, line, "sql", ALLOWED_DUPLICATES, DISALLOWED_ALIASES
+        )
+
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1

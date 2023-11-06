@@ -157,49 +157,15 @@ def show_deprecation_warning():
     )
 
 
-def check_duplicate_arguments(cmd_from, args) -> bool:
+def check_duplicate_arguments(
+    cmd_from, args, allowed_duplicates, disallowed_aliases
+) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
     Returns true if no duplicates in arguments or aliases.
     """
     if len(args) <= 1:
         return True
-
-    allowed_duplicates = {
-        "sql": ["-w", "--with", "--append", "--interact"],
-        "sqlplot": ["-w", "--with"],
-        "sqlcmd": [],
-    }
-
-    disallowed_aliases = {
-        "sql": {
-            "-l": "--connections",
-            "-x": "--close",
-            "-c": "--creator",
-            "-s": "--section",
-            "-p": "--persist",
-            "-a": "--connection-arguments",
-            "-f": "--file",
-            "-n": "--no-index",
-            "-S": "--save",
-            "-A": "--alias",
-        },
-        "sqlplot": {
-            "-t": "--table",
-            "-s": "--schema",
-            "-c": "--column",
-            "-o": "--orient",
-            "-b": "--bins",
-            "-B": "--breaks",
-            "-W": "--binwidth",
-            "-S": "--show-numbers",
-        },
-        "sqlcmd": {
-            "-t": "--table",
-            "-s": "--schema",
-            "-o": "--output",
-        },
-    }
 
     args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
 
@@ -215,17 +181,17 @@ def check_duplicate_arguments(cmd_from, args) -> bool:
     duplicate_args = []
     visited_args = set()
     for arg in args:
-        if arg not in allowed_duplicates[cmd_from]:
+        if arg not in allowed_duplicates:
             if arg not in visited_args:
                 visited_args.add(arg)
             else:
                 duplicate_args.append(arg)
 
     alias_pairs_present = [
-        (opt, disallowed_aliases[cmd_from][opt])
+        (opt, disallowed_aliases[opt])
         for opt in single_hyphen_opts
-        if opt in disallowed_aliases[cmd_from]
-        if disallowed_aliases[cmd_from][opt] in double_hyphen_opts
+        if opt in disallowed_aliases
+        if disallowed_aliases[opt] in double_hyphen_opts
     ]
 
     error_message = ""

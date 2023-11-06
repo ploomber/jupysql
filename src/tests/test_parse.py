@@ -333,10 +333,51 @@ def complete_with_defaults(mapping):
 def test_magic_args_raises_usageerror(
     load_penguin, ip, line, cmd_from, expected_error_message
 ):
+    ALLOWED_DUPLICATES = {
+        "sql": ["-w", "--with", "--append", "--interact"],
+        "sqlplot": ["-w", "--with"],
+        "sqlcmd": [],
+    }
+
+    DISALLOWED_ALIASES = {
+        "sql": {
+            "-l": "--connections",
+            "-x": "--close",
+            "-c": "--creator",
+            "-s": "--section",
+            "-p": "--persist",
+            "-a": "--connection-arguments",
+            "-f": "--file",
+            "-n": "--no-index",
+            "-S": "--save",
+            "-A": "--alias",
+        },
+        "sqlplot": {
+            "-t": "--table",
+            "-s": "--schema",
+            "-c": "--column",
+            "-o": "--orient",
+            "-b": "--bins",
+            "-B": "--breaks",
+            "-W": "--binwidth",
+            "-S": "--show-numbers",
+        },
+        "sqlcmd": {
+            "-t": "--table",
+            "-s": "--schema",
+            "-o": "--output",
+        },
+    }
     sql_line = ip.magics_manager.lsmagic()["line"][cmd_from]
 
     with pytest.raises(UsageError) as excinfo:
-        magic_args(sql_line, line, cmd_from)
+        magic_args(
+            sql_line,
+            line,
+            cmd_from,
+            ALLOWED_DUPLICATES[cmd_from],
+            DISALLOWED_ALIASES[cmd_from],
+        )
     assert expected_error_message in str(excinfo.value)
 
 
