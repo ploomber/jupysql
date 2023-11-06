@@ -226,10 +226,8 @@ class SqlMagic(Magics, Configurable):
                 )
 
     def check_random_arguments(self, line="", cell=""):
-        display.message("Check 1")
         # check only for cell magic
         if cell != "":
-            display.message("Check 2")
             tokens = shlex.split(line, posix=False)
             arguments = []
 
@@ -391,17 +389,13 @@ class SqlMagic(Magics, Configurable):
         # {cell}
 
         self.check_random_arguments(line, cell)
-        display.message("magic 1")
         if local_ns is None:
             local_ns = {}
 
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
-        display.message("magic 2")
         user_ns.update(local_ns)
-        display.message("magic 3")
         command = SQLCommand(self, user_ns, line, cell) # Error here 1
-        display.message(f"{command}")
         # args.line: contains the line after the magic with all options removed
 
         args = command.args
