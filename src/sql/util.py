@@ -374,6 +374,8 @@ def get_user_configs(file_path):
 
     Returns
     -------
+    boolean
+        A boolean representing if the user configurations were set successfully.
     dict
         saved configuration settings
     """
