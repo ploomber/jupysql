@@ -736,8 +736,9 @@ def load_SqlMagic_configs(ip):
     except Exception as e:
         if type(e).__name__ == "TomlDecodeError":
             display.message_warning(
-                f"Could not load configuration file at {file_path} "
-                "(default configuration will be used).\nPlease "
+                f"Could not load configuration file at {file_path}"
+                f"{(' or ' + str(alternate_path)) if alternate_path else ''}"
+                " (default configuration will be used).\nPlease "
                 f"check that it is valid TOML: {e}"
             )
             return
