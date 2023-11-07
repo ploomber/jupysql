@@ -70,11 +70,6 @@ class SqlCmdMagic(Magics, Configurable):
         )
 
         ALLOWED_DUPLICATES = []
-        DISALLOWED_ALIASES = {
-            "-t": "--table",
-            "-s": "--schema",
-            "-o": "--output",
-        }
 
         if line == "":
             raise exceptions.UsageError(VALID_COMMANDS_MSG)
@@ -83,7 +78,7 @@ class SqlCmdMagic(Magics, Configurable):
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
             check_duplicate_arguments(
-                "sqlcmd", split, ALLOWED_DUPLICATES, DISALLOWED_ALIASES
+                self.execute, "sqlcmd", split, ALLOWED_DUPLICATES
             )
 
             if command in AVAILABLE_SQLCMD_COMMANDS:

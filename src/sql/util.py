@@ -158,12 +158,25 @@ def show_deprecation_warning():
 
 
 def check_duplicate_arguments(
-    cmd_from, args, allowed_duplicates, disallowed_aliases
+    magic_execute, cmd_from, args, allowed_duplicates
 ) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
     Returns true if no duplicates in arguments or aliases.
     """
+
+    aliased_arguments = {}
+    unaliased_arguments = []
+
+    for decorator in magic_execute.decorators:
+        assert isinstance(decorator.args, tuple)
+        dec_args = decorator.args
+        if len(dec_args) > 1:
+            aliased_arguments[dec_args[0]] = dec_args[1]
+        else:
+            if dec_args[0].startswith('--') or dec_args[0].startswith('-'):
+                unaliased_arguments.append(dec_args[0])
+
     if len(args) <= 1:
         return True
 
@@ -188,10 +201,10 @@ def check_duplicate_arguments(
                 duplicate_args.append(arg)
 
     alias_pairs_present = [
-        (opt, disallowed_aliases[opt])
+        (opt, aliased_arguments[opt])
         for opt in single_hyphen_opts
-        if opt in disallowed_aliases
-        if disallowed_aliases[opt] in double_hyphen_opts
+        if opt in aliased_arguments
+        if aliased_arguments[opt] in double_hyphen_opts
     ]
 
     error_message = ""
