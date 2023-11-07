@@ -339,35 +339,6 @@ def test_magic_args_raises_usageerror(
         "sqlcmd": [],
     }
 
-    DISALLOWED_ALIASES = {
-        "sql": {
-            "-l": "--connections",
-            "-x": "--close",
-            "-c": "--creator",
-            "-s": "--section",
-            "-p": "--persist",
-            "-a": "--connection-arguments",
-            "-f": "--file",
-            "-n": "--no-index",
-            "-S": "--save",
-            "-A": "--alias",
-        },
-        "sqlplot": {
-            "-t": "--table",
-            "-s": "--schema",
-            "-c": "--column",
-            "-o": "--orient",
-            "-b": "--bins",
-            "-B": "--breaks",
-            "-W": "--binwidth",
-            "-S": "--show-numbers",
-        },
-        "sqlcmd": {
-            "-t": "--table",
-            "-s": "--schema",
-            "-o": "--output",
-        },
-    }
     sql_line = ip.magics_manager.lsmagic()["line"][cmd_from]
 
     with pytest.raises(UsageError) as excinfo:
@@ -376,7 +347,6 @@ def test_magic_args_raises_usageerror(
             line,
             cmd_from,
             ALLOWED_DUPLICATES[cmd_from],
-            DISALLOWED_ALIASES[cmd_from],
         )
     assert expected_error_message in str(excinfo.value)
 
@@ -395,7 +365,7 @@ def test_magic_args_raises_usageerror(
 def test_magic_args(ip, line, expected_out):
     sql_line = ip.magics_manager.lsmagic()["line"]["sql"]
 
-    args = magic_args(sql_line, line, "sql", [], {})
+    args = magic_args(sql_line, line, "sql", [])
     assert args.__dict__ == complete_with_defaults(expected_out)
 
 
