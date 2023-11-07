@@ -174,7 +174,7 @@ def check_duplicate_arguments(
         if len(dec_args) > 1:
             aliased_arguments[dec_args[0]] = dec_args[1]
         else:
-            if dec_args[0].startswith('--') or dec_args[0].startswith('-'):
+            if dec_args[0].startswith("--") or dec_args[0].startswith("-"):
                 unaliased_arguments.append(dec_args[0])
 
     if len(args) <= 1:

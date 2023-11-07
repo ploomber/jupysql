@@ -12,9 +12,7 @@ from sql.util import validate_nonidentifier_connection
 class SQLPlotCommand:
     def __init__(self, magic, line) -> None:
         ALLOWED_DUPLICATES = ["-w", "--with"]
-        self.args = parse.magic_args(
-            magic.execute, line, "sqlplot", ALLOWED_DUPLICATES
-        )
+        self.args = parse.magic_args(magic.execute, line, "sqlplot", ALLOWED_DUPLICATES)
 
 
 class SQLCommand:
@@ -28,9 +26,7 @@ class SQLCommand:
         self._cell = cell
 
         ALLOWED_DUPLICATES = ["-w", "--with", "--append", "--interact"]
-        self.args = parse.magic_args(
-            magic.execute, line, "sql", ALLOWED_DUPLICATES
-        )
+        self.args = parse.magic_args(magic.execute, line, "sql", ALLOWED_DUPLICATES)
 
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
