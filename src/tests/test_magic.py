@@ -2248,3 +2248,32 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
 )
 def test_get_query_type(query, query_type):
     assert get_query_type(query) == query_type
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            "%sql select '{\"a\": 1}'::json -> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json -> 0;',
+            '{"b":"c"}',
+        ),
+        (
+            "%sql select '{\"a\": 1}'::json ->> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json ->> 0;',
+            '{"b":"c"}',
+        ),
+    ],
+    ids=["single-key", "single-index", "double-key", "double-index"],
+)
+def test_json_arrow_operators(ip, query, expected):
+    ip.run_cell("%sql duckdb://")
+    result = ip.run_cell(query).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected

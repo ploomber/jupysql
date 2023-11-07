@@ -24,7 +24,7 @@ class SQLCommand:
         self._line = line
         self._cell = cell
 
-        self.args = parse.magic_args(magic.execute, line)  # Error here 2
+        self.args = parse.magic_args(magic.execute, line)
         # self.args.line (everything that appears after %sql/%%sql in the first line)
         # is split in tokens (delimited by spaces), this checks if we have one arg
         one_arg = len(self.args.line) == 1

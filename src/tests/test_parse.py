@@ -8,6 +8,7 @@ from sql.parse import (
     connection_str_from_dsn_section,
     parse,
     without_sql_comment,
+    move_json_arrows,
     magic_args,
     escape_string_literals_with_colon_prefix,
     escape_string_slicing_notation,
@@ -505,3 +506,29 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
     escaped, found = escape_string_slicing_notation(query)
     assert escaped == expected_escaped
     assert found == expected_found
+
+
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        (
+            '%sql select "{"a": "b"}"::json -> "a"',
+            '%sql select "{"a": "b"}"::json-> "a"',
+        ),
+        (
+            '%sql select "{"a": "b"}"::json ->> "a"',
+            '%sql select "{"a": "b"}"::json->> "a"',
+        ),
+        (
+            '%sql select "{"a": "b"}" -> "a"',
+            '%sql select "{"a": "b"}" -> "a"',
+        ),
+        (
+            '%sql select "{"a": "b"}" ->> "a"',
+            '%sql select "{"a": "b"}" ->> "a"',
+        ),
+    ],
+    ids=["json-single", "json-double", "no-json-single", "no-json-double"],
+)
+def test_move_arrow(line, expected):
+    assert move_json_arrows(line) == expected

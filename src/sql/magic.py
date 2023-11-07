@@ -235,7 +235,6 @@ class SqlMagic(Magics, Configurable):
             # If the token starts with "--", it is an argument
             breakLoop = False
             for token in tokens:
-                display.message(f"{token}")
                 if token.startswith("--") or token.startswith("-"):
                     arguments.append(token)
                     breakLoop = True
@@ -246,7 +245,6 @@ class SqlMagic(Magics, Configurable):
             declared_argument = _option_strings_from_parser(SqlMagic.execute.parser)
             for check_argument in arguments:
                 if check_argument not in declared_argument:
-                    display.message("Check 3")
                     raise exceptions.UsageError(
                         "Unrecognized argument(s): {}".format(check_argument)
                     )
@@ -395,7 +393,7 @@ class SqlMagic(Magics, Configurable):
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
-        command = SQLCommand(self, user_ns, line, cell) # Error here 1
+        command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
 
         args = command.args

@@ -42,3 +42,31 @@ def test_pgspecial(ip_with_postgreSQL):
     out = ip_with_postgreSQL.run_cell("%sql \l").result  # noqa: W605
 
     assert "postgres" in out.dict()["Name"]
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            "%sql select '{\"a\": 1}'::jsonb -> 'a';",
+            1,
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::jsonb -> 0;',
+            {"b": "c"},
+        ),
+        (
+            "%sql select '{\"a\": 1}'::jsonb ->> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::jsonb ->> 0;',
+            '{"b": "c"}',
+        ),
+    ],
+    ids=["single-key", "single-index", "double-key", "double-index"],
+)
+def test_json_arrow_operators(ip_with_postgreSQL, query, expected):
+    result = ip_with_postgreSQL.run_cell(query).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected

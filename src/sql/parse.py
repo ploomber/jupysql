@@ -208,7 +208,7 @@ def without_sql_comment(parser, line):
     :param line: A line of SQL, possibly mixed with option strings
     :type line: str
     """
-
+    
     args = _option_strings_from_parser(parser)
     result = itertools.takewhile(
         lambda word: (not word.startswith("--")) or (word in args),
@@ -217,28 +217,19 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
-def without_json_arrows(magic_execute, line):
-    # If using json, take occurences of "->" out of args
-    args = shlex.split(line, posix=False)
+def move_json_arrows(line):
     if "json" not in line:
-        return magic_execute.parser.parse_args(args)
-    foundArrows = []
-    for idx, arg in enumerate(args):
-        if arg == "->":
-            foundArrows.append(idx)
-            args.remove(arg)
-    # Parse args
-    parsed = magic_execute.parser.parse_args(args)
-    # Re-insert arrows (if any were found)
-    for idx in foundArrows:
-        parsed.line.insert(idx, "->")
-    return parsed
+        return line
+    pattern = r"(\s->)"
+    sub = r"->"
+    line = re.sub(pattern, sub, line)
+    return line
 
 
 def magic_args(magic_execute, line):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    # Error here 3 - see line 195
-    return without_json_arrows(magic_execute, line)
+    line = move_json_arrows(line=line)
+    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
 
 
 def escape_string_literals_with_colon_prefix(query):
