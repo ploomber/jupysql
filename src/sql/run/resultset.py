@@ -52,6 +52,8 @@ class ResultSet(ColumnGuesserMixin):
 
         self._finished_init = True
 
+        self._error = None
+
         if conn:
             conn._result_sets.append(self)
 
@@ -420,7 +422,9 @@ class ResultSet(ColumnGuesserMixin):
             # psycopg2 raises psycopg2.ProgrammingError error when running a script
             # that doesn't return rows e.g, 'CREATE TABLE' but others don't
             # (e.g., duckdb), so here we catch all
-            except Exception:
+            except Exception as e:
+                if "This result object does not return rows" not in str(e):
+                    raise
                 self.mark_fetching_as_done()
                 return
 
