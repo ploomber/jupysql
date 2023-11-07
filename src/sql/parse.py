@@ -217,10 +217,18 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
-def move_json_arrows(line):
+def remove_json_arrows_whitespace(line):
+    """Strips whitespace between JSON and -> or ->> operators
+
+    The argparser expects - to precede an argument, but postgreSQL
+    and duckDB allow for -> and ->> to be used as JSON operators.
+    We must ensure no leading whitespace for the arrows so that
+    the argparser doesn't mistake them for arguments.
+
+    """
     if "json" not in line:
         return line
-    pattern = r"(\s->)"
+    pattern = r"(\s+->)"
     sub = r"->"
     line = re.sub(pattern, sub, line)
     return line
@@ -228,7 +236,7 @@ def move_json_arrows(line):
 
 def magic_args(magic_execute, line):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    line = move_json_arrows(line=line)
+    line = remove_json_arrows_whitespace(line=line)
     return magic_execute.parser.parse_args(shlex.split(line, posix=False))
 
 

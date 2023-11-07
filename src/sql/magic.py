@@ -387,12 +387,14 @@ class SqlMagic(Magics, Configurable):
         # {cell}
 
         self.check_random_arguments(line, cell)
+    
         if local_ns is None:
             local_ns = {}
 
         # save globals and locals so they can be referenced in bind vars
         user_ns = self.shell.user_ns.copy()
         user_ns.update(local_ns)
+
         command = SQLCommand(self, user_ns, line, cell)
         # args.line: contains the line after the magic with all options removed
 

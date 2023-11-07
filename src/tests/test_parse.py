@@ -8,7 +8,7 @@ from sql.parse import (
     connection_str_from_dsn_section,
     parse,
     without_sql_comment,
-    move_json_arrows,
+    remove_json_arrows_whitespace,
     magic_args,
     escape_string_literals_with_colon_prefix,
     escape_string_slicing_notation,
@@ -530,5 +530,5 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
     ],
     ids=["json-single", "json-double", "no-json-single", "no-json-double"],
 )
-def test_move_arrow(line, expected):
-    assert move_json_arrows(line) == expected
+def test_remove_json_arrows_whitespace(line, expected):
+    assert remove_json_arrows_whitespace(line) == expected
