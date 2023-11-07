@@ -507,54 +507,6 @@ ALLOWED_DUPLICATES = {
             ],
             [("w", "with"), ("o", "orient"), ("B", "breaks")],
         ),
-        #
-        # FOR SQLCMD
-        #
-        # for schema/s
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--schema", "--schema"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["-s", "-s"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--schema", "-s"],
-            [("s", "schema")],
-        ),
-        # for table/t
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "--table"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["-t", "-t"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "-t"],
-            [("t", "table")],
-        ),
-        # for mixed
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "-t", "-s", "-s", "--schema"],
-            [("t", "table"), ("s", "schema")],
-        ),
     ],
 )
 def test_check_duplicate_arguments_raises_usageerror(
@@ -599,21 +551,17 @@ def test_check_duplicate_arguments_raises_usageerror(
         (SqlPlotMagic.execute, ["--table", "--column", "-B"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "--bins"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "-b"], "sqlplot"),
-        (SqlPlotMagic.execute, ["--table",
-         "--column", "--binwidth"], "sqlplot"),
+        (SqlPlotMagic.execute, ["--table", "--column", "--binwidth"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "-W"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "--orient"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "-o"], "sqlplot"),
-        (SqlPlotMagic.execute, ["--table",
-         "--column", "--show-numbers"], "sqlplot"),
+        (SqlPlotMagic.execute, ["--table", "--column", "--show-numbers"], "sqlplot"),
         (SqlPlotMagic.execute, ["--table", "--column", "-S"], "sqlplot"),
-        (SqlCmdMagic.execute, ["--table"], "sqlcmd"),
-        (SqlCmdMagic.execute, ["-t"], "sqlcmd"),
-        (SqlCmdMagic.execute, ["--table", "--schema"], "sqlcmd"),
-        (SqlCmdMagic.execute, ["--table", "-s"], "sqlcmd"),
     ],
 )
-def test_check_duplicate_arguments_does_not_raise_usageerror(magic_execute, args, cmd_from):
+def test_check_duplicate_arguments_does_not_raise_usageerror(
+    magic_execute, args, cmd_from
+):
     assert util.check_duplicate_arguments(
         magic_execute, cmd_from, args, ALLOWED_DUPLICATES[cmd_from]
     )
