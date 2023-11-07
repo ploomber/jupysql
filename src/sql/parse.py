@@ -208,7 +208,7 @@ def without_sql_comment(parser, line):
     :param line: A line of SQL, possibly mixed with option strings
     :type line: str
     """
-    
+
     args = _option_strings_from_parser(parser)
     result = itertools.takewhile(
         lambda word: (not word.startswith("--")) or (word in args),

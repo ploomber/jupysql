@@ -387,7 +387,7 @@ class SqlMagic(Magics, Configurable):
         # {cell}
 
         self.check_random_arguments(line, cell)
-    
+
         if local_ns is None:
             local_ns = {}
 
