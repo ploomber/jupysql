@@ -33,6 +33,7 @@ import sql.connection
 import sql.parse
 from sql.run.run import run_statements
 from sql.parse import _option_strings_from_parser
+from sql.parse import without_sql_comment
 from sql import display, exceptions
 from sql.store import store
 from sql.command import SQLCommand
@@ -561,6 +562,7 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
+            display.message(f"SQL Before Parse: {command.sql}")
             result = run_statements(
                 conn,
                 command.sql,

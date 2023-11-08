@@ -9,7 +9,7 @@ import warnings
 from sqlalchemy.engine.url import URL
 
 from sql import exceptions
-
+from sql import display
 
 class ConnectionsFile:
     def __init__(self, path_to_file) -> None:
@@ -182,6 +182,7 @@ def parse(arg, path_to_file):
         result["sql"] = right
     else:
         result["sql"] = arg
+    display.message(f"Parsed SQL: {result['sql']}")
     return result
 
 

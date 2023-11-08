@@ -7,6 +7,7 @@ from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
 from sql.util import validate_nonidentifier_connection
+from sql import display
 
 
 class SQLPlotCommand:
@@ -56,6 +57,7 @@ class SQLCommand:
             add_alias = False
 
         self.command_text = " ".join(line_for_command) + "\n" + cell
+        display.message(f"Command Text:{self.command_text}")
 
         if self.args.file:
             try:
