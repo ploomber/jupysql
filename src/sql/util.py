@@ -163,25 +163,47 @@ def check_duplicate_arguments(
     """
     Raises UsageError when duplicate arguments are passed to magics.
     Returns true if no duplicates in arguments or aliases.
+
+    Parameters
+    ----------
+    magic_execute
+        The execute method of the magic class.
+    cmd_from
+        Which magic class invoked this function. One of 'sql', 'sqlplot' or 'sqlcmd'.
+    args
+        The arguments passed to the magic command.
+    allowed_duplicates
+        The duplicates that are allowed for the class which invoked this function.
+
+    Returns
+    -------
+    boolean
+        When there are no duplicates, a True bool is returned.
     """
+
+    # Returns True if there are no duplicate arguments (1 or less arguments)
+    # Example: %sqlcmd tables
+    if len(args) <= 1:
+        return True
 
     aliased_arguments = {}
     unaliased_arguments = []
 
+    # Separates the aliased_arguments and unaliased_arguments.
+    # Aliased arguments example: '-w' and '--with'
     for decorator in magic_execute.decorators:
-        assert isinstance(decorator.args, tuple)
-        dec_args = decorator.args
-        if len(dec_args) > 1:
-            aliased_arguments[dec_args[0]] = dec_args[1]
+        decorator_args = decorator.args
+        if len(decorator_args) > 1:
+            aliased_arguments[decorator_args[0]] = decorator_args[1]
         else:
-            if dec_args[0].startswith("--") or dec_args[0].startswith("-"):
-                unaliased_arguments.append(dec_args[0])
+            if decorator_args[0].startswith("--") or decorator_args[0].startswith("-"):
+                unaliased_arguments.append(decorator_args[0])
 
-    if len(args) <= 1:
-        return True
-
+    # Separate arguments from passed options
     args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
 
+    # Separate single and double hyphen arguments
+    # Using sets here for better performance of looking up hash tables
     single_hyphen_opts = set()
     double_hyphen_opts = set()
 
@@ -191,6 +213,7 @@ def check_duplicate_arguments(
         elif arg.startswith("-"):
             single_hyphen_opts.add(arg)
 
+    # Get duplicate arguments
     duplicate_args = []
     visited_args = set()
     for arg in args:
@@ -200,6 +223,8 @@ def check_duplicate_arguments(
             else:
                 duplicate_args.append(arg)
 
+    # Check if alias pairs are present and track the pair for the error message
+    # Example: would filter out `-w` and `--with` if both are present
     alias_pairs_present = [
         (opt, aliased_arguments[opt])
         for opt in single_hyphen_opts
@@ -207,6 +232,8 @@ def check_duplicate_arguments(
         if aliased_arguments[opt] in double_hyphen_opts
     ]
 
+    # Generate error message based on presence of duplicates and
+    # aliased arguments
     error_message = ""
     if duplicate_args:
         duplicates_error = (
@@ -229,6 +256,7 @@ def check_duplicate_arguments(
 
     error_message = f"{duplicates_error}{alias_error}"
 
+    # If there is an error message to be raised, raise it
     if error_message:
         raise exceptions.UsageError(error_message)
 
