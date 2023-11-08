@@ -182,11 +182,6 @@ def check_duplicate_arguments(
         When there are no duplicates, a True bool is returned.
     """
 
-    # Returns True if there are no duplicate arguments (1 or less arguments)
-    # Example: %sqlcmd tables
-    if len(args) <= 1:
-        return True
-
     aliased_arguments = {}
     unaliased_arguments = []
 
