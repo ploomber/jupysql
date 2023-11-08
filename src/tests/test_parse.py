@@ -537,7 +537,7 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
         (
             """%%sql select '[1,2,3]'::json
                 ->
-            'a'""",
+            1""",
             """%%sql select '[1,2,3]'::json->
             1""",
         ),
