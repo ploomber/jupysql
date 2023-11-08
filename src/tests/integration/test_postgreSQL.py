@@ -63,8 +63,68 @@ def test_pgspecial(ip_with_postgreSQL):
             '%sql select \'[{"b": "c"}]\'::jsonb ->> 0;',
             '{"b": "c"}',
         ),
+        (
+            "%sql select '{\"a\": 1}'::json -> 'a';",
+            1,
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json ->> 0;',
+            '{"b": "c"}',
+        ),
+        (
+            "%sql select '{\"a\": 1}'::json     -> 'a';",
+            1,
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json        -> 0;',
+            {"b": "c"},
+        ),
+        (
+            "%sql select '{\"a\": 1}'::jsonb   ->> 'a';",
+            "1",
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::jsonb
+            ->
+            'a';""",
+            1,
+        ),
+        (
+            """%%sql select '[{\"b\": \"c\"}]'::jsonb
+                ->
+            0;""",
+            {"b": "c"},
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::jsonb
+              ->>
+            'a';""",
+            "1",
+        ),
+        (
+            """%%sql
+            select
+            \'[{"b": "c"}]\'::jsonb
+            ->>
+            0;""",
+            '{"b": "c"}',
+        ),
     ],
-    ids=["single-key", "single-index", "double-key", "double-index"],
+    ids=[
+        "single-key-jsonb",
+        "single-index-jsonb",
+        "double-key-jsonb",
+        "double-index-jsonb",
+        "single-key-json",
+        "double-index-json",
+        "single-key-single-tab-json",
+        "single-index-multi-tab-json",
+        "double-key-multi-space",
+        "single-key-multi-line",
+        "single-index-multi-line-tab",
+        "double-key-multi-line-space",
+        "double-index-multi-line",
+    ],
 )
 def test_json_arrow_operators(ip_with_postgreSQL, query, expected):
     result = ip_with_postgreSQL.run_cell(query).result

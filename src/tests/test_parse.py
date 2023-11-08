@@ -527,8 +527,48 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
             '%sql select "{"a": "b"}" ->> "a"',
             '%sql select "{"a": "b"}" ->> "a"',
         ),
+        (
+            """%%sql select '[1,2,3]'::json
+            ->
+            1""",
+            """%%sql select '[1,2,3]'::json->
+            1""",
+        ),
+        (
+            """%%sql select '[1,2,3]'::json
+                ->
+            'a'""",
+            """%%sql select '[1,2,3]'::json->
+            1""",
+        ),
+        (
+            """%%sql select '[1,2,3]'::json
+
+            ->
+            1""",
+            """%%sql select '[1,2,3]'::json->
+            1""",
+        ),
+        (
+            """%%sql select
+            '[1,2,3]'::json
+                  ->
+            1""",
+            """%%sql select
+            '[1,2,3]'::json->
+            1""",
+        ),
     ],
-    ids=["json-single", "json-double", "no-json-single", "no-json-double"],
+    ids=[
+        "json-single",
+        "json-double",
+        "no-json-single",
+        "no-json-double",
+        "json-multi-line",
+        "json-multi-line-tab",
+        "json-multi-newline",
+        "json-multi-line-tab-space",
+    ],
 )
 def test_remove_json_arrows_whitespace(line, expected):
     assert remove_json_arrows_whitespace(line) == expected
