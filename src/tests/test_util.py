@@ -186,6 +186,16 @@ ALLOWED_DUPLICATES = {
     "sqlcmd": [],
 }
 
+DISALLOWED_ALIASES = {
+    "sql": {},
+    "sqlplot": {},
+    "sqlcmd": {
+        "-t": "--table",
+        "-s": "--schema",
+        "-o": "--output",
+    },
+}
+
 
 @pytest.mark.parametrize(
     "magic_execute, cmd_from, args, aliases",
@@ -523,6 +533,12 @@ ALLOWED_DUPLICATES = {
             ["-s", "-s"],
             [],
         ),
+        (
+            SqlCmdMagic.execute,
+            "sqlcmd",
+            ["--schema", "-s"],
+            [("s", "schema")],
+        ),
         # for table/t
         (
             SqlCmdMagic.execute,
@@ -536,6 +552,19 @@ ALLOWED_DUPLICATES = {
             ["-t", "-t"],
             [],
         ),
+        (
+            SqlCmdMagic.execute,
+            "sqlcmd",
+            ["--table", "-t"],
+            [("t", "table")],
+        ),
+        # for mixed
+        (
+            SqlCmdMagic.execute,
+            "sqlcmd",
+            ["--table", "-t", "-s", "-s", "--schema"],
+            [("t", "table"), ("s", "schema")],
+        ),
     ],
 )
 def test_check_duplicate_arguments_raises_usageerror(
@@ -547,7 +576,11 @@ def test_check_duplicate_arguments_raises_usageerror(
 ):
     with pytest.raises(UsageError) as excinfo:
         util.check_duplicate_arguments(
-            magic_execute, cmd_from, args, ALLOWED_DUPLICATES[cmd_from]
+            magic_execute,
+            cmd_from,
+            args,
+            ALLOWED_DUPLICATES[cmd_from],
+            DISALLOWED_ALIASES[cmd_from],
         )
     assert check_duplicate_message_factory(cmd_from, args, aliases) in str(
         excinfo.value

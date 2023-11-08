@@ -76,7 +76,16 @@ class SqlCmdMagic(Magics, Configurable):
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
             if others:
-                check_duplicate_arguments(self.execute, "sqlcmd", split)
+                check_duplicate_arguments(
+                    self.execute,
+                    "sqlcmd",
+                    split,
+                    disallowed_aliases={
+                        "-t": "--table",
+                        "-s": "--schema",
+                        "-o": "--output",
+                    },
+                )
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 if (

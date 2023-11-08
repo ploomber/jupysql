@@ -158,7 +158,7 @@ def show_deprecation_warning():
 
 
 def check_duplicate_arguments(
-    magic_execute, cmd_from, args, allowed_duplicates=[]
+    magic_execute, cmd_from, args, allowed_duplicates=[], disallowed_aliases={}
 ) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
@@ -173,8 +173,11 @@ def check_duplicate_arguments(
     args
         The arguments passed to the magic command.
     allowed_duplicates
-        The duplicates that are allowed for the class which invoked this function.
-        Defaults to an empty list.
+        The duplicate arguments that are allowed for the class which invoked this
+        function. Defaults to an empty list.
+    disallowed_aliases
+        The aliases for the arguments that are not allowed to be used together
+        for the class that invokes this function. Defaults to an empty dict.
 
     Returns
     -------
@@ -194,6 +197,8 @@ def check_duplicate_arguments(
         else:
             if decorator_args[0].startswith("--") or decorator_args[0].startswith("-"):
                 unaliased_arguments.append(decorator_args[0])
+    if aliased_arguments == {}:
+        aliased_arguments = disallowed_aliases
 
     # Separate arguments from passed options
     args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
