@@ -75,9 +75,7 @@ class SqlCmdMagic(Magics, Configurable):
             # directly use shlex since SqlCmdMagic does not use magic_args from parse.py
             split = shlex.split(line, posix=False)
             command, others = split[0].strip(), split[1:]
-            check_duplicate_arguments(
-                self.execute, "sqlcmd", split, allowed_duplicates=[]
-            )
+            check_duplicate_arguments(self.execute, "sqlcmd", split)
 
             if command in AVAILABLE_SQLCMD_COMMANDS:
                 if (

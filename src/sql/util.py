@@ -158,7 +158,7 @@ def show_deprecation_warning():
 
 
 def check_duplicate_arguments(
-    magic_execute, cmd_from, args, allowed_duplicates
+    magic_execute, cmd_from, args, allowed_duplicates=[]
 ) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
@@ -174,6 +174,7 @@ def check_duplicate_arguments(
         The arguments passed to the magic command.
     allowed_duplicates
         The duplicates that are allowed for the class which invoked this function.
+        Defaults to an empty list.
 
     Returns
     -------
