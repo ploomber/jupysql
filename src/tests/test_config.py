@@ -384,9 +384,6 @@ github = "ploomber/jupysql"
 def test_load_toml_user_configurations_not_specified(
     tmp_empty, ip_no_magics, capsys, file_content
 ):
-    home_toml = Path("~/.jupysql/config").expanduser()
-    if home_toml.exists():
-        os.remove(home_toml)
     Path("pyproject.toml").write_text(file_content)
     os.mkdir("sub")
     os.chdir("sub")
