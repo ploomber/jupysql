@@ -33,7 +33,6 @@ import sql.connection
 import sql.parse
 from sql.run.run import run_statements
 from sql.parse import _option_strings_from_parser
-from sql.parse import remove_json_arrows_whitespace
 from sql import display, exceptions
 from sql.store import store
 from sql.command import SQLCommand
@@ -229,7 +228,6 @@ class SqlMagic(Magics, Configurable):
     def check_random_arguments(self, line="", cell=""):
         # check only for cell magic
         if cell != "":
-            line = remove_json_arrows_whitespace(line)
             tokens = shlex.split(line, posix=False)
             arguments = []
 

@@ -9,7 +9,18 @@ import warnings
 from sqlalchemy.engine.url import URL
 
 from sql import exceptions
+from sql import display
 
+SQL_COMMANDS = [
+    "select",
+    "from",
+    "with",
+    "pivot",
+    "create",
+    "update",
+    "delete",
+    "insert"
+]
 
 class ConnectionsFile:
     def __init__(self, path_to_file) -> None:
@@ -217,27 +228,50 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
-def remove_json_arrows_whitespace(line):
-    """Strips whitespace between JSON and -> or ->> operators
-
+def filter_sql_post_args(line):
+    """Separates line into args and sql query if JSON is used
+    
     The argparser expects - to precede an argument, but postgreSQL
     and duckDB allow for -> and ->> to be used as JSON operators.
-    We must ensure no leading whitespace for the arrows so that
-    the argparser doesn't mistake them for arguments.
+    This function splits the line into two - args and sql. 
+    This way we can only pass the args into the argparser, and
+    add in the sql later.
 
+    :param line: A line of SQL, preceded by option/argument strings
+    :type line: str
     """
-    if "json" not in line:
-        return line
-    pattern = r"(\s+->)"
-    sub = r"->"
-    line = re.sub(pattern, sub, line)
-    return line
+    arg_line, sql_line = line, None
+    # Only seperate args from sql if using JSON operators
+    if "::json" not in line:
+        return arg_line, sql_line
+    # Identify beginning of sql query using keywords
+    split_idx = -1
+    for arg in shlex.split(line, posix=False):
+        if arg.lower() in SQL_COMMANDS:
+            # Found index at which to split line
+            split_idx = line.find(arg)
+            display.message(f"Found here {split_idx}")
+            break
+    # Split line into args and sql, beginning at sql keyword
+    if split_idx != -1:
+        arg_line, sql_line = line[:split_idx], line[split_idx:]
+    display.message(f"arg_line: {arg_line}")
+    display.message(f"sql_line: {sql_line}")
+
+    return arg_line, sql_line
 
 
 def magic_args(magic_execute, line):
+    display.message(f"Line: {line}")
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    line = remove_json_arrows_whitespace(line=line)
-    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
+    arg_line, sql_line = filter_sql_post_args(line)
+    args = shlex.split(arg_line, posix=False)
+    p = magic_execute.parser.parse_args(args)
+    display.message(f"Parsed: {p}")
+    if sql_line:
+        p.line = shlex.split(sql_line, posix=False)
+    display.message(f"After edit: {p}")
+    return p
 
 
 def escape_string_literals_with_colon_prefix(query):
