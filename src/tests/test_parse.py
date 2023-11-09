@@ -8,7 +8,7 @@ from sql.parse import (
     connection_str_from_dsn_section,
     parse,
     without_sql_comment,
-    remove_json_arrows_whitespace,
+    split_args_and_sql_if_json,
     magic_args,
     escape_string_literals_with_colon_prefix,
     escape_string_slicing_notation,
@@ -511,3 +511,38 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
 # Write a test that provides a %sql line with args and SQL
 # Function should split the line into two correctly
 # Make sure to use all different SQL commands
+@pytest.mark.parametrize(
+    "line, expected_args, expected_sql",
+    [
+        (
+            "--save snippet --alias query1 select * from authors",
+            "--save snippet --alias query1 select * from authors",
+            None,
+        ),
+        (
+            "select * from authors",
+            "select * from authors",
+            None,
+        ),
+        (
+            "select '[1,2,3]'::json -> 1",
+            "",
+            "select '[1,2,3]'::json -> 1",
+        ),
+        (
+            "--save snippet --alias query1 select '[1,2,3]'::json -> 1",
+            "--save snippet --alias query1 ",
+            "select '[1,2,3]'::json -> 1",
+        ),
+    ],
+    ids=[
+        "args-no-json",
+        "no-args-no-json",
+        "no-args-json",
+        "select-split",
+    ],
+)
+def test_split_args_and_sql(line, expected_args, expected_sql):
+    args_line, sql_line = split_args_and_sql_if_json(line)
+    assert args_line == expected_args
+    assert sql_line == expected_sql
