@@ -2265,7 +2265,7 @@ SELECT 1 -- comment""",
         ),
         (
             """%%sql
-SELECT 1 
+SELECT 1
 -- comment""",
             1,
         ),
@@ -2276,7 +2276,7 @@ SELECT 1; -- comment""",
         ),
         (
             """%%sql
-SELECT 1; 
+SELECT 1;
 -- comment""",
             1,
         ),
@@ -2286,7 +2286,7 @@ SELECT 1; -- comment
 SELECT 2""",
             2,
         ),
-    ]
+    ],
 )
 def test_query_trailing_comment(ip, query, expected):
     result = ip.run_cell(query).result

@@ -10,6 +10,7 @@ from sqlalchemy.engine.url import URL
 
 from sql import exceptions
 
+
 class ConnectionsFile:
     def __init__(self, path_to_file) -> None:
         self.parser = configparser.ConfigParser()

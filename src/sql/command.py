@@ -7,7 +7,6 @@ from sql import parse, exceptions
 from sql.store import store
 from sql.connection import ConnectionManager, is_pep249_compliant
 from sql.util import validate_nonidentifier_connection
-from sql import display
 
 
 class SQLPlotCommand:
