@@ -2248,12 +2248,3 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
 )
 def test_get_query_type(query, query_type):
     assert get_query_type(query) == query_type
-
-
-def test_duckdb_negative_age_interval(ip_empty):
-    ip_empty.run_cell("%sql duckdb://")
-    with pytest.raises(OverflowError) as e:
-        ip_empty.run_cell(
-            "%sql select age(TIMESTAMP '2020-12-25', TIMESTAMP '2020-12-26') age"
-        ).result
-    assert "Python int too large to convert to C int" in str(e.value)

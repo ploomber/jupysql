@@ -14,6 +14,8 @@ from sql.telemetry import telemetry
 from sql.run.table import CustomPrettyTable
 from sql._current import _config_feedback_all
 
+from sql.exceptions import RuntimeError
+
 
 class ResultSet(ColumnGuesserMixin):
     """
@@ -51,8 +53,6 @@ class ResultSet(ColumnGuesserMixin):
             self.fetchmany(size=2)
 
         self._finished_init = True
-
-        self._error = None
 
         if conn:
             conn._result_sets.append(self)
@@ -423,10 +423,17 @@ class ResultSet(ColumnGuesserMixin):
             # that doesn't return rows e.g, 'CREATE TABLE' but others don't
             # (e.g., duckdb), so here we catch all
             except Exception as e:
-                if "This result object does not return rows" not in str(e):
-                    raise
-                self.mark_fetching_as_done()
-                return
+                if not any(
+                    substring in str(e)
+                    for substring in [
+                        "This result object does not return rows",
+                        "no results to fetch",
+                    ]
+                ):
+                    # raise specific DB driver errors
+                    raise RuntimeError(f"Error running the query: {str(e)}") from e
+                    self.mark_fetching_as_done()
+                    return
 
             self._extend_results(returned)
 

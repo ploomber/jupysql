@@ -2,7 +2,7 @@
 
 ## 0.10.4dev
 
-* [Fix] Fixed bug that returns empty result for negative age intervals
+* [Fix] Fixed bug that returns empty results when exception is raised from DB driver
 
 ## 0.10.3 (2023-11-06)
 
