@@ -562,7 +562,6 @@ class SqlMagic(Magics, Configurable):
             return
 
         try:
-            display.message(f"SQL Before Parse: {command.sql}")
             result = run_statements(
                 conn,
                 command.sql,

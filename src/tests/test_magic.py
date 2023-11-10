@@ -2248,3 +2248,46 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
 )
 def test_get_query_type(query, query_type):
     assert get_query_type(query) == query_type
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            """%%sql
+SELECT 1""",
+            1,
+        ),
+        (
+            """%%sql
+SELECT 1 -- comment""",
+            1,
+        ),
+        (
+            """%%sql
+SELECT 1 
+-- comment""",
+            1,
+        ),
+        (
+            """%%sql
+SELECT 1; -- comment""",
+            1,
+        ),
+        (
+            """%%sql
+SELECT 1; 
+-- comment""",
+            1,
+        ),
+        (
+            """%%sql
+SELECT 1; -- comment
+SELECT 2""",
+            2,
+        ),
+    ]
+)
+def test_query_trailing_comment(ip, query, expected):
+    result = ip.run_cell(query).result
+    assert list(result.dict().values())[-1][0] == expected

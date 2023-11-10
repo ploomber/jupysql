@@ -57,7 +57,6 @@ class SQLCommand:
             add_alias = False
 
         self.command_text = " ".join(line_for_command) + "\n" + cell
-        display.message(f"Command Text:{self.command_text}")
 
         if self.args.file:
             try:

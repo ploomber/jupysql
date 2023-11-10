@@ -3,7 +3,6 @@ import sqlparse
 from sql import exceptions, display
 from sql.run.resultset import ResultSet
 from sql.run.pgspecial import handle_postgres_special
-from sql.parse import without_sql_comment
 
 
 # TODO: conn also has access to config, we should clean this up to provide a clean
@@ -32,13 +31,13 @@ def run_statements(conn, sql, config, parameters=None):
     """
     if not sql.strip():
         return "Connected: %s" % conn.name
-    display.message(f"SQL in Run: {sql}")
-    for cnt, statement in enumerate(sqlparse.split(sql)):
-        display.message(f"Statement: {statement}")
-        # statement = without_sql_comment(SqlMagic.execute.parser, statement)
-        # display.message(f"Statement after parse: {statement}")
-        if cnt > 0 and statement.startswith("--"): # Need to account for case that statement starts with comment but query follows
+
+    for statement in sqlparse.split(sql):
+        # filter statements that only contain comments
+        statement = sqlparse.format(statement, strip_comments=True)
+        if not statement:
             continue
+
         first_word = sql.strip().split()[0].lower()
 
         if first_word == "begin":
