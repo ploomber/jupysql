@@ -549,7 +549,7 @@ where id = (publishers -> 'Scott')",
 where name = (names ->> 'Brenda')",
             "--save snippet --alias query1 ",
             "pivot authors on id where name = (names ->> 'Brenda')",
-        ), 
+        ),
         (
             "-p --save snippet -N create table (names -> 1) (id INT, name VARCHAR(10))",
             "-p --save snippet -N ",
@@ -558,12 +558,12 @@ where name = (names ->> 'Brenda')",
         (
             "-p --save snippet -N update authors where id = '[5,6]::json'->1",
             "-p --save snippet -N ",
-            "update authors where id = '[5,6]::json'->1"
+            "update authors where id = '[5,6]::json'->1",
         ),
         (
-            "-p --save snippet -N delete from authors where name = (books ->> 'Turner')",
+            "-p --save snippet -N delete from authors where name = (books->>'Turner')",
             "-p --save snippet -N ",
-            "delete from authors where name = (books ->> 'Turner')",
+            "delete from authors where name = (books->>'Turner')",
         ),
         (
             "-p --save snippet -N insert into authors values('[100]'::json->0)",
