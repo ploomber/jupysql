@@ -182,7 +182,6 @@ def parse(arg, path_to_file):
         result["sql"] = right
     else:
         result["sql"] = arg
-
     return result
 
 
