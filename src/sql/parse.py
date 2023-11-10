@@ -241,6 +241,10 @@ def split_args_and_sql(line):
     :type line: str
     """
     arg_line, sql_line = line, ""
+    # Only separate when json arrow operators used
+    # Otherwise, behavior is unchanged
+    if not any(op in line for op in ["->", "-->"]):
+        return arg_line, sql_line
     # Identify beginning of sql query using keywords
     split_idx = -1
     for arg in shlex.split(line, posix=False):
