@@ -8,7 +8,7 @@ from sql.parse import (
     connection_str_from_dsn_section,
     parse,
     without_sql_comment,
-    split_args_and_sql_if_json,
+    split_args_and_sql,
     magic_args,
     escape_string_literals_with_colon_prefix,
     escape_string_slicing_notation,
@@ -508,21 +508,18 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
     assert found == expected_found
 
 
-# Write a test that provides a %sql line with args and SQL
-# Function should split the line into two correctly
-# Make sure to use all different SQL commands
 @pytest.mark.parametrize(
     "line, expected_args, expected_sql",
     [
         (
-            "--save snippet --alias query1 select * from authors",
-            "--save snippet --alias query1 select * from authors",
-            None,
+            "-p --save snippet -N",
+            "-p --save snippet -N",
+            "",
         ),
         (
             "select * from authors",
+            "",
             "select * from authors",
-            None,
         ),
         (
             "select '[1,2,3]'::json -> 1",
@@ -534,15 +531,61 @@ def test_escape_string_slicing_notation(query, expected_escaped, expected_found)
             "--save snippet --alias query1 ",
             "select '[1,2,3]'::json -> 1",
         ),
+        (
+            "--save snippet --alias query1 from authors select name \
+where id = (readers ->> 0)",
+            "--save snippet --alias query1 ",
+            "from authors select name where id = (readers ->> 0)",
+        ),
+        (
+            "--save snippet --alias query1 with temp as (select * from authors) \
+select name where id = (publishers -> 'Scott')",
+            "--save snippet --alias query1 ",
+            "with temp as (select * from authors) select name \
+where id = (publishers -> 'Scott')",
+        ),
+        (
+            "--save snippet --alias query1 pivot authors on id \
+where name = (names ->> 'Brenda')",
+            "--save snippet --alias query1 ",
+            "pivot authors on id where name = (names ->> 'Brenda')",
+        ), 
+        (
+            "-p --save snippet -N create table (names -> 1) (id INT, name VARCHAR(10))",
+            "-p --save snippet -N ",
+            "create table (names -> 1) (id INT, name VARCHAR(10))",
+        ),
+        (
+            "-p --save snippet -N update authors where id = '[5,6]::json'->1",
+            "-p --save snippet -N ",
+            "update authors where id = '[5,6]::json'->1"
+        ),
+        (
+            "-p --save snippet -N delete from authors where name = (books ->> 'Turner')",
+            "-p --save snippet -N ",
+            "delete from authors where name = (books ->> 'Turner')",
+        ),
+        (
+            "-p --save snippet -N insert into authors values('[100]'::json->0)",
+            "-p --save snippet -N ",
+            "insert into authors values('[100]'::json->0)",
+        ),
     ],
     ids=[
-        "args-no-json",
-        "no-args-no-json",
+        "no-query",
+        "no-args",
         "no-args-json",
-        "select-split",
+        "select",
+        "from",
+        "with",
+        "pivot",
+        "create",
+        "update",
+        "delete",
+        "insert",
     ],
 )
 def test_split_args_and_sql(line, expected_args, expected_sql):
-    args_line, sql_line = split_args_and_sql_if_json(line)
+    args_line, sql_line = split_args_and_sql(line)
     assert args_line == expected_args
     assert sql_line == expected_sql

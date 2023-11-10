@@ -228,8 +228,8 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
-def split_args_and_sql_if_json(line):
-    """Separates line into args and sql query if JSON is used
+def split_args_and_sql(line):
+    """Separates line into args and sql query
 
     The argparser expects - to precede an argument, but postgreSQL
     and duckDB allow for -> and ->> to be used as JSON operators.
@@ -240,10 +240,7 @@ def split_args_and_sql_if_json(line):
     :param line: A line of SQL, preceded by option/argument strings
     :type line: str
     """
-    arg_line, sql_line = line, None
-    # Only separate args from sql if using JSON operators
-    if "::json" not in line:
-        return arg_line, sql_line
+    arg_line, sql_line = line, ""
     # Identify beginning of sql query using keywords
     split_idx = -1
     for arg in shlex.split(line, posix=False):
@@ -260,7 +257,7 @@ def split_args_and_sql_if_json(line):
 
 def magic_args(magic_execute, line):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    arg_line, sql_line = split_args_and_sql_if_json(line)
+    arg_line, sql_line = split_args_and_sql(line)
 
     args = shlex.split(arg_line, posix=False)
     parsed = magic_execute.parser.parse_args(args)
