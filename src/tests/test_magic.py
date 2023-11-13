@@ -2282,12 +2282,53 @@ SELECT 1;
         ),
         (
             """%%sql
+-- comment before
+SELECT 1;""",
+            1,
+        ),
+        (
+            """%%sql
+-- comment before
+SELECT 1;
+-- comment after""",
+            1,
+        ),
+        (
+            """%%sql
 SELECT 1; -- comment
 SELECT 2""",
             2,
         ),
+        (
+            """%%sql
+SELECT 1; -- comment
+SELECT 2;""",
+            2,
+        ),
+        (
+            """%%sql
+SELECT 1;
+-- comment
+SELECT 2;""",
+            2,
+        ),
+        (
+            """%%sql
+SELECT 1;
+-- comment before
+SELECT 2;
+-- comment after""",
+            2,
+        ),
+        (
+            """%%sql
+SELECT 1; -- comment before
+SELECT 2;
+-- comment after""",
+            2,
+        ),
     ],
 )
-def test_query_trailing_comment(ip, query, expected):
+def test_query_comment_after_semicolon(ip, query, expected):
     result = ip.run_cell(query).result
     assert list(result.dict().values())[-1][0] == expected

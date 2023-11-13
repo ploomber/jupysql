@@ -33,8 +33,10 @@ def run_statements(conn, sql, config, parameters=None):
         return "Connected: %s" % conn.name
 
     for statement in sqlparse.split(sql):
-        # filter statements that only contain comments
+        # strip all comments from sql
         statement = sqlparse.format(statement, strip_comments=True)
+        # trailing comment after semicolon can be confused as its own statement,
+        # so we ignore it here.
         if not statement:
             continue
 
