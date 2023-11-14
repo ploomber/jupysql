@@ -10,6 +10,9 @@ from sqlalchemy.engine.url import URL
 
 from sql import exceptions
 
+# Keywords used to identify the beginning of SQL queries
+# in split_args_and_sql(). Should cover all cases but can
+# be edited to include special keywords.
 SQL_COMMANDS = [
     "select",
     "from",
@@ -237,21 +240,34 @@ def split_args_and_sql(line):
     This way we can only pass the args into the argparser, and
     add in the sql later.
 
-    :param line: A line of SQL, preceded by option/argument strings
-    :type line: str
+    Parameters
+    ----------
+    line: str
+        A line of SQL, preceded by option/argument strings
+
+    Returns
+    -------
+    arg_line: str
+        Portion of input line that contains only arguments
+
+    sql_line: str
+        Portion of input line that contains only SQL query/statements
     """
     arg_line, sql_line = line, ""
+
     # Only separate when json arrow operators used
     # Otherwise, behavior is unchanged
     if not any(op in line for op in ["->", "-->"]):
         return arg_line, sql_line
+
     # Identify beginning of sql query using keywords
     split_idx = -1
-    for arg in shlex.split(line, posix=False):
+    for arg in line.split():
         if arg.lower() in SQL_COMMANDS:
             # Found index at which to split line
             split_idx = line.find(arg)
             break
+
     # Split line into args and sql, beginning at sql keyword
     if split_idx != -1:
         arg_line, sql_line = line[:split_idx], line[split_idx:]
