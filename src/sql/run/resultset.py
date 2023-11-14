@@ -432,8 +432,8 @@ class ResultSet(ColumnGuesserMixin):
                 ):
                     # raise specific DB driver errors
                     raise RuntimeError(f"Error running the query: {str(e)}") from e
-                    self.mark_fetching_as_done()
-                    return
+                self.mark_fetching_as_done()
+                return
 
             self._extend_results(returned)
 
