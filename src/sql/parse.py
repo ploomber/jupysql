@@ -22,6 +22,9 @@ SQL_COMMANDS = [
     "update",
     "delete",
     "insert",
+    "alter",
+    "drop",
+    "describe",
 ]
 
 
@@ -262,10 +265,10 @@ def split_args_and_sql(line):
 
     # Identify beginning of sql query using keywords
     split_idx = -1
-    for arg in line.split():
-        if arg.lower() in SQL_COMMANDS:
+    for token in line.split():
+        if token.lower() in SQL_COMMANDS:
             # Found index at which to split line
-            split_idx = line.find(arg)
+            split_idx = line.find(token)
             break
 
     # Split line into args and sql, beginning at sql keyword
