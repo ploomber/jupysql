@@ -327,35 +327,40 @@ style = "RANDOM"
 
 
 @pytest.mark.parametrize(
-    "file_content, param",
+    "file_content, expected_message",
     [
         (
             """
 [tool.jupysql.SqlMagic]
 """,
-            "[tool.jupysql.SqlMagic] present in {path} but empty.",
+            "[tool.jupysql.SqlMagic] present in {primary_path} but empty.",
         ),
-        ("", "Tip: You may define configurations in {path}."),
+        ("", "Tip: You may define configurations in {primary_path} or {alt_path}."),
     ],
     ids=["empty_sqlmagic_key", "missing_sqlmagic_key"],
 )
 def test_loading_toml_display_configuration_docs_link(
-    tmp_empty, ip_no_magics, file_content, param, monkeypatch
+    tmp_empty, capsys, ip_no_magics, file_content, expected_message, monkeypatch
 ):
     Path("pyproject.toml").write_text(file_content)
     toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
+    config_path = str(Path("~/.jupysql/config").expanduser())
 
     os.mkdir("sub")
     os.chdir("sub")
     mock = Mock()
     monkeypatch.setattr(display, "message_html", mock)
-
     load_ipython_extension(ip_no_magics)
+    out, _ = capsys.readouterr()
     param = (
-        f"{param.format(path=toml_path)} Please review our "
+        f"Please review our "
         f"<a href='{CONFIGURATION_DOCS_STR}'>configuration guideline</a>."
     )
+    expected_message = expected_message.format(
+        primary_path=toml_path, alt_path=config_path
+    )
     mock.assert_called_once_with(param)
+    assert expected_message in out
 
 
 @pytest.mark.parametrize(

@@ -282,7 +282,7 @@ def find_path_from_root(file_name):
 
         current = current.parent
 
-    return str(Path(current, file_name))
+    return Path(current, file_name)
 
 
 def find_close_match(word, possibilities):
@@ -363,15 +363,15 @@ def parse_toml_error(e, file_path):
         return e
 
 
-def get_user_configs(primary_path, alternate_path, display_message=False):
+def get_user_configs(primary_path, alternate_path):
     """
     Returns saved configuration settings in a toml file from given file_path
 
     Parameters
     ----------
-    primary_path : str
+    primary_path : Path
         file path to a toml file
-    alternate_path : str
+    alternate_path : Path
         file path to a toml file
 
     Returns
@@ -380,15 +380,18 @@ def get_user_configs(primary_path, alternate_path, display_message=False):
         saved configuration settings
     """
     data = None
+    tip_displayed = False
+    disable_tip = False
     for file_path in [primary_path, alternate_path]:
+        if file_path is None or not file_path.exists():
+            continue
 
         if file_path == alternate_path:
             STATUS = "Did not find pyproject.toml"
             if primary_path:
                 STATUS = "Did not find user configurations in pyproject.toml"
             display.message(
-                f"{STATUS}. "
-                f"Looking for user configurations in {alternate_path}"
+                f"{STATUS}. " f"Looking for user configurations in {alternate_path}"
             )
 
         data = load_toml(file_path)
@@ -400,16 +403,16 @@ def get_user_configs(primary_path, alternate_path, display_message=False):
             section_found = False
             section_to_find, sections_from_user = section_names.pop(0), data.keys()
             if section_to_find not in sections_from_user:
-                close_match = difflib.get_close_matches(section_to_find, sections_from_user)
+                close_match = difflib.get_close_matches(
+                    section_to_find, sections_from_user
+                )
                 if not close_match:
-                    MESSAGE_PREFIX = (
-                        f"Tip: You may define configurations in "
-                        f"{file_path}. Please review our "
-                    )
-                    display.message_html(
-                        f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
-                        "configuration guideline</a>."
-                    )
+                    if not tip_displayed and not disable_tip:
+                        display.message(
+                            f"Tip: You may define configurations in {primary_path}"
+                            f" or {alternate_path}. "
+                        )
+                        tip_displayed = True
                     break
                 else:
                     raise exceptions.ConfigurationError(
@@ -421,19 +424,20 @@ def get_user_configs(primary_path, alternate_path, display_message=False):
             data = data[section_to_find]
 
         if section_to_find == "SqlMagic" and section_found and not data:
-            MESSAGE_PREFIX = (
+            display.message(
                 f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-                f"Please review our "
             )
+            disable_tip = True
+
+        if tip_displayed or disable_tip:
             display.message_html(
-                f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
+                f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
                 "configuration guideline</a>."
             )
         elif data:
-            display.message(f"Loading configurations from {file_path}")
-            break
+            return data, file_path
 
-    return data
+    return data, None
 
 
 def get_default_configs(sql):

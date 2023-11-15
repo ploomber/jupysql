@@ -693,13 +693,14 @@ def get_query_type(command: str):
     return query_type
 
 
-def set_configs(ip, file_path=None, alternate_path=None, display_message=False):
+def set_configs(ip, file_path, alternate_path):
     """Set user defined SqlMagic configuration settings"""
     sql = ip.find_cell_magic("sql").__self__
-    user_configs = util.get_user_configs(file_path, alternate_path, display_message)
+    user_configs, loaded_from = util.get_user_configs(file_path, alternate_path)
     default_configs = util.get_default_configs(sql)
     table_rows = []
 
+    success = False
     if user_configs:
         for config, value in user_configs.items():
             if config in default_configs.keys():
@@ -707,6 +708,7 @@ def set_configs(ip, file_path=None, alternate_path=None, display_message=False):
                 if isinstance(value, default_type):
                     setattr(sql, config, value)
                     table_rows.append([config, value])
+                    success = True
                 else:
                     display.message(
                         f"'{value}' is an invalid value for '{config}'. "
@@ -714,6 +716,8 @@ def set_configs(ip, file_path=None, alternate_path=None, display_message=False):
                     )
             else:
                 util.find_close_match_config(config, default_configs.keys())
+        if success:
+            display.message(f"Loading configurations from {loaded_from}")
 
     return table_rows
 
@@ -723,8 +727,6 @@ def load_SqlMagic_configs(ip):
 
     file_path = util.find_path_from_root("pyproject.toml")
     alternate_path = Path("~/.jupysql/config").expanduser()
-    if not alternate_path.exists():
-        alternate_path = None
 
     table_rows = []
     try:
