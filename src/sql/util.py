@@ -398,7 +398,7 @@ def get_user_configs(primary_path, alternate_path):
 
         data = load_toml(file_path)
         section_names = ["tool", "jupysql", "SqlMagic"]
-        section_to_find = ""
+        section_to_find = None
         section_found = False
 
         while section_names:
