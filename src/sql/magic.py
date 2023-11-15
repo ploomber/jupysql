@@ -693,14 +693,14 @@ def get_query_type(command: str):
     return query_type
 
 
-def set_configs(ip, file_path):
+def set_configs(ip, file_path=None, alternate_path=None, display_message=False):
     """Set user defined SqlMagic configuration settings"""
     sql = ip.find_cell_magic("sql").__self__
-    success, user_configs = util.get_user_configs(file_path)
+    user_configs = util.get_user_configs(file_path, alternate_path, display_message)
     default_configs = util.get_default_configs(sql)
     table_rows = []
 
-    if success:
+    if user_configs:
         for config, value in user_configs.items():
             if config in default_configs.keys():
                 default_type = type(default_configs[config])
@@ -715,7 +715,7 @@ def set_configs(ip, file_path):
             else:
                 util.find_close_match_config(config, default_configs.keys())
 
-    return (success, table_rows)
+    return table_rows
 
 
 def load_SqlMagic_configs(ip):
@@ -727,12 +727,8 @@ def load_SqlMagic_configs(ip):
         alternate_path = None
 
     table_rows = []
-    success = False
     try:
-        if file_path:
-            success, table_rows = set_configs(ip, file_path)
-        if not success and alternate_path is not None:
-            success, table_rows = set_configs(ip, alternate_path)
+        table_rows = set_configs(ip, file_path, alternate_path)
     except Exception as e:
         if type(e).__name__ == "TomlDecodeError":
             display.message_warning(

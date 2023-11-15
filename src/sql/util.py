@@ -363,49 +363,64 @@ def parse_toml_error(e, file_path):
         return e
 
 
-def get_user_configs(file_path):
+def get_user_configs(primary_path, alternate_path, display_message=False):
     """
     Returns saved configuration settings in a toml file from given file_path
 
     Parameters
     ----------
-    file_path : str
+    primary_path : str
+        file path to a toml file
+    alternate_path : str
         file path to a toml file
 
     Returns
     -------
-    boolean
-        A boolean representing if the user configurations were set successfully.
     dict
         saved configuration settings
     """
-    data = load_toml(file_path)
-    section_names = ["tool", "jupysql", "SqlMagic"]
-    section_to_find = ""
+    data = None
+    for file_path in [primary_path, alternate_path]:
 
-    while section_names:
-        section_to_find, sections_from_user = section_names.pop(0), data.keys()
-        if section_to_find not in sections_from_user:
-            close_match = difflib.get_close_matches(section_to_find, sections_from_user)
-            if not close_match:
-                MESSAGE_PREFIX = (
-                    f"Tip: You may define configurations in "
-                    f"{file_path}. Please review our "
-                )
-                display.message_html(
-                    f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
-                    "configuration guideline</a>."
-                )
-                return (False, {})
-            else:
-                raise exceptions.ConfigurationError(
-                    f"{pretty_print(close_match)} is an invalid section "
-                    f"name in {file_path}. "
-                    f"Did you mean '{section_to_find}'?"
-                )
-        data = data[section_to_find]
-    if not data:
-        if section_to_find == "SqlMagic":
+        if file_path == alternate_path:
+            STATUS = "Did not find pyproject.toml"
+            if primary_path:
+                STATUS = "Did not find user configurations in pyproject.toml"
+            display.message(
+                f"{STATUS}. "
+                f"Looking for user configurations in {alternate_path}"
+            )
+
+        data = load_toml(file_path)
+        section_names = ["tool", "jupysql", "SqlMagic"]
+        section_to_find = ""
+        section_found = False
+
+        while section_names:
+            section_found = False
+            section_to_find, sections_from_user = section_names.pop(0), data.keys()
+            if section_to_find not in sections_from_user:
+                close_match = difflib.get_close_matches(section_to_find, sections_from_user)
+                if not close_match:
+                    MESSAGE_PREFIX = (
+                        f"Tip: You may define configurations in "
+                        f"{file_path}. Please review our "
+                    )
+                    display.message_html(
+                        f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
+                        "configuration guideline</a>."
+                    )
+                    break
+                else:
+                    raise exceptions.ConfigurationError(
+                        f"{pretty_print(close_match)} is an invalid section "
+                        f"name in {file_path}. "
+                        f"Did you mean '{section_to_find}'?"
+                    )
+            section_found = True
+            data = data[section_to_find]
+
+        if section_to_find == "SqlMagic" and section_found and not data:
             MESSAGE_PREFIX = (
                 f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
                 f"Please review our "
@@ -414,9 +429,11 @@ def get_user_configs(file_path):
                 f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
                 "configuration guideline</a>."
             )
-    else:
-        display.message(f"Loading configurations from {file_path}")
-    return (True, data)
+        elif data:
+            display.message(f"Loading configurations from {file_path}")
+            break
+
+    return data
 
 
 def get_default_configs(sql):
