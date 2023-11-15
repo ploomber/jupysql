@@ -378,6 +378,8 @@ def get_user_configs(primary_path, alternate_path):
     -------
     dict
         saved configuration settings
+    Path
+        the path of the file used to get user configurations
     """
     data = None
     tip_displayed = False
