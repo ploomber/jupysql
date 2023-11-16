@@ -289,12 +289,7 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
 
     args = shlex.split(arg_line, posix=False)
     if len(args) > 1:
-        check_duplicate_arguments(
-            magic_execute,
-            cmd_from,
-            args,
-            allowed_duplicates
-        )
+        check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
