@@ -717,7 +717,10 @@ def set_configs(ip, file_path, alternate_path):
             else:
                 util.find_close_match_config(config, default_configs.keys())
         if success:
-            display.message(f"Loading configurations from {loaded_from}")
+            if loaded_from is not None:
+                display.message(f"Loading configurations from {loaded_from}.")
+            else:
+                display.message("Loading default configurations.")
 
     return table_rows
 

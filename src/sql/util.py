@@ -393,7 +393,7 @@ def get_user_configs(primary_path, alternate_path):
             if primary_path:
                 STATUS = "Did not find user configurations in pyproject.toml"
             display.message(
-                f"{STATUS}. " f"Looking for user configurations in {alternate_path}"
+                f"{STATUS}. " f"Looking for user configurations in {alternate_path}."
             )
 
         data = load_toml(file_path)
@@ -425,17 +425,23 @@ def get_user_configs(primary_path, alternate_path):
             section_found = True
             data = data[section_to_find]
 
-        if section_to_find == "SqlMagic" and section_found and not data:
-            display.message(
-                f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-            )
-            disable_tip = True
+        if not data:
+            if section_to_find == "SqlMagic" and section_found:
+                display.message(
+                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+                )
+                disable_tip = True
 
-        if tip_displayed or disable_tip:
-            display.message_html(
-                f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
-                "configuration guideline</a>."
-            )
+            elif file_path == alternate_path:
+                display.message(
+                    f"Did not find user configurations in {alternate_path}."
+                )
+
+            if tip_displayed or disable_tip:
+                display.message_html(
+                    f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
+                    "configuration guideline</a>."
+                )
         elif data:
             return data, file_path
 
