@@ -18,7 +18,6 @@ from sql.parse import (
     ConnectionsFile,
 )
 
-
 default_connect_args = {"options": "-csearch_path=test"}
 
 PATH_TO_DSN_FILE = "src/tests/test_dsn_config.ini"
