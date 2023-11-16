@@ -150,7 +150,7 @@ def test_is_sqlalchemy_error(string, substrings, expected):
 
 
 @pytest.mark.parametrize(
-    "cmd_from, args, aliases",
+    "args, aliases",
     [
         # for creator/c
         (
