@@ -158,7 +158,7 @@ def show_deprecation_warning():
 
 
 def check_duplicate_arguments(
-    magic_execute, cmd_from, args, allowed_duplicates=[], disallowed_aliases={}
+    magic_execute, cmd_from, args, allowed_duplicates=None, disallowed_aliases=None
 ) -> bool:
     """
     Raises UsageError when duplicate arguments are passed to magics.
@@ -174,29 +174,35 @@ def check_duplicate_arguments(
         The arguments passed to the magic command.
     allowed_duplicates
         The duplicate arguments that are allowed for the class which invoked this
-        function. Defaults to an empty list.
+        function. Defaults to None.
     disallowed_aliases
         The aliases for the arguments that are not allowed to be used together
-        for the class that invokes this function. Defaults to an empty dict.
+        for the class that invokes this function. Defaults to None.
 
     Returns
     -------
     boolean
         When there are no duplicates, a True bool is returned.
     """
+    allowed_duplicates = allowed_duplicates or []
+    disallowed_aliases = disallowed_aliases or {}
 
     aliased_arguments = {}
     unaliased_arguments = []
 
     # Separates the aliased_arguments and unaliased_arguments.
     # Aliased arguments example: '-w' and '--with'
-    for decorator in magic_execute.decorators:
-        decorator_args = decorator.args
-        if len(decorator_args) > 1:
-            aliased_arguments[decorator_args[0]] = decorator_args[1]
-        else:
-            if decorator_args[0].startswith("--") or decorator_args[0].startswith("-"):
-                unaliased_arguments.append(decorator_args[0])
+    if cmd_from != "sqlcmd":
+        for decorator in magic_execute.decorators:
+            decorator_args = decorator.args
+            if len(decorator_args) > 1:
+                aliased_arguments[decorator_args[0]] = decorator_args[1]
+            else:
+                if decorator_args[0].startswith("--") or decorator_args[0].startswith(
+                    "-"
+                ):
+                    unaliased_arguments.append(decorator_args[0])
+
     if aliased_arguments == {}:
         aliased_arguments = disallowed_aliases
 

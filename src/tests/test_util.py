@@ -13,37 +13,6 @@ EXPECTED_STORE_SUGGESTIONS = (
 )
 
 
-@pytest.fixture
-def check_duplicate_message_factory():
-    def _generate_error_message(cmd, args, aliases=None):
-        error_message = ""
-        duplicates = set([arg for arg in args if args.count(arg) != 1])
-
-        if duplicates:
-            error_message += (
-                f"Duplicate arguments in %{cmd}. "
-                "Please use only one of each of the following: "
-                f"{', '.join(sorted(duplicates))}."
-            )
-            if aliases:
-                error_message += " "
-
-        if aliases:
-            alias_list = []
-            for pair in sorted(aliases):
-                print(pair[0], pair[1])
-                alias_list.append(f"{f'-{pair[0]}'} or {f'--{pair[1]}'}")
-            error_message += (
-                f"Duplicate aliases for arguments in %{cmd}. "
-                "Please use either one of "
-                f"{', '.join(alias_list)}."
-            )
-
-        return error_message
-
-    return _generate_error_message
-
-
 @pytest.mark.parametrize(
     "store_table, query",
     [
@@ -180,327 +149,231 @@ def test_is_sqlalchemy_error(string, substrings, expected):
     assert result == expected
 
 
-ALLOWED_DUPLICATES = {
-    "sql": ["-w", "--with", "--append", "--interact"],
-    "sqlplot": ["-w", "--with"],
-    "sqlcmd": [],
-}
-
-DISALLOWED_ALIASES = {
-    "sql": {},
-    "sqlplot": {},
-    "sqlcmd": {
-        "-t": "--table",
-        "-s": "--schema",
-        "-o": "--output",
-    },
-}
-
-
 @pytest.mark.parametrize(
-    "magic_execute, cmd_from, args, aliases",
+    "cmd_from, args, aliases",
     [
-        # FOR SQL
-        #
         # for creator/c
         (
-            SqlMagic.execute,
-            "sql",
             ["--creator", "--creator"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-c", "-c"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--creator", "-c"],
             [("c", "creator")],
         ),
         # for persist/p
         (
-            SqlMagic.execute,
-            "sql",
             ["--persist", "--persist"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-p", "-p"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--persist", "-p"],
             [("p", "persist")],
         ),
         # for no-index/n
         (
-            SqlMagic.execute,
-            "sql",
             ["--persist", "--no-index", "--no-index"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--persist", "-n", "-n"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--persist", "--no-index", "-n"],
             [("n", "no-index")],
         ),
         # for file/f
         (
-            SqlMagic.execute,
-            "sql",
             ["--file", "--file"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-f", "-f"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--file", "-f"],
             [("f", "file")],
         ),
         # for save/S
         (
-            SqlMagic.execute,
-            "sql",
             ["--save", "--save"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-S", "-S"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--save", "-S"],
             [("S", "save")],
         ),
         # for alias/A
         (
-            SqlMagic.execute,
-            "sql",
             ["--alias", "--alias"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-A", "-A"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--alias", "-A"],
             [("A", "alias")],
         ),
         # for connections/l
         (
-            SqlMagic.execute,
-            "sql",
             ["--connections", "--connections"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-l", "-l"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--connections", "-l"],
             [("l", "connections")],
         ),
         # for close/x
         (
-            SqlMagic.execute,
-            "sql",
             ["--close", "--close"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["-x", "-x"],
             [],
         ),
         (
-            SqlMagic.execute,
-            "sql",
             ["--close", "-x"],
             [("x", "close")],
         ),
         # for mixed
         (
-            SqlMagic.execute,
-            "sql",
             ["--creator", "--creator", "-c", "--persist", "--file", "-f", "-c"],
             [("c", "creator"), ("f", "file")],
         ),
-        #
-        # FOR SQLPLOT
-        #
+    ],
+)
+def test_check_duplicate_arguments_raises_usageerror_for_sql_magic(
+    check_duplicate_message_factory,
+    args,
+    aliases,
+):
+    with pytest.raises(UsageError) as excinfo:
+        util.check_duplicate_arguments(
+            SqlMagic.execute,
+            "sql",
+            args,
+            ["-w", "--with", "--append", "--interact"],
+        )
+    assert check_duplicate_message_factory("sql", args, aliases) in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "args, aliases",
+    [
         # for table/t
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--table", "--column"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["-t", "-t", "--column"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "-t", "--column"],
             [("t", "table")],
         ),
         # for column/c
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--column"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "-c", "-c"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-c"],
             [("c", "column")],
         ),
         # for bins/b
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--bins", "--bins"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-b", "-b"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--bins", "-b"],
             [("b", "bins")],
         ),
         # for breaks/B
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--breaks", "--breaks"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-B", "-B"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--breaks", "-B"],
             [("B", "breaks")],
         ),
         # for binwidth/W
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--binwidth", "--binwidth"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-W", "-W"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--binwidth", "-W"],
             [("W", "binwidth")],
         ),
         # for orient/o
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--orient", "--orient"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-o", "-o"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--orient", "-o"],
             [("o", "orient")],
         ),
         # for show-numbers/S
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--show-numbers", "--show-numbers"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "-S", "-S"],
             [],
         ),
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             ["--table", "--column", "--show-numbers", "-S"],
             [("S", "show-numbers")],
         ),
         # for mixed
         (
-            SqlPlotMagic.execute,
-            "sqlplot",
             [
                 "--table",
                 "--column",
@@ -517,74 +390,94 @@ DISALLOWED_ALIASES = {
             ],
             [("w", "with"), ("o", "orient"), ("B", "breaks")],
         ),
-        #
-        # FOR SQLCMD
-        #
-        # for schema/s
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--schema", "--schema"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["-s", "-s"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--schema", "-s"],
-            [("s", "schema")],
-        ),
-        # for table/t
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "--table"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["-t", "-t"],
-            [],
-        ),
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "-t"],
-            [("t", "table")],
-        ),
-        # for mixed
-        (
-            SqlCmdMagic.execute,
-            "sqlcmd",
-            ["--table", "-t", "-s", "-s", "--schema"],
-            [("t", "table"), ("s", "schema")],
-        ),
     ],
 )
-def test_check_duplicate_arguments_raises_usageerror(
+def test_check_duplicate_arguments_raises_usageerror_for_sqlplot(
     check_duplicate_message_factory,
-    magic_execute,
-    cmd_from,
     args,
     aliases,
 ):
     with pytest.raises(UsageError) as excinfo:
         util.check_duplicate_arguments(
-            magic_execute,
-            cmd_from,
+            SqlPlotMagic.execute,
+            "sqlplot",
             args,
-            ALLOWED_DUPLICATES[cmd_from],
-            DISALLOWED_ALIASES[cmd_from],
+            ["-w", "--with"],
         )
-    assert check_duplicate_message_factory(cmd_from, args, aliases) in str(
+
+    assert check_duplicate_message_factory("sqlplot", args, aliases) in str(
         excinfo.value
     )
+
+
+DISALLOWED_ALIASES = {
+    "sqlcmd": {
+        "-t": "--table",
+        "-s": "--schema",
+        "-o": "--output",
+    },
+}
+
+
+@pytest.mark.parametrize(
+    "args, aliases",
+    [
+        # for schema/s
+        (
+            ["--schema", "--schema"],
+            [],
+        ),
+        (
+            ["-s", "-s"],
+            [],
+        ),
+        (
+            ["--schema", "-s"],
+            [("s", "schema")],
+        ),
+        # for table/t
+        (
+            ["--table", "--table"],
+            [],
+        ),
+        (
+            ["-t", "-t"],
+            [],
+        ),
+        (
+            ["--table", "-t"],
+            [("t", "table")],
+        ),
+        # for mixed
+        (
+            ["--table", "-t", "-s", "-s", "--schema"],
+            [("t", "table"), ("s", "schema")],
+        ),
+    ],
+)
+def test_check_duplicate_arguments_raises_usageerror_for_sqlcmd(
+    check_duplicate_message_factory,
+    args,
+    aliases,
+):
+    with pytest.raises(UsageError) as excinfo:
+        util.check_duplicate_arguments(
+            SqlCmdMagic.execute,
+            "sqlcmd",
+            args,
+            [],
+            DISALLOWED_ALIASES["sqlcmd"],
+        )
+    assert check_duplicate_message_factory("sqlcmd", args, aliases) in str(
+        excinfo.value
+    )
+
+
+ALLOWED_DUPLICATES = {
+    "sql": ["-w", "--with", "--append", "--interact"],
+    "sqlplot": ["-w", "--with"],
+    "sqlcmd": [],
+}
 
 
 @pytest.mark.parametrize(
