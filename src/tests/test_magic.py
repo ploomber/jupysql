@@ -2508,8 +2508,32 @@ LINE 1: SELECT * FROM s;
                       ^
 [SQL: SELECT * FROM s;]""",
         ),
+        (
+            """%%sql
+DROP TABLE temp;
+SELECT * FROM snippet;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
+Did you mean "pg_type"?
+LINE 1: SELECT * FROM snippet;
+                      ^
+[SQL: SELECT * FROM snippet;]""",
+        ),
     ],
-    ids=["snippet-typo", "table-typo", "both-typo", "snippet-typo-no-suggestion"],
+    ids=[
+        "snippet-typo",
+        "table-typo",
+        "both-typo",
+        "snippet-typo-no-suggestion",
+        "no-typo-drop-table",
+    ],
 )
 def test_table_does_not_exist_with_snippet_error(
     ip_empty, query, error_type, error_message
