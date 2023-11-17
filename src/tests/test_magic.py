@@ -2449,8 +2449,7 @@ Did you mean: 'snippet'
 
 Original error message from DB driver:
 (sqlite3.OperationalError) no such table: snip
-[SQL: SELECT * FROM snip;]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+[SQL: SELECT * FROM snip;]""",
         ),
         (
             """%%sql
@@ -2464,8 +2463,7 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 Original error message from DB driver:
 (sqlite3.OperationalError) no such table: tem
-[SQL: SELECT * from tem;]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+[SQL: SELECT * from tem;]""",
         ),
         (
             """%%sql
@@ -2482,8 +2480,7 @@ Did you mean: 'snippet'
 
 Original error message from DB driver:
 (sqlite3.OperationalError) no such table: snip
-[SQL: SELECT * FROM snip;]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+[SQL: SELECT * FROM snip;]""",
         ),
         (
             """%%sql
@@ -2497,8 +2494,7 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 Original error message from DB driver:
 (sqlite3.OperationalError) no such table: s
-[SQL: SELECT * FROM s;]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+[SQL: SELECT * FROM s;]""",
         ),
     ],
     ids=["snippet-typo", "table-typo", "both-typo", "snippet-typo-no-suggestion"],
