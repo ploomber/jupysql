@@ -2332,3 +2332,98 @@ SELECT 2;
 def test_query_comment_after_semicolon(ip, query, expected):
     result = ip.run_cell(query).result
     assert list(result.dict().values())[-1][0] == expected
+
+
+@pytest.mark.parametrize(
+    "query, error_type, error_message",
+    [
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from temp;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(sqlite3.OperationalError) no such table: snip
+[SQL: SELECT * FROM snip;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snippet;
+SELECT * from tem;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(sqlite3.OperationalError) no such table: tem
+[SQL: SELECT * from tem;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from tem;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(sqlite3.OperationalError) no such table: snip
+[SQL: SELECT * FROM snip;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+        ),
+        (
+            """%%sql
+SELECT * FROM s;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(sqlite3.OperationalError) no such table: s
+[SQL: SELECT * FROM s;]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)""",
+        ),
+    ],
+    ids=["snippet-typo", "table-typo", "both-typo", "snippet-typo-no-suggestion"],
+)
+def test_table_does_not_exist_with_snippet_error(ip, query, error_type, error_message):
+    # Create temp table
+    ip.run_cell(
+        """%%sql
+CREATE TABLE temp AS
+SELECT * FROM author"""
+    )
+
+    # Create snippet
+    ip.run_cell(
+        """%%sql --save snippet
+SELECT * FROM website;"""
+    )
+
+    # Run query
+    with pytest.raises(Exception) as excinfo:
+        ip.run_cell(query)
+
+    # Test error and message
+    assert error_type == excinfo.value.error_type
+    assert error_message in str(excinfo.value)
