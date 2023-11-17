@@ -2448,7 +2448,10 @@ Did you mean: 'snippet'
 
 
 Original error message from DB driver:
-(sqlite3.OperationalError) no such table: snip
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
 [SQL: SELECT * FROM snip;]""",
         ),
         (
@@ -2462,7 +2465,10 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
-(sqlite3.OperationalError) no such table: tem
+(duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * from tem;
+                      ^
 [SQL: SELECT * from tem;]""",
         ),
         (
@@ -2479,7 +2485,10 @@ Did you mean: 'snippet'
 
 
 Original error message from DB driver:
-(sqlite3.OperationalError) no such table: snip
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
 [SQL: SELECT * FROM snip;]""",
         ),
         (
@@ -2493,29 +2502,38 @@ https://jupysql.ploomber.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
-(sqlite3.OperationalError) no such table: s
+(duckdb.CatalogException) Catalog Error: Table with name s does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM s;
+                      ^
 [SQL: SELECT * FROM s;]""",
         ),
     ],
     ids=["snippet-typo", "table-typo", "both-typo", "snippet-typo-no-suggestion"],
 )
-def test_table_does_not_exist_with_snippet_error(ip, query, error_type, error_message):
+def test_table_does_not_exist_with_snippet_error(
+    ip_empty, query, error_type, error_message
+):
+    ip_empty.run_cell(
+        """%load_ext sql
+%sql duckdb://"""
+    )
     # Create temp table
-    ip.run_cell(
+    ip_empty.run_cell(
         """%%sql
 CREATE TABLE temp AS
-SELECT * FROM author"""
+SELECT * FROM penguins.csv"""
     )
 
     # Create snippet
-    ip.run_cell(
+    ip_empty.run_cell(
         """%%sql --save snippet
-SELECT * FROM website;"""
+SELECT * FROM penguins.csv;"""
     )
 
     # Run query
     with pytest.raises(Exception) as excinfo:
-        ip.run_cell(query)
+        ip_empty.run_cell(query)
 
     # Test error and message
     assert error_type == excinfo.value.error_type
