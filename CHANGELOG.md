@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 0.10.5dev
+* [Fix] Fix queries with leading parentheses not showing expected control flow behavior (used to break `is_cte` logic) (#879)
 
 ## 0.10.4 (2023-11-28)
 
@@ -32,8 +33,6 @@
 * [Fix] Fix empty result in certain duckdb `SELECT` and `SUMMARIZE` queries with leading comments (#892)
 * [Fix] Fix incorrect conversion to Pandas/Polars dataframe for PIVOT statement results and InvalidInputException in PIVOT subqueries (#917)
 * [Doc] Added `run_statements` to the Python API docs (#922)
-* [Fix] Fix queries with leading parentheses not showing expected control flow behavior (used to break `is_cte` logic) (#879)
->>>>>>> a833bb3 (added to changelog)
 
 ## 0.10.2 (2023-09-22)
 
