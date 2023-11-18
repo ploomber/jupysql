@@ -6,6 +6,7 @@
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
 * [Fix] Added guards to check and raise errors when arguments are entered twice in %sql, %sqlcmd and %sqlplot (#806)
 * [Fix] Fixed bug that returns snippet typo error message when another table is misspelled (#940)
+* [Fix] Fixed edge case where `%sqlcmd snippets` allowed use of multiple delete statements (#944)
 
 ## 0.10.3 (2023-11-06)
 
