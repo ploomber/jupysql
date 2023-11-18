@@ -84,6 +84,9 @@ class SqlCmdMagic(Magics, Configurable):
                         "-t": "--table",
                         "-s": "--schema",
                         "-o": "--output",
+                        "-d": "--delete",
+                        "-D": "--delete-force",
+                        "-A": "--delete-force-all",
                     },
                 )
 

@@ -239,6 +239,21 @@ def check_duplicate_arguments(
         if aliased_arguments[opt] in double_hyphen_opts
     ]
 
+    # Check if more than one of sqlcmd delete commands are used together
+    delete_arg_present = set()
+    if cmd_from == "sqlcmd":
+        delete_arg_list = [
+            "-d",
+            "-D",
+            "-A",
+            "--delete",
+            "--delete-force",
+            "--delete-force-all",
+        ]
+        for arg in args:
+            if arg in delete_arg_list:
+                delete_arg_present.add(arg)
+
     # Generate error message based on presence of duplicates and
     # aliased arguments
     error_message = ""
@@ -251,17 +266,26 @@ def check_duplicate_arguments(
     else:
         duplicates_error = ""
 
-    if alias_pairs_present:
-        arg_list = sorted([" or ".join(pair) for pair in alias_pairs_present])
+    if alias_pairs_present and not len(delete_arg_present) > 1:
+        arg_list = [" or ".join(pair) for pair in sorted(alias_pairs_present)]
         alias_error = (
             f"Duplicate aliases for arguments in %{cmd_from}. "
             "Please use either one of "
-            f"{', '.join(arg_list)}."
+            f"{', '.join(arg_list)}. "
         )
     else:
         alias_error = ""
 
-    error_message = f"{duplicates_error}{alias_error}"
+    if len(delete_arg_present) > 1:
+        delete_arg_present = list(sorted(delete_arg_present, reverse=True))
+        delete_arg_message = (
+            "Please use only one of the following delete commands at a time: "
+            f"{', '.join(delete_arg_present)}. "
+        )
+    else:
+        delete_arg_message = ""
+
+    error_message = f"{duplicates_error}{alias_error}{delete_arg_message}"
 
     # If there is an error message to be raised, raise it
     if error_message:
