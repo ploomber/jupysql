@@ -20,7 +20,7 @@ PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 @pytest.fixture
 def check_duplicate_message_factory():
-    def _generate_error_message(cmd, args, aliases=None):
+    def _generate_error_message(cmd, args, aliases=None, delete_present=False):
         error_message = ""
         duplicates = set([arg for arg in args if args.count(arg) != 1])
 
@@ -28,12 +28,10 @@ def check_duplicate_message_factory():
             error_message += (
                 f"Duplicate arguments in %{cmd}. "
                 "Please use only one of each of the following: "
-                f"{', '.join(sorted(duplicates))}."
+                f"{', '.join(sorted(duplicates))}. "
             )
-            if aliases:
-                error_message += " "
 
-        if aliases:
+        if aliases and not delete_present:
             alias_list = []
             for pair in sorted(aliases):
                 print(pair[0], pair[1])
@@ -41,8 +39,29 @@ def check_duplicate_message_factory():
             error_message += (
                 f"Duplicate aliases for arguments in %{cmd}. "
                 "Please use either one of "
-                f"{', '.join(alias_list)}."
+                f"{', '.join(alias_list)}. "
             )
+
+        if delete_present:
+            delete_arg_list = [
+                "-d",
+                "-D",
+                "-A",
+                "--delete",
+                "--delete-force",
+                "--delete-force-all",
+            ]
+            delete_args_present = set()
+            for arg in args:
+                if arg in delete_arg_list:
+                    delete_args_present.add(arg)
+
+            if len(delete_args_present) > 1:
+                delete_args_present = list(sorted(delete_args_present, reverse=True))
+                error_message += (
+                    "Please use only one of the following delete commands at a time: "
+                    f"{', '.join(delete_args_present)}. "
+                )
 
         return error_message
 

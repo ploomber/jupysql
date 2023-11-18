@@ -415,43 +415,107 @@ DISALLOWED_ALIASES = {
         "-t": "--table",
         "-s": "--schema",
         "-o": "--output",
+        "-d": "--delete",
+        "-D": "--delete-force",
+        "-A": "--delete-force-all",
     },
 }
 
 
 @pytest.mark.parametrize(
-    "args, aliases",
+    "args, aliases, delete_present",
     [
         # for schema/s
         (
             ["--schema", "--schema"],
             [],
+            False
         ),
         (
             ["-s", "-s"],
             [],
+            False
         ),
         (
             ["--schema", "-s"],
             [("s", "schema")],
+            False
         ),
         # for table/t
         (
             ["--table", "--table"],
             [],
+            False
         ),
         (
             ["-t", "-t"],
             [],
+            False
         ),
         (
             ["--table", "-t"],
             [("t", "table")],
+            False
+        ),
+        # for delete/d
+        (
+            ["--delete", "--delete"],
+            [],
+            True
+        ),
+        (
+            ["-d", "-d"],
+            [],
+            True
+        ),
+        (
+            ["--delete", "-d"],
+            [("d", "delete")],
+            True
+        ),
+        # for delete-force/D
+        (
+            ["--delete-force", "--delete-force"],
+            [],
+            True
+        ),
+        (
+            ["-D", "-D"],
+            [],
+            True
+        ),
+        (
+            ["--delete-force", "-D"],
+            [("D", "delete-force")],
+            True
+        ),
+        # for delete-force-all/A
+        (
+            ["--delete-force-all", "--delete-force-all"],
+            [],
+            True
+        ),
+        (
+            ["-A", "-A"],
+            [],
+            True
+        ),
+        (
+            ["--delete-force-all", "-A"],
+            [("A", "delete-force-all")],
+            True
+        ),
+        # for mixed delete
+        (
+            ["-d", "-D", "-A", "--delete", "--delete-force", "--delete-force-all"],
+            [("d", "delete"), ("D", "delete-force"), ("A", "delete-force-all")],
+            True
         ),
         # for mixed
         (
             ["--table", "-t", "-s", "-s", "--schema"],
             [("t", "table"), ("s", "schema")],
+            False
         ),
     ],
 )
@@ -459,6 +523,7 @@ def test_check_duplicate_arguments_raises_usageerror_for_sqlcmd(
     check_duplicate_message_factory,
     args,
     aliases,
+    delete_present
 ):
     with pytest.raises(UsageError) as excinfo:
         util.check_duplicate_arguments(
@@ -468,7 +533,7 @@ def test_check_duplicate_arguments_raises_usageerror_for_sqlcmd(
             [],
             DISALLOWED_ALIASES["sqlcmd"],
         )
-    assert check_duplicate_message_factory("sqlcmd", args, aliases) in str(
+    assert check_duplicate_message_factory("sqlcmd", args, aliases, delete_present) in str(
         excinfo.value
     )
 
