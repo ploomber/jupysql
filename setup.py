@@ -71,6 +71,7 @@ INTEGRATION = [
     "redshift-connector",
     "sqlalchemy-redshift",
     "clickhouse-sqlalchemy",
+    "sqlalchemy-trino",
 ]
 
 setup(
