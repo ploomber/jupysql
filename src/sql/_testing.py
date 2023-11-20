@@ -226,22 +226,6 @@ databaseConfig = {
         },
         "query": {},
     },
-    "trino": {
-        "drivername": "trino",
-        "username": "user",
-        "password": "",
-        # database/schema
-        "host": "localhost",
-        "port": "8080",
-        "alias": "trino",
-        "database": "my_database",
-        "docker_ct": {
-            "name": "trino",
-            "image": "trinodb/trino",
-            "ports": {8080: 8080},
-        },
-        "query": {},
-    },
 }
 
 
@@ -532,33 +516,6 @@ def clickhouse(is_bypass_init=False, print_credentials=False):
                 "CLICKHOUSE_DB": db_config["database"],
             },
             ready_test=lambda: database_ready(database="clickhouse"),
-        ) as container:
-            yield container
-
-
-@contextmanager
-@requires(["docker", "dockerctx"])
-def trino(is_bypass_init=False, print_credentials=False):
-    if is_bypass_init:
-        yield None
-        return
-
-    db_config = DatabaseConfigHelper.get_database_config("trino")
-
-    if print_credentials:
-        print(db_config)
-
-    try:
-        client = get_docker_client()
-        curr = client.containers.get(db_config["docker_ct"]["name"])
-        yield curr
-    except docker.errors.NotFound:
-        print("Creating new container: trino")
-        with new_container(
-            new_container_name=db_config["docker_ct"]["name"],
-            image_name=db_config["docker_ct"]["image"],
-            ports=db_config["docker_ct"]["ports"],
-            ready_test=lambda: database_ready(database="trino"),
         ) as container:
             yield container
 

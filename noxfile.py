@@ -152,7 +152,6 @@ def test_integration_cloud(session):
 def test_integration(session):
     """Run integration tests (to check compatibility with databases)"""
     _install(session, integration=True)
-    session.install("sqlalchemy-trino")
     session.run(
         "pytest",
         "src/tests/integration",

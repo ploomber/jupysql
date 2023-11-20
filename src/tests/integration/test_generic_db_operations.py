@@ -1465,6 +1465,10 @@ def test_query_snippet_invalid_function_error_message(
     "ip_with_dynamic_db, args",
     [
         ("ip_with_postgreSQL", ""),
+        ("ip_with_duckDB", ""),
+        # snowflake does not support "CREATE INDEX", so we need to
+        # pass --no-index
+        ("ip_with_Snowflake", "--no-index"),
         pytest.param(
             "ip_with_mySQL",
             "",
@@ -1478,7 +1482,6 @@ def test_query_snippet_invalid_function_error_message(
         pytest.param(
             "ip_with_SQLite", "", marks=pytest.mark.xfail(reason="schema not supported")
         ),
-        ("ip_with_duckDB", ""),
         pytest.param(
             "ip_with_duckDB_native",
             "",
@@ -1486,9 +1489,6 @@ def test_query_snippet_invalid_function_error_message(
                 reason="'duckdb.DuckDBPyConnection' object has no attribute 'rowcount'"
             ),
         ),
-        # snowflake does not support "CREATE INDEX", so we need to
-        # pass --no-index
-        ("ip_with_Snowflake", "--no-index"),
         pytest.param(
             "ip_with_redshift",
             "",

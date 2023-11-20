@@ -1,5 +1,5 @@
 # CI - DB Integration - Local is designed to run integration testing against to databases hosted by docker containers
-# Target database: PostgreSQL, MySQL, MariaDB, SQLite, DuckDB, MSSQL, Oracle, Trino Database
+# Target database: PostgreSQL, MySQL, MariaDB, SQLite, DuckDB, MSSQL, Oracle Database
 # Sqlalchemy version: 2+
 name: CI - DB Integration - Local
 on:

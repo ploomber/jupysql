@@ -110,58 +110,36 @@ def load_numbers_data_clickhouse(engine, table_name):
     engine.execute(text(insert_query))
 
 
-def load_taxi_data(engine, table_name, index=True, schema=None):
+def load_taxi_data(engine, table_name, index=True):
     table_name = table_name
     df = pd.DataFrame(
         {"taxi_driver_name": ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}
     )
     df.to_sql(
-        name=table_name,
-        con=engine,
-        chunksize=1000,
-        if_exists="replace",
-        index=index,
-        schema=schema,
+        name=table_name, con=engine, chunksize=1000, if_exists="replace", index=index
     )
 
 
-def load_plot_data(engine, table_name, index=True, schema=None):
+def load_plot_data(engine, table_name, index=True):
     df = pd.DataFrame({"x": range(0, 5), "y": range(5, 10)})
     df.to_sql(
-        name=table_name,
-        con=engine,
-        chunksize=1000,
-        if_exists="replace",
-        index=index,
-        schema=schema,
+        name=table_name, con=engine, chunksize=1000, if_exists="replace", index=index
     )
 
 
-def load_numeric_data(engine, table_name, index=True, schema=None):
+def load_numeric_data(engine, table_name, index=True):
     df = pd.DataFrame({"numbers_elements": [1, 2, 3] * 20})
     df.to_sql(
-        name=table_name,
-        con=engine,
-        chunksize=1000,
-        if_exists="replace",
-        index=index,
-        schema=schema,
+        name=table_name, con=engine, chunksize=1000, if_exists="replace", index=index
     )
 
 
-def load_generic_testing_data(engine, test_table_name_dict, index=True, schema=None):
-    load_taxi_data(
-        engine, table_name=test_table_name_dict["taxi"], index=index, schema=schema
-    )
+def load_generic_testing_data(engine, test_table_name_dict, index=True):
+    load_taxi_data(engine, table_name=test_table_name_dict["taxi"], index=index)
     load_plot_data(
-        engine,
-        table_name=test_table_name_dict["plot_something"],
-        index=index,
-        schema=schema,
+        engine, table_name=test_table_name_dict["plot_something"], index=index
     )
-    load_numeric_data(
-        engine, table_name=test_table_name_dict["numbers"], index=index, schema=schema
-    )
+    load_numeric_data(engine, table_name=test_table_name_dict["numbers"], index=index)
 
 
 def tear_down_generic_testing_data(engine, test_table_name_dict):
@@ -554,33 +532,3 @@ def ip_with_clickhouse(ip_empty, setup_clickhouse):
     yield ip_empty
     # Disconnect database
     ip_empty.run_cell("%sql -x " + config["alias"])
-
-
-@pytest.fixture
-def ip_with_trino(ip_empty, setup_trino):
-    configKey = "trino"
-    alias = _testing.DatabaseConfigHelper.get_database_config(configKey)["alias"]
-
-    # Select database engine
-    ip_empty.run_cell(
-        "%sql "
-        + _testing.DatabaseConfigHelper.get_database_url(configKey)
-        + " --alias "
-        + alias
-    )
-    yield ip_empty
-    # Disconnect database
-    ip_empty.run_cell("%sql -x " + alias)
-
-
-@pytest.fixture(scope="session")
-def setup_trino(test_table_name_dict):
-    with _testing.trino():
-        engine = create_engine(_testing.DatabaseConfigHelper.get_database_url("trino"))
-        # Load pre-defined datasets
-        load_generic_testing_data(
-            engine, test_table_name_dict, index=False, schema="default"
-        )
-        yield engine
-        tear_down_generic_testing_data(engine, test_table_name_dict)
-        engine.dispose()
