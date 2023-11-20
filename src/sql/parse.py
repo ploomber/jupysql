@@ -365,7 +365,7 @@ def find_named_parameters(input_string):
 
 
 def is_valid_parentheses(input_string: str) -> bool:
-    if len(input_string) < 2:
+    if len(input_string) < 2 or len(input_string) % 2 != 0:
         return False
 
     open_parentheses = "("

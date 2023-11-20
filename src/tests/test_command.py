@@ -245,7 +245,7 @@ def test_with_contains_dash_show_warning_message(ip, sql_magic, capsys):
     assert "Using hyphens (-) in save argument isn't allowed" in str(error.value)
 
 
-def test_remove_leading_parentheses(ip, sql_magic):
+def test_strip_excess_parentheses(ip, sql_magic):
     cmd = SQLCommand(
         sql_magic,
         ip.user_ns,

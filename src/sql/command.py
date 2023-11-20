@@ -130,13 +130,14 @@ class SQLCommand:
 
     def _var_expand(self, sql, user_ns):
         template_render = Template(sql).render(user_ns)
-        template_render = self.remove_leading_parentheses(template_render)
+        template_render = self.strip_excess_parentheses(template_render)
         return template_render
 
-    def remove_leading_parentheses(self, rendered_sql_command):
+    def strip_excess_parentheses(self, rendered_sql_command):
         """
         Removes any leading parentheses from the sql_command_string
-        Example:
+
+        Examples::
             (WITH my_penguins as (
                 select * from penguins.csv
             )
@@ -150,23 +151,20 @@ class SQLCommand:
             select * from my_penguins
         """
         rendered_sql_command = rendered_sql_command.strip()
-        count = 0
 
         if len(rendered_sql_command) > 1:
             if "(" == rendered_sql_command[0] and ")" == rendered_sql_command[-1]:
-                parentheses_string = ""
+                parentheses_string = []
                 for letter in rendered_sql_command:
-                    if letter in ["(", ")"]:
-                        parentheses_string += letter
+                    if letter == "(" or letter == ")":
+                        parentheses_string.append(letter)
+                parentheses_string = "".join(parentheses_string)
 
-                while is_valid_parentheses(parentheses_string):
-                    if len(parentheses_string) >= 2:
-                        parentheses_string = parentheses_string[1:-2]
-                        count += 1
-                    else:
-                        break
+                if is_valid_parentheses(parentheses_string) and len(parentheses_string) >= 2:
+                    if len(parentheses_string) == 2 or is_valid_parentheses(parentheses_string[1:-1]):
+                        rendered_sql_command = rendered_sql_command[1:-1]
 
-                return rendered_sql_command[count:-(count)]
+                return rendered_sql_command
         return rendered_sql_command
 
     def __repr__(self) -> str:
