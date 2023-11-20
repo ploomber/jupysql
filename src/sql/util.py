@@ -399,7 +399,6 @@ def get_user_configs(primary_path, alternate_path):
 
         # Look for SqlMagic section in toml file
         while section_names:
-
             section_found = False
             section_to_find, sections_from_user = section_names.pop(0), data.keys()
 
@@ -411,9 +410,9 @@ def get_user_configs(primary_path, alternate_path):
                 if not close_match:
                     if display_tip:
                         display.message(
-                                f"Tip: You may define configurations in {primary_path}"
-                                f" or {alternate_path}. "
-                                )
+                            f"Tip: You may define configurations in {primary_path}"
+                            f" or {alternate_path}. "
+                        )
                         tip_displayed = True
                     break
                 else:
@@ -432,15 +431,15 @@ def get_user_configs(primary_path, alternate_path):
 
         if section_to_find == "SqlMagic" and section_found:
             display.message(
-                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-                    )
+                f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+            )
             display_tip = False
 
         if (tip_displayed or not display_tip) and not configuration_docs_displayed:
             display.message_html(
-                    f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
-                    "configuration guideline</a>."
-                    )
+                f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
+                "configuration guideline</a>."
+            )
             configuration_docs_displayed = True
 
         status = ""
@@ -449,9 +448,7 @@ def get_user_configs(primary_path, alternate_path):
         elif file_path == alternate_path:
             status = "Did not find user configurations in pyproject.toml"
 
-            display.message(
-                f"{status}."
-            )
+            display.message(f"{status}.")
 
     return data, None
 
