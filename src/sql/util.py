@@ -388,7 +388,6 @@ def get_user_configs(primary_path, alternate_path):
     # Look for user configurations in pyproject.toml and ~/.jupysql/config
     # in that particular order
     for file_path in [primary_path, alternate_path]:
-
         section_to_find = None
         section_found = False
         if file_path is not None:
