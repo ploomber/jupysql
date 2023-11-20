@@ -383,47 +383,45 @@ def get_user_configs(primary_path, alternate_path):
     """
     data = None
     display_tip = True  # Set to true if tip is to be displayed
-    tip_displayed = False  # To keep track if tip has been displayed
     configuration_docs_displayed = False  # To disable showing guidelines once shown
 
     # Look for user configurations in pyproject.toml and ~/.jupysql/config
     # in that particular order
     for file_path in [primary_path, alternate_path]:
-        if file_path is None or not file_path.exists():
-            continue
 
-        data = load_toml(file_path)
-        section_names = ["tool", "jupysql", "SqlMagic"]
         section_to_find = None
         section_found = False
+        if file_path is not None:
+            data = load_toml(file_path)
+            section_names = ["tool", "jupysql", "SqlMagic"]
 
-        # Look for SqlMagic section in toml file
-        while section_names:
-            section_found = False
-            section_to_find, sections_from_user = section_names.pop(0), data.keys()
+            # Look for SqlMagic section in toml file
+            while section_names:
+                section_found = False
+                section_to_find, sections_from_user = section_names.pop(0), data.keys()
 
-            if section_to_find not in sections_from_user:
-                close_match = difflib.get_close_matches(
-                    section_to_find, sections_from_user
-                )
-
-                if not close_match:
-                    if display_tip:
-                        display.message(
-                            f"Tip: You may define configurations in {primary_path}"
-                            f" or {alternate_path}. "
-                        )
-                        tip_displayed = True
-                    break
-                else:
-                    raise exceptions.ConfigurationError(
-                        f"{pretty_print(close_match)} is an invalid section "
-                        f"name in {file_path}. "
-                        f"Did you mean '{section_to_find}'?"
+                if section_to_find not in sections_from_user:
+                    close_match = difflib.get_close_matches(
+                        section_to_find, sections_from_user
                     )
 
-            section_found = True
-            data = data[section_to_find]
+                    if not close_match:
+                        if display_tip:
+                            display.message(
+                                f"Tip: You may define configurations in {primary_path}"
+                                f" or {alternate_path}. "
+                            )
+                            display_tip = False
+                        break
+                    else:
+                        raise exceptions.ConfigurationError(
+                            f"{pretty_print(close_match)} is an invalid section "
+                            f"name in {file_path}. "
+                            f"Did you mean '{section_to_find}'?"
+                        )
+
+                section_found = True
+                data = data[section_to_find]
 
         # If SqlMagic section has user configs
         if data:
@@ -435,7 +433,7 @@ def get_user_configs(primary_path, alternate_path):
             )
             display_tip = False
 
-        if (tip_displayed or not display_tip) and not configuration_docs_displayed:
+        if not display_tip and not configuration_docs_displayed:
             display.message_html(
                 f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
                 "configuration guideline</a>."
@@ -448,7 +446,7 @@ def get_user_configs(primary_path, alternate_path):
         elif file_path == alternate_path:
             status = "Did not find user configurations in pyproject.toml"
 
-            display.message(f"{status}.")
+        display.message(f"{status}{'.' if status else ''}")
 
     return data, None
 
