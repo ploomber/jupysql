@@ -20,7 +20,7 @@ PATH_TO_TMP_ASSETS.mkdir(exist_ok=True)
 
 @pytest.fixture
 def check_duplicate_message_factory():
-    def _generate_error_message(cmd, args, aliases=None, delete_present=False):
+    def _generate_error_message(cmd, args, aliases=None, delete_option_used=False):
         error_message = ""
         duplicates = set([arg for arg in args if args.count(arg) != 1])
 
@@ -31,10 +31,9 @@ def check_duplicate_message_factory():
                 f"{', '.join(sorted(duplicates))}. "
             )
 
-        if aliases and not delete_present:
+        if aliases and not delete_option_used:
             alias_list = []
             for pair in sorted(aliases):
-                print(pair[0], pair[1])
                 alias_list.append(f"{f'-{pair[0]}'} or {f'--{pair[1]}'}")
             error_message += (
                 f"Duplicate aliases for arguments in %{cmd}. "
@@ -42,7 +41,7 @@ def check_duplicate_message_factory():
                 f"{', '.join(alias_list)}. "
             )
 
-        if delete_present:
+        if delete_option_used:
             delete_arg_list = [
                 "-d",
                 "-D",

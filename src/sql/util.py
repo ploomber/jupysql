@@ -266,7 +266,7 @@ def check_duplicate_arguments(
     else:
         duplicates_error = ""
 
-    if alias_pairs_present and not len(delete_arg_present) > 1:
+    if alias_pairs_present and len(delete_arg_present) <= 1:
         arg_list = [" or ".join(pair) for pair in sorted(alias_pairs_present)]
         alias_error = (
             f"Duplicate aliases for arguments in %{cmd_from}. "
