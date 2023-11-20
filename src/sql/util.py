@@ -370,9 +370,9 @@ def get_user_configs(primary_path, alternate_path):
     Parameters
     ----------
     primary_path : Path
-        file path to a toml file
+        file path to toml in project directory
     alternate_path : Path
-        file path to a toml file
+        file path to ~/.jupysql/config
 
     Returns
     -------
@@ -382,39 +382,32 @@ def get_user_configs(primary_path, alternate_path):
         the path of the file used to get user configurations
     """
     data = None
-    tip_displayed = False
-    disable_tip = False
+    display_tip = False  # Flag to track if tip is displayed
+
+    # Look for user configurations in pyproject.toml and ~/.jupysql/config
+    # in that particular order
     for file_path in [primary_path, alternate_path]:
         if file_path is None or not file_path.exists():
             continue
-
-        if file_path == alternate_path:
-            STATUS = "Did not find pyproject.toml"
-            if primary_path:
-                STATUS = "Did not find user configurations in pyproject.toml"
-            display.message(
-                f"{STATUS}. " f"Looking for user configurations in {alternate_path}."
-            )
 
         data = load_toml(file_path)
         section_names = ["tool", "jupysql", "SqlMagic"]
         section_to_find = None
         section_found = False
 
+        # Look for SqlMagic section in toml file
         while section_names:
+
             section_found = False
             section_to_find, sections_from_user = section_names.pop(0), data.keys()
+
             if section_to_find not in sections_from_user:
                 close_match = difflib.get_close_matches(
                     section_to_find, sections_from_user
                 )
+
                 if not close_match:
-                    if not tip_displayed and not disable_tip:
-                        display.message(
-                            f"Tip: You may define configurations in {primary_path}"
-                            f" or {alternate_path}. "
-                        )
-                        tip_displayed = True
+                    display_tip = True
                     break
                 else:
                     raise exceptions.ConfigurationError(
@@ -422,26 +415,42 @@ def get_user_configs(primary_path, alternate_path):
                         f"name in {file_path}. "
                         f"Did you mean '{section_to_find}'?"
                     )
+
             section_found = True
             data = data[section_to_find]
 
+        # If SqlMagic empty or not present, display relevant messages
         if not data:
+
+            # If tip is displayed or SqlMagic not found
+            if display_tip:
+                display.message(
+                    f"Tip: You may define configurations in {primary_path}"
+                    f" or {alternate_path}. "
+                    )
+
             if section_to_find == "SqlMagic" and section_found:
                 display.message(
-                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-                )
-                disable_tip = True
+                        f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+                        )
+                display_tip = False
 
-            elif file_path == alternate_path:
-                display.message(
-                    f"Did not find user configurations in {alternate_path}."
-                )
-
-            if tip_displayed or disable_tip:
-                display.message_html(
+            display.message_html(
                     f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
                     "configuration guideline</a>."
+                    )
+
+            status = ""
+            if primary_path is None:
+                status = "Did not find pyproject.toml"
+            elif file_path == alternate_path:
+                status = "Did not find user configurations in pyproject.toml"
+
+                display.message(
+                    f"{status}."
                 )
+
+        # If SqlMagic section has user configs
         elif data:
             return data, file_path
 
