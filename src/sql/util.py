@@ -390,7 +390,7 @@ def get_user_configs(primary_path, alternate_path):
     for file_path in [primary_path, alternate_path]:
         section_to_find = None
         section_found = False
-        if file_path is not None:
+        if file_path and file_path.exists():
             data = load_toml(file_path)
             section_names = ["tool", "jupysql", "SqlMagic"]
 
