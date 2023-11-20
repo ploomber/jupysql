@@ -382,7 +382,9 @@ def get_user_configs(primary_path, alternate_path):
         the path of the file used to get user configurations
     """
     data = None
-    display_tip = False  # Flag to track if tip is displayed
+    display_tip = True  # Set to true if tip is to be displayed
+    tip_displayed = False  # To keep track if tip has been displayed
+    configuration_docs_displayed = False  # To disable showing guidelines once shown
 
     # Look for user configurations in pyproject.toml and ~/.jupysql/config
     # in that particular order
@@ -407,7 +409,12 @@ def get_user_configs(primary_path, alternate_path):
                 )
 
                 if not close_match:
-                    display_tip = True
+                    if display_tip:
+                        display.message(
+                                f"Tip: You may define configurations in {primary_path}"
+                                f" or {alternate_path}. "
+                                )
+                        tip_displayed = True
                     break
                 else:
                     raise exceptions.ConfigurationError(
@@ -419,40 +426,32 @@ def get_user_configs(primary_path, alternate_path):
             section_found = True
             data = data[section_to_find]
 
-        # If SqlMagic empty or not present, display relevant messages
-        if not data:
+        # If SqlMagic section has user configs
+        if data:
+            return data, file_path
 
-            # If tip is displayed or SqlMagic not found
-            if display_tip:
-                display.message(
-                    f"Tip: You may define configurations in {primary_path}"
-                    f" or {alternate_path}. "
+        if section_to_find == "SqlMagic" and section_found:
+            display.message(
+                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
                     )
+            display_tip = False
 
-            if section_to_find == "SqlMagic" and section_found:
-                display.message(
-                        f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-                        )
-                display_tip = False
-
+        if (tip_displayed or not display_tip) and not configuration_docs_displayed:
             display.message_html(
                     f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
                     "configuration guideline</a>."
                     )
+            configuration_docs_displayed = True
 
-            status = ""
-            if primary_path is None:
-                status = "Did not find pyproject.toml"
-            elif file_path == alternate_path:
-                status = "Did not find user configurations in pyproject.toml"
+        status = ""
+        if primary_path is None:
+            status = "Did not find pyproject.toml"
+        elif file_path == alternate_path:
+            status = "Did not find user configurations in pyproject.toml"
 
-                display.message(
-                    f"{status}."
-                )
-
-        # If SqlMagic section has user configs
-        elif data:
-            return data, file_path
+            display.message(
+                f"{status}."
+            )
 
     return data, None
 
