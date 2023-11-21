@@ -628,6 +628,8 @@ class SqlMagic(Magics, Configurable):
 
         frame_name = raw.strip(";")
 
+        # user may pass schema.dataframe (required for certain DBs
+        # like Trino)
         schema_name = None
         if "." in frame_name:
             schema_frame = frame_name.split(".")

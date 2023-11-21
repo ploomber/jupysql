@@ -492,7 +492,7 @@ class AbstractConnection(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def to_table(self, table_name, data_frame, if_exists, index, schema):
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
         """Create a table from a pandas DataFrame"""
         pass
 
