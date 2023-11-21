@@ -378,6 +378,8 @@ def get_user_configs(primary_path, alternate_path):
     -------
     dict
         saved configuration settings
+    Path
+        the path of the file used to get user configurations
     """
     data = None
     display_tip = True  # Set to true if tip is to be displayed
@@ -438,9 +440,9 @@ def get_user_configs(primary_path, alternate_path):
         elif not data and not section_found:
             display.message(f"Did not find user configurations in {file_path}.")
         elif section_found and data:
-            return data
+            return data, file_path
 
-    return data
+    return data, None
 
 
 def get_default_configs(sql):
