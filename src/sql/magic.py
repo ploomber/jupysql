@@ -700,7 +700,6 @@ def set_configs(ip, file_path, alternate_path):
     default_configs = util.get_default_configs(sql)
     table_rows = []
 
-    success = False
     if user_configs:
         for config, value in user_configs.items():
             if config in default_configs.keys():
@@ -708,7 +707,6 @@ def set_configs(ip, file_path, alternate_path):
                 if isinstance(value, default_type):
                     setattr(sql, config, value)
                     table_rows.append([config, value])
-                    success = True
                 else:
                     display.message(
                         f"'{value}' is an invalid value for '{config}'. "
@@ -716,11 +714,6 @@ def set_configs(ip, file_path, alternate_path):
                     )
             else:
                 util.find_close_match_config(config, default_configs.keys())
-        if success:
-            if loaded_from is not None:
-                display.message(f"Loading configurations from {loaded_from}.")
-            else:
-                display.message("Loading default configurations.")
 
     return table_rows
 
