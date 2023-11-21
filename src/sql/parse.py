@@ -365,6 +365,20 @@ def find_named_parameters(input_string):
 
 
 def is_valid_parentheses(input_string: str) -> bool:
+    """
+    Finds if the input_string is a valid parentheses. A valid parentheses can
+    be defined as a string where every opening parentheses has a corresponding
+    closing parentheses.
+
+    Parameters
+    ----------
+    input_string: str
+        A string of parentheses (should include only '(' and ')')
+    Returns
+    -------
+    bool:
+        True if the string is a valid parentheses, False otherwise
+    """
     if len(input_string) < 2 or len(input_string) % 2 != 0:
         return False
 

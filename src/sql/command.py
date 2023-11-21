@@ -137,18 +137,19 @@ class SQLCommand:
         """
         Removes any leading parentheses from the sql_command_string
 
-        Examples::
-            (WITH my_penguins as (
-                select * from penguins.csv
+        Example
+        -------
+            (WITH my_penguins AS (
+                SELECT * FROM penguins.csv
             )
-            select * from my_penguins)
+            SELECT * FROM my_penguins)
 
             becomes
 
-            WITH my_penguins as (
-                select * from penguins.csv
+            WITH my_penguins AS (
+                SELECT * FROM penguins.csv
             )
-            select * from my_penguins
+            SELECT * FROM my_penguins
         """
         rendered_sql_command = rendered_sql_command.strip()
 
@@ -160,8 +161,13 @@ class SQLCommand:
                         parentheses_string.append(letter)
                 parentheses_string = "".join(parentheses_string)
 
-                if is_valid_parentheses(parentheses_string) and len(parentheses_string) >= 2:
-                    if len(parentheses_string) == 2 or is_valid_parentheses(parentheses_string[1:-1]):
+                if (
+                    is_valid_parentheses(parentheses_string)
+                    and len(parentheses_string) >= 2
+                ):
+                    if len(parentheses_string) == 2 or is_valid_parentheses(
+                        parentheses_string[1:-1]
+                    ):
                         rendered_sql_command = rendered_sql_command[1:-1]
 
                 return rendered_sql_command
