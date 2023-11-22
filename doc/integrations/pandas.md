@@ -145,5 +145,5 @@ results = %sql SELECT * FROM numbers;
 ```
 
 ```{code-cell} ipython3
-%sql --persist schema1.results_dataframe
+%sql --persist schema1.results
 ```
