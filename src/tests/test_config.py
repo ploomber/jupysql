@@ -518,7 +518,8 @@ autocommit = true
             "",
             "",
             [
-                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                """Tip: You may define configurations in {pyproject_path}
+or {config_path}.""",
                 "Did not find user configurations in {pyproject_path}.",
                 "Did not find user configurations in {config_path}.",
             ],
@@ -527,7 +528,8 @@ autocommit = true
             "",
             "[tool.jupysql.SqlMagic]",
             [
-                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                """Tip: You may define configurations in {pyproject_path}
+or {config_path}.""",
                 "Did not find user configurations in {pyproject_path}.",
                 "[tool.jupysql.SqlMagic] present in {config_path} but empty.",
             ],
@@ -540,7 +542,8 @@ feedback=True
 autopandas=True
 """,
             [
-                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                """Tip: You may define configurations in {pyproject_path}
+or {config_path}.""",
                 "Did not find user configurations in {pyproject_path}.",
             ],
         ),
