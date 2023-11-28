@@ -139,17 +139,17 @@ class SQLCommand:
 
         Example
         -------
-            (WITH my_penguins AS (
-                SELECT * FROM penguins.csv
-            )
-            SELECT * FROM my_penguins)
+        >>> strip_excess_parentheses(\"\"\"(WITH my_penguins AS (
+        ...    SELECT * FROM penguins.csv
+        ...)
+        ...SELECT * FROM my_penguins)\"\"\")
+        WITH my_penguins AS (
+            SELECT * FROM penguins.csv
+        )
+        SELECT * FROM my_penguins
 
-            becomes
-
-            WITH my_penguins AS (
-                SELECT * FROM penguins.csv
-            )
-            SELECT * FROM my_penguins
+        The method takes in a string and removes any excess
+        leading and lagging parentheses.
         """
         rendered_sql_command = rendered_sql_command.strip()
 
