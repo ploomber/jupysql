@@ -135,7 +135,19 @@ class SQLCommand:
 
     def strip_excess_parentheses(self, rendered_sql_command):
         """
-        Removes any leading parentheses from the sql_command_string
+        Removes any leading parentheses from the sql_command_string.
+
+        Note
+        ----
+        The function removes the first and last character only if they are
+        parentheses and the remaining opening parentheses have a corresponding
+        valiod closing parentheses.
+
+        This does not work on queries that have a opening parentheses as their
+        first character but do not have the corresponding closing parentheses
+        as their last character (eg. (subquery) UNION (subquery)). It also
+        assumes that the user uses only a singular wrapping parentheses on the
+        entire query and not more than that.
 
         Example
         -------
