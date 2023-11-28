@@ -374,6 +374,7 @@ def is_valid_parentheses(input_string: str) -> bool:
     ----------
     input_string: str
         A string of parentheses (should include only '(' and ')')
+
     Returns
     -------
     bool:
