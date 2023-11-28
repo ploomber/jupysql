@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 
 import sqlparse
-import os
 
 try:
     from ipywidgets import interact
@@ -729,7 +728,7 @@ def set_configs(ip, file_path, alternate_path):
 def load_SqlMagic_configs(ip):
     """Loads saved SqlMagic configs in pyproject.toml or ~/.jupysql/config"""
 
-    file_path = Path(os.getcwd()).joinpath("pyproject.toml")
+    file_path = util.find_path_from_root("pyproject.toml")
     alternate_path = Path("~/.jupysql/config").expanduser()
 
     table_rows = []

@@ -343,24 +343,28 @@ def test_loading_toml_display_configuration_docs_link(
     tmp_empty, capsys, ip_no_magics, file_content, expected_message, monkeypatch
 ):
     Path("pyproject.toml").write_text(file_content)
-    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
-    config_path = str(Path("~/.jupysql/config").expanduser())
+    toml_path = Path(os.getcwd()).joinpath("pyproject.toml")
+    config_path = Path("~/.jupysql/config").expanduser()
 
     os.mkdir("sub")
     os.chdir("sub")
+
     mock = Mock()
     monkeypatch.setattr(display, "message_html", mock)
     load_ipython_extension(ip_no_magics)
     out, _ = capsys.readouterr()
+
     param = (
         f"Please review our "
         f"<a href='{CONFIGURATION_DOCS_STR}'>configuration guideline</a>."
     )
+
     expected_message = expected_message.format(
-        primary_path=toml_path, alt_path=config_path
+        primary_path=str(toml_path), alt_path=str(config_path)
     )
-    mock.assert_called_once_with(param)
+
     assert expected_message in out
+    mock.assert_called_once_with(param)
 
 
 @pytest.mark.parametrize(
@@ -518,8 +522,10 @@ autocommit = true
             "",
             "",
             [
-                """Tip: You may define configurations in {pyproject_path}
-or {config_path}.""",
+                (
+                    "Tip: You may define configurations in "
+                    "{pyproject_path} or {config_path}."
+                ),
                 "Did not find user configurations in {pyproject_path}.",
                 "Did not find user configurations in {config_path}.",
             ],
@@ -528,8 +534,10 @@ or {config_path}.""",
             "",
             "[tool.jupysql.SqlMagic]",
             [
-                """Tip: You may define configurations in {pyproject_path}
-or {config_path}.""",
+                (
+                    "Tip: You may define configurations in "
+                    "{pyproject_path} or {config_path}."
+                ),
                 "Did not find user configurations in {pyproject_path}.",
                 "[tool.jupysql.SqlMagic] present in {config_path} but empty.",
             ],
@@ -542,8 +550,10 @@ feedback=True
 autopandas=True
 """,
             [
-                """Tip: You may define configurations in {pyproject_path}
-or {config_path}.""",
+                (
+                    "Tip: You may define configurations in "
+                    "{pyproject_path} or {config_path}."
+                ),
                 "Did not find user configurations in {pyproject_path}.",
             ],
         ),
@@ -589,6 +599,7 @@ def test_user_config_load_sequence_and_messages(
     toml_path.touch(exist_ok=True)
     toml_path.write_text(pyproject_content)
 
+    Path("~/.jupysql").expanduser().mkdir(parents=True, exist_ok=True)
     config_path = Path("~/.jupysql/config").expanduser()
     config_path.touch(exist_ok=True)
     config_path.write_text(config_content)
