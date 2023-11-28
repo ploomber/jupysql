@@ -436,7 +436,7 @@ def get_user_configs(primary_path, alternate_path):
             )
             configuration_docs_displayed = True
 
-        if not data and not section_found and file_path:
+        if not data and not section_found and file_path and file_path.exists():
             display.message(f"Did not find user configurations in {file_path}.")
         elif section_found and data:
             return data, file_path
