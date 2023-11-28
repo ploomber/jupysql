@@ -585,8 +585,13 @@ def test_user_config_load_sequence_and_messages(
     config_content,
     expected_messages,
 ):
-    Path("pyproject.toml").write_text(pyproject_content)
-    Path("~/.jupysql/config").expanduser().write_text(config_content)
+    toml_path = Path("pyproject.toml")
+    toml_path.touch(exist_ok=True)
+    toml_path.write_text(pyproject_content)
+
+    config_path = Path("~/.jupysql/config").expanduser()
+    config_path.touch(exist_ok=True)
+    config_path.write_text(config_content)
 
     toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
     config_path = str(Path("~/.jupysql/config").expanduser())
@@ -603,7 +608,7 @@ def test_user_config_load_sequence_and_messages(
 
     for message in expected_messages:
         expected_message = message.format(
-            pyproject_path=toml_path, config_path=config_path
+            pyproject_path=str(toml_path), config_path=str(config_path)
         )
         assert expected_message in out
 
