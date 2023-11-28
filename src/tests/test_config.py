@@ -509,3 +509,99 @@ autocommit = true
         "To load settings from pyproject.toml or ~/.jupysql/config, "
         "install with: pip install toml"
     ) in out
+
+
+@pytest.mark.parametrize(
+    "pyproject_content, config_content, expected_messages",
+    [
+        (
+            "",
+            "",
+            [
+                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                "Did not find user configurations in {pyproject_path}.",
+                "Did not find user configurations in {config_path}.",
+            ],
+        ),
+        (
+            "",
+            "[tool.jupysql.SqlMagic]",
+            [
+                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                "Did not find user configurations in {pyproject_path}.",
+                "[tool.jupysql.SqlMagic] present in {config_path} but empty.",
+            ],
+        ),
+        (
+            "",
+            """
+[tool.jupysql.SqlMagic]
+feedback=True
+autopandas=True
+""",
+            [
+                "Tip: You may define configurations in {pyproject_path} or {config_path}.",
+                "Did not find user configurations in {pyproject_path}.",
+            ],
+        ),
+        (
+            "[tool.jupysql.SqlMagic]",
+            "",
+            [
+                "[tool.jupysql.SqlMagic] present in {pyproject_path} but empty.",
+                "Did not find user configurations in {config_path}.",
+            ],
+        ),
+        (
+            "[tool.jupysql.SqlMagic]",
+            "[tool.jupysql.SqlMagic]",
+            [
+                "[tool.jupysql.SqlMagic] present in {pyproject_path} but empty.",
+                "[tool.jupysql.SqlMagic] present in {config_path} but empty.",
+            ],
+        ),
+        (
+            "[tool.jupysql.SqlMagic]",
+            """
+[tool.jupysql.SqlMagic]
+feedback=True
+autopandas=True
+""",
+            [
+                "[tool.jupysql.SqlMagic] present in {pyproject_path} but empty.",
+            ],
+        ),
+    ],
+)
+def test_user_config_load_sequence_and_messages(
+    tmp_empty,
+    ip_no_magics,
+    monkeypatch,
+    capsys,
+    pyproject_content,
+    config_content,
+    expected_messages,
+):
+    Path("pyproject.toml").write_text(pyproject_content)
+    Path("~/.jupysql/config").expanduser().write_text(config_content)
+
+    toml_path = str(Path(os.getcwd()).joinpath("pyproject.toml"))
+    config_path = str(Path("~/.jupysql/config").expanduser())
+
+    mock = Mock()
+    monkeypatch.setattr(display, "message_html", mock)
+    load_ipython_extension(ip_no_magics)
+    out, _ = capsys.readouterr()
+
+    param = (
+        f"Please review our "
+        f"<a href='{CONFIGURATION_DOCS_STR}'>configuration guideline</a>."
+    )
+
+    for message in expected_messages:
+        expected_message = message.format(
+            pyproject_path=toml_path, config_path=config_path
+        )
+        assert expected_message in out
+
+    mock.assert_called_once_with(param)

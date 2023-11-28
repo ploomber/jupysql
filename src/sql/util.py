@@ -387,7 +387,8 @@ def get_user_configs(primary_path, alternate_path):
 
     # Look for user configurations in pyproject.toml and ~/.jupysql/config
     # in that particular order
-    for file_path in [primary_path, alternate_path]:
+    path_list = [primary_path, alternate_path]
+    for file_path in path_list:
         section_to_find = None
         section_found = False
         if file_path and file_path.exists():
@@ -422,7 +423,7 @@ def get_user_configs(primary_path, alternate_path):
                 section_found = True
                 data = data[section_to_find]
 
-        if section_to_find == "SqlMagic" and section_found:
+        if section_to_find == "SqlMagic" and section_found and not data:
             display.message(
                 f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
             )
@@ -435,9 +436,7 @@ def get_user_configs(primary_path, alternate_path):
             )
             configuration_docs_displayed = True
 
-        if file_path is None:
-            display.message(f"Did not find {file_path}.")
-        elif not data and not section_found:
+        if not data and not section_found and file_path:
             display.message(f"Did not find user configurations in {file_path}.")
         elif section_found and data:
             return data, file_path
