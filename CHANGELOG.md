@@ -2,8 +2,8 @@
 
 ## 0.10.4dev
 * [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
-
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
+* [Fix] Update to be compatibile with DuckDB v0.9.0 and Pandas v2.1.0
 
 ## 0.10.3 (2023-11-06)
 
