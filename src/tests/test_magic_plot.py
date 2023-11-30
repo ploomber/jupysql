@@ -443,6 +443,7 @@ def test_bar_one_col_null(load_data_one_col_null, ip):
 def test_bar_one_col_h(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x -o h")
 
+
 @pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @_cleanup_cm()
 @image_comparison(
@@ -450,6 +451,7 @@ def test_bar_one_col_h(load_data_one_col, ip):
 )
 def test_bar_one_col_num_h(load_data_one_col, ip):
     ip.run_cell("%sqlplot bar -t data_one.csv -c x -o h -S")
+
 
 @pytest.mark.xfail(reason="DuckDB v0.9.0 bug")
 @_cleanup_cm()
