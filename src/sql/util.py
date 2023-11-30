@@ -157,6 +157,119 @@ def show_deprecation_warning():
     )
 
 
+def check_duplicate_arguments(
+    magic_execute, cmd_from, args, allowed_duplicates=None, disallowed_aliases=None
+) -> bool:
+    """
+    Raises UsageError when duplicate arguments are passed to magics.
+    Returns true if no duplicates in arguments or aliases.
+
+    Parameters
+    ----------
+    magic_execute
+        The execute method of the magic class.
+    cmd_from
+        Which magic class invoked this function. One of 'sql', 'sqlplot' or 'sqlcmd'.
+    args
+        The arguments passed to the magic command.
+    allowed_duplicates
+        The duplicate arguments that are allowed for the class which invoked this
+        function. Defaults to None.
+    disallowed_aliases
+        The aliases for the arguments that are not allowed to be used together
+        for the class that invokes this function. Defaults to None.
+
+    Returns
+    -------
+    boolean
+        When there are no duplicates, a True bool is returned.
+    """
+    allowed_duplicates = allowed_duplicates or []
+    disallowed_aliases = disallowed_aliases or {}
+
+    aliased_arguments = {}
+    unaliased_arguments = []
+
+    # Separates the aliased_arguments and unaliased_arguments.
+    # Aliased arguments example: '-w' and '--with'
+    if cmd_from != "sqlcmd":
+        for decorator in magic_execute.decorators:
+            decorator_args = decorator.args
+            if len(decorator_args) > 1:
+                aliased_arguments[decorator_args[0]] = decorator_args[1]
+            else:
+                if decorator_args[0].startswith("--") or decorator_args[0].startswith(
+                    "-"
+                ):
+                    unaliased_arguments.append(decorator_args[0])
+
+    if aliased_arguments == {}:
+        aliased_arguments = disallowed_aliases
+
+    # Separate arguments from passed options
+    args = [arg for arg in args if arg.startswith("--") or arg.startswith("-")]
+
+    # Separate single and double hyphen arguments
+    # Using sets here for better performance of looking up hash tables
+    single_hyphen_opts = set()
+    double_hyphen_opts = set()
+
+    for arg in args:
+        if arg.startswith("--"):
+            double_hyphen_opts.add(arg)
+        elif arg.startswith("-"):
+            single_hyphen_opts.add(arg)
+
+    # Get duplicate arguments
+    duplicate_args = []
+    visited_args = set()
+    for arg in args:
+        if arg not in allowed_duplicates:
+            if arg not in visited_args:
+                visited_args.add(arg)
+            else:
+                duplicate_args.append(arg)
+
+    # Check if alias pairs are present and track the pair for the error message
+    # Example: would filter out `-w` and `--with` if both are present
+    alias_pairs_present = [
+        (opt, aliased_arguments[opt])
+        for opt in single_hyphen_opts
+        if opt in aliased_arguments
+        if aliased_arguments[opt] in double_hyphen_opts
+    ]
+
+    # Generate error message based on presence of duplicates and
+    # aliased arguments
+    error_message = ""
+    if duplicate_args:
+        duplicates_error = (
+            f"Duplicate arguments in %{cmd_from}. "
+            "Please use only one of each of the following: "
+            f"{', '.join(sorted(duplicate_args))}. "
+        )
+    else:
+        duplicates_error = ""
+
+    if alias_pairs_present:
+        arg_list = sorted([" or ".join(pair) for pair in alias_pairs_present])
+        alias_error = (
+            f"Duplicate aliases for arguments in %{cmd_from}. "
+            "Please use either one of "
+            f"{', '.join(arg_list)}."
+        )
+    else:
+        alias_error = ""
+
+    error_message = f"{duplicates_error}{alias_error}"
+
+    # If there is an error message to be raised, raise it
+    if error_message:
+        raise exceptions.UsageError(error_message)
+
+    return True
+
+
 def find_path_from_root(file_name):
     """
     Recursively finds an absolute path to file_name starting
@@ -169,7 +282,7 @@ def find_path_from_root(file_name):
 
         current = current.parent
 
-    return str(Path(current, file_name))
+    return Path(current, file_name)
 
 
 def find_close_match(word, possibilities):
@@ -250,56 +363,85 @@ def parse_toml_error(e, file_path):
         return e
 
 
-def get_user_configs(file_path):
+def get_user_configs(primary_path, alternate_path):
     """
     Returns saved configuration settings in a toml file from given file_path
 
     Parameters
     ----------
-    file_path : str
-        file path to a toml file
+    primary_path : Path
+        file path to toml in project directory
+    alternate_path : Path
+        file path to ~/.jupysql/config
 
     Returns
     -------
     dict
         saved configuration settings
+    Path
+        the path of the file used to get user configurations
     """
-    data = load_toml(file_path)
-    section_names = ["tool", "jupysql", "SqlMagic"]
-    while section_names:
-        section_to_find, sections_from_user = section_names.pop(0), data.keys()
-        if section_to_find not in sections_from_user:
-            close_match = difflib.get_close_matches(section_to_find, sections_from_user)
-            if not close_match:
-                MESSAGE_PREFIX = (
-                    f"Tip: You may define configurations in "
-                    f"{file_path}. Please review our "
-                )
-                display.message_html(
-                    f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
-                    "configuration guideline</a>."
-                )
-                return {}
-            else:
-                raise exceptions.ConfigurationError(
-                    f"{pretty_print(close_match)} is an invalid section "
-                    f"name in {file_path}. "
-                    f"Did you mean '{section_to_find}'?"
-                )
-        data = data[section_to_find]
-    if not data:
-        if section_to_find == "SqlMagic":
-            MESSAGE_PREFIX = (
+    data = None
+    display_tip = True  # Set to true if tip is to be displayed
+    configuration_docs_displayed = False  # To disable showing guidelines once shown
+
+    # Look for user configurations in pyproject.toml and ~/.jupysql/config
+    # in that particular order
+    path_list = [primary_path, alternate_path]
+    for file_path in path_list:
+        section_to_find = None
+        section_found = False
+        if file_path and file_path.exists():
+            data = load_toml(file_path)
+            section_names = ["tool", "jupysql", "SqlMagic"]
+
+            # Look for SqlMagic section in toml file
+            while section_names:
+                section_found = False
+                section_to_find, sections_from_user = section_names.pop(0), data.keys()
+
+                if section_to_find not in sections_from_user:
+                    close_match = difflib.get_close_matches(
+                        section_to_find, sections_from_user
+                    )
+
+                    if not close_match:
+                        if display_tip:
+                            display.message(
+                                f"Tip: You may define configurations in {primary_path}"
+                                f" or {alternate_path}. "
+                            )
+                            display_tip = False
+                        break
+                    else:
+                        raise exceptions.ConfigurationError(
+                            f"{pretty_print(close_match)} is an invalid section "
+                            f"name in {file_path}. "
+                            f"Did you mean '{section_to_find}'?"
+                        )
+
+                section_found = True
+                data = data[section_to_find]
+
+        if section_to_find == "SqlMagic" and section_found and not data:
+            display.message(
                 f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-                f"Please review our "
             )
+            display_tip = False
+
+        if not display_tip and not configuration_docs_displayed:
             display.message_html(
-                f"{MESSAGE_PREFIX}<a href='{CONFIGURATION_DOCS_STR}'>"
+                f"Please review our <a href='{CONFIGURATION_DOCS_STR}'>"
                 "configuration guideline</a>."
             )
-    else:
-        display.message(f"Loading configurations from {file_path}")
-    return data
+            configuration_docs_displayed = True
+
+        if not data and not section_found and file_path and file_path.exists():
+            display.message(f"Did not find user configurations in {file_path}.")
+        elif section_found and data:
+            return data, file_path
+
+    return data, None
 
 
 def get_default_configs(sql):

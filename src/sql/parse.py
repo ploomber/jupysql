@@ -9,6 +9,24 @@ import warnings
 from sqlalchemy.engine.url import URL
 
 from sql import exceptions
+from sql.util import check_duplicate_arguments
+
+# Keywords used to identify the beginning of SQL queries
+# in split_args_and_sql(). Should cover all cases but can
+# be edited to include special keywords.
+SQL_COMMANDS = [
+    "select",
+    "from",
+    "with",
+    "pivot",
+    "create",
+    "update",
+    "delete",
+    "insert",
+    "alter",
+    "drop",
+    "describe",
+]
 
 
 class ConnectionsFile:
@@ -217,9 +235,66 @@ def without_sql_comment(parser, line):
     return " ".join(result)
 
 
-def magic_args(magic_execute, line):
+def split_args_and_sql(line):
+    """Separates line into args and sql query
+
+    The argparser expects - to precede an argument, but postgreSQL
+    and duckDB allow for -> and ->> to be used as JSON operators.
+    This function splits the line into two - args and sql.
+    This way we can only pass the args into the argparser, and
+    add in the sql later.
+
+    Parameters
+    ----------
+    line: str
+        A line of SQL, preceded by option/argument strings
+
+    Returns
+    -------
+    arg_line: str
+        Portion of input line that contains only arguments
+
+    sql_line: str
+        Portion of input line that contains only SQL query/statements
+    """
+    arg_line, sql_line = line, ""
+
+    # Only separate when json arrow operators used
+    # Otherwise, behavior is unchanged
+    if not any(op in line for op in ["->", "-->"]):
+        return arg_line, sql_line
+
+    # Identify beginning of sql query using keywords
+    split_idx = -1
+    for token in line.split():
+        if token.lower() in SQL_COMMANDS:
+            # Found index at which to split line
+            split_idx = line.find(token)
+            break
+
+    # Split line into args and sql, beginning at sql keyword
+    if split_idx != -1:
+        arg_line, sql_line = line[:split_idx], line[split_idx:]
+
+    return arg_line, sql_line
+
+
+def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
+    """
+    Returns the parsed arguments from the line as parsed by magic_execute
+    """
+    allowed_duplicates = allowed_duplicates or []
     line = without_sql_comment(parser=magic_execute.parser, line=line)
-    return magic_execute.parser.parse_args(shlex.split(line, posix=False))
+    arg_line, sql_line = split_args_and_sql(line)
+
+    args = shlex.split(arg_line, posix=False)
+    if len(args) > 1:
+        check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
+    parsed = magic_execute.parser.parse_args(args)
+
+    if sql_line:
+        parsed.line = shlex.split(sql_line, posix=False)
+    return parsed
 
 
 def escape_string_literals_with_colon_prefix(query):

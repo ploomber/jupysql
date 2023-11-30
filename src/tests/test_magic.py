@@ -240,6 +240,42 @@ def test_persist(ip):
     assert persisted == [(0, 1, "foo"), (1, 2, "bar")]
 
 
+def test_persist_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3]
+
+
+def test_persist_replace_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    df = pd.DataFrame({"a": [6, 7]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --perist-replace schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3]
+
+
+def test_append_in_schema(ip_empty):
+    ip_empty.run_cell("%sql duckdb://")
+    ip_empty.run_cell("%sql CREATE SCHEMA IF NOT EXISTS schema1;")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --persist schema1.df")
+    df = pd.DataFrame({"a": [6, 7]})
+    ip_empty.push({"df": df})
+    ip_empty.run_cell("%sql --append schema1.df")
+    persisted = ip_empty.run_cell("%sql SELECT * FROM schema1.df;").result.DataFrame()
+    assert persisted["a"].tolist() == [1, 2, 3, 6, 7]
+
+
 def test_persist_no_index(ip):
     runsql(ip, "")
     ip.run_cell("results = %sql SELECT * FROM test;")
@@ -2208,7 +2244,6 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
         ip_empty.run_cell(sql_query)
 
     out, _ = capsys.readouterr()
-    print(out)
     assert expected_result in out
 
 
@@ -2248,6 +2283,103 @@ INSERT INTO languages VALUES ('Python', 1), ('Java', 0), ('OCaml', 2)"""
 )
 def test_get_query_type(query, query_type):
     assert get_query_type(query) == query_type
+
+
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        (
+            "%sql select '{\"a\": 1}'::json -> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json -> 0;',
+            '{"b":"c"}',
+        ),
+        (
+            "%sql select '{\"a\": 1}'::json ->> 'a';",
+            "1",
+        ),
+        (
+            '%sql select \'[{"b": "c"}]\'::json ->> 0;',
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::json
+            ->
+            'a';""",
+            "1",
+        ),
+        (
+            """%%sql select '[{\"b\": \"c\"}]'::json
+                ->
+            0;""",
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql select '{\"a\": 1}'::json
+              ->>
+            'a';""",
+            "1",
+        ),
+        (
+            """%%sql
+            select
+            \'[{"b": "c"}]\'::json
+            ->>
+            0;""",
+            '{"b":"c"}',
+        ),
+    ],
+    ids=[
+        "single-key",
+        "single-index",
+        "double-key",
+        "double-index",
+        "single-key-multi-line",
+        "single-index-multi-line-tab",
+        "double-key-multi-line-space",
+        "double-index-multi-line",
+    ],
+)
+def test_json_arrow_operators(ip, query, expected):
+    ip.run_cell("%sql duckdb://")
+    result = ip.run_cell(query).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "query_save, query_snippet, expected",
+    [
+        (
+            """%%sql --save snippet
+            select '{\"a\": 1}'::json -> 'a';""",
+            "%sql select * from snippet",
+            "1",
+        ),
+        (
+            """%sql --save snippet select '[{\"b\": \"c\"}]'::json ->> 0;""",
+            "%sql select * from snippet",
+            '{"b":"c"}',
+        ),
+        (
+            """%%sql --save snippet
+            select '[1, 2, 3]'::json
+            -> 2
+            as number""",
+            "%sql select number from snippet",
+            "3",
+        ),
+    ],
+    ids=["cell-magic-key", "line-magic-index", "cell-magic-multi-line-as-column"],
+)
+def test_json_arrow_operators_with_snippets(ip, query_save, query_snippet, expected):
+    ip.run_cell("%sql duckdb://")
+    ip.run_cell(query_save)
+    result = ip.run_cell(query_snippet).result
+    result = list(result.dict().values())[0][0]
+    assert result == expected
 
 
 @pytest.mark.parametrize(
@@ -2332,3 +2464,136 @@ SELECT 2;
 def test_query_comment_after_semicolon(ip, query, expected):
     result = ip.run_cell(query).result
     assert list(result.dict().values())[-1][0] == expected
+
+
+@pytest.mark.parametrize(
+    "query, error_type, error_message",
+    [
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from temp;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
+[SQL: SELECT * FROM snip;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snippet;
+SELECT * from tem;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * from tem;
+                      ^
+[SQL: SELECT * from tem;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM snip;
+SELECT * from tem;""",
+            "TableNotFoundError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+There is no table with name 'snip'.
+Did you mean: 'snippet'
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM snip;
+                      ^
+[SQL: SELECT * FROM snip;]""",
+        ),
+        (
+            """%%sql
+SELECT * FROM s;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name s does not exist!
+Did you mean "temp"?
+LINE 1: SELECT * FROM s;
+                      ^
+[SQL: SELECT * FROM s;]""",
+        ),
+        (
+            """%%sql
+DROP TABLE temp;
+SELECT * FROM snippet;
+SELECT * from temp;""",
+            "RuntimeError",
+            """If using snippets, you may pass the --with argument explicitly.
+For more details please refer: \
+https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+
+
+Original error message from DB driver:
+(duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
+Did you mean "pg_type"?
+LINE 1: SELECT * FROM snippet;
+                      ^
+[SQL: SELECT * FROM snippet;]""",
+        ),
+    ],
+    ids=[
+        "snippet-typo",
+        "table-typo",
+        "both-typo",
+        "snippet-typo-no-suggestion",
+        "no-typo-drop-table",
+    ],
+)
+def test_table_does_not_exist_with_snippet_error(
+    ip_empty, query, error_type, error_message
+):
+    ip_empty.run_cell(
+        """%load_ext sql
+%sql duckdb://"""
+    )
+    # Create temp table
+    ip_empty.run_cell(
+        """%%sql
+CREATE TABLE temp AS
+SELECT * FROM penguins.csv"""
+    )
+
+    # Create snippet
+    ip_empty.run_cell(
+        """%%sql --save snippet
+SELECT * FROM penguins.csv;"""
+    )
+
+    # Run query
+    with pytest.raises(Exception) as excinfo:
+        ip_empty.run_cell(query)
+
+    # Test error and message
+    assert error_type == excinfo.value.error_type
+    assert error_message in str(excinfo.value)

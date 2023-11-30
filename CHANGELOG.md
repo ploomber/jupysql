@@ -1,9 +1,18 @@
 # CHANGELOG
 
-## 0.10.4dev
-* [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment (#907)
+## 0.10.5dev
+* [Fix] Look into ~/.jupysql/config for config if pyproject.toml does not have a SqlMagic section (#911)
+* [Fix] Update to be compatible with DuckDB v0.9.0 (#897) and Pandas 2.1.0 (#890) 
+
+## 0.10.4 (2023-11-28)
+
+* [Feature] Allow user to specify the schema when saving dataframes using `--persist` ([#945](https://github.com/ploomber/jupysql/issues/945))
+* [Fix] Fix bug causing empty result on SQL with trailing semicolon and comment ([#907](https://github.com/ploomber/jupysql/issues/907))
+* [Fix] Fix bug %sql not parsing JSON arrow operators correctly ([#918](https://github.com/ploomber/jupysql/issues/918))
 * [Fix] Fixed bug that returns empty results when exception is raised from DB driver
-* [Fix] Update to be compatibile with DuckDB v0.9.0 and Pandas v2.1.0
+* [Fix] Added guards to check and raise errors when arguments are entered twice in %sql, %sqlcmd and %sqlplot ([#806](https://github.com/ploomber/jupysql/issues/806))
+* [Fix] Fixed bug that returns snippet typo error message when another table is misspelled ([#940](https://github.com/ploomber/jupysql/issues/940))
+* [Doc] Use Oracle Database Free for Oracle Database Quick Start tutorial ([#943](https://github.com/ploomber/jupysql/issues/943))
 
 ## 0.10.3 (2023-11-06)
 
