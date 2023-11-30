@@ -32,7 +32,7 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    "pandas==2.0.3",
+    "pandas", # previously pinned to 2.0.3
     "polars==0.17.2",  # 04/18/23 this breaks our CI
     "pyarrow",
     "invoke",
