@@ -229,8 +229,7 @@ def without_sql_comment(parser, line):
 
     args = _option_strings_from_parser(parser)
     result = itertools.takewhile(
-        lambda word: (not word.startswith("--")) or (word in args),
-        line.split()
+        lambda word: (not word.startswith("--")) or (word in args), line.split()
     )
     return " ".join(result)
 
