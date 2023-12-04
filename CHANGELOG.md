@@ -2,6 +2,8 @@
 
 ## 0.10.8dev
 
+* [Fix] Fixed bug where the `%sql` line magic would not parse properly due to expectations from shlex(#954)
+
 ## 0.10.7 (2023-12-23)
 
 * [Feature] Add Spark Connection as a dialect for Jupysql ([#965](https://github.com/ploomber/jupysql/issues/965)) (by [@gilandose](https://github.com/gilandose))
