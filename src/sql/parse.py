@@ -230,7 +230,7 @@ def without_sql_comment(parser, line):
     args = _option_strings_from_parser(parser)
     result = itertools.takewhile(
         lambda word: (not word.startswith("--")) or (word in args),
-        shlex.split(line, posix=False),
+        line.split()
     )
     return " ".join(result)
 
@@ -300,8 +300,7 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
     arg_line, sql_line = split_args_and_sql(line)
 
-    args = shlex.split(arg_line, posix=False)
-
+    args = arg_line.split()
     if len(args) > 1:
         check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
 
