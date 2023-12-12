@@ -259,8 +259,12 @@ def split_args_and_sql(line):
     """
     arg_line, sql_line = line, ""
 
+    # Filenames may include sql keywords, so we omit them
+    check = re.sub(r"('.*')", "", line)
+    check = re.sub(r'(".*")', "", check)
+
     # Only separate when sql commands are used
-    if not any(cmd in line for cmd in SQL_COMMANDS):
+    if not any(cmd in check for cmd in SQL_COMMANDS):
         return arg_line, sql_line
 
     # Identify beginning of sql query using keywords
