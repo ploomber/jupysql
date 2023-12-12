@@ -2597,3 +2597,19 @@ SELECT * FROM penguins.csv;"""
     # Test error and message
     assert error_type == excinfo.value.error_type
     assert error_message in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "%sql select 5 * -2",
+        "%sql select 5 * - 2",
+        "%sql select 5 * -2;",
+        "%sql select -5 * 2;",
+        "%sql select 5 * -2 ;",
+        "%sql select 5 * - 2;",
+    ]
+)
+def test_negative_operations_query(ip, query):
+    result = ip.run_cell(query).result
+    assert list(result.dict().values())[-1][0] == -10

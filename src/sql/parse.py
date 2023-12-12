@@ -259,9 +259,8 @@ def split_args_and_sql(line):
     """
     arg_line, sql_line = line, ""
 
-    # Only separate when json arrow operators used
-    # Otherwise, behavior is unchanged
-    if not any(op in line for op in ["->", "-->"]):
+    # Only separate when sql commands are used
+    if not any(cmd in line for cmd in SQL_COMMANDS):
         return arg_line, sql_line
 
     # Identify beginning of sql query using keywords
@@ -288,12 +287,15 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     arg_line, sql_line = split_args_and_sql(line)
 
     args = shlex.split(arg_line, posix=False)
+
     if len(args) > 1:
         check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
+    
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
         parsed.line = shlex.split(sql_line, posix=False)
+
     return parsed
 
 
