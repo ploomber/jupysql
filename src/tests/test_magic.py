@@ -2608,7 +2608,7 @@ SELECT * FROM penguins.csv;"""
         "%sql select -5 * 2;",
         "%sql select 5 * -2 ;",
         "%sql select 5 * - 2;",
-    ]
+    ],
 )
 def test_negative_operations_query(ip, query):
     result = ip.run_cell(query).result
