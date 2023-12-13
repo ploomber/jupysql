@@ -2600,16 +2600,44 @@ SELECT * FROM penguins.csv;"""
 
 
 @pytest.mark.parametrize(
-    "query",
+    "query, expected",
     [
-        "%sql select 5 * -2",
-        "%sql select 5 * - 2",
-        "%sql select 5 * -2;",
-        "%sql select -5 * 2;",
-        "%sql select 5 * -2 ;",
-        "%sql select 5 * - 2;",
+        ("%sql select 5 * -2", (-10,)),
+        ("%sql select 5 * - 2", (-10,)),
+        ("%sql select 5 * -2;", (-10,)),
+        ("%sql select -5 * 2;", (-10,)),
+        ("%sql select 5 * -2 ;", (-10,)),
+        ("%sql select 5 * - 2;", (-10,)),
+        (
+            "%sql select x * -2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select x *-2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select x * - 2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select x *- 2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select -x * 2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select - x * 2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
+        (
+            "%sql select - x* 2 from number_table",
+            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
+        ),
     ],
 )
-def test_negative_operations_query(ip, query):
+def test_negative_operations_query(ip, query, expected):
     result = ip.run_cell(query).result
-    assert list(result.dict().values())[-1][0] == -10
+    assert list(result.dict().values())[-1] == expected
