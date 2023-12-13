@@ -2608,34 +2608,13 @@ SELECT * FROM penguins.csv;"""
         ("%sql select -5 * 2;", (-10,)),
         ("%sql select 5 * -2 ;", (-10,)),
         ("%sql select 5 * - 2;", (-10,)),
-        (
-            "%sql select x * -2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select x *-2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select x * - 2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select x *- 2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select -x * 2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select - x * 2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
-        (
-            "%sql select - x* 2 from number_table",
-            (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)
-        ),
+        ("%sql select x * -2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x *-2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x * - 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select x *- 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select -x * 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select - x * 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
+        ("%sql select - x* 2 from number_table", (-8, 10, -4, 0, 10, 4, 4, 8, -4, -8)),
     ],
 )
 def test_negative_operations_query(ip, query, expected):
