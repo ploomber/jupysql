@@ -49,6 +49,9 @@ def run_statements(conn, sql, config, parameters=None):
         if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
 
+        if is_spark(conn.dialect):
+            return conn.raw_execute(statement, parameters=parameters)
+
         # regular query
         else:
             result = conn.raw_execute(statement, parameters=parameters)
@@ -67,6 +70,9 @@ def run_statements(conn, sql, config, parameters=None):
 def is_postgres_or_redshift(dialect):
     """Checks if dialect is postgres or redshift"""
     return "postgres" in str(dialect) or "redshift" in str(dialect)
+
+def is_spark(dialect):
+    return "spark" in str(dialect)
 
 
 def select_df_type(resultset, config):

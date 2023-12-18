@@ -5,6 +5,7 @@ import os
 from difflib import get_close_matches
 import atexit
 from functools import partial
+import pyspark
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -21,6 +22,7 @@ import sqlglot
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
+from pyspark.sql import SparkSession
 
 from sql.store import store
 from sql.telemetry import telemetry
@@ -257,6 +259,8 @@ class ConnectionManager:
                 )
             elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, config=config, alias=alias)
+            elif is_spark(descriptor):
+                cls.current = SparkConnectConnection(descriptor)
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
@@ -1060,6 +1064,68 @@ class DBAPIConnection(AbstractConnection):
         )
 
 
+class SparkConnectConnection(AbstractConnection):
+    
+    @telemetry.log_call("SparkConnectConnection", payload=True)
+    def __init__(self, payload, connection: SparkSession, alias=None, config=None):
+        self._driver = None
+
+        # TODO: implement the dialect blacklist and add unit tests
+        self._requires_manual_commit = True if config is None else config.autocommit
+
+        self._connection = connection
+        self._connection_class_name = type(connection).__name__
+
+        # calling init from AbstractConnection must be the last thing we do as it
+        # register the connection
+        super().__init__(self._connection_class_name)
+
+        # TODO: delete this
+        self.name = self._connection_class_name
+    
+    @property
+    def dialect(self):
+        """Returns a string with the SQL dialect name"""
+        return "spark"
+
+
+    def raw_execute(self, query, parameters=None):
+        """Run the query without any pre-processing"""
+        return self._connection.sql(query)
+
+
+    def _get_database_information(self):
+        """
+        Get the dialect, driver, and database server version info of current
+        connection
+        """
+        return {
+            "dialect": self.dialect,
+            "driver": self._connection_class_name,
+            "server_version_info": None,
+        }
+
+    @property
+    def url(self):
+        """Returns None since DBAPI connections don't have a url"""
+        return None
+
+    @property
+    def connection_sqlalchemy(self):
+        """
+        Raises NotImplementedError since DBAPI connections don't have a SQLAlchemy
+        connection object
+        """
+        raise NotImplementedError(
+            "This feature is only available for SQLAlchemy connections"
+        )
+
+    def to_table(self, table_name, data_frame, if_exists, index, schema=None):
+        raise exceptions.NotImplementedError(
+            "--persist/--persist-replace is not available for DBAPI connections"
+            " (only available for SQLAlchemy connections)"
+        )
+
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
     # NOTE: duckdb defines df and pl to efficiently convert results to
@@ -1153,6 +1219,8 @@ def is_pep249_compliant(conn):
 
     return True
 
+def is_spark(ins):
+    return isinstance(ins,pyspark.sql.connect.session.SparkSession) or isinstance(ins,pyspark.sql.SparkSession)
 
 def default_alias_for_engine(engine):
     if not engine.url.username:
