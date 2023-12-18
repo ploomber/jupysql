@@ -43,8 +43,9 @@ def mock_database(monkeypatch, cleanup):
     monkeypatch.setattr(Engine, "connect", Mock())
     monkeypatch.setattr(sqlalchemy, "create_engine", Mock())
 
+
 @pytest.fixture
-def mock_spark(monkeypatch,cleanup):
+def mock_spark(monkeypatch, cleanup):
     monkeypatch.setitem(sys.modules, "pyspark.sql.SparkSession", Mock())
 
 
@@ -463,6 +464,7 @@ def test_properties(mock_postgres):
 def test_is_pep249_compliant(conn, expected):
     assert is_pep249_compliant(conn) is expected
 
+
 @pytest.mark.parametrize(
     "descriptor, expected",
     [
@@ -475,10 +477,11 @@ def test_is_pep249_compliant(conn, expected):
         [object(), False],
         ["not_a_valid_connection", False],
         [0, False],
-    ]
+    ],
 )
 def test_is_spark(descriptor, expected):
     assert is_spark(descriptor) is expected
+
 
 def test_close_all(ip_empty, monkeypatch):
     connections = {}
@@ -612,11 +615,15 @@ def test_set_dbapi(monkeypatch, callable_, key):
     assert connections == {key: conn}
     assert ConnectionManager.current == conn
 
+
 @pytest.mark.parametrize(
     "spark, key",
     [
-        [Mock(name="SparkSession",spec=pyspark.sql.SparkSession), "Mock"],
-        [Mock(name="SparkSession",spec=pyspark.sql.connect.session.SparkSession), "Mock"],
+        [Mock(name="SparkSession", spec=pyspark.sql.SparkSession), "Mock"],
+        [
+            Mock(name="SparkSession", spec=pyspark.sql.connect.session.SparkSession),
+            "Mock",
+        ],
     ],
 )
 def test_set_spark(monkeypatch, spark, key):
@@ -627,6 +634,7 @@ def test_set_spark(monkeypatch, spark, key):
 
     assert connections == {key: conn}
     assert ConnectionManager.current == conn
+
 
 def test_set_with_alias(monkeypatch):
     connections = {}

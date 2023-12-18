@@ -49,7 +49,11 @@ class SQLCommand:
         if (
             one_arg
             and self.args.line[0] in user_ns
-            and (isinstance(user_ns[self.args.line[0]], Engine) or is_dbapi_connection_ or is_spark)
+            and (
+                isinstance(user_ns[self.args.line[0]], Engine)
+                or is_dbapi_connection_
+                or is_spark
+            )
         ):
             line_for_command = []
             add_conn = True

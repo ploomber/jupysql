@@ -71,6 +71,7 @@ def is_postgres_or_redshift(dialect):
     """Checks if dialect is postgres or redshift"""
     return "postgres" in str(dialect) or "redshift" in str(dialect)
 
+
 def is_spark(dialect):
     return "spark" in str(dialect)
 

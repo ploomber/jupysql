@@ -1070,9 +1070,8 @@ class DBAPIConnection(AbstractConnection):
 
 
 class SparkConnectConnection(AbstractConnection):
-
     is_dbapi_connection = False
-    
+
     @telemetry.log_call("SparkConnectConnection", payload=True)
     def __init__(self, payload, connection, alias=None, config=None):
         try:
@@ -1091,19 +1090,16 @@ class SparkConnectConnection(AbstractConnection):
         # register the connection
         super().__init__(self._connection_class_name)
 
-        
         self.name = self._connection_class_name
-    
+
     @property
     def dialect(self):
         """Returns a string with the SQL dialect name"""
         return "spark"
 
-
     def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""
         return self._connection.sql(query)
-
 
     def _get_database_information(self):
         """
@@ -1136,11 +1132,12 @@ class SparkConnectConnection(AbstractConnection):
             "--persist/--persist-replace is not available for Spark connections"
             " (only available for SQLAlchemy connections)"
         )
-    
+
     def close(self):
         """Close the connection"""
         # NOTE: spark is often shared outside sql, allow user to manage closure
         pass
+
 
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
@@ -1235,8 +1232,12 @@ def is_pep249_compliant(conn):
 
     return True
 
+
 def is_spark(ins):
-    return (CSparkSession is not None and isinstance(ins,CSparkSession)) or (SparkSession is not None and isinstance(ins,SparkSession))
+    return (CSparkSession is not None and isinstance(ins, CSparkSession)) or (
+        SparkSession is not None and isinstance(ins, SparkSession)
+    )
+
 
 def default_alias_for_engine(engine):
     if not engine.url.username:

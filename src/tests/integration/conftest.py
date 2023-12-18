@@ -288,12 +288,12 @@ def setup_duckDB_native(test_table_name_dict):
     yield conn
     conn.close()
 
+
 @pytest.fixture(scope="session")
 def setup_spark():
     spark = SparkSession.Builder.master("local").getOrCreate()
     yield spark
     spark.stop()
-    
 
 
 def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):
