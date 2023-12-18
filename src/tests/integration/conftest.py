@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import pandas as pd
+from pyspark.sql import SparkSession
 import pytest
 from sqlalchemy import MetaData, Table, create_engine, text
 import uuid
@@ -286,6 +287,13 @@ def setup_duckDB_native(test_table_name_dict):
     conn = duckdb.connect(database=":memory:", read_only=False)
     yield conn
     conn.close()
+
+@pytest.fixture(scope="session")
+def setup_spark():
+    spark = SparkSession.Builder.master("local").getOrCreate()
+    yield spark
+    spark.stop()
+    
 
 
 def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):

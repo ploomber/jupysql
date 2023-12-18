@@ -5,7 +5,6 @@ import os
 from difflib import get_close_matches
 import atexit
 from functools import partial
-import pyspark
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -17,12 +16,18 @@ from sqlalchemy.exc import (
     InternalError,
     ProgrammingError,
 )
+
+try:
+    from pyspark.sql.connect.session import SparkSession as CSparkSession
+    from pyspark.sql import SparkSession
+except ModuleNotFoundError:
+    CSparkSession = None
+    SparkSession = None
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
 from ploomber_core.exceptions import modify_exceptions
 
-from pyspark.sql import SparkSession
 
 from sql.store import store
 from sql.telemetry import telemetry
@@ -1065,9 +1070,15 @@ class DBAPIConnection(AbstractConnection):
 
 
 class SparkConnectConnection(AbstractConnection):
+
+    is_dbapi_connection = False
     
     @telemetry.log_call("SparkConnectConnection", payload=True)
-    def __init__(self, payload, connection: SparkSession, alias=None, config=None):
+    def __init__(self, payload, connection, alias=None, config=None):
+        try:
+            payload["engine"] = type(connection)
+        except Exception as e:
+            payload["engine_parsing_error"] = str(e)
         self._driver = None
 
         # TODO: implement the dialect blacklist and add unit tests
@@ -1080,7 +1091,7 @@ class SparkConnectConnection(AbstractConnection):
         # register the connection
         super().__init__(self._connection_class_name)
 
-        # TODO: delete this
+        
         self.name = self._connection_class_name
     
     @property
@@ -1102,18 +1113,18 @@ class SparkConnectConnection(AbstractConnection):
         return {
             "dialect": self.dialect,
             "driver": self._connection_class_name,
-            "server_version_info": None,
+            "server_version_info": self._connection.version(),
         }
 
     @property
     def url(self):
-        """Returns None since DBAPI connections don't have a url"""
+        """Returns None since Spark connections don't have a url"""
         return None
 
     @property
     def connection_sqlalchemy(self):
         """
-        Raises NotImplementedError since DBAPI connections don't have a SQLAlchemy
+        Raises NotImplementedError since Spark connections don't have a SQLAlchemy
         connection object
         """
         raise NotImplementedError(
@@ -1122,9 +1133,14 @@ class SparkConnectConnection(AbstractConnection):
 
     def to_table(self, table_name, data_frame, if_exists, index, schema=None):
         raise exceptions.NotImplementedError(
-            "--persist/--persist-replace is not available for DBAPI connections"
+            "--persist/--persist-replace is not available for Spark connections"
             " (only available for SQLAlchemy connections)"
         )
+    
+    def close(self):
+        """Close the connection"""
+        # NOTE: spark is often shared outside sql, allow user to manage closure
+        pass
 
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
@@ -1220,7 +1236,7 @@ def is_pep249_compliant(conn):
     return True
 
 def is_spark(ins):
-    return isinstance(ins,pyspark.sql.connect.session.SparkSession) or isinstance(ins,pyspark.sql.SparkSession)
+    return (CSparkSession is not None and isinstance(ins,CSparkSession)) or (SparkSession is not None and isinstance(ins,SparkSession))
 
 def default_alias_for_engine(engine):
     if not engine.url.username:
