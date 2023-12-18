@@ -52,7 +52,7 @@ class SQLCommand:
             and (
                 isinstance(user_ns[self.args.line[0]], Engine)
                 or is_dbapi_connection_
-                or is_spark
+                or is_spark(user_ns[self.args.line[0]])
             )
         ):
             line_for_command = []

@@ -1702,6 +1702,7 @@ def test_persist_uses_error_handling_method(ip, monkeypatch, cell):
     ip.push({"df": df})
 
     conn = ConnectionManager.current
+    print(conn)
     execute_with_error_handling_mock = Mock(wraps=conn._execute_with_error_handling)
     monkeypatch.setattr(
         conn, "_execute_with_error_handling", execute_with_error_handling_mock
