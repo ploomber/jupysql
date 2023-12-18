@@ -263,6 +263,12 @@ def test_without_sql_comment_dashes_in_string():
     assert without_sql_comment(parser=parser_stub, line=line) == expected
 
 
+def test_without_sql_comment_dashes_in_string_with_spaces():
+    line = "SELECT ' --very --confusing ' FROM author -- uff da"
+    expected = "SELECT ' --very --confusing ' FROM author"
+    assert without_sql_comment(parser=parser_stub, line=line) == expected
+
+
 def test_without_sql_comment_with_arg_and_leading_comment():
     line = "--file moo.txt --persist --comment, not arg"
     expected = "--file moo.txt --persist"
