@@ -772,7 +772,7 @@ def test_connections_file_get_default_connection_url(tmp_empty, content, expecte
         ),
         (
             "select 'hello'[:-2]",
-            "hell",
+            "hel",
         ),
     ],
 )
@@ -897,6 +897,11 @@ where name = (names ->> 'Brenda')",
             "-p --save snippet -N ",
             "insert into authors values('[100]'::json->0)",
         ),
+        (
+            "--save snippet SELECT TRIM(' padded ')",
+            "--save snippet ",
+            "SELECT TRIM(' padded ')",
+        ),
     ],
     ids=[
         "no-query",
@@ -910,6 +915,7 @@ where name = (names ->> 'Brenda')",
         "update",
         "delete",
         "insert",
+        "select-uppercase",
     ],
 )
 def test_split_args_and_sql(line, expected_args, expected_sql):
