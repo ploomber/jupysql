@@ -228,10 +228,16 @@ def without_sql_comment(parser, line):
     """
 
     args = _option_strings_from_parser(parser)
+    pattern = re.compile(r'([\'"])(.*?)\1')
+    temp_line = pattern.sub(lambda x: x.group().replace(" ", ""), line)
+    spaces_removed = len(line) - len(temp_line)
     result = itertools.takewhile(
-        lambda word: (not word.startswith("--")) or (word in args), line.split()
+        lambda word: (not word.startswith("--")) or (word in args),
+        temp_line.split()
     )
-    return " ".join(result)
+    result = " ".join(result)
+    result = line[:len(result) + spaces_removed]
+    return result
 
 
 def split_args_and_sql(line):
@@ -273,20 +279,18 @@ def split_args_and_sql(line):
     # If any SQL commands are found in the line, we split the line into args and sql.
     #   Note: lines without SQL commands will not be split
     #       ex. %sql duckdb:// or %sqlplot boxplot --table data.csv
-    if not any(cmd in line_no_filenames for cmd in SQL_COMMANDS):
-        return arg_line, sql_line
+    if any(cmd in line_no_filenames for cmd in SQL_COMMANDS) or any(cmd.upper() in line_no_filenames for cmd in SQL_COMMANDS):
+        # Identify beginning of sql query using keywords
+        split_idx = -1
+        for token in line.split():
+            if token.lower() in SQL_COMMANDS:
+                # Found index at which to split line
+                split_idx = line.find(token)
+                break
 
-    # Identify beginning of sql query using keywords
-    split_idx = -1
-    for token in line.split():
-        if token.lower() in SQL_COMMANDS:
-            # Found index at which to split line
-            split_idx = line.find(token)
-            break
-
-    # Split line into args and sql, beginning at sql keyword
-    if split_idx != -1:
-        arg_line, sql_line = line[:split_idx], line[split_idx:]
+        # Split line into args and sql, beginning at sql keyword
+        if split_idx != -1:
+            arg_line, sql_line = line[:split_idx], line[split_idx:]
 
     return arg_line, sql_line
 
@@ -299,14 +303,14 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     line = without_sql_comment(parser=magic_execute.parser, line=line)
     arg_line, sql_line = split_args_and_sql(line)
 
-    args = arg_line.split()
+    args = shlex.split(arg_line, posix=False)
     if len(args) > 1:
         check_duplicate_arguments(magic_execute, cmd_from, args, allowed_duplicates)
 
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
-        parsed.line = shlex.split(sql_line, posix=False)
+        parsed.line = sql_line.split()
 
     return parsed
 
