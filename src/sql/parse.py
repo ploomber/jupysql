@@ -232,11 +232,10 @@ def without_sql_comment(parser, line):
     temp_line = pattern.sub(lambda x: x.group().replace(" ", ""), line)
     spaces_removed = len(line) - len(temp_line)
     result = itertools.takewhile(
-        lambda word: (not word.startswith("--")) or (word in args),
-        temp_line.split()
+        lambda word: (not word.startswith("--")) or (word in args), temp_line.split()
     )
     result = " ".join(result)
-    result = line[:len(result) + spaces_removed]
+    result = line[: len(result) + spaces_removed]
     return result
 
 
@@ -279,7 +278,9 @@ def split_args_and_sql(line):
     # If any SQL commands are found in the line, we split the line into args and sql.
     #   Note: lines without SQL commands will not be split
     #       ex. %sql duckdb:// or %sqlplot boxplot --table data.csv
-    if any(cmd in line_no_filenames for cmd in SQL_COMMANDS) or any(cmd.upper() in line_no_filenames for cmd in SQL_COMMANDS):
+    if any(cmd in line_no_filenames for cmd in SQL_COMMANDS) or any(
+        cmd.upper() in line_no_filenames for cmd in SQL_COMMANDS
+    ):
         # Identify beginning of sql query using keywords
         split_idx = -1
         for token in line.split():
