@@ -1109,7 +1109,7 @@ class SparkConnectConnection(AbstractConnection):
         return {
             "dialect": self.dialect,
             "driver": self._connection_class_name,
-            "server_version_info": self._connection.version(),
+            "server_version_info": self._connection.version,
         }
 
     @property
