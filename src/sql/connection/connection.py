@@ -597,8 +597,6 @@ class AbstractConnection(abc.ABC):
             return (
                 "`" in sqlglot.Dialect.get_or_raise(cur_dialect).Tokenizer.IDENTIFIERS
             )
-        # Certain dialects like duckdb, oracle, etc do not contain the
-        # class variable IDENTIFIERS
         except (ValueError, AttributeError, TypeError):
             return False
 
