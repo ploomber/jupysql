@@ -3,6 +3,7 @@ import sqlparse
 from sql import exceptions, display
 from sql.run.resultset import ResultSet
 from sql.run.pgspecial import handle_postgres_special
+from sql.run.sparkdataframe import handle_spark_dataframe
 
 
 # TODO: conn also has access to config, we should clean this up to provide a clean
@@ -50,7 +51,9 @@ def run_statements(conn, sql, config, parameters=None):
             result = handle_postgres_special(conn, statement)
 
         if is_spark(conn.dialect):
-            return conn.raw_execute(statement, parameters=parameters)
+            result = conn.raw_execute(statement, parameters=parameters)
+            if config.lazy_spark:
+                return conn.raw_execute(statement, parameters=parameters).dataframe
 
         # regular query
         else:

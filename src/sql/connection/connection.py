@@ -17,6 +17,8 @@ from sqlalchemy.exc import (
     ProgrammingError,
 )
 
+from sql.run.sparkdataframe import handle_spark_dataframe
+
 try:
     from pyspark.sql.connect.session import SparkSession as CSparkSession
     from pyspark.sql import SparkSession
@@ -1099,7 +1101,7 @@ class SparkConnectConnection(AbstractConnection):
 
     def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""
-        return self._connection.sql(query)
+        return handle_spark_dataframe(self._connection.sql(query))
 
     def _get_database_information(self):
         """

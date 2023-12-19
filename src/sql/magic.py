@@ -147,6 +147,14 @@ class SqlMagic(Magics, Configurable):
         config=True,
         help="Verbosity level. 0=minimal, 1=normal, 2=all",
     )
+    lazy_spark = Bool(
+        default_value=False,
+        config=True,
+        help="Whether to evalute using ResultSet which will "
+        "cause the plan to execute or just return a Spark "
+        "DataFrame plan allowing lazy execution but still "
+        "validating schemas.",
+    )
     named_parameters = Bool(
         default_value=False,
         config=True,
