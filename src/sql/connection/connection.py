@@ -1088,7 +1088,7 @@ class SparkConnectConnection(AbstractConnection):
 
         # calling init from AbstractConnection must be the last thing we do as it
         # register the connection
-        super().__init__(self._connection_class_name)
+        super().__init__(alias=alias or self._connection_class_name)
 
         self.name = self._connection_class_name
 
