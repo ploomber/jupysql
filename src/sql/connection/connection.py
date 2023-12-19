@@ -1134,8 +1134,7 @@ class SparkConnectConnection(AbstractConnection):
         )
 
     def close(self):
-        """Close the connection"""
-        # NOTE: spark is often shared outside sql, allow user to manage closure
+        """Override of the abstract close as SparkSession is usually shared with pyspark"""
         pass
 
 
