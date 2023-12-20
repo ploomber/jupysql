@@ -268,7 +268,7 @@ FROM {{table}}
 """
     if use_backticks:
         template_ = template_.replace('"', "`")
-
+        table = table.replace('"', "`")
     template = Template(template_)
     query = template.render(table=table, column=column)
     y = conn.execute(query, with_)
@@ -628,6 +628,7 @@ def _histogram(
 
             if use_backticks:
                 template_ = template_.replace('"', "`")
+                table = table.replace('"', "`")
 
             template = Template(template_)
 
@@ -663,6 +664,7 @@ def _histogram(
 
             if use_backticks:
                 template_ = template_.replace('"', "`")
+                table = table.replace('"', "`")
 
             template = Template(template_)
 
@@ -681,6 +683,7 @@ def _histogram(
 
         if use_backticks:
             template_ = template_.replace('"', "`")
+            table = table.replace('"', "`")
 
         template = Template(template_)
 
@@ -835,6 +838,7 @@ def _bar(table, column, with_=None, conn=None):
 
         if use_backticks:
             template_ = template_.replace('"', "`")
+            table = table.replace('"', "`")
 
         template = Template(template_)
         query = template.render(table=table, x_=x_, height_=height_)
@@ -854,6 +858,7 @@ def _bar(table, column, with_=None, conn=None):
 
         if use_backticks:
             template_ = template_.replace('"', "`")
+            table = table.replace('"', "`")
 
         template = Template(template_)
         query = template.render(table=table, column=column)
@@ -1022,6 +1027,7 @@ def _pie(table, column, with_=None, conn=None):
                 """
         if use_backticks:
             template_ = template_.replace('"', "`")
+            table = table.replace('"', "`")
 
         template = Template(template_)
         query = template.render(table=table, labels_=labels_, size_=size_)
@@ -1037,6 +1043,7 @@ def _pie(table, column, with_=None, conn=None):
                 """
         if use_backticks:
             template_ = template_.replace('"', "`")
+            table = table.replace('"', "`")
 
         template = Template(template_)
         query = template.render(table=table, column=column)

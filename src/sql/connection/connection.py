@@ -1099,7 +1099,7 @@ class SparkConnectConnection(AbstractConnection):
     @property
     def dialect(self):
         """Returns a string with the SQL dialect name"""
-        return "spark"
+        return "spark2"
 
     def raw_execute(self, query, parameters=None):
         """Run the query without any pre-processing"""

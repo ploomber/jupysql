@@ -278,7 +278,7 @@ def test_close_and_connect(
         ("ip_with_Snowflake", "snowflake", "snowflake"),
         ("ip_with_oracle", "oracle", "oracledb"),
         ("ip_with_clickhouse", "clickhouse", "native"),
-        ("ip_with_spark", "spark", "SparkSession"),
+        ("ip_with_spark", "spark2", "SparkSession"),
     ],
 )
 def test_telemetry_execute_command_has_connection_info(
@@ -534,10 +534,7 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
                 reason="Plotting from snippet not working in clickhouse"
             ),
         ),
-        pytest.param(
-            "ip_with_spark",
-            marks=pytest.mark.xfail(reason="Schema not implemented"),
-        ),
+        "ip_with_spark"
     ],
 )
 def test_sqlplot_using_schema(ip_with_dynamic_db, request):
@@ -590,10 +587,7 @@ VALUES
         ("ip_with_Snowflake"),
         ("ip_with_oracle"),
         ("ip_with_clickhouse"),
-        pytest.param(
-            "ip_with_spark",
-            marks=pytest.mark.xfail(reason="not supported yet for sparkconnections"),
-        ),
+        ("ip_with_spark"),
     ],
 )
 def test_sqlcmd_test(ip_with_dynamic_db, request, test_table_name_dict):
@@ -1011,10 +1005,7 @@ def test_sql_query_cte(ip_with_dynamic_db, request, test_table_name_dict, cell):
             "ip_with_clickhouse",
             marks=pytest.mark.xfail(reason="Not yet implemented"),
         ),
-        pytest.param(
-            "ip_with_spark",
-            marks=pytest.mark.xfail(reason="Not yet implemented"),
-        ),
+        "ip_with_spark",
     ],
 )
 def test_sql_error_suggests_using_cte(ip_with_dynamic_db, request):

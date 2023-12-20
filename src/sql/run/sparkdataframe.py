@@ -28,6 +28,7 @@ class FakeResultProxy(object):
         self.fetchall = dataframe.collect
         self.rowcount = dataframe.count
         self.keys = lambda: headers
+        self.cursor = FakeCursor(headers)
         self.returns_rows = True
         if should_cache:
             self.dataframe.cache()
@@ -40,3 +41,9 @@ class FakeResultProxy(object):
 
     def close(self):
         self.dataframe.unpersist()
+
+class FakeCursor(object):
+    description =  None
+
+    def __init__(self,headers) -> None:
+        self.description = headers
