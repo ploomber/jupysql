@@ -301,8 +301,8 @@ def setup_spark(test_table_name_dict):
     load_generic_testing_data_spark(spark, test_table_name_dict)
     yield spark
     spark.stop()
-    shutil.rmtree("metastore_db")
-    shutil.rmtree("spark-warehouse")
+    shutil.rmtree("metastore_db", ignore_errors=True)
+    shutil.rmtree("spark-warehouse", ignore_errors=True)
     os.remove("derby.log")
 
 
@@ -322,7 +322,6 @@ def load_generic_testing_data_spark(spark: SparkSession, test_table_name_dict):
 
 @pytest.fixture
 def ip_with_spark(ip_empty, setup_spark):
-    configKey = "spark"
     alias = "SparkSession"
 
     ip_empty.push({"conn": setup_spark})

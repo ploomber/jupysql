@@ -271,7 +271,6 @@ FROM {{table}}
         table = table.replace('"', "`")
     template = Template(template_)
     query = template.render(table=table, column=column)
-    y = conn.execute(query, with_)
     min_, max_ = conn.execute(query, with_).fetchone()
     return min_, max_
 

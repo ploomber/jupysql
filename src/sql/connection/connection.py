@@ -1144,7 +1144,8 @@ class SparkConnectConnection(AbstractConnection):
         )
 
     def close(self):
-        """Override of the abstract close as SparkSession is usually shared with pyspark"""
+        """Override of the abstract close as SparkSession is usually
+        shared with pyspark"""
         pass
 
 

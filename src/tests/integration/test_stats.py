@@ -34,7 +34,7 @@ def test_summary_stats(fixture_name, request, test_table_name_dict):
         "setup_spark",
     ],
 )
-def test_summary_stats(fixture_name, request, test_table_name_dict):
+def test_summary_stats_spark(fixture_name, request, test_table_name_dict):
     conn = SparkConnectConnection(request.getfixturevalue(fixture_name))
     table = test_table_name_dict["plot_something"]
     column = "x"
