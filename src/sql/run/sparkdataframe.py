@@ -42,8 +42,9 @@ class FakeResultProxy(object):
     def close(self):
         self.dataframe.unpersist()
 
-class FakeCursor(object):
-    description =  None
 
-    def __init__(self,headers) -> None:
+class FakeCursor(object):
+    description = None
+
+    def __init__(self, headers) -> None:
         self.description = headers

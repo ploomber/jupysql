@@ -52,7 +52,7 @@ def run_statements(conn, sql, config, parameters=None):
 
         if is_spark(conn.dialect):
             result = conn.raw_execute(statement, parameters=parameters)
-            if config.lazy_spark:
+            if config.lazy_execution:
                 return conn.raw_execute(statement, parameters=parameters).dataframe
 
         # regular query

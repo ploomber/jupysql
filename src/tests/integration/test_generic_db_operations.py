@@ -534,7 +534,7 @@ def test_sqlplot_pie(ip_with_dynamic_db, request, test_table_name_dict):
                 reason="Plotting from snippet not working in clickhouse"
             ),
         ),
-        "ip_with_spark"
+        "ip_with_spark",
     ],
 )
 def test_sqlplot_using_schema(ip_with_dynamic_db, request):
