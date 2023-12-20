@@ -293,9 +293,10 @@ def setup_duckDB_native(test_table_name_dict):
 def setup_spark(test_table_name_dict):
     import os
     import shutil
+    import sys
 
-    os.environ["PYSPARK_PYTHON"] = os.environ.get("CONDA_PYTHON_EXE")
-    os.environ["PYSPARK_DRIVER_PYTHON"] = os.environ.get("CONDA_PYTHON_EXE")
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
     spark = SparkSession.builder.master("local[1]").enableHiveSupport().getOrCreate()
     load_generic_testing_data_spark(spark, test_table_name_dict)
     yield spark
