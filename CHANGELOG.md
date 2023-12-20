@@ -1,7 +1,8 @@
 # CHANGELOG
 
 ## 0.10.6dev
-* [Feature] Add Spark Connection as a dialect for Jupysql (#965)
+* [Feature] Add Spark Connection as a dialect for Jupysql [#965](https://github.com/ploomber/jupysql/issues/965) 
+(by [@gilandose](https://github.com/gilandose))
 * [Fix] Fix error when `%sql` includes a query with negative numbers (#958)
 
 ## 0.10.5 (2023-12-11)
