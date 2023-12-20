@@ -290,10 +290,46 @@ def setup_duckDB_native(test_table_name_dict):
 
 
 @pytest.fixture(scope="session")
-def setup_spark():
-    spark = SparkSession.Builder.master("local").getOrCreate()
+def setup_spark(test_table_name_dict):
+    import os
+    import shutil
+
+    os.environ["PYSPARK_PYTHON"] = os.environ.get("CONDA_PYTHON_EXE")
+    os.environ["PYSPARK_DRIVER_PYTHON"] = os.environ.get("CONDA_PYTHON_EXE")
+    spark = SparkSession.builder.master("local[1]").enableHiveSupport().getOrCreate()
+    load_generic_testing_data_spark(spark, test_table_name_dict)
     yield spark
     spark.stop()
+    shutil.rmtree("metastore_db")
+    shutil.rmtree("spark-warehouse")
+    os.remove("derby.log")
+
+
+def load_generic_testing_data_spark(spark: SparkSession, test_table_name_dict):
+    spark.createDataFrame(
+        pd.DataFrame(
+            {"taxi_driver_name": ["Eric Ken", "John Smith", "Kevin Kelly"] * 15}
+        )
+    ).createOrReplaceTempView(test_table_name_dict["taxi"])
+    spark.createDataFrame(
+        pd.DataFrame({"x": range(0, 5), "y": range(5, 10)})
+    ).createOrReplaceTempView(test_table_name_dict["plot_something"])
+    spark.createDataFrame(
+        pd.DataFrame({"numbers_elements": [1, 2, 3] * 20})
+    ).createOrReplaceTempView(test_table_name_dict["numbers"])
+
+
+@pytest.fixture
+def ip_with_spark(ip_empty, setup_spark):
+    configKey = "spark"
+    alias = "SparkSession"
+
+    ip_empty.push({"conn": setup_spark})
+    # Select database engine, use different sqlite database endpoint
+    ip_empty.run_cell("%sql " + "conn" + " --alias " + alias)
+    yield ip_empty
+    # Disconnect database
+    ip_empty.run_cell("%sql -x " + alias)
 
 
 def load_generic_testing_data_duckdb_native(ip, test_table_name_dict):

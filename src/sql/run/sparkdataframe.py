@@ -23,7 +23,7 @@ class FakeResultProxy(object):
 
     dataframe = None
 
-    def __init__(self, dataframe: DataFrame, headers, should_cache):
+    def __init__(self, dataframe, headers, should_cache):
         self.dataframe = dataframe
         self.fetchall = dataframe.collect
         self.rowcount = dataframe.count

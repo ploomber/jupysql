@@ -107,8 +107,12 @@ def handle_exception(error, query=None, short_error=True):
     if util.is_sqlalchemy_error(error) or util.is_non_sqlalchemy_error(error):
         detailed_message, error_type = _detailed_message_with_error_type(error, query)
         if short_error:
+            print("YEY")
             _raise_error(error, detailed_message, error_type)
         else:
+            print("NEH")
             _display_error_msg_with_trace(error, detailed_message)
     else:
+        print("sadge")
+        print(str(error))
         raise error

@@ -36,6 +36,7 @@ DEV = [
     "polars==0.17.2",  # 04/18/23 this breaks our CI
     "pyarrow",
     "pyspark",
+    "grpcio-status",
     "invoke",
     "pkgmt",
     "twine",

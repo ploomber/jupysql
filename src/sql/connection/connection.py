@@ -1130,9 +1130,15 @@ class SparkConnectConnection(AbstractConnection):
         )
 
     def to_table(self, table_name, data_frame, if_exists, index, schema=None):
-        raise exceptions.NotImplementedError(
-            "--persist/--persist-replace is not available for Spark connections"
-            " (only available for SQLAlchemy connections)"
+        mode = (
+            "overwrite"
+            if if_exists == "replace"
+            else "append"
+            if if_exists == "append"
+            else "error"
+        )
+        self._connection.createDataFrame(data_frame).write.mode(mode).saveAsTable(
+            f"{schema}.{table_name}" if schema else table_name
         )
 
     def close(self):
