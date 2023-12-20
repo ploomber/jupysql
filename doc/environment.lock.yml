@@ -3,122 +3,204 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
-  - brotli=1.0.9
-  - brotli-bin=1.0.9
+  - alsa-lib=1.2.10
+  - attr=2.5.1
+  - brotli=1.1.0
+  - brotli-bin=1.1.0
   - bzip2=1.0.8
-  - ca-certificates=2023.5.7
-  - certifi=2023.5.7
-  - contourpy=1.1.0
-  - cycler=0.11.0
-  - fonttools=4.41.0
+  - ca-certificates=2023.11.17
+  - cairo=1.18.0
+  - certifi=2023.11.17
+  - contourpy=1.2.0
+  - cycler=0.12.1
+  - dbus=1.13.6
+  - expat=2.5.0
+  - font-ttf-dejavu-sans-mono=2.37
+  - font-ttf-inconsolata=3.000
+  - font-ttf-source-code-pro=2.038
+  - font-ttf-ubuntu=0.83
+  - fontconfig=2.14.2
+  - fonts-conda-ecosystem=1
+  - fonts-conda-forge=1
+  - fonttools=4.47.0
   - freetype=2.12.1
-  - kiwisolver=1.4.4
-  - lcms2=2.15
-  - ld_impl_linux-aarch64=2.40
+  - gettext=0.21.1
+  - glib=2.78.3
+  - glib-tools=2.78.3
+  - graphite2=1.3.13
+  - gst-plugins-base=1.22.8
+  - gstreamer=1.22.8
+  - harfbuzz=8.3.0
+  - icu=73.2
+  - keyutils=1.6.1
+  - kiwisolver=1.4.5
+  - krb5=1.21.2
+  - lame=3.100
+  - lcms2=2.16
+  - ld_impl_linux-64=2.40
   - lerc=4.0.0
   - libblas=3.9.0
-  - libbrotlicommon=1.0.9
-  - libbrotlidec=1.0.9
-  - libbrotlienc=1.0.9
+  - libbrotlicommon=1.1.0
+  - libbrotlidec=1.1.0
+  - libbrotlienc=1.1.0
+  - libcap=2.69
   - libcblas=3.9.0
-  - libdeflate=1.18
+  - libclang=15.0.7
+  - libclang13=15.0.7
+  - libcups=2.3.3
+  - libdeflate=1.19
+  - libedit=3.1.20191231
+  - libevent=2.1.12
+  - libexpat=2.5.0
   - libffi=3.4.2
-  - libgcc-ng=13.1.0
-  - libgfortran-ng=13.1.0
-  - libgfortran5=13.1.0
-  - libgomp=13.1.0
-  - libjpeg-turbo=2.1.5.1
+  - libflac=1.4.3
+  - libgcc-ng=13.2.0
+  - libgcrypt=1.10.3
+  - libgfortran-ng=13.2.0
+  - libgfortran5=13.2.0
+  - libglib=2.78.3
+  - libgomp=13.2.0
+  - libgpg-error=1.47
+  - libiconv=1.17
+  - libjpeg-turbo=3.0.0
   - liblapack=3.9.0
-  - libnsl=2.0.0
-  - libopenblas=0.3.23
+  - libllvm15=15.0.7
+  - libnsl=2.0.1
+  - libogg=1.3.4
+  - libopenblas=0.3.25
+  - libopus=1.3.1
   - libpng=1.6.39
-  - libsqlite=3.42.0
-  - libstdcxx-ng=13.1.0
-  - libtiff=4.5.1
+  - libpq=16.1
+  - libsndfile=1.2.2
+  - libsqlite=3.44.2
+  - libstdcxx-ng=13.2.0
+  - libsystemd0=255
+  - libtiff=4.6.0
   - libuuid=2.38.1
-  - libwebp-base=1.3.1
+  - libvorbis=1.3.7
+  - libwebp-base=1.3.2
   - libxcb=1.15
+  - libxkbcommon=1.6.0
+  - libxml2=2.12.3
   - libzlib=1.2.13
-  - matplotlib=3.7.2
-  - matplotlib-base=3.7.2
+  - lz4-c=1.9.4
+  - matplotlib=3.8.2
+  - matplotlib-base=3.8.2
+  - mpg123=1.32.3
   - munkres=1.1.4
+  - mysql-common=8.0.33
+  - mysql-libs=8.0.33
   - ncurses=6.4
-  - numpy=1.25.1
+  - nspr=4.35
+  - nss=3.96
+  - numpy=1.26.2
   - openjpeg=2.5.0
-  - openssl=3.1.1
-  - packaging=23.1
-  - pandas=2.0.3
-  - pillow=10.0.0
-  - pip=23.2
+  - openssl=3.2.0
+  - packaging=23.2
+  - pandas=2.1.4
+  - pcre2=10.42
+  - pillow=10.1.0
+  - pip=23.3.2
+  - pixman=0.42.2
+  - ply=3.11
   - pthread-stubs=0.4
-  - pyparsing=3.0.9
-  - python=3.10.12
+  - pulseaudio-client=16.1
+  - pyparsing=3.1.1
+  - pyqt=5.15.9
+  - pyqt5-sip=12.12.2
+  - python=3.10.13
   - python-dateutil=2.8.2
   - python-tzdata=2023.3
   - python_abi=3.10
-  - pytz=2023.3
+  - pytz=2023.3.post1
+  - qt-main=5.15.8
   - readline=8.2
-  - setuptools=68.0.0
+  - setuptools=68.2.2
+  - sip=6.7.12
   - six=1.16.0
-  - tk=8.6.12
-  - tornado=6.3.2
+  - tk=8.6.13
+  - toml=0.10.2
+  - tomli=2.0.1
+  - tornado=6.3.3
   - tzdata=2023c
-  - unicodedata2=15.0.0
-  - wheel=0.40.0
+  - unicodedata2=15.1.0
+  - wheel=0.42.0
+  - xcb-util=0.4.0
+  - xcb-util-image=0.4.0
+  - xcb-util-keysyms=0.4.0
+  - xcb-util-renderutil=0.3.9
+  - xcb-util-wm=0.4.1
+  - xkeyboard-config=2.40
+  - xorg-kbproto=1.0.7
+  - xorg-libice=1.1.1
+  - xorg-libsm=1.2.4
+  - xorg-libx11=1.8.7
   - xorg-libxau=1.0.11
   - xorg-libxdmcp=1.1.3
+  - xorg-libxext=1.3.4
+  - xorg-libxrender=0.9.11
+  - xorg-renderproto=0.11.1
+  - xorg-xextproto=7.3.0
+  - xorg-xf86vidmodeproto=2.3.1
+  - xorg-xproto=7.0.31
   - xz=5.2.6
-  - zstd=1.5.2
+  - zlib=1.2.13
+  - zstd=1.5.5
   - pip:
       - -e ..
       - accessible-pygments==0.0.4
+      - aiohttp==3.9.1
+      - aiosignal==1.3.1
       - alabaster==0.7.13
-      - asttokens==2.2.1
+      - asttokens==2.4.1
+      - async-timeout==4.0.3
       - attrs==23.1.0
-      - autopep8==2.0.2
-      - awscli==1.29.4
-      - babel==2.12.1
-      - backcall==0.2.0
+      - autopep8==2.0.4
+      - awscli==1.32.4
+      - babel==2.14.0
       - backoff==2.2.1
       - beautifulsoup4==4.12.2
-      - black==23.7.0
-      - botocore==1.31.4
-      - charset-normalizer==3.2.0
-      - click==8.1.5
+      - black==23.12.0
+      - botocore==1.34.4
+      - charset-normalizer==3.3.2
+      - chdb==1.0.2
+      - click==8.1.7
       - colorama==0.4.4
-      - comm==0.1.3
-      - debugpy==1.6.7
+      - comm==0.2.0
+      - debugpy==1.8.0
       - decorator==5.1.1
       - docutils==0.16
-      - duckdb==0.8.1
-      - duckdb-engine==0.9.1
-      - chdb==0.13.0
-      - exceptiongroup==1.1.2
-      - executing==1.2.0
-      - fastjsonschema==2.17.1
-      - flake8==6.0.0
-      - greenlet==2.0.2
-      - idna==3.4
+      - duckdb==0.9.2
+      - duckdb-engine==0.9.4
+      - exceptiongroup==1.2.0
+      - executing==2.0.1
+      - fastjsonschema==2.19.0
+      - flake8==6.1.0
+      - frozenlist==1.4.1
+      - greenlet==3.0.2
+      - idna==3.6
       - imagesize==1.4.1
-      - importlib-metadata==6.8.0
+      - importlib-metadata==7.0.0
       - iniconfig==2.0.0
       - invoke==2.2.0
-      - ipykernel==6.24.0
-      - ipython==8.14.0
+      - ipykernel==6.27.1
+      - ipython==8.18.1
       - ipython-genutils==0.2.0
-      - ipywidgets==8.0.7
-      - jedi==0.18.2
+      - ipywidgets==8.1.1
+      - jedi==0.19.1
       - jinja2==3.1.2
       - jmespath==1.0.1
-      - jsonschema==4.18.3
-      - jsonschema-specifications==2023.6.1
+      - jsonschema==4.20.0
+      - jsonschema-specifications==2023.11.2
+      - jupysql-plugin==0.3.0
       - jupyter-book==0.15.1
       - jupyter-cache==0.6.1
-      - jupyter-client==8.3.0
-      - jupyter-core==5.3.1
-      - jupyterlab-widgets==3.0.8
-      - jupytext==1.14.7
+      - jupyter-client==8.6.0
+      - jupyter-core==5.5.1
+      - jupyterlab-widgets==3.0.9
+      - jupytext==1.16.0
       - latexcodec==2.0.1
       - linkify-it-py==2.0.2
       - markdown-it-py==2.2.0
@@ -129,46 +211,46 @@ dependencies:
       - mdurl==0.1.2
       - memory-profiler==0.61.0
       - monotonic==1.6
+      - multidict==6.0.4
       - mypy-extensions==1.0.0
       - myst-nb==0.17.2
       - myst-parser==0.18.1
       - nbclient==0.7.4
-      - nbformat==5.9.1
-      - nbqa==1.7.0
-      - nest-asyncio==1.5.6
+      - nbformat==5.9.2
+      - nbqa==1.7.1
+      - nest-asyncio==1.5.8
       - parso==0.8.3
-      - pathspec==0.11.1
-      - pexpect==4.8.0
-      - pickleshare==0.7.5
-      - pkgmt==0.7.1
-      - platformdirs==3.9.1
-      - ploomber-core==0.2.13
-      - pluggy==1.2.0
-      - polars==0.18.7
-      - posthog==3.0.1
-      - prettytable==3.8.0
-      - prompt-toolkit==3.0.39
-      - psutil==5.9.5
+      - pathspec==0.12.1
+      - pexpect==4.9.0
+      - pkgmt==0.7.4
+      - platformdirs==4.1.0
+      - ploomber-core==0.2.19
+      - pluggy==1.3.0
+      - polars==0.20.1
+      - posthog==3.1.0
+      - prettytable==3.9.0
+      - prompt-toolkit==3.0.43
+      - psutil==5.9.7
       - ptyprocess==0.7.0
       - pure-eval==0.2.2
-      - pyarrow==12.0.1
-      - pyasn1==0.5.0
+      - pyarrow==14.0.2
+      - pyasn1==0.5.1
       - pybtex==0.24.0
-      - pybtex-docutils==1.0.2
-      - pycodestyle==2.10.0
-      - pydata-sphinx-theme==0.13.3
-      - pyflakes==3.0.1
-      - pygments==2.15.1
-      - pytest==7.4.0
+      - pybtex-docutils==1.0.3
+      - pycodestyle==2.11.1
+      - pydata-sphinx-theme==0.14.4
+      - pyflakes==3.1.0
+      - pygments==2.17.2
+      - pytest==7.4.3
       - pyyaml==6.0.1
-      - pyzmq==25.1.0
-      - referencing==0.29.1
+      - pyzmq==25.1.2
+      - referencing==0.32.0
       - requests==2.31.0
-      - rpds-py==0.8.11
+      - rpds-py==0.15.2
       - rsa==4.7.2
-      - s3transfer==0.6.1
+      - s3transfer==0.9.0
       - snowballstemmer==2.2.0
-      - soupsieve==2.4.1
+      - soupsieve==2.5
       - sphinx==5.0.2
       - sphinx-book-theme==1.0.1
       - sphinx-comments==0.0.3
@@ -179,26 +261,25 @@ dependencies:
       - sphinx-multitoc-numbering==0.1.3
       - sphinx-thebe==0.2.1
       - sphinx-togglebutton==0.3.2
-      - sphinxcontrib-applehelp==1.0.4
+      - sphinxcontrib-applehelp==1.0.7
       - sphinxcontrib-bibtex==2.5.0
-      - sphinxcontrib-devhelp==1.0.2
-      - sphinxcontrib-htmlhelp==2.0.1
+      - sphinxcontrib-devhelp==1.0.5
+      - sphinxcontrib-htmlhelp==2.0.4
       - sphinxcontrib-jsmath==1.0.1
-      - sphinxcontrib-qthelp==1.0.3
-      - sphinxcontrib-serializinghtml==1.1.5
-      - sqlalchemy==2.0.19
-      - sqlglot==17.4.1
+      - sphinxcontrib-qthelp==1.0.6
+      - sphinxcontrib-serializinghtml==1.1.9
+      - sqlalchemy==2.0.23
+      - sqlglot==20.3.0
       - sqlparse==0.4.4
-      - stack-data==0.6.2
+      - stack-data==0.6.3
       - tabulate==0.9.0
-      - tokenize-rt==5.1.0
-      - toml==0.10.2
-      - tomli==2.0.1
-      - traitlets==5.9.0
-      - typing-extensions==4.7.1
+      - tokenize-rt==5.2.0
+      - traitlets==5.14.0
+      - typing-extensions==4.9.0
       - uc-micro-py==1.0.2
-      - urllib3==1.26.16
-      - wcwidth==0.2.6
-      - widgetsnbextension==4.0.8
-      - zipp==3.16.2
+      - urllib3==2.0.7
+      - wcwidth==0.2.12
+      - widgetsnbextension==4.0.9
+      - yarl==1.9.4
+      - zipp==3.17.0
 prefix: /opt/conda/envs/jupysql-doc
