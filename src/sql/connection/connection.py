@@ -267,7 +267,9 @@ class ConnectionManager:
             elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, config=config, alias=alias)
             elif is_spark(descriptor):
-                cls.current = SparkConnectConnection(descriptor)
+                cls.current = SparkConnectConnection(
+                    descriptor, config=config, alias=alias
+                )
             else:
                 existing = rough_dict_get(cls.connections, descriptor)
                 if existing and existing.alias == alias:
