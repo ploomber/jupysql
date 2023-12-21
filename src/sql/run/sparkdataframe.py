@@ -28,7 +28,7 @@ class SparkResultProxy(object):
         self.fetchall = dataframe.collect
         self.rowcount = dataframe.count()
         self.keys = lambda: headers
-        self.cursor = SparkCuror(headers)
+        self.cursor = SparkCursor(headers)
         self.returns_rows = True
         if should_cache:
             self.dataframe.cache()
@@ -43,7 +43,7 @@ class SparkResultProxy(object):
         self.dataframe.unpersist()
 
 
-class SparkCuror(object):
+class SparkCursor(object):
     """Class to extend to give SqlAlchemy Cursor like behaviour"""
 
     description = None
