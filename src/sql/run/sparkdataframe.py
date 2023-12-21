@@ -26,7 +26,7 @@ class SparkResultProxy(object):
     def __init__(self, dataframe, headers, should_cache):
         self.dataframe = dataframe
         self.fetchall = dataframe.collect
-        self.rowcount = dataframe.count
+        self.rowcount = dataframe.count()
         self.keys = lambda: headers
         self.cursor = SparkCuror(headers)
         self.returns_rows = True
