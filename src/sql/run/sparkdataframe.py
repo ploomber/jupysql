@@ -44,7 +44,7 @@ class SparkResultProxy(object):
 
 
 class SparkCuror(object):
-    """Clas to extend to give SqlAlchemy Cursor like behaviour"""
+    """Class to extend to give SqlAlchemy Cursor like behaviour"""
 
     description = None
 
