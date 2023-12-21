@@ -150,7 +150,7 @@ class SqlMagic(Magics, Configurable):
     lazy_execution = Bool(
         default_value=False,
         config=True,
-        help="Whether to evalute using ResultSet which will "
+        help="Whether to evaluate using ResultSet which will "
         "cause the plan to execute or just return a lazily "
         "executed plan allowing validating schemas, "
         "without expensive compute.",

@@ -13,10 +13,10 @@ def handle_spark_dataframe(dataframe, should_cache=False):
     if not DataFrame and not CDataFrame:
         raise exceptions.MissingPackageError("pysark not installed")
 
-    return FakeResultProxy(dataframe, dataframe.columns, should_cache)
+    return SparkResultProxy(dataframe, dataframe.columns, should_cache)
 
 
-class FakeResultProxy(object):
+class SparkResultProxy(object):
     """A fake class that pretends to behave like the ResultProxy from
     SqlAlchemy.
     """
@@ -28,7 +28,7 @@ class FakeResultProxy(object):
         self.fetchall = dataframe.collect
         self.rowcount = dataframe.count
         self.keys = lambda: headers
-        self.cursor = FakeCursor(headers)
+        self.cursor = SparkCuror(headers)
         self.returns_rows = True
         if should_cache:
             self.dataframe.cache()
@@ -43,7 +43,9 @@ class FakeResultProxy(object):
         self.dataframe.unpersist()
 
 
-class FakeCursor(object):
+class SparkCuror(object):
+    """Clas to extend to give SqlAlchemy Cursor like behaviour"""
+
     description = None
 
     def __init__(self, headers) -> None:

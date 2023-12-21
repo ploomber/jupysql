@@ -130,4 +130,4 @@ These table reflects the compatibility status of JupySQL `>=0.7`
 - Listing columns with `%sqlcmd columns` ❌
 - Parametrized SQL queries via `{{parameter}}` ✅
 - Interactive SQL queries via `--interact` ✅
-- Persiting Dataframes via `--persist` ✅
+- Persisting Dataframes via `--persist` ✅

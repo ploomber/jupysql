@@ -434,7 +434,7 @@ class ResultSet(ColumnGuesserMixin):
                     raise RuntimeError(f"Error running the query: {str(e)}") from e
                 self.mark_fetching_as_done()
                 return
-            # spark doesn't support curser
+            # spark doesn't support cursor
             if hasattr(self._sqlaproxy, "dataframe"):
                 self._results = []
                 self._pretty_table.clear()

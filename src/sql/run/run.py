@@ -49,14 +49,11 @@ def run_statements(conn, sql, config, parameters=None):
         if first_word.startswith("\\") and is_postgres_or_redshift(conn.dialect):
             result = handle_postgres_special(conn, statement)
 
-        if is_spark(conn.dialect):
-            result = conn.raw_execute(statement, parameters=parameters)
-            if config.lazy_execution:
-                return conn.raw_execute(statement, parameters=parameters).dataframe
-
         # regular query
         else:
             result = conn.raw_execute(statement, parameters=parameters)
+            if is_spark(conn.dialect) and config.lazy_execution:
+                return result.dataframe
 
             if (
                 config.feedback >= 1
