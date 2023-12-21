@@ -19,12 +19,6 @@ from sqlalchemy.exc import (
 
 from sql.run.sparkdataframe import handle_spark_dataframe
 
-try:
-    from pyspark.sql.connect.session import SparkSession as CSparkSession
-    from pyspark.sql import SparkSession
-except ModuleNotFoundError:
-    CSparkSession = None
-    SparkSession = None
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
@@ -1243,10 +1237,25 @@ def is_pep249_compliant(conn):
     return True
 
 
-def is_spark(ins):
-    return (CSparkSession is not None and isinstance(ins, CSparkSession)) or (
-        SparkSession is not None and isinstance(ins, SparkSession)
-    )
+def is_spark(conn):
+    """Check if it is a SparkSession by checking for available methods"""
+
+    sparksession_methods = [
+        "table",
+        "read",
+        "readStream",
+        "createDataFrame",
+        "sql",
+        "stop",
+        "catalog",
+        "version",
+    ]
+    for method_name in sparksession_methods:
+        # Checking whether the connection object has the method
+        if not hasattr(conn, method_name):
+            return False
+
+    return True
 
 
 def default_alias_for_engine(engine):

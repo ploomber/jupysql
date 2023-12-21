@@ -13,7 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy import exc
 
-import pyspark
 
 from sql.connection import connection as connection_module
 import sql.connection
@@ -44,9 +43,33 @@ def mock_database(monkeypatch, cleanup):
     monkeypatch.setattr(sqlalchemy, "create_engine", Mock())
 
 
-@pytest.fixture
-def mock_spark(monkeypatch, cleanup):
-    monkeypatch.setitem(sys.modules, "pyspark.sql.SparkSession", Mock())
+def mock_sparksession():
+    mock = Mock(
+        spec=[
+            "table",
+            "read",
+            "readStream",
+            "createDataFrame",
+            "sql",
+            "stop",
+            "catalog",
+            "version",
+        ]
+    )
+    return mock
+
+
+def mock_not_sparksession():
+    mock = Mock(
+        spec=[
+            "read",
+            "readStream",
+            "createDataFrame",
+            "sql",
+            "verison",
+        ]
+    )
+    return mock
 
 
 @pytest.fixture
@@ -471,8 +494,8 @@ def test_is_pep249_compliant(conn, expected):
         [sqlite3.connect(""), False],
         [duckdb.connect(""), False],
         [create_engine("sqlite://"), False],
-        [Mock(spec=pyspark.sql.SparkSession), True],
-        [Mock(spec=pyspark.sql.connect.session.SparkSession), True],
+        [mock_sparksession(), True],
+        [mock_not_sparksession(), False],
         [None, False],
         [object(), False],
         ["not_a_valid_connection", False],
@@ -619,11 +642,7 @@ def test_set_dbapi(monkeypatch, callable_, key):
 @pytest.mark.parametrize(
     "spark, key",
     [
-        [Mock(name="SparkSession", spec=pyspark.sql.SparkSession), "Mock"],
-        [
-            Mock(name="SparkSession", spec=pyspark.sql.connect.session.SparkSession),
-            "Mock",
-        ],
+        [mock_sparksession(), "Mock"],
     ],
 )
 def test_set_spark(monkeypatch, spark, key):
