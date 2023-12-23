@@ -48,7 +48,6 @@ def mock_sparksession():
         spec=[
             "table",
             "read",
-            "readStream",
             "createDataFrame",
             "sql",
             "stop",
@@ -66,7 +65,7 @@ def mock_not_sparksession():
             "readStream",
             "createDataFrame",
             "sql",
-            "verison",
+            "version",
         ]
     )
     return mock

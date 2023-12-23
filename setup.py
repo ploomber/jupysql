@@ -71,6 +71,7 @@ INTEGRATION = [
     "redshift-connector",
     "sqlalchemy-redshift",
     "clickhouse-sqlalchemy",
+    # following two dependencies required for spark
     "pyspark",
     "grpcio-status",
 ]

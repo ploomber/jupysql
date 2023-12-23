@@ -236,6 +236,10 @@ value enables the ones from previous values plus new ones:
 
 ## `lazy_execution`
 
+```{versionadded} 0.10.7
+This option only works when connecting to Spark
+```
+
 Default: `False`
 
 Return lazy relation to dataset rather than executing through JupySql.

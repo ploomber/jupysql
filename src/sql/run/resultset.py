@@ -438,7 +438,6 @@ class ResultSet(ColumnGuesserMixin):
             if hasattr(self._sqlaproxy, "dataframe"):
                 self._results = []
                 self._pretty_table.clear()
-            print(self._conn)
             self._extend_results(returned)
 
             if len(returned) < size:

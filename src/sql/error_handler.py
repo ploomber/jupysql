@@ -112,5 +112,4 @@ def handle_exception(error, query=None, short_error=True):
         else:
             _display_error_msg_with_trace(error, detailed_message)
     else:
-        print(str(error))
         raise error
