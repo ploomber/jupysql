@@ -1243,7 +1243,6 @@ def is_spark(conn):
     sparksession_methods = [
         "table",
         "read",
-        "readStream",
         "createDataFrame",
         "sql",
         "stop",
