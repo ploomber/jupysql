@@ -229,13 +229,12 @@ def without_sql_comment(parser, line):
 
     args = _option_strings_from_parser(parser)
     pattern = re.compile(r'([\'"])(.*?)\1')
-    temp_line = pattern.sub(lambda x: x.group().replace(" ", ""), line)
-    spaces_removed = len(line) - len(temp_line)
+    line = pattern.sub(lambda match: match.group().replace(" ", "@@SPACE@@"), line)
     result = itertools.takewhile(
-        lambda word: (not word.startswith("--")) or (word in args), temp_line.split()
+        lambda word: (not word.startswith("--")) or (word in args), line.split()
     )
     result = " ".join(result)
-    result = line[: len(result) + spaces_removed]
+    result = result.replace("@@SPACE@@", " ")
     return result
 
 
@@ -278,7 +277,13 @@ def split_args_and_sql(line):
     # If any SQL commands are found in the line, we split the line into args and sql.
     #   Note: lines without SQL commands will not be split
     #       ex. %sql duckdb:// or %sqlplot boxplot --table data.csv
-    if any(cmd in line_no_filenames for cmd in SQL_COMMANDS) or any(
+    if "<<" in line:
+        [before_assign, after_assign] = line.split("<<")
+        result_var = before_assign.split()[-1]
+        arg_line = " ".join(before_assign.split()[:-1])
+        sql_line = result_var + " << " + after_assign
+
+    elif any(cmd in line_no_filenames for cmd in SQL_COMMANDS) or any(
         cmd.upper() in line_no_filenames for cmd in SQL_COMMANDS
     ):
         # Identify beginning of sql query using keywords
