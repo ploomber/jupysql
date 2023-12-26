@@ -12,7 +12,8 @@ class SqlEnv(object):
         self.connectstr = connectstr
 
     def query(self, txt):
-        return ip.run_line_magic("sql", "%s %s" % (self.connectstr, txt))
+        ip.run_line_magic("sql", self.connectstr)
+        return ip.run_line_magic("sql", "%s" % txt)
 
 
 sql_env = SqlEnv("sqlite://")
