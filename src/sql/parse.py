@@ -308,7 +308,7 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
     parsed = magic_execute.parser.parse_args(args)
 
     if sql_line:
-        parsed.line = shlex.split(sql_line, posix=False)
+        parsed.line = shlex.split(line, posix=False)
 
     return parsed
 
