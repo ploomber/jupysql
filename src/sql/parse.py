@@ -307,10 +307,11 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
 
     parsed = magic_execute.parser.parse_args(args)
 
-    if "<<" in line:
-        parsed.line = shlex.split(line, posix=False)
-    elif sql_line:
-        parsed.line = shlex.split(sql_line, posix=False)
+    if sql_line:
+        if parsed.line != "":
+            parsed.line.extend(shlex.split(sql_line, posix=False))
+        else:
+            parsed.line = shlex.split(sql_line, posix=False)
 
     return parsed
 
