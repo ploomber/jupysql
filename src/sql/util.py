@@ -391,45 +391,29 @@ def get_user_configs(primary_path, alternate_path):
     # in that particular order
     path_list = [primary_path, alternate_path]
     for file_path in path_list:
-        section_to_find = None
         section_found = False
         if file_path and file_path.exists():
             data = load_toml(file_path)
             section_names = ["tool", "jupysql", "SqlMagic"]
 
             # Look for SqlMagic section in toml file
-            while section_names:
-                section_found = False
-                section_to_find, sections_from_user = section_names.pop(0), data.keys()
+            data = get_nested(data, section_names)
 
-                if section_to_find not in sections_from_user:
-                    close_match = difflib.get_close_matches(
-                        section_to_find, sections_from_user
+            if data is None:
+                if display_tip:
+                    display.message(
+                        f"Tip: You may define configurations in {primary_path}"
+                        f" or {alternate_path}. "
                     )
-
-                    if not close_match:
-                        if display_tip:
-                            display.message(
-                                f"Tip: You may define configurations in {primary_path}"
-                                f" or {alternate_path}. "
-                            )
-                            display_tip = False
-                        break
-                    else:
-                        raise exceptions.ConfigurationError(
-                            f"{pretty_print(close_match)} is an invalid section "
-                            f"name in {file_path}. "
-                            f"Did you mean '{section_to_find}'?"
-                        )
-
+                    display_tip = False
+            elif data == {}:
                 section_found = True
-                data = data[section_to_find]
-
-        if section_to_find == "SqlMagic" and section_found and not data:
-            display.message(
-                f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
-            )
-            display_tip = False
+                display.message(
+                    f"[tool.jupysql.SqlMagic] present in {file_path} but empty. "
+                )
+                display_tip = False
+            else:
+                section_found = True
 
         if not display_tip and not configuration_docs_displayed:
             display.message_html(
@@ -443,7 +427,7 @@ def get_user_configs(primary_path, alternate_path):
         elif section_found and data:
             return data, file_path
 
-    return data, None
+    return None, None
 
 
 def get_default_configs(sql):

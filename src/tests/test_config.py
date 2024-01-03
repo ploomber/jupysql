@@ -415,13 +415,6 @@ autocommit = true
         ),
         (
             """
-[tool.jupySql.SqlMagic]
-autocommit = true
-""",
-            "'jupySql' is an invalid section name in {path}. Did you mean 'jupysql'?",
-        ),
-        (
-            """
 [tool.jupysql.SqlMagic]
 autocommit = True
 """,
