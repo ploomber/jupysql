@@ -561,7 +561,6 @@ def enclose_table_with_double_quotations(table, conn):
 
     return _table
 
-
 def is_rendering_required(line):
     """Function to check possibility of line
     text containing expandable arguments"""
