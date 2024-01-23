@@ -793,19 +793,20 @@ class SQLAlchemyConnection(AbstractConnection):
         if with_:
             query = self._resolve_cte(query, with_)
 
-        query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
+        if parameters:
+            query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
 
-        if quoted_named_parameters and parameters:
-            intersection = set(quoted_named_parameters) & set(parameters)
+            if quoted_named_parameters:
+                intersection = set(quoted_named_parameters) & set(parameters)
 
-            if intersection:
-                intersection_ = ", ".join(sorted(intersection))
-                warnings.warn(
-                    f"The following variables are defined: {intersection_}. However "
-                    "the parameters are quoted in the query, if you want to use "
-                    "them as named parameters, remove the quotes.",
-                    category=JupySQLQuotedNamedParametersWarning,
-                )
+                if intersection:
+                    intersection_ = ", ".join(sorted(intersection))
+                    warnings.warn(
+                        f"The following variables are defined: {intersection_}. However "
+                        "the parameters are quoted in the query, if you want to use "
+                        "them as named parameters, remove the quotes.",
+                        category=JupySQLQuotedNamedParametersWarning,
+                    )
 
         if parameters:
             required_parameters = set(sqlalchemy.text(query).compile().params)
