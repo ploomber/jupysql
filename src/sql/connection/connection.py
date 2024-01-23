@@ -758,6 +758,9 @@ class SQLAlchemyConnection(AbstractConnection):
 
     def _execute_with_parameters(self, query, parameters):
         """Execute the query with the given parameters"""
+        if not parameters:
+            return self._connection.exec_driver_sql(query)
+
         if IS_SQLALCHEMY_ONE:
             out = self._connection.execute(sqlalchemy.text(query), **parameters)
         else:
