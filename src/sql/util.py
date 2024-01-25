@@ -394,10 +394,33 @@ def get_user_configs(primary_path, alternate_path):
         section_found = False
         if file_path and file_path.exists():
             data = load_toml(file_path)
-            section_names = ["tool", "jupysql", "SqlMagic"]
 
-            # Look for SqlMagic section in toml file
-            data = get_nested(data, section_names)
+            data = data.get("tool")
+
+            # Look for jupysql section under tool
+            if data:
+                keys = data.keys()
+                data = data.get("jupysql")
+                if data is None:
+                    similar_key = case_insensitive_match("jupysql", keys)
+                    if similar_key:
+                        display.message(
+                            f"Hint: We found 'tool.{similar_key}' in {file_path}. "
+                            f"Did you mean 'tool.jupysql'?"
+                        )
+
+            # Look for SqlMagic section under jupysql
+            if data:
+                keys = data.keys()
+                data = data.get("SqlMagic")
+                if data is None:
+                    similar_key_list = find_close_match("SqlMagic", keys)
+                    if similar_key_list:
+                        raise exceptions.ConfigurationError(
+                            f"[tool.jupysql.{similar_key_list[0]}] is an invalid section "
+                            f"name in {file_path}. "
+                            f"Did you mean [tool.jupysql.SqlMagic]?"
+                        )
 
             if data is None:
                 if display_tip:
@@ -561,6 +584,7 @@ def enclose_table_with_double_quotations(table, conn):
 
     return _table
 
+
 def is_rendering_required(line):
     """Function to check possibility of line
     text containing expandable arguments"""
@@ -615,3 +639,32 @@ def expand_args(args, user_ns):
             else:
                 rendered_value = render_string_using_namespace(value, user_ns)
                 setattr(args, attribute, rendered_value)
+
+
+def case_insensitive_match(target, string_list):
+    """
+    Perform a case-insensitive match of a target string against a list of strings.
+
+    Parameters
+    ----------
+    target : str
+        The target string to match.
+    string_list : list of str
+        The list of strings to search through.
+
+    Returns
+    -------
+    str or None
+        The first matching string from the list, preserving its original case,
+        or None if there is no match.
+
+    Examples
+    --------
+    >>> case_insensitive_match('foo', ['bar', 'FOO'])
+    'FOO'
+    """
+    target_lower = target.lower()
+    for string in string_list:
+        if string.lower() == target_lower:
+            return string
+    return None
