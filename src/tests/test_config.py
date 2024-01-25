@@ -418,7 +418,8 @@ autocommit = true
 [tool.jupysql.SQLMagics]
 autocommit = true
 """,
-            "[tool.jupysql.SQLMagics] is an invalid section name in {path}. Did you mean [tool.jupysql.SqlMagic]?",
+            "[tool.jupysql.SQLMagics] is an invalid section name in {path}. "
+            "Did you mean [tool.jupysql.SqlMagic]?",
         ),
         (
             """
@@ -588,7 +589,8 @@ autopandas=True
             "[tool.JupySQL.SqlMagic]",
             "",
             [
-                "Hint: We found 'tool.JupySQL' in {pyproject_path}. Did you mean 'tool.jupysql'?",
+                "Hint: We found 'tool.JupySQL' in {pyproject_path}. "
+                "Did you mean 'tool.jupysql'?",
             ],
         ),
     ],

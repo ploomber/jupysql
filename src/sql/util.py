@@ -417,8 +417,8 @@ def get_user_configs(primary_path, alternate_path):
                     similar_key_list = find_close_match("SqlMagic", keys)
                     if similar_key_list:
                         raise exceptions.ConfigurationError(
-                            f"[tool.jupysql.{similar_key_list[0]}] is an invalid section "
-                            f"name in {file_path}. "
+                            f"[tool.jupysql.{similar_key_list[0]}] is an "
+                            f"invalid section name in {file_path}. "
                             f"Did you mean [tool.jupysql.SqlMagic]?"
                         )
 
