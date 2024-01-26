@@ -1569,9 +1569,13 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
         ip.run_cell("%sql SELECT * FROM penguins.csv where species = :species")
 
     suggestion = (
-        "Your query contains named parameters (species) but the named "
-        "parameters feature is disabled. Enable it with: "
-        "%config SqlMagic.named_parameters=True"
+        "Your query contains named parameters (species) "
+        'but the named parameters feature is "warn". \nEnable it '
+        'with: %config SqlMagic.named_parameters="enabled" \nor '
+        "disable it with: "
+        '%config SqlMagic.named_parameters="disabled"\n'
+        "For more info, see the docs: "
+        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
     )
     assert suggestion in str(excinfo.value)
 
