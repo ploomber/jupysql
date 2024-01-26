@@ -1,8 +1,13 @@
 # CHANGELOG
 
-## 0.10.8dev
-* [Fix] Fix edge case where `select` and other SQL keywords were not properly used to find where the user's query started, causing argument parsing issues (#973)
-* [Feature] Added option to disable named parameters; options now include `warn`, `enabled`, and `disabled` - fixes (#971) and (#972) 
+## 0.10.9dev
+
+* [Feature] Add option to disable named parameters; options now changed to: `warn`, `enabled`, and `disabled` - fixes (#971) and (#972)
+
+## 0.10.8 (2024-01-25)
+
+* [Feature] Add support for parametrizing string type arguments of `%%sql`, `%sqlplot`, `%sqlcmd`' ([#699](https://github.com/ploomber/jupysql/issues/699))
+* [Fix] Fix edge case where `select` and other SQL keywords were not properly used to find where the user's query started, causing argument parsing issues ([#973](https://github.com/ploomber/jupysql/issues/973))
 
 ## 0.10.7 (2023-12-23)
 
