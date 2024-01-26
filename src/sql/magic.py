@@ -26,6 +26,7 @@ from sqlalchemy.exc import (
 )
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
+from sql.trait import Parameters
 
 import warnings
 import shlex
@@ -156,8 +157,8 @@ class SqlMagic(Magics, Configurable):
         "without expensive compute."
         "Currently only supported for Spark Connection.",
     )
-    named_parameters = Bool(
-        default_value=False,
+    named_parameters = Parameters(
+        default_value="warn",
         config=True,
         help=(
             "Allow named parameters in queries "
@@ -569,12 +570,18 @@ class SqlMagic(Magics, Configurable):
             display.message("Skipping execution...")
             return
 
+        parameters = None
+        if self.named_parameters == "disabled":
+            parameters = {}
+        elif self.named_parameters == "enabled":
+            parameters = user_ns
+
         try:
             result = run_statements(
                 conn,
                 command.sql,
                 self,
-                parameters=user_ns if self.named_parameters else None,
+                parameters=parameters
             )
 
             if (
