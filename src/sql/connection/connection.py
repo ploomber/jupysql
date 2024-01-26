@@ -758,8 +758,6 @@ class SQLAlchemyConnection(AbstractConnection):
 
     def _execute_with_parameters(self, query, parameters):
         """Execute the query with the given parameters"""
-        if not parameters:
-            return self._connection.exec_driver_sql(query)
 
         if IS_SQLALCHEMY_ONE:
             out = self._connection.execute(sqlalchemy.text(query), **parameters)
@@ -770,7 +768,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
         return out
 
-    def raw_execute(self, query, parameters=None, with_=None):
+    def raw_execute(self, query, parameters=None, with_=None): # Reset to default
         """Run the query without any preprocessing
 
         Parameters
@@ -793,20 +791,19 @@ class SQLAlchemyConnection(AbstractConnection):
         if with_:
             query = self._resolve_cte(query, with_)
 
-        if parameters:
-            query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
+        query, quoted_named_parameters = escape_string_literals_with_colon_prefix(query)
 
-            if quoted_named_parameters:
-                intersection = set(quoted_named_parameters) & set(parameters)
+        if quoted_named_parameters and parameters:
+            intersection = set(quoted_named_parameters) & set(parameters)
 
-                if intersection:
-                    intersection_ = ", ".join(sorted(intersection))
-                    warnings.warn(
-                        f"The following variables are defined: {intersection_}. However "
-                        "the parameters are quoted in the query, if you want to use "
-                        "them as named parameters, remove the quotes.",
-                        category=JupySQLQuotedNamedParametersWarning,
-                    )
+            if intersection:
+                intersection_ = ", ".join(sorted(intersection))
+                warnings.warn(
+                    f"The following variables are defined: {intersection_}. However "
+                    "the parameters are quoted in the query, if you want to use "
+                    "them as named parameters, remove the quotes.",
+                    category=JupySQLQuotedNamedParametersWarning,
+                )
 
         if parameters:
             required_parameters = set(sqlalchemy.text(query).compile().params)
