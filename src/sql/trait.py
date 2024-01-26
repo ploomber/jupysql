@@ -17,17 +17,17 @@ class Parameters(TraitType):
         if isinstance(value, bool):
             if value:
                 warnings.warn(
-                    'named_parameters: boolean values are now deprecated. '
+                    "named_parameters: boolean values are now deprecated. "
                     f'Value {value} will be treated as "enabled". \n'
-                    f'{VALUE_WARNING}',
+                    f"{VALUE_WARNING}",
                     FutureWarning,
                 )
                 return "enabled"
             else:
                 warnings.warn(
-                    'named_parameters: boolean values are now deprecated. '
+                    "named_parameters: boolean values are now deprecated. "
                     f'Value {value} will be treated as "warn" (default). \n'
-                    f'{VALUE_WARNING}',
+                    f"{VALUE_WARNING}",
                     FutureWarning,
                 )
                 return "warn"

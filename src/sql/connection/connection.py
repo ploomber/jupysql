@@ -831,20 +831,20 @@ class SQLAlchemyConnection(AbstractConnection):
                     if named_params:
                         named_params_ = ", ".join(named_params)
                         e.add_detail(
-                            f'Your query contains named parameters ({named_params_}) '
+                            f"Your query contains named parameters ({named_params_}) "
                             'but the named parameters feature is "warn". \nEnable it '
                             'with: %config SqlMagic.named_parameters="enabled" \nor '
-                            'disable it with: '
+                            "disable it with: "
                             '%config SqlMagic.named_parameters="disabled"\n'
-                            'For more info, see the docs: '
-                            'https://jupysql.ploomber.io/en/latest/api/configuration.html' # noqa
+                            "For more info, see the docs: "
+                            "https://jupysql.ploomber.io/en/latest/api/configuration.html"  # noqa
                         )
                 elif parameters == {}:
                     e.add_detail(
                         'The named parameters feature is "disabled". '
                         'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
-                        'For more info, see the docs: '
-                        'https://jupysql.ploomber.io/en/latest/api/configuration.html'
+                        "For more info, see the docs: "
+                        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
                     )
                 raise
 
