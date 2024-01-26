@@ -256,7 +256,7 @@ res = %sql SELECT * FROM languages
 
 ## `named_parameters`
 
-```{versionchanged} 0.10.8
+```{versionchanged} 0.10.9
 ```
 
 Default: `warn`

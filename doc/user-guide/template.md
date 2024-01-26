@@ -213,7 +213,7 @@ Let's verify data in one of the tables:
 (named-parameters)=
 ## Parametrization via `:variable`
 
-```{versionchanged} 0.10.8
+```{versionchanged} 0.10.9
 ```
 
 There is a second method to parametrize variables via `:variable`. This method has the following limitations
