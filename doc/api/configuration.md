@@ -256,15 +256,21 @@ res = %sql SELECT * FROM languages
 
 ## `named_parameters`
 
-```{versionadded} 0.9
+```{versionchanged} 0.10.8
 ```
 
-Default: `False`
+Default: `warn`
 
-If True, it enables named parameters `:variable`. Learn more in the [tutorial.](../user-guide/template.md)
+If `warn`, a warning will be raised when named parameters are included in the statement.
+If `enabled`, the statement will be executed with named parameters enabled.
+If `disabled`, the statement will be executed with named parameters disabled.
+
+Learn more in the [tutorial.](../user-guide/template.md)
+
+Named parameters can be declared with `:variable`. 
 
 ```{code-cell} ipython3
-%config SqlMagic.named_parameters=True
+%config SqlMagic.named_parameters="enabled"
 ```
 
 ```{code-cell} ipython3

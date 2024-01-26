@@ -770,7 +770,7 @@ class SQLAlchemyConnection(AbstractConnection):
 
         return out
 
-    def raw_execute(self, query, parameters=None, with_=None): # Reset to default
+    def raw_execute(self, query, parameters=None, with_=None):
         """Run the query without any preprocessing
 
         Parameters
