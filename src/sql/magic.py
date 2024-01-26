@@ -579,12 +579,7 @@ class SqlMagic(Magics, Configurable):
             parameters = user_ns
 
         try:
-            result = run_statements(
-                conn,
-                command.sql,
-                self,
-                parameters=parameters
-            )
+            result = run_statements(conn, command.sql, self, parameters=parameters)
 
             if (
                 result is not None
