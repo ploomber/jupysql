@@ -26,7 +26,7 @@ from sqlalchemy.exc import (
 )
 from traitlets.config.configurable import Configurable
 from traitlets import Bool, Int, TraitError, Unicode, Dict, observe, validate
-from sql.trait import Parameters
+from sql.traits import Parameters
 
 import warnings
 import shlex
