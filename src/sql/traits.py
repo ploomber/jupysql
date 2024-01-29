@@ -5,7 +5,8 @@ import warnings
 VALUE_WARNING = (
     'Please use a valid option: "warn", "enabled", or "disabled". \n'
     "For more information, "
-    "see the docs: https://jupysql.ploomber.io/en/latest/api/configuration.html"
+    "see the docs: "
+    "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"
 )
 
 

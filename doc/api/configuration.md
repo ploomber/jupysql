@@ -265,6 +265,13 @@ If `warn`, a warning will be raised when named parameters are included in the st
 If `enabled`, the statement will be executed with named parameters enabled.
 If `disabled`, the statement will be executed with named parameters disabled.
 
+```{important}
+The `disabled` feature makes use of SQLAlchemy's `exec_driver_sql()` instead of `execute()`
+to execute SQL statements without the use of bound parameters. This operation doesn't include 
+other SQL compilation steps which could affect the behavior of your program.
+If you encounter problems, please open an issue on [Slack](https://ploomber.io/community) or [Github](https://github.com/ploomber/jupysql).
+```
+
 Learn more in the [tutorial.](../user-guide/template.md)
 
 Named parameters can be declared with `:variable`. 

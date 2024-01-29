@@ -837,14 +837,14 @@ class SQLAlchemyConnection(AbstractConnection):
                             "disable it with: "
                             '%config SqlMagic.named_parameters="disabled"\n'
                             "For more info, see the docs: "
-                            "https://jupysql.ploomber.io/en/latest/api/configuration.html"  # noqa
+                            "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
                         )
                 elif parameters == {}:
                     e.add_detail(
                         'The named parameters feature is "disabled". '
                         'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
                         "For more info, see the docs: "
-                        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
+                        "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
                     )
                 raise
 
