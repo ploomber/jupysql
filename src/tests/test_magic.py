@@ -1220,7 +1220,7 @@ def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_c
 invalid_connection_string_duckdb_top = """
 An error happened while creating the connection: connect(): incompatible function arguments. The following argument types are supported:
     1. (database: str = ':memory:', read_only: bool = False, config: dict = None) -> duckdb.DuckDBPyConnection
-"""
+"""  # noqa
 
 invalid_connection_string_duckdb_bottom = f"""
 Perhaps you meant to use the 'duckdb' db 
