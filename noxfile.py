@@ -185,10 +185,11 @@ def test_integration_sqlachemy_v1(session):
 def test_integration(session):
     """Run integration tests (to check compatibility with databases)"""
     _install(session, integration=True)
+    session.install("clickhouse-sqlalchemy")
     session.run(
         "pytest",
         "src/tests/integration",
         "-k",
-        "not (snowflake or redshift or clickhouse)",
+        "not (snowflake or redshift)",
         "-v",
     )

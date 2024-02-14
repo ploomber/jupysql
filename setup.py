@@ -23,7 +23,7 @@ install_requires = [
     "sqlparse",
     "ipython-genutils>=0.1.0",
     "jinja2",
-    "sqlglot>=11.3.7",
+    "sqlglot>=11.3.7, <21.1.0",
     'importlib-metadata;python_version<"3.8"',
     # we removed the share notebook button in this version
     "jupysql-plugin>=0.4.2",
@@ -42,7 +42,7 @@ DEV = [
     "pkgmt",
     "twine",
     # tests
-    "duckdb",
+    "duckdb<0.10.0",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
