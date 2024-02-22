@@ -1982,14 +1982,14 @@ def test_summarize_in_duckdb(ip_empty):
         "column_type": ("INTEGER", "INTEGER"),
         "min": ("1", "-1"),
         "max": ("3", "2"),
-        "approx_unique": ("3", "3"),
+        "approx_unique": (3, 3),
         "avg": ("2.0", "0.6666666666666666"),
         "std": ("1.0", "1.5275252316519468"),
         "q25": ("1", "0"),
         "q50": ("2", "1"),
         "q75": ("3", "2"),
         "count": (3, 3),
-        "null_percentage": ("0.0%", "0.0%"),
+        "null_percentage": (Decimal("0.00"), Decimal("0.00")),
     }
 
     ip_empty.run_cell("%sql duckdb://")

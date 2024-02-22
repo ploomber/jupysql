@@ -46,7 +46,7 @@ DEV = [
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
-    "matplotlib==3.8.2",
+    "matplotlib",
     "black",
     # for %%sql --interact
     "ipywidgets",
