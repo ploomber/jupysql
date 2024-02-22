@@ -475,6 +475,7 @@ def test_pie_one_col(load_data_one_col, ip):
     ip.run_cell("%sqlplot pie -t data_one.csv -c x")
 
 
+@pytest.mark.xfail(reason="DuckDB v0.10.0 bug")
 @_cleanup_cm()
 @image_comparison(
     baseline_images=["pie_one_col_null"], extensions=["png"], remove_text=True

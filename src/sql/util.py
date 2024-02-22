@@ -533,7 +533,7 @@ def extract_tables_from_query(query):
         tables = [
             table.name
             for table in parse_one(query).find_all(exp.Table)
-            if table is not None
+            if hasattr(table, "name")
         ]
         return tables
     except ParseError:
