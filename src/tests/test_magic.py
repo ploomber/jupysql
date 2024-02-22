@@ -3,6 +3,7 @@ import uuid
 import logging
 import platform
 import sqlite3
+from decimal import Decimal
 from pathlib import Path
 import os.path
 import re
@@ -2035,14 +2036,14 @@ expected_summarize = {
     "column_type": ("BIGINT",),
     "min": ("1",),
     "max": ("8",),
-    "approx_unique": ("5",),
+    "approx_unique": (5,),
     "avg": ("3.8",),
     "std": ("2.7748873851023217",),
     "q25": ("2",),
     "q50": ("3",),
     "q75": ("6",),
     "count": (5,),
-    "null_percentage": ("0.0%",),
+    "null_percentage": (Decimal("0.00"),),
 }
 expected_select = {"memid": (1, 2, 3, 5, 8)}
 
