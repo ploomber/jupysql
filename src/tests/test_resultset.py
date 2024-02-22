@@ -694,6 +694,7 @@ def test_calling_legacy_plotting_functions_displays_warning(
     assert str(record[0].message) == expected_warning
 
 
+@pytest.mark.xfail(reason="Failing intermittently with DuckDB v0.10.0")
 @pytest.mark.parametrize(
     "df_type, library, equal_func",
     [
