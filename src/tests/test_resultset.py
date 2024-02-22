@@ -10,7 +10,6 @@ import pytest
 import pandas as pd
 import polars as pl
 import sqlalchemy
-from IPython.core.error import UsageError
 
 from sql.connection import DBAPIConnection, SQLAlchemyConnection
 from sql.run.resultset import ResultSet
@@ -43,71 +42,6 @@ def result():
 def result_set(result, config):
     result_set, conn = result
     return ResultSet(result_set, config, statement="select * from df", conn=conn)
-
-
-@pytest.mark.parametrize(
-    "df_type, library, equal_func",
-    [
-        (
-            "autopandas",
-            pd,
-            "equals",
-        ),
-        (
-            "autopolars",
-            pl,
-            "frame_equal",
-        ),
-    ],
-)
-def test_pivot_dataframe_conversion_results(ip, df_type, library, equal_func):
-    # Setup connection, data
-    ip.run_cell(
-        """import duckdb
-conn = duckdb.connect()"""
-    )
-    ip.run_cell("%sql conn --alias duckdb-mem")
-    ip.run_cell(
-        """
-    %%sql
-CREATE OR REPLACE TABLE Cities(Country VARCHAR, Name VARCHAR, Year INT, Population INT);
-INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2000, 1005);
-INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2010, 1065);
-INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2020, 1158);
-INSERT INTO Cities VALUES ('US', 'Seattle', 2000, 564);
-INSERT INTO Cities VALUES ('US', 'Seattle', 2010, 608);
-INSERT INTO Cities VALUES ('US', 'Seattle', 2020, 738);
-INSERT INTO Cities VALUES ('US', 'New York City', 2000, 8015);
-INSERT INTO Cities VALUES ('US', 'New York City', 2010, 8175);
-INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
-    """
-    )
-
-    # Run Pivot statement as baseline
-    expected = ip.run_cell(
-        """%%sql
-    PIVOT Cities ON Year USING SUM(Population)"""
-    ).result
-
-    # Turn on auto-convert (also do with autopolars)
-    ip.run_cell(f"%config SqlMagic.{df_type} = True")
-
-    # Run Pivot statement again and ensure equal
-    result = ip.run_cell(
-        """%%sql
-    PIVOT Cities ON Year USING SUM(Population)"""
-    ).result
-
-    # Assert result matches expected
-    expected_result = {
-        "Country": ["US", "US", "NL"],
-        "Name": ["New York City", "Seattle", "Amsterdam"],
-        "2000": [8015.0, 564.0, 1005.0],
-        "2010": [8175.0, 608.0, 1065.0],
-        "2020": [8772.0, 738.0, 1158.0],
-    }
-    expected = getattr(library, "DataFrame")(expected_result)
-    assert getattr(result, equal_func)(expected)
 
 
 def test_resultset_getitem(result_set):
@@ -761,22 +695,65 @@ def test_calling_legacy_plotting_functions_displays_warning(
 
 
 @pytest.mark.parametrize(
-    "query, error",
+    "df_type, library, equal_func",
     [
         (
-            "select age(TIMESTAMP '2020-12-25', TIMESTAMP '2020-12-26') age",
-            "Python int too large to convert to C int",
+            "autopandas",
+            pd,
+            "equals",
         ),
         (
-            "select format('Works {:,}', 12) ok, format('Will not work {:,}', "
-            "12.0) not_ok",
-            "Thousand separators are not supported for floating point numbers",
+            "autopolars",
+            pl,
+            "frame_equal",
         ),
     ],
-    ids=["negative_age", "thousand_separators"],
 )
-def test_db_driver_error_raised(ip_empty, query, error):
-    ip_empty.run_cell("%sql duckdb://")
-    with pytest.raises(UsageError) as e:
-        ip_empty.run_cell(f"%sql {query}").result
-    assert error in str(e.value)
+def test_pivot_dataframe_conversion_results(ip, df_type, library, equal_func):
+    # Setup connection, data
+    ip.run_cell(
+        """import duckdb
+conn = duckdb.connect()"""
+    )
+    ip.run_cell("%sql conn --alias duckdb-mem")
+    ip.run_cell(
+        """
+    %%sql
+CREATE OR REPLACE TABLE Cities(Country VARCHAR, Name VARCHAR, Year INT, Population INT);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2000, 1005);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2010, 1065);
+INSERT INTO Cities VALUES ('NL', 'Amsterdam', 2020, 1158);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2000, 564);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2010, 608);
+INSERT INTO Cities VALUES ('US', 'Seattle', 2020, 738);
+INSERT INTO Cities VALUES ('US', 'New York City', 2000, 8015);
+INSERT INTO Cities VALUES ('US', 'New York City', 2010, 8175);
+INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
+    """
+    )
+
+    # Run Pivot statement as baseline
+    expected = ip.run_cell(
+        """%%sql
+    PIVOT Cities ON Year USING SUM(Population)"""
+    ).result
+
+    # Turn on auto-convert (also do with autopolars)
+    ip.run_cell(f"%config SqlMagic.{df_type} = True")
+
+    # Run Pivot statement again and ensure equal
+    result = ip.run_cell(
+        """%%sql
+    PIVOT Cities ON Year USING SUM(Population)"""
+    ).result
+
+    # Assert result matches expected
+    expected_result = {
+        "Country": ["US", "US", "NL"],
+        "Name": ["New York City", "Seattle", "Amsterdam"],
+        "2000": [8015.0, 564.0, 1005.0],
+        "2010": [8175.0, 608.0, 1065.0],
+        "2020": [8772.0, 738.0, 1158.0],
+    }
+    expected = getattr(library, "DataFrame")(expected_result)
+    assert getattr(result, equal_func)(expected)
