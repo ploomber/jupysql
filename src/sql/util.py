@@ -10,6 +10,7 @@ from ploomber_core.dependencies import requires
 import ast
 from os.path import isfile
 import re
+import sys
 
 from jinja2 import Template
 
@@ -17,7 +18,10 @@ from jinja2 import Template
 try:
     import toml
 except ModuleNotFoundError:
-    toml = None
+    if sys.version_info >= (3, 11):
+        import tomllib as toml
+    else:
+        toml = None
 
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
