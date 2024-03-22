@@ -498,24 +498,6 @@ displaycon = false
     assert all([getattr(sql, config) == value for config, value in confirm.items()])
 
 
-def test_toml_optional_message(tmp_empty, monkeypatch, ip, capsys):
-    monkeypatch.setitem(sys.modules, "toml", None)
-    Path("pyproject.toml").write_text(
-        """
-[tool.jupysql.SqlMagic]
-autocommit = true
-"""
-    )
-
-    ip.run_cell("%load_ext sql")
-    out, _ = capsys.readouterr()
-    assert (
-        "The 'toml' package isn't installed. "
-        "To load settings from pyproject.toml or ~/.jupysql/config, "
-        "install with: pip install toml"
-    ) in out
-
-
 @pytest.mark.parametrize(
     "pyproject_content, config_content, expected_messages",
     [

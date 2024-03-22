@@ -17,7 +17,7 @@ from jinja2 import Template
 try:
     import toml
 except ModuleNotFoundError:
-    toml = None
+    import tomllib as toml
 
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'

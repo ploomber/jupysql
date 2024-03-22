@@ -29,6 +29,7 @@ install_requires = [
     "jupysql-plugin>=0.4.2",
     "ploomber-core>=0.2.7",
     "ploomber-extension",
+    'toml;python_version<"3.11"',
 ]
 
 DEV = [
