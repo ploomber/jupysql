@@ -2767,3 +2767,20 @@ def test_disabled_named_parameters_shows_disabled_warning(ip):
     )
 
     assert expected_warning in str(excinfo.value)
+
+
+def test_disabled_named_parameters_shows_disabled_warning_duplicate(ip):
+    ip.run_cell("%config SqlMagic.named_parameters='disabled'")
+    query_should_warn = "%sql select json('[{\"a\"::1}')"
+
+    with pytest.raises(UsageError) as excinfo:
+        ip.run_cell(query_should_warn)
+
+    expected_warning = (
+        'The named parameters feature is "disabled". '
+        'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
+        "For more info, see the docs: "
+        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
+    )
+
+    assert expected_warning in str(excinfo.value)
