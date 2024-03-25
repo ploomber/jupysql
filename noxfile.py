@@ -113,7 +113,7 @@ def test_unit_sqlalchemy_one(session):
     SKIP_IMAGE_TEST = "--skip-image-tests" in session.posargs
 
     _install(session, integration=False)
-    session.install("sqlalchemy<2")
+    session.install("sqlalchemy<1.4.52")
     _check_sqlalchemy(session, version=1)
     _run_unit(session, skip_image_tests=SKIP_IMAGE_TEST)
 
