@@ -2,6 +2,8 @@
 
 ## 0.10.11dev
 
+  [Fix] Fall back to TOML parsing package in the standard library for Python 3.11 or greater
+
 ## 0.10.10 (2024-02-07)
 
 * [Feature] Adds `ploomber-extension` as a dependency
