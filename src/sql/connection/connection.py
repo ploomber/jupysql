@@ -1143,7 +1143,9 @@ class SparkConnectConnection(AbstractConnection):
         mode = (
             "overwrite"
             if if_exists == "replace"
-            else "append" if if_exists == "append" else "error"
+            else "append"
+            if if_exists == "append"
+            else "error"
         )
         self._connection.createDataFrame(data_frame).write.mode(mode).saveAsTable(
             f"{schema}.{table_name}" if schema else table_name
