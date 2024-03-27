@@ -2,6 +2,8 @@
 
 ## 0.10.11dev
 
+* [Feature] Add support for access by column name in result set.
+
 ## 0.10.10 (2024-02-07)
 
 * [Feature] Adds `ploomber-extension` as a dependency
