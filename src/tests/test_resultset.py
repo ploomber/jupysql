@@ -60,10 +60,12 @@ def test_resultset_len(result_set):
 def test_resultset_dicts(result_set):
     assert list(result_set.dicts()) == [{"x": 0}, {"x": 1}, {"x": 2}]
 
+
 def test_resultset_column(result_set):
     assert list(result_set.column("x")) == [0, 1, 2]
     with pytest.raises(KeyError):
         result_set.column("unknown_column")
+
 
 def test_resultset_dataframe(result_set, config):
     # since this will use the native method, the issue will be re-executed
