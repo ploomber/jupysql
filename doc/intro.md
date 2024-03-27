@@ -137,6 +137,17 @@ result['richard2']
 
 +++
 
+Iterating on the values of a single column is supported:
+
++++
+
+```
+result = %sql select * from writer
+list(result.column('last_name'))
+```
+
++++
+
 Results can also be retrieved as an iterator of dictionaries (``result.dicts()``)
 or a single dictionary with a tuple of scalar values per key (``result.dict()``)
 
