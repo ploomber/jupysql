@@ -6,6 +6,7 @@ from sql.util import enclose_table_with_double_quotations
 
 
 class facet:
+
     def get_facet_values(self, table, column, with_):
         conn = sql.connection.ConnectionManager.current
         table = enclose_table_with_double_quotations(table, conn)

@@ -245,7 +245,7 @@ class ResultSet(ColumnGuesserMixin):
         "Iterator yielding a dict for each row"
         for row in self:
             yield dict(zip(self.keys, row))
-
+    
     def column(self, name):
         """Iterator yielding the values on a column specified by name"""
         try:
@@ -254,6 +254,7 @@ class ResultSet(ColumnGuesserMixin):
             raise KeyError(f"Column '{name}' not found in the result set")
         for row in self:
             yield row[column_index]
+
 
     @telemetry.log_call("data-frame", payload=True)
     def DataFrame(self, payload):
