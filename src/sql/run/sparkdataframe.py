@@ -1,9 +1,11 @@
 try:
     from pyspark.sql import DataFrame
     from pyspark.sql.connect.dataframe import DataFrame as CDataFrame
+    from pyspark.sql.utils import AnalysisException
 except ModuleNotFoundError:
     DataFrame = None
     CDataFrame = None
+    AnalysisException = None
 
 from sql import exceptions
 
@@ -13,8 +15,13 @@ def handle_spark_dataframe(dataframe, should_cache=False):
     if not DataFrame and not CDataFrame:
         raise exceptions.MissingPackageError("pysark not installed")
 
-    return SparkResultProxy(dataframe, dataframe.columns, should_cache)
-
+    try:
+        return SparkResultProxy(dataframe, dataframe.columns, should_cache)
+    except AnalysisException as e:
+        print(e)
+    except Exception as e:
+        print(e)
+        raise (e)  
 
 class SparkResultProxy(object):
     """A fake class that pretends to behave like the ResultProxy from
