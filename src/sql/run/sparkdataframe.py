@@ -12,7 +12,7 @@ from sql import exceptions
 
 def handle_spark_dataframe(dataframe, should_cache=False):
     """Execute a ResultSet sqlaproxy using pysark module."""
-    if not DataFrame and not CDataFrame:
+    if not DataFrame and not CDataFrame and not AnalysisException:
         raise exceptions.MissingPackageError("pysark not installed")
 
     try:
