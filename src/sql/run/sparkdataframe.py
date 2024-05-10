@@ -21,7 +21,8 @@ def handle_spark_dataframe(dataframe, should_cache=False):
         print(e)
     except Exception as e:
         print(e)
-        raise (e)  
+        raise (e)
+
 
 class SparkResultProxy(object):
     """A fake class that pretends to behave like the ResultProxy from
