@@ -9,11 +9,12 @@ from sql import exceptions
 
 
 def handle_spark_dataframe(dataframe, should_cache=False):
-    """Execute a ResultSet sqlaproxy using pysark module."""
+    """Execute a ResultSet sqlaproxy using pyspark module."""
     if not DataFrame and not CDataFrame:
-        raise exceptions.MissingPackageError("pysark not installed")
+        raise exceptions.MissingPackageError("pyspark not installed")
 
     return SparkResultProxy(dataframe, dataframe.columns, should_cache)
+
 
 class SparkResultProxy(object):
     """A fake class that pretends to behave like the ResultProxy from
