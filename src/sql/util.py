@@ -7,6 +7,12 @@ from sqlglot import parse_one, exp
 from sqlglot.errors import ParseError
 from sqlalchemy.exc import SQLAlchemyError
 from ploomber_core.dependencies import requires
+
+try:
+    from pyspark.sql.utils import AnalysisException
+except ModuleNotFoundError:
+    AnalysisException = None
+
 import ast
 from os.path import isfile
 import re
@@ -556,12 +562,14 @@ def is_non_sqlalchemy_error(error):
         "pyodbc.ProgrammingError",
         # Clickhouse errors
         "DB::Exception:",
-        # Pyspark
-        "UNRESOLVED_ROUTINE",
-        "PARSE_SYNTAX_ERROR",
-        "AnalysisException",
     ]
-    return any(msg in str(error) for msg in specific_db_errors)
+    is_pyspark_analysis_exception = (
+        isinstance(error, AnalysisException) if AnalysisException else False
+    )
+    return (
+        any(msg in str(error) for msg in specific_db_errors)
+        or is_pyspark_analysis_exception
+    )
 
 
 def if_substring_exists(string, substrings):
