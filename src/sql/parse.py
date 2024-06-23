@@ -5,6 +5,7 @@ from os.path import expandvars
 from pathlib import Path
 import configparser
 import warnings
+import ast
 
 from sqlalchemy.engine.url import URL
 
@@ -28,6 +29,14 @@ SQL_COMMANDS = [
     "describe",
 ]
 
+def _section_as_url_dict(section):
+    url_args = dict(section)
+
+    if ("query" in url_args):
+        url_args["query"] = ast.literal_eval(url_args["query"])
+
+    return url_args
+
 
 class ConnectionsFile:
     def __init__(self, path_to_file) -> None:
@@ -43,8 +52,9 @@ class ConnectionsFile:
         except configparser.NoSectionError:
             return None
 
-        url = URL.create(**dict(section))
+        url = URL.create(**_section_as_url_dict(section))
         return str(url.render_as_string(hide_password=False))
+    
 
 
 def connection_str_from_dsn_section(section, config):
@@ -87,10 +97,8 @@ def connection_str_from_dsn_section(section, config):
             f"connections file {config.dsn_filename!r}"
         ) from e
 
-    cfg_dict = dict(cfg)
-
     try:
-        url = URL.create(**cfg_dict)
+        url = URL.create(**_section_as_url_dict(cfg))
     except TypeError as e:
         if "unexpected keyword argument" in str(e):
             raise exceptions.TypeError(
@@ -134,8 +142,8 @@ def _connection_string(arg, path_to_file):
         section = arg.lstrip("[").rstrip("]")
         parser = configparser.ConfigParser()
         parser.read(path_to_file)
-        cfg_dict = dict(parser.items(section))
-        url = URL.create(**cfg_dict)
+        cfg = parser.items(section)
+        url = URL.create(**_section_as_url_dict(cfg))
         url_ = str(url.render_as_string(hide_password=False))
 
         warnings.warn(
