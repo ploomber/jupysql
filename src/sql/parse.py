@@ -31,6 +31,16 @@ SQL_COMMANDS = [
 
 
 def _section_as_url_dict(section):
+    """Return a configuration section as a dictionary of keys and values
+
+    If the section contains `query` as key, its value is evaluated such
+    that a `"{...}"` string is also converted to a dictionary.
+
+    Parameters
+    ----------
+    section : list[tuple[str,str]]
+        The section object as retured by ConfigParser.items()
+    """
     url_args = dict(section)
 
     if "query" in url_args:
