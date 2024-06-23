@@ -39,7 +39,7 @@ def _section_as_url_dict(section):
     Parameters
     ----------
     section : list[tuple[str,str]]
-        The section object as retured by ConfigParser.items()
+        The section object as returned by ConfigParser.items()
     """
     url_args = dict(section)
 
