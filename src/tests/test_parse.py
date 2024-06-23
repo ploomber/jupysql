@@ -172,7 +172,7 @@ def test_parse_connect_shovel_over_newlines():
         ),
         (
             "DB_CONFIG_3",
-            "sqlite://thefin:fishputsfishonthetable@127.0.0.1/dolfin?color=grey&sound=squeek",
+            "sqlite://thefin:dafish@127.0.0.1/dolfin?color=grey&sound=squeek",
         ),
     ],
 )
@@ -198,7 +198,7 @@ def test_connection_from_dsn_section(section, expected):
         ("not-a-url", ""),
         (
             "[DB_CONFIG_3]",
-            "sqlite://thefin:fishputsfishonthetable@127.0.0.1/dolfin?color=grey&sound=squeek",
+            "sqlite://thefin:dafish@127.0.0.1/dolfin?color=grey&sound=squeek",
         ),
     ],
     ids=[
