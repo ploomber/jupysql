@@ -29,10 +29,11 @@ SQL_COMMANDS = [
     "describe",
 ]
 
+
 def _section_as_url_dict(section):
     url_args = dict(section)
 
-    if ("query" in url_args):
+    if "query" in url_args:
         url_args["query"] = ast.literal_eval(url_args["query"])
 
     return url_args
@@ -54,7 +55,6 @@ class ConnectionsFile:
 
         url = URL.create(**_section_as_url_dict(section))
         return str(url.render_as_string(hide_password=False))
-    
 
 
 def connection_str_from_dsn_section(section, config):

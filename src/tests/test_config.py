@@ -90,6 +90,7 @@ drivername = sqlite
     assert set(ConnectionManager.connections) == {"default"}
     assert ConnectionManager.current.dialect == "sqlite"
 
+
 def test_config_loads_query_element_as_url_params(tmp_empty, ip_no_magics):
     Path("connections.ini").write_text(
         """
