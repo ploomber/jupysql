@@ -2,7 +2,7 @@
 
 ## 0.10.11dev
 
-* [Fix] Fix error when connections.ini contains a query value ([#1015](https://github.com/ploomber/jupysql/issues/1015))
+* [Fix] Fix error when connections.ini contains a `query` value as dictionary ([#1015](https://github.com/ploomber/jupysql/issues/1015))
 
 ## 0.10.10 (2024-02-07)
 
