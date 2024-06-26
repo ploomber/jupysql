@@ -2377,7 +2377,7 @@ def test_json_arrow_operators(ip, query, expected):
             """%%sql --save snippet
             select '{\"a\": 1}'::json -> 'a';""",
             "%sql select * from snippet",
-            "1",
+            1,
         ),
         (
             """%sql --save snippet select '[{\"b\": \"c\"}]'::json ->> 0;""",
@@ -2390,7 +2390,7 @@ def test_json_arrow_operators(ip, query, expected):
             -> 2
             as number""",
             "%sql select number from snippet",
-            "3",
+            3,
         ),
     ],
     ids=["cell-magic-key", "line-magic-index", "cell-magic-multi-line-as-column"],
