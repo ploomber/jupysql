@@ -47,7 +47,7 @@ class DictOfFloats(Mapping):
 
 
 def test_boxplot_stats(chinook_db, ip_empty):
-    # there's some werid behavior in duckdb-engine that will cause the
+    # there's some weird behavior in duckdb-engine that will cause the
     # table not to be found if we call commit
     ip_empty.run_cell("%config SqlMagic.autocommit=False")
     ip_empty.run_cell("%sql duckdb://")
