@@ -44,7 +44,7 @@ DEV = [
     "twine",
     # tests
     # DuckDB 0.10.1 breaking Sqlalchemy v1 tests: https://github.com/ploomber/jupysql/issues/1001 # noqa
-    "duckdb<0.10.1",
+    "duckdb",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
