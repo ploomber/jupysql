@@ -121,7 +121,7 @@ databaseConfig = {
         "alias": "mySQLTest",
         "docker_ct": {
             "name": "mysql",
-            "image": "mysql:latest",
+            "image": "mysql:8.0",
             "ports": {3306: 33306},
         },
         "query": {},
