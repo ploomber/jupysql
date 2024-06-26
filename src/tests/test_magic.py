@@ -2296,7 +2296,7 @@ def test_get_query_type(query, query_type):
     [
         (
             "%sql select '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             '%sql select \'[{"b": "c"}]\'::json -> 0;',
@@ -2304,7 +2304,7 @@ def test_get_query_type(query, query_type):
         ),
         (
             "%sql select '{\"a\": 1}'::json ->> 'a';",
-            "1",
+            1,
         ),
         (
             '%sql select \'[{"b": "c"}]\'::json ->> 0;',
@@ -2314,13 +2314,13 @@ def test_get_query_type(query, query_type):
             """%%sql select '{\"a\": 1}'::json
             ->
             'a';""",
-            "1",
+            1,
         ),
         (
             """%%sql select '[{\"b\": \"c\"}]'::json
                 ->
             0;""",
-            '{"b":"c"}',
+            {"b": "c"},
         ),
         (
             """%%sql select '{\"a\": 1}'::json
@@ -2753,23 +2753,6 @@ def test_disable_named_parameters_with_json(ip, query, expected):
 
 
 def test_disabled_named_parameters_shows_disabled_warning(ip):
-    ip.run_cell("%config SqlMagic.named_parameters='disabled'")
-    query_should_warn = "%sql select json('[{\"a\"::1}')"
-
-    with pytest.raises(UsageError) as excinfo:
-        ip.run_cell(query_should_warn)
-
-    expected_warning = (
-        'The named parameters feature is "disabled". '
-        'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
-        "For more info, see the docs: "
-        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
-    )
-
-    assert expected_warning in str(excinfo.value)
-
-
-def test_disabled_named_parameters_shows_disabled_warning_duplicate(ip):
     ip.run_cell("%config SqlMagic.named_parameters='disabled'")
     query_should_warn = "%sql select json('[{\"a\"::1}')"
 
