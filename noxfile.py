@@ -24,7 +24,7 @@ if VENV_BACKEND == "conda":
 INTEGRATION_CONDA_DEPENDENCIES = [
     "pyarrow",
     "psycopg2",
-    "pymysql<1.1.1",
+    "pymysql",
     "oracledb",
     "pip",
 ]
