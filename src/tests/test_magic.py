@@ -2300,11 +2300,11 @@ def test_get_query_type(query, query_type):
         ),
         (
             '%sql select \'[{"b": "c"}]\'::json -> 0;',
-            '{"b":"c"}',
+            {"b": "c"},
         ),
         (
             "%sql select '{\"a\": 1}'::json ->> 'a';",
-            1,
+            "1",
         ),
         (
             '%sql select \'[{"b": "c"}]\'::json ->> 0;',
@@ -2338,15 +2338,15 @@ def test_get_query_type(query, query_type):
         ),
         (
             "%sql SELECT '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             "%sql SELect '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             "%sql SELECT json('{\"a\": 1}') -> 'a';",
-            "1",
+            1,
         ),
     ],
     ids=[
@@ -2737,11 +2737,11 @@ drivername = duckdb
     [
         (
             '%sql select json(\'[{"a":1}, {"b":2}]\')',
-            '[{"a":1},{"b":2}]',
+            "[{'a': 1}, {'b': 2}]",
         ),
         (
             '%sql select \'[{"a":1}, {"b":2}]\'::json',
-            '[{"a":1}, {"b":2}]',
+            "[{'a': 1}, {'b': 2}]",
         ),
     ],
 )
