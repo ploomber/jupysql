@@ -30,8 +30,8 @@ SQL_COMMANDS = [
 ]
 
 
-def _section_as_url_dict(section):
-    """Return a configuration section as a dictionary of keys and values
+def _parse_config_section(section):
+    """Return a given configuration section as a dictionary of keys and values
 
     If the section contains `query` as key, its value is evaluated such
     that a `"{...}"` string is also converted to a dictionary.
@@ -63,7 +63,7 @@ class ConnectionsFile:
         except configparser.NoSectionError:
             return None
 
-        url = URL.create(**_section_as_url_dict(section))
+        url = URL.create(**_parse_config_section(section))
         return str(url.render_as_string(hide_password=False))
 
 
@@ -108,7 +108,7 @@ def connection_str_from_dsn_section(section, config):
         ) from e
 
     try:
-        url = URL.create(**_section_as_url_dict(cfg))
+        url = URL.create(**_parse_config_section(cfg))
     except TypeError as e:
         if "unexpected keyword argument" in str(e):
             raise exceptions.TypeError(
@@ -153,7 +153,7 @@ def _connection_string(arg, path_to_file):
         parser = configparser.ConfigParser()
         parser.read(path_to_file)
         cfg = parser.items(section)
-        url = URL.create(**_section_as_url_dict(cfg))
+        url = URL.create(**_parse_config_section(cfg))
         url_ = str(url.render_as_string(hide_password=False))
 
         warnings.warn(
