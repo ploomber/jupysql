@@ -1414,7 +1414,7 @@ SELECT * FROM {__TABLE_NAME__};
             "ip_with_oracle",
             "mysnip",
             [
-                "table or view does not exist",
+                'table or view "PLOOMBER_APP"."MYSNIP" does not exist',
             ],
             "RuntimeError",
         ),
