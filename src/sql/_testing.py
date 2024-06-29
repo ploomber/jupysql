@@ -116,7 +116,7 @@ databaseConfig = {
         "password": "ploomber_app_password",
         "root_password": "ploomber_app_root_password",
         "database": "db",
-        "host": "localhost",
+        "host": "127.0.0.1",
         "port": "33306",
         "alias": "mySQLTest",
         "docker_ct": {

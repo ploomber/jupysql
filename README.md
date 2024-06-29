@@ -1,6 +1,6 @@
 # JupySQL
 ![CI](https://github.com/ploomber/jupysql/workflows/CI/badge.svg)
-![CI Integration Tests](https://github.com/ploomber/jupysql/workflows/CI%20-%20DB%20Integration/badge.svg)
+![CI Integration Tests](https://github.com/ploomber/jupysql/actions/workflows/ci-integration-db.yaml/badge.svg)
 ![Broken Links](https://github.com/ploomber/jupysql/workflows/check-for-broken-links/badge.svg)
 [![PyPI version](https://badge.fury.io/py/jupysql.svg)](https://badge.fury.io/py/jupysql)
 [![Twitter](https://img.shields.io/twitter/follow/edublancas?label=Follow&style=social)](https://twitter.com/intent/user?screen_name=ploomber)

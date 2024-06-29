@@ -85,6 +85,19 @@ port = 5432
 database = db
 ```
 
+Or, to connect to an Oracle database, which might require some query parameters:
+
+```ini
+[ora]
+drivername = oracle+oracledb
+username = myuser
+password = mypass
+host = my_oracle_server.example.com
+port = 1521
+database = my_oracle_pdb.example.com
+query = {"servicename": "my_oracle_db.example.com"}
+```
+
 ```{code-cell} ipython3
 from pathlib import Path
 

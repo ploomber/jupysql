@@ -170,6 +170,10 @@ def test_parse_connect_shovel_over_newlines():
             "DB_CONFIG_2",
             "mysql://thefin:fishputsfishonthetable@127.0.0.1/dolfin",
         ),
+        (
+            "DB_CONFIG_3",
+            "sqlite://thefin:dafish@127.0.0.1/dolfin?color=grey&sound=squeek",
+        ),
     ],
 )
 def test_connection_from_dsn_section(section, expected):
@@ -192,6 +196,10 @@ def test_connection_from_dsn_section(section, expected):
         ),
         ("DB_CONFIG_1", ""),
         ("not-a-url", ""),
+        (
+            "[DB_CONFIG_3]",
+            "sqlite://thefin:dafish@127.0.0.1/dolfin?color=grey&sound=squeek",
+        ),
     ],
     ids=[
         "empty",
@@ -200,6 +208,7 @@ def test_connection_from_dsn_section(section, expected):
         "section",
         "not-a-section",
         "not-a-url",
+        "section-with-query",
     ],
 )
 def test_connection_string(input_, expected):
