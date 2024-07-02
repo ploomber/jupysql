@@ -43,7 +43,6 @@ DEV = [
     "pkgmt",
     "twine",
     # tests
-    # DuckDB 0.10.1 breaking Sqlalchemy v1 tests: https://github.com/ploomber/jupysql/issues/1001 # noqa
     "duckdb",
     "duckdb-engine",
     "pyodbc",
