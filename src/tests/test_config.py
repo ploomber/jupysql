@@ -91,6 +91,23 @@ drivername = sqlite
     assert ConnectionManager.current.dialect == "sqlite"
 
 
+def test_config_loads_query_element_as_url_params(tmp_empty, ip_no_magics):
+    Path("connections.ini").write_text(
+        """
+[default]
+drivername = sqlite
+query = {'param1': 'value1', 'param2': 'value2'}
+"""
+    )
+    ip_no_magics.run_cell("%config SqlMagic.dsn_filename = 'connections.ini'")
+
+    load_ipython_extension(ip_no_magics)
+
+    assert set(ConnectionManager.connections) == {"default"}
+    assert ConnectionManager.current.dialect == "sqlite"
+    assert ConnectionManager.current.url == "sqlite://?param1=value1&param2=value2"
+
+
 def test_load_home_toml_if_no_pyproject_toml(
     tmp_empty, ip_no_magics, capsys, monkeypatch
 ):

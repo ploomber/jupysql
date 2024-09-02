@@ -2296,11 +2296,11 @@ def test_get_query_type(query, query_type):
     [
         (
             "%sql select '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             '%sql select \'[{"b": "c"}]\'::json -> 0;',
-            '{"b":"c"}',
+            {"b": "c"},
         ),
         (
             "%sql select '{\"a\": 1}'::json ->> 'a';",
@@ -2314,13 +2314,13 @@ def test_get_query_type(query, query_type):
             """%%sql select '{\"a\": 1}'::json
             ->
             'a';""",
-            "1",
+            1,
         ),
         (
             """%%sql select '[{\"b\": \"c\"}]'::json
                 ->
             0;""",
-            '{"b":"c"}',
+            {"b": "c"},
         ),
         (
             """%%sql select '{\"a\": 1}'::json
@@ -2338,15 +2338,15 @@ def test_get_query_type(query, query_type):
         ),
         (
             "%sql SELECT '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             "%sql SELect '{\"a\": 1}'::json -> 'a';",
-            "1",
+            1,
         ),
         (
             "%sql SELECT json('{\"a\": 1}') -> 'a';",
-            "1",
+            1,
         ),
     ],
     ids=[
@@ -2377,7 +2377,7 @@ def test_json_arrow_operators(ip, query, expected):
             """%%sql --save snippet
             select '{\"a\": 1}'::json -> 'a';""",
             "%sql select * from snippet",
-            "1",
+            1,
         ),
         (
             """%sql --save snippet select '[{\"b\": \"c\"}]'::json ->> 0;""",
@@ -2390,7 +2390,7 @@ def test_json_arrow_operators(ip, query, expected):
             -> 2
             as number""",
             "%sql select number from snippet",
-            "3",
+            3,
         ),
     ],
     ids=["cell-magic-key", "line-magic-index", "cell-magic-multi-line-as-column"],
@@ -2737,11 +2737,11 @@ drivername = duckdb
     [
         (
             '%sql select json(\'[{"a":1}, {"b":2}]\')',
-            '[{"a":1},{"b":2}]',
+            "[{'a': 1}, {'b': 2}]",
         ),
         (
             '%sql select \'[{"a":1}, {"b":2}]\'::json',
-            '[{"a":1}, {"b":2}]',
+            "[{'a': 1}, {'b': 2}]",
         ),
     ],
 )

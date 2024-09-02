@@ -19,8 +19,7 @@ install_requires = [
     "prettytable",
     # IPython dropped support for Python 3.8
     "ipython<=8.12.0; python_version <= '3.8'",
-    # sqlalchemy 2.0.29 breaking the CI: https://github.com/ploomber/jupysql/issues/1001
-    "sqlalchemy<2.0.29",
+    "sqlalchemy",
     "sqlparse",
     "ipython-genutils>=0.1.0",
     "jinja2",
@@ -43,8 +42,7 @@ DEV = [
     "pkgmt",
     "twine",
     # tests
-    # DuckDB 0.10.1 breaking Sqlalchemy v1 tests: https://github.com/ploomber/jupysql/issues/1001 # noqa
-    "duckdb<0.10.1",
+    "duckdb",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
