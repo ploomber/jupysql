@@ -2,6 +2,8 @@
 
 ## 0.10.13dev
 
+* [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
+
 ## 0.10.12 (2024-07-12)
 
 * [Feature] Remove sqlalchemy upper bound ([#1020](https://github.com/ploomber/jupysql/pull/1020))
@@ -9,8 +11,6 @@
 ## 0.10.11 (2024-07-03)
 
 * [Fix] Fix error when connections.ini contains a `query` value as dictionary ([#1015](https://github.com/ploomber/jupysql/issues/1015))
-
-* [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
 
 ## 0.10.10 (2024-02-07)
 
