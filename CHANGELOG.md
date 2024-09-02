@@ -2,7 +2,7 @@
 
 ## 0.10.11dev
 
-* [Feature] Disable full stackt race when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
+* [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
 
 ## 0.10.10 (2024-02-07)
 
