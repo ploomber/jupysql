@@ -28,7 +28,6 @@ install_requires = [
     # we removed the share notebook button in this version
     "jupysql-plugin>=0.4.2",
     "ploomber-core>=0.2.7",
-    "ploomber-extension",
 ]
 
 DEV = [
