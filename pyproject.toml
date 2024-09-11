@@ -15,6 +15,7 @@ ignore_substrings = [
     "http://localhost",
     "https://localhost",
     "platform.ploomber.io",
+    "https://ourworldindata.org",
 ]
 
 [tool.nbqa.addopts]
