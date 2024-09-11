@@ -41,7 +41,7 @@ DEV = [
     "pkgmt",
     "twine",
     # tests
-    "duckdb",
+    "duckdb<1.1.0",
     "duckdb-engine",
     "pyodbc",
     # sql.plot module tests
