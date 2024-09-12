@@ -20,7 +20,6 @@ parts:
 
   - caption: JupyterLab integration
     chapters:
-    - file: jupyterlab/sharing
     - file: jupyterlab/syntax-highlighting
     - file: jupyterlab/format-sql
     - file: jupyterlab/autocompletion
