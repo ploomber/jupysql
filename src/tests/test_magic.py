@@ -737,7 +737,7 @@ def test_displaylimit_with_count_statement(ip, load_penguin, config_value):
 def test_column_local_vars(ip):
     ip.run_line_magic("config", "SqlMagic.column_local_vars = True")
     result = runsql(ip, "SELECT * FROM author;")
-    assert result is None
+    assert result is not None
     assert "William" in ip.user_global_ns["first_name"]
     assert "Shakespeare" in ip.user_global_ns["last_name"]
     assert len(ip.user_global_ns["first_name"]) == 2

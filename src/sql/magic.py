@@ -586,23 +586,23 @@ class SqlMagic(Magics, Configurable):
                 and not isinstance(result, str)
                 and self.column_local_vars
             ):
-                # Instead of returning values, set variables directly in the
-                # users namespace. Variable names given by column names
+                # Set variables directly in the users namespace.
+                # Variable names given by column names
 
                 if self.autopandas or self.autopolars:
                     keys = result.keys()
+                    self.shell.user_ns.update(result)
+                    result = None
                 else:
                     keys = result.keys
-                    result = result.dict()
+                    self.shell.user_ns.update(result.dict())
 
                 if self.feedback:
                     display.message(
                         "Returning data to local variables [{}]".format(", ".join(keys))
                     )
 
-                self.shell.user_ns.update(result)
-
-                return None
+                return result
             else:
                 if command.result_var:
                     self.shell.user_ns.update({command.result_var: result})
