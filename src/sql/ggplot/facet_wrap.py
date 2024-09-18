@@ -1,7 +1,6 @@
 from jinja2 import Template
 import math
 import sql.connection
-from sql.telemetry import telemetry
 from sql.util import enclose_table_with_double_quotations
 
 
@@ -42,7 +41,6 @@ class facet_wrap(facet):
         Column to groupby and plot on different panels.
     """
 
-    @telemetry.log_call("facet-wrap-init")
     def __init__(self, facet: str, legend=True):
         self.facet = facet
         self.legend = legend

@@ -161,17 +161,6 @@ def test_nonexistent_table(sample_db, name, schema, error):
     assert error.lower() in str(excinfo.value).lower()
 
 
-@pytest.mark.parametrize(
-    "function",
-    [
-        inspect.get_table_names,
-        inspect.get_columns,
-    ],
-)
-def test_telemetry(function):
-    assert "@telemetry.log_call" in getsource(function)
-
-
 def test_get_schema_names(ip):
     ip.run_cell(
         """%%sql sqlite:///my.db

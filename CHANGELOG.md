@@ -2,6 +2,8 @@
 
 ## 0.10.14dev
 
+* [Feature] Removes telemetry
+
 ## 0.10.13 (2024-09-12)
 
 * [Feature] `ploomber-extension` is no longer a dependency

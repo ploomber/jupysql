@@ -237,7 +237,7 @@ print("all: ", results.fetchall())
 Functions that expect a `conn` (sometimes named `con`) input variable should assume the input argument is a connection objects (either `SQLAlchemyConnection` or `DBAPIConnection`):
 
 ```python
-def histogram(payload, table, column, bins, with_=None, conn=None):
+def histogram(table, column, bins, with_=None, conn=None):
     pass
 ```
 

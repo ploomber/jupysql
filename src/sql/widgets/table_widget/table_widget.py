@@ -5,7 +5,6 @@ import time
 from sql.util import parse_sql_results_to_json
 from sql.inspect import fetch_sql_with_pagination, is_table_exists
 from sql.widgets import utils
-from sql.telemetry import telemetry
 
 import os
 from ploomber_core.dependencies import check_installed
@@ -15,7 +14,6 @@ BASE_DIR = os.path.dirname(__file__)
 
 
 class TableWidget:
-    @telemetry.log_call("TableWidget-init")
     def __init__(self, table, schema=None):
         """
         Creates an HTML table element and populates it with SQL table
