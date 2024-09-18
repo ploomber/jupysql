@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 import pytest
 import warnings
 from sql.error_handler import CTE_MSG
-from unittest.mock import ANY
 from IPython.core.error import UsageError
 
 import math
