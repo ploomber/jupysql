@@ -253,6 +253,10 @@ WHERE trip_distance < 18.93
 
 ## Querying existing dataframes
 
+```{important}
+some note to trigger the CI
+```
+
 ```{code-cell} ipython3
 import pandas as pd
 from sqlalchemy import create_engine

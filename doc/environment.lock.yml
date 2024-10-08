@@ -91,8 +91,8 @@ dependencies:
       - debugpy==1.6.7
       - decorator==5.1.1
       - docutils==0.16
-      - duckdb==0.8.1
-      - duckdb-engine==0.9.1
+      - duckdb==1.1.1
+      - duckdb-engine==0.13.2
       - chdb==0.13.0
       - exceptiongroup==1.1.2
       - executing==1.2.0
@@ -186,7 +186,7 @@ dependencies:
       - sphinxcontrib-jsmath==1.0.1
       - sphinxcontrib-qthelp==1.0.3
       - sphinxcontrib-serializinghtml==1.1.5
-      - sqlalchemy==2.0.19
+      - sqlalchemy==2.0.35
       - sqlglot==17.4.1
       - sqlparse==0.4.4
       - stack-data==0.6.2
