@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import Mock
 
-from inspect import getsource
+
 import pytest
 from functools import partial
 
@@ -159,17 +159,6 @@ def test_nonexistent_table(sample_db, name, schema, error):
 
     assert excinfo.value.error_type == "TableNotFoundError"
     assert error.lower() in str(excinfo.value).lower()
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        inspect.get_table_names,
-        inspect.get_columns,
-    ],
-)
-def test_telemetry(function):
-    assert "@telemetry.log_call" in getsource(function)
 
 
 def test_get_schema_names(ip):

@@ -1,6 +1,5 @@
 from sql import plot
 from sql.ggplot.geom.geom import geom
-from sql.telemetry import telemetry
 
 
 class geom_histogram(geom):
@@ -36,7 +35,6 @@ class geom_histogram(geom):
         self.binwidth = binwidth
         super().__init__(**kwargs)
 
-    @telemetry.log_call("ggplot-histogram")
     def draw(self, gg, ax=None, facet=None):
         plot.histogram(
             table=gg.table,

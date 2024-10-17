@@ -3,9 +3,7 @@ import shutil
 from matplotlib import pyplot as plt
 import pytest
 import warnings
-from sql.telemetry import telemetry
 from sql.error_handler import CTE_MSG
-from unittest.mock import ANY, Mock
 from IPython.core.error import UsageError
 
 import math
@@ -36,13 +34,6 @@ def run_around_tests(tmpdir_factory):
     yield my_tmpdir
     # Destroy tmp folder
     shutil.rmtree(str(my_tmpdir))
-
-
-@pytest.fixture
-def mock_log_api(monkeypatch):
-    mock_log_api = Mock()
-    monkeypatch.setattr(telemetry, "log_api", mock_log_api)
-    yield mock_log_api
 
 
 @pytest.mark.parametrize(
@@ -267,41 +258,6 @@ def test_close_and_connect(
         ip_with_dynamic_db.run_cell("%sql " + database_url + " --alias " + conn_alias)
 
     assert get_connection_count(ip_with_dynamic_db) == 1
-
-
-@pytest.mark.parametrize(
-    "ip_with_dynamic_db, expected_dialect, expected_driver",
-    [
-        ("ip_with_postgreSQL", "postgresql", "psycopg2"),
-        ("ip_with_mySQL", "mysql", "pymysql"),
-        ("ip_with_mariaDB", "mysql", "pymysql"),
-        ("ip_with_SQLite", "sqlite", "pysqlite"),
-        ("ip_with_duckDB", "duckdb", "duckdb_engine"),
-        ("ip_with_duckDB_native", "duckdb", "DuckDBPyConnection"),
-        ("ip_with_MSSQL", "mssql", "pyodbc"),
-        ("ip_with_Snowflake", "snowflake", "snowflake"),
-        ("ip_with_oracle", "oracle", "oracledb"),
-        ("ip_with_clickhouse", "clickhouse", "native"),
-        ("ip_with_spark", "spark2", "SparkSession"),
-    ],
-)
-def test_telemetry_execute_command_has_connection_info(
-    ip_with_dynamic_db, expected_dialect, expected_driver, mock_log_api, request
-):
-    ip_with_dynamic_db = request.getfixturevalue(ip_with_dynamic_db)
-
-    mock_log_api.assert_called_with(
-        action="jupysql-execute-success",
-        total_runtime=ANY,
-        metadata={
-            "argv": ANY,
-            "connection_info": {
-                "dialect": expected_dialect,
-                "driver": expected_driver,
-                "server_version_info": ANY,
-            },
-        },
-    )
 
 
 @pytest.mark.parametrize(
