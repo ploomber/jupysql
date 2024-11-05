@@ -1,7 +1,7 @@
 import pytest
 
 from sql.stats import _summary_stats
-from sql.connection import SQLAlchemyConnection, SparkConnectConnection
+from sql.connection import SQLAlchemyConnection
 
 
 @pytest.mark.parametrize(
