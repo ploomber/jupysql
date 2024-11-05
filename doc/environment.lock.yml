@@ -198,7 +198,7 @@ dependencies:
       - typing-extensions==4.7.1
       - uc-micro-py==1.0.2
       - urllib3==1.26.16
-      - wcwidth==0.2.6
+      - wcwidth==0.2.13
       - widgetsnbextension==4.0.8
       - zipp==3.16.2
 prefix: /opt/conda/envs/jupysql-doc
