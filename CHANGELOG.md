@@ -4,7 +4,7 @@
 
 *Drops compatibility with Python 3.8*
 
-* [Fix] Compaatibility with `prettytable>=3.12.0`
+* [Fix] Compatibility with `prettytable>=3.12.0`
 
 ## 0.10.14 (2024-09-18)
 
