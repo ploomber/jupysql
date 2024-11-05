@@ -16,7 +16,7 @@ with open("src/sql/__init__.py", "rb") as f:
     )
 
 install_requires = [
-    "prettytable",
+    "prettytable>=3.12.0",
     # IPython dropped support for Python 3.8
     "ipython<=8.12.0; python_version <= '3.8'",
     "sqlalchemy",

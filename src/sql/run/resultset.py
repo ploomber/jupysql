@@ -463,7 +463,7 @@ class ResultSet(ColumnGuesserMixin):
         pretty = CustomPrettyTable(self.field_names)
 
         if isinstance(self._config.style, str):
-            _style = prettytable.__dict__[self._config.style.upper()]
+            _style = prettytable.TableStyle.__members__[self._config.style.upper()]
             pretty.set_style(_style)
 
         return pretty
