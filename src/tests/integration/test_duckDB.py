@@ -238,7 +238,7 @@ def test_commits_all_statements(ip, sql, request):
 
 
 def test_can_query_existing_df(ip_with_duckdb_sqlalchemy_empty):
-    df = pd.DataFrame({"city": ["NYC"]})
+    df = pd.DataFrame({"city": ["NYC"]})  # noqa
     ip_with_duckdb_sqlalchemy_empty.run_cell("%sql SET python_scan_all_frames=true")
     out = ip_with_duckdb_sqlalchemy_empty.run_cell("%sql SELECT * FROM df;")
     assert out.result.dict() == {"city": ("NYC",)}
