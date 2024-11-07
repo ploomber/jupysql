@@ -2,6 +2,9 @@
 
 ## 0.10.16dev
 
+* [Fix] Updates docs for querying data frames when using DuckDB SQLAlchemy connections
+* [Fix] Support for scanning data frames when using native DuckDB connections due to changes in DuckDB's API
+
 ## 0.10.15 (2024-11-05)
 
 *Drops compatibility with Python 3.8*
