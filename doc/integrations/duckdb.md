@@ -265,6 +265,14 @@ df = pd.DataFrame({"x": range(100)})
 %sql engine
 ```
 
+```{important}
+If you're using DuckDB 1.1.0 or higher, you must run this before querying a data frame
+
+~~~sql
+%sql SET python_scan_all_frames=true
+~~~
+```
+
 ```{code-cell} ipython3
 %%sql
 SELECT *
