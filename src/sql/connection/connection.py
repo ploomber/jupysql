@@ -1039,6 +1039,8 @@ class DBAPIConnection(AbstractConnection):
 
         cur = self._connection.cursor()
 
+        # NOTE: this is a workaround for duckdb 1.1.0 and higher so we keep the
+        # existing behavior of being able to query data frames
         if self._is_duckdb_native:
             try:
                 cur.execute("SET python_scan_all_frames=true")
