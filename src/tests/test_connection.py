@@ -888,6 +888,10 @@ def mock_dbapi_raw_execute(monkeypatch, conn_dbapi_duckdb):
 def test_raw_execute_doesnt_transpile_sql_query(fixture_name, request):
     mock_execute, conn = request.getfixturevalue(fixture_name)
 
+    # to prevent the "SET python_scan_all_frames=true" call, since we don't want to
+    # test that here
+    conn._is_duckdb_native = False
+
     conn.raw_execute("CREATE TABLE foo (bar INT)")
     conn.raw_execute("INSERT INTO foo VALUES (42), (43)")
     conn.raw_execute("SELECT * FROM foo LIMIT 1")
@@ -948,6 +952,10 @@ def mock_dbapi_execute(monkeypatch):
 )
 def test_execute_transpiles_sql_query(fixture_name, request):
     mock_execute, conn = request.getfixturevalue(fixture_name)
+
+    # to prevent the "SET python_scan_all_frames=true" call, since we don't want to
+    # test that here
+    conn._is_duckdb_native = False
 
     conn.execute("CREATE TABLE foo (bar INT)")
     conn.execute("INSERT INTO foo VALUES (42), (43)")
