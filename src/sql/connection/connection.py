@@ -1040,7 +1040,10 @@ class DBAPIConnection(AbstractConnection):
         cur = self._connection.cursor()
 
         if self._is_duckdb_native:
-            cur.execute("SET python_scan_all_frames=true")
+            try:
+                cur.execute("SET python_scan_all_frames=true")
+            except Exception:
+                pass
 
         cur.execute(query)
 
