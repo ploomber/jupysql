@@ -2,6 +2,9 @@
 
 ## 0.10.17dev
 
+* [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
+
+
 ## 0.10.16 (2024-11-07)
 
 * [Fix] Updates docs for querying data frames when using DuckDB SQLAlchemy connections
@@ -20,8 +23,6 @@
 ## 0.10.13 (2024-09-12)
 
 * [Feature] `ploomber-extension` is no longer a dependency
-
-* [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
 
 ## 0.10.12 (2024-07-12)
 
