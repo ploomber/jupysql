@@ -771,7 +771,7 @@ def load_SqlMagic_configs(ip):
 def load_ipython_extension(ip):
     """Load the magics, this function is executed when the user runs: %load_ext sql"""
 
-    # If running within Databricks, do not use the `sql magics`
+    # If running within Databricks, do not use the sql magics
     if "DATABRICKS_RUNTIME_VERSION" in os.environ:
         del SqlMagic.magics["cell"]["sql"]
         del SqlMagic.magics["line"]["sql"]
