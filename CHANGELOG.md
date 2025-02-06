@@ -2,6 +2,8 @@
 
 ## 0.10.18dev
 
+* [Fix] Disabled `%sql` and `%%sql` on Databricks, fixing ([#1047](https://github.com/ploomber/jupysql/issues/1047)), so that jupysql coexsits with the SQL magic of Databricks as already [advertised](https://jupysql.ploomber.io/en/latest/howto.html#use-sql-sql-in-databricks).
+
 ## 0.10.17 (2025-01-08)
 
 * [Feature] Disable full stack trace when using spark connect ([#1011](https://github.com/ploomber/jupysql/issues/1011)) (by [@b1ackout](https://github.com/b1ackout))
