@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from pathlib import Path
 
@@ -769,6 +770,12 @@ def load_SqlMagic_configs(ip):
 
 def load_ipython_extension(ip):
     """Load the magics, this function is executed when the user runs: %load_ext sql"""
+
+    # If running within Databricks, do not use the `sql magics`
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        del SqlMagic.magics["cell"]["sql"]
+        del SqlMagic.magics["line"]["sql"]
+
     sql_magic = SqlMagic(ip)
     _set_sql_magic(sql_magic)
     ip.register_magics(sql_magic)
