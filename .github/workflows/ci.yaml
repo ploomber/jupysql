@@ -113,7 +113,7 @@ jobs:
           nox --session test_unit --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
          name: failed-image-artifacts ${{ matrix.os }} ${{ matrix.python-version }}
@@ -158,7 +158,7 @@ jobs:
           nox --session test_unit_sqlalchemy_one --no-install --reuse-existing-virtualenvs
 
       - name: Upload failed images artifacts sqlalchemyv1
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
          name: failed-image-artifacts-sqlalchemy ${{ matrix.os }} ${{ matrix.python-version }}
