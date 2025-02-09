@@ -705,7 +705,7 @@ def get_query_type(command: str):
 
 def set_configs(ip, file_path, alternate_path):
     """Set user defined SqlMagic configuration settings"""
-    sql = ip.find_cell_magic("sql").__self__
+    sql = ip.find_cell_magic("jupysql").__self__
     user_configs, loaded_from = util.get_user_configs(file_path, alternate_path)
     default_configs = util.get_default_configs(sql)
     table_rows = []
