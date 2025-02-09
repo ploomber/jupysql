@@ -361,7 +361,9 @@ some_engine = create_engine("sqlite:///some.db")
 
 ## Use `%sql`/`%%sql` in Databricks
 
-Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, JupySQL exposes a `%jupysql`/`%%jupysql` alias so you can use both:
+Databricks uses the same name (`%sql`/`%%sql`) for its SQL magics; however, since this
+clashes with Databricks' `%%sql` command, JupySQL will enable an `%jupysql`/`%%jupysql`
+alias if a `DATABRICKS_RUNTIME_VERSION` is declared:
 
 ```{code-cell} ipython3
 %jupysql duckdb://
