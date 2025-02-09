@@ -2772,7 +2772,10 @@ def test_disabled_named_parameters_shows_disabled_warning(ip):
 
 
 @pytest.mark.skip(
-    reason="Running this breaks all subsequent tests because TestingShell is a singleton. We need to find a way to isolate this test"
+    reason=(
+        "Running this breaks all subsequent tests because "
+        "TestingShell is a singleton. We need to find a way to isolate this test"
+    )
 )
 def test_databricks_sql_magic_disabled(monkeypatch):
     monkeypatch.setenv("DATABRICKS_RUNTIME_VERSION", "10.0.0")
