@@ -23,6 +23,8 @@ from sql.magic import SqlMagic, get_query_type
 from sql.run.resultset import ResultSet
 from sql import magic
 from sql.warnings import JupySQLQuotedNamedParametersWarning
+from sql._testing import TestingShell
+from sql.magic import load_ipython_extension
 
 
 from conftest import runsql
@@ -2767,3 +2769,27 @@ def test_disabled_named_parameters_shows_disabled_warning(ip):
     )
 
     assert expected_warning in str(excinfo.value)
+
+
+@pytest.mark.skip(
+    reason=(
+        "Running this breaks all subsequent tests because "
+        "TestingShell is a singleton. We need to find a way to isolate this test"
+    )
+)
+def test_databricks_sql_magic_disabled(monkeypatch):
+    monkeypatch.setenv("DATABRICKS_RUNTIME_VERSION", "10.0.0")
+    ip = TestingShell.preconfigured_shell()
+    load_ipython_extension(ip)
+
+    ip.run_cell("%jupysql duckdb://")
+    ip.run_cell("%jupysql select 1")
+
+    with pytest.raises(UsageError) as excinfo_line:
+        ip.run_cell("%sql select 1")
+
+    with pytest.raises(UsageError) as excinfo_cell:
+        ip.run_cell("%%sql\nselect 1")
+
+    assert "Line magic function `%sql` not found" in str(excinfo_line.value)
+    assert "Cell magic `%%sql` not found" in str(excinfo_cell.value)

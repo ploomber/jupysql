@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from pathlib import Path
 
@@ -704,7 +705,7 @@ def get_query_type(command: str):
 
 def set_configs(ip, file_path, alternate_path):
     """Set user defined SqlMagic configuration settings"""
-    sql = ip.find_cell_magic("sql").__self__
+    sql = ip.find_cell_magic("jupysql").__self__
     user_configs, loaded_from = util.get_user_configs(file_path, alternate_path)
     default_configs = util.get_default_configs(sql)
     table_rows = []
@@ -769,6 +770,12 @@ def load_SqlMagic_configs(ip):
 
 def load_ipython_extension(ip):
     """Load the magics, this function is executed when the user runs: %load_ext sql"""
+
+    # If running within Databricks, do not use the sql magics
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+        del SqlMagic.magics["cell"]["sql"]
+        del SqlMagic.magics["line"]["sql"]
+
     sql_magic = SqlMagic(ip)
     _set_sql_magic(sql_magic)
     ip.register_magics(sql_magic)
