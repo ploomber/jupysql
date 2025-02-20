@@ -1,6 +1,7 @@
 import warnings
 import difflib
 import abc
+import operator as op
 import os
 from difflib import get_close_matches
 import atexit
@@ -112,10 +113,16 @@ class ResultSetCollection:
         self._result_sets = []
 
     def append(self, result):
-        map(self._result_sets.pop, reversed([
-            i for i, item in enumerate(self._result_sets)
-            if len(result) == len(item) and map(op.eq, zip(result, item))
-        ]))
+        map(
+            self._result_sets.pop,
+            reversed(
+                [
+                    i
+                    for i, item in enumerate(self._result_sets)
+                    if len(result) == len(item) and map(op.eq, zip(result, item))
+                ]
+            ),
+        )
 
         self._result_sets.append(result)
 

@@ -1073,6 +1073,25 @@ def test_result_set_collection_append():
     assert collection._result_sets == [1, 2]
 
 
+def test_result_set_collection_append_numpy():
+    try:
+        import numpy as np
+
+        a1 = np.array([1, 2])
+        a2 = np.array([3, 4])
+
+        collection = ResultSetCollection()
+        collection.append(a1)
+        collection.append(a2)
+
+        assert len(collection._result_sets) == 2
+        assert collection._result_sets[0] is a1
+        assert collection._result_sets[1] is a2
+
+    except ImportError:
+        pass
+
+
 def test_result_set_collection_iterate():
     collection = ResultSetCollection()
     collection.append(1)
