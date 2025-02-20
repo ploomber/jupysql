@@ -1094,10 +1094,10 @@ def test_result_set_collection_append_numpy():
 
 def test_result_set_collection_iterate():
     collection = ResultSetCollection()
-    collection.append(1)
-    collection.append(2)
+    collection.append((1,))
+    collection.append((2,))
 
-    assert list(collection) == [1, 2]
+    assert list(collection) == [(1,), (2,)]
 
 
 def test_result_set_collection_is_last():
