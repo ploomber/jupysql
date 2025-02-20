@@ -112,8 +112,10 @@ class ResultSetCollection:
         self._result_sets = []
 
     def append(self, result):
-        if result in self._result_sets:
-            self._result_sets.remove(result)
+        map(self._result_sets.pop, reversed([
+            i for i, item in enumerate(self._result_sets)
+            if len(result) == len(item) and map(op.eq, zip(result, item))
+        ]))
 
         self._result_sets.append(result)
 
