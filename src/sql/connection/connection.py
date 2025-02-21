@@ -37,6 +37,7 @@ from sql.parse import (
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 from sql import _current
 from sql.connection import error_handling
+from sql.run.resultset import ResultSet
 
 BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
 
@@ -118,6 +119,12 @@ def _eq(a, b):
     return a is b or _bool(a == b)
 
 
+def _results(x):
+    if isinstance(x, ResultSet):
+        return x._results
+    return x
+
+
 class ResultSetCollection:
     def __init__(self) -> None:
         self._result_sets = []
@@ -127,7 +134,7 @@ class ResultSetCollection:
             [
                 i
                 for i, item in enumerate(self._result_sets)
-                if all(starmap(_eq, zip(result, item)))
+                if all(starmap(_eq, zip(_results(result), _results(item))))
             ]
         ):
             self._result_sets.pop(idx)
