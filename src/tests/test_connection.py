@@ -1077,8 +1077,8 @@ def test_result_set_collection_append_numpy():
     try:
         import numpy as np
 
-        a1 = np.array([1, 2])
-        a2 = np.array([3, 4])
+        a1 = (np.array([1, 2]),)
+        a2 = (np.array([3, 4]),)
 
         collection = ResultSetCollection()
         collection.append(a1)
@@ -1102,7 +1102,7 @@ def test_result_set_collection_iterate():
 
 def test_result_set_collection_is_last():
     collection = ResultSetCollection()
-    first, second = object(), object()
+    first, second = (object(),), (object(),)
     collection.append(first)
 
     assert len(collection) == 1

@@ -1,11 +1,11 @@
 import warnings
 import difflib
 import abc
-import operator as op
 import os
 from difflib import get_close_matches
 import atexit
 from functools import partial
+from itertools import starmap
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -108,21 +108,29 @@ def extract_module_name_from_NoSuchModuleError(e):
     return str(e).split(":")[-1].split(".")[-1]
 
 
+def _bool(x):
+    if x is True or x is False:
+        return x
+    return all(x)
+
+
+def _eq(a, b):
+    return a is b or _bool(a == b)
+
+
 class ResultSetCollection:
     def __init__(self) -> None:
         self._result_sets = []
 
     def append(self, result):
-        map(
-            self._result_sets.pop,
-            reversed(
-                [
-                    i
-                    for i, item in enumerate(self._result_sets)
-                    if len(result) == len(item) and map(op.eq, zip(result, item))
-                ]
-            ),
-        )
+        for idx in reversed(
+            [
+                i
+                for i, item in enumerate(self._result_sets)
+                if all(starmap(_eq, zip(result, item)))
+            ]
+        ):
+            self._result_sets.pop(idx)
 
         self._result_sets.append(result)
 
