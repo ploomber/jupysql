@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.10.18dev
+## 0.11.0dev
+
+* [API Change] Disabled `%sql` and `%%sql` on Databricks ([#1047](https://github.com/ploomber/jupysql/issues/1047))
 
 ## 0.10.17 (2025-01-08)
 
