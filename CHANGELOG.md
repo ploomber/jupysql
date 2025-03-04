@@ -5,6 +5,7 @@
 ## 0.11.0 (2025-03-03)
 
 * [API Change] Disabled `%sql` and `%%sql` on Databricks ([#1047](https://github.com/ploomber/jupysql/issues/1047))
+* [Fix] Add support for numpy arrays in result sets
 
 ## 0.10.17 (2025-01-08)
 

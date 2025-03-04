@@ -5,6 +5,7 @@ import os
 from difflib import get_close_matches
 import atexit
 from functools import partial
+from itertools import starmap
 
 import sqlalchemy
 from sqlalchemy.engine import Engine
@@ -36,6 +37,7 @@ from sql.parse import (
 from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPerformed
 from sql import _current
 from sql.connection import error_handling
+from sql.run.resultset import ResultSet
 
 BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
 
@@ -107,13 +109,35 @@ def extract_module_name_from_NoSuchModuleError(e):
     return str(e).split(":")[-1].split(".")[-1]
 
 
+def _bool(x):
+    if x is True or x is False:
+        return x
+    return all(x)
+
+
+def _eq(a, b):
+    return a is b or _bool(a == b)
+
+
+def _results(x):
+    if isinstance(x, ResultSet):
+        return x._results
+    return x
+
+
 class ResultSetCollection:
     def __init__(self) -> None:
         self._result_sets = []
 
     def append(self, result):
-        if result in self._result_sets:
-            self._result_sets.remove(result)
+        for idx in reversed(
+            [
+                i
+                for i, item in enumerate(self._result_sets)
+                if all(starmap(_eq, zip(_results(result), _results(item))))
+            ]
+        ):
+            self._result_sets.pop(idx)
 
         self._result_sets.append(result)
 
