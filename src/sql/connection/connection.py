@@ -130,14 +130,23 @@ class ResultSetCollection:
         self._result_sets = []
 
     def append(self, result):
-        for idx in reversed(
-            [
-                i
-                for i, item in enumerate(self._result_sets)
-                if all(starmap(_eq, zip(_results(result), _results(item))))
-            ]
-        ):
-            self._result_sets.pop(idx)
+        try:
+            if result in self._result_sets:
+                self._result_sets.remove(result)
+
+        except ValueError:
+            # If the result does not return a bool when compared
+            # (e.g., numpy arrays, pandas Series, polars Series)
+            # use an alternative comparison technique that tests
+            # that all values in the result are True.
+            for idx in reversed(
+                [
+                    i
+                    for i, item in enumerate(self._result_sets)
+                    if all(starmap(_eq, zip(_results(result), _results(item))))
+                ]
+            ):
+                self._result_sets.pop(idx)
 
         self._result_sets.append(result)
 
