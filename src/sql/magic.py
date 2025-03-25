@@ -9,7 +9,6 @@ try:
     from ipywidgets import interact
 except ModuleNotFoundError:
     interact = None
-from ploomber_core.exceptions import modify_exceptions
 from IPython.core.magic import (
     Magics,
     cell_magic,
@@ -367,7 +366,6 @@ class SqlMagic(Magics, Configurable):
             line=line, cell=cell, local_ns=local_ns, is_interactive_mode=False
         )
 
-    @modify_exceptions
     def _execute(self, line, cell, local_ns, is_interactive_mode=False):
         """
         This function implements the cell logic; we create this private
@@ -626,7 +624,6 @@ class SqlMagic(Magics, Configurable):
 
     legal_sql_identifier = re.compile(r"^[A-Za-z0-9#_$]+")
 
-    @modify_exceptions
     def _persist_dataframe(
         self, raw, conn, user_ns, append=False, index=True, replace=False
     ):

@@ -3,7 +3,6 @@ Plot using the SQL backend
 """
 
 from ploomber_core.dependencies import requires
-from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
 from sql import exceptions, display
@@ -106,7 +105,6 @@ OR  "{{column}}" > {{whishi}}
 
 
 # https://github.com/matplotlib/matplotlib/blob/b5ac96a8980fdb9e59c9fb649e0714d776e26701/lib/matplotlib/cbook/__init__.py
-@modify_exceptions
 def _boxplot_stats(conn, table, column, whis=1.5, autorange=False, with_=None):
     """Compute statistics required to create a boxplot"""
     if not conn:
@@ -549,7 +547,6 @@ def histogram(
     return ax
 
 
-@modify_exceptions
 def _histogram(
     table, column, bins, with_=None, conn=None, facet=None, breaks=None, binwidth=None
 ):
@@ -688,7 +685,6 @@ def _histogram(
     return bin_, height, bin_size
 
 
-@modify_exceptions
 def _histogram_stacked(
     table,
     column,
@@ -765,7 +761,6 @@ def _histogram_stacked(
     return data
 
 
-@modify_exceptions
 def _filter_aggregate(*filter_queries):
     """Return a single filter query based on multiple queries.
 
@@ -797,7 +792,6 @@ def _filter_aggregate(*filter_queries):
     return final_filter
 
 
-@modify_exceptions
 def _bar(table, column, with_=None, conn=None):
     """get x and height for bar plot"""
     if not conn:
@@ -985,7 +979,6 @@ def bar(
     return ax
 
 
-@modify_exceptions
 def _pie(table, column, with_=None, conn=None):
     """get x and height for pie chart"""
     if not conn:

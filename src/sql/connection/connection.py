@@ -22,7 +22,6 @@ from sql.run.sparkdataframe import handle_spark_dataframe
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
-from ploomber_core.exceptions import modify_exceptions
 
 
 from sql.store import store
@@ -951,7 +950,6 @@ class SQLAlchemyConnection(AbstractConnection):
         self._connection.engine.dispose()
 
     @classmethod
-    @modify_exceptions
     def _start_sqlalchemy_connection(cls, engine, connect_str):
         try:
             connection = engine.connect()

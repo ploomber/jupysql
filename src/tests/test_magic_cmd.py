@@ -38,7 +38,7 @@ def ip_snippets(ip):
     ip.run_cell("%sql sqlite://")
     ip.run_cell(
         """
-        %%sql --save high_price --no-execute
+%%sql --save high_price --no-execute
 SELECT *
 FROM "test_store"
 WHERE price >= 1.50
@@ -46,7 +46,7 @@ WHERE price >= 1.50
     )
     ip.run_cell(
         """
-        %%sql --save high_price_a --no-execute
+%%sql --save high_price_a --no-execute
 SELECT *
 FROM "high_price"
 WHERE symbol == 'a'
@@ -54,7 +54,7 @@ WHERE symbol == 'a'
     )
     ip.run_cell(
         """
-        %%sql --save high_price_b --no-execute
+%%sql --save high_price_b --no-execute
 SELECT *
 FROM "high_price"
 WHERE symbol == 'b'
@@ -986,7 +986,7 @@ def test_force_delete_all_with_variable_substitution(ip_snippets):
 def test_force_delete_all_child_query(ip_snippets, arg):
     ip_snippets.run_cell(
         """
-        %%sql --save high_price_b_child --no-execute
+%%sql --save high_price_b_child --no-execute
 SELECT *
 FROM "high_price_b"
 WHERE symbol == 'b'

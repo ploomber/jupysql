@@ -2,7 +2,6 @@ import sqlparse
 from typing import Iterator, Iterable
 from collections.abc import MutableMapping
 from jinja2 import Template
-from ploomber_core.exceptions import modify_exceptions
 import sql.connection
 import difflib
 
@@ -80,7 +79,6 @@ class SQLStore(MutableMapping):
                     dependencies.append(table)
         return dependencies
 
-    @modify_exceptions
     def store(self, key, query, with_=None):
         if "-" in key:
             raise exceptions.UsageError(
