@@ -76,7 +76,6 @@ class SqlPlotMagic(Magics, Configurable):
         type=float,
         help="Histogram binwidth",
     )
-    @modify_exceptions
     def execute(self, line="", cell="", local_ns=None):
         """
         Plot magic

@@ -951,7 +951,6 @@ class SQLAlchemyConnection(AbstractConnection):
         self._connection.engine.dispose()
 
     @classmethod
-    @modify_exceptions
     def _start_sqlalchemy_connection(cls, engine, connect_str):
         try:
             connection = engine.connect()

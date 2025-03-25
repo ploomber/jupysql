@@ -80,7 +80,6 @@ class SQLStore(MutableMapping):
                     dependencies.append(table)
         return dependencies
 
-    @modify_exceptions
     def store(self, key, query, with_=None):
         if "-" in key:
             raise exceptions.UsageError(
