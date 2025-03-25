@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.11.1dev
+## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages
 
