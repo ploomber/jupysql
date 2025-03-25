@@ -1,6 +1,5 @@
 from IPython.core.magic import Magics, line_magic, magics_class, no_var_expand
 from IPython.core.magic_arguments import argument, magic_arguments
-from ploomber_core.exceptions import modify_exceptions
 
 try:
     from traitlets.config.configurable import Configurable

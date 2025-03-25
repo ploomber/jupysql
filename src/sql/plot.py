@@ -3,7 +3,6 @@ Plot using the SQL backend
 """
 
 from ploomber_core.dependencies import requires
-from ploomber_core.exceptions import modify_exceptions
 from jinja2 import Template
 
 from sql import exceptions, display

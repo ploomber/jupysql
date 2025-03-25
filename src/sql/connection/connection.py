@@ -22,7 +22,6 @@ from sql.run.sparkdataframe import handle_spark_dataframe
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
-from ploomber_core.exceptions import modify_exceptions
 
 
 from sql.store import store

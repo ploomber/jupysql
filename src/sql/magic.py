@@ -9,7 +9,6 @@ try:
     from ipywidgets import interact
 except ModuleNotFoundError:
     interact = None
-from ploomber_core.exceptions import modify_exceptions
 from IPython.core.magic import (
     Magics,
     cell_magic,

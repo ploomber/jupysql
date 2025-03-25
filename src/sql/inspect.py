@@ -1,6 +1,5 @@
 from sqlalchemy import inspect
 from prettytable import PrettyTable
-from ploomber_core.exceptions import modify_exceptions
 from sql.connection import ConnectionManager
 from sql import exceptions
 import math
