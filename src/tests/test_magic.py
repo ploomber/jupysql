@@ -29,10 +29,8 @@ from sql.magic import load_ipython_extension
 
 from conftest import runsql
 from sql.connection import PLOOMBER_DOCS_LINK_STR
-from ploomber_core.exceptions import COMMUNITY
 import psutil
 
-COMMUNITY = COMMUNITY.strip()
 
 DISPLAYLIMIT_LINK = (
     '<a href="https://jupysql.ploomber.io/en/'
@@ -1163,7 +1161,6 @@ OR
 Set the environment variable $DATABASE_URL
 
 For more details, see: {PLOOMBER_DOCS_LINK_STR}
-{COMMUNITY}
 """
 
 
@@ -1181,7 +1178,6 @@ To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
 For more details, see: {PLOOMBER_DOCS_LINK_STR}
-{COMMUNITY}
 """  # noqa
 
 
@@ -1207,7 +1203,6 @@ Can't load plugin: sqlalchemy.dialects:sqlit
 Perhaps you meant to use driver the dialect: "sqlite"
 
 For more details, see: {PLOOMBER_DOCS_LINK_STR}
-{COMMUNITY}
 """  # noqa
 
 
@@ -1235,7 +1230,6 @@ Pass a valid connection string:
     Example: %sql postgresql://username:password@hostname/dbname
 
 For more details, see: {PLOOMBER_DOCS_LINK_STR}
-{COMMUNITY}
 """  # noqa
 
 

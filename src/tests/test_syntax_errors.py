@@ -5,10 +5,6 @@ from sqlalchemy.exc import OperationalError
 from IPython.core.error import UsageError
 
 from sql.error_handler import ORIGINAL_ERROR, CTE_MSG
-from ploomber_core.exceptions import COMMUNITY
-
-
-COMMUNITY = COMMUNITY.strip()
 
 
 @pytest.fixture
@@ -39,7 +35,6 @@ def query_multiple():
 def _common_strings_check(err):
     assert ORIGINAL_ERROR.strip() in str(err.value)
     assert CTE_MSG.strip() in str(err.value)
-    assert COMMUNITY in str(err.value)
     assert isinstance(err.value, UsageError)
 
 
@@ -51,7 +46,6 @@ def test_syntax_error_incorrect_column_name(ip, query_incorrect_column_name):
 
 message_incorrect_column_name_long = f"""\
 (sqlite3.OperationalError) near "FROM": syntax error
-{COMMUNITY}
 [SQL: SELECT first_(name FROM author;]
 """  # noqa
 
@@ -75,7 +69,6 @@ def test_syntax_error_multiple_statements(ip, query_multiple):
 
 message_multiple_statements_long = f"""\
 (sqlite3.OperationalError) near ";": syntax error
-{COMMUNITY}
 [SQL: ALTER TABLE author RENAME another_name;]
 """  # noqa
 
