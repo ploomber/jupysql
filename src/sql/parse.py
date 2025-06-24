@@ -336,8 +336,8 @@ def magic_args(magic_execute, line, cmd_from, allowed_duplicates=None):
 
 def escape_string_literals_with_colon_prefix(query):
     """
-    Given a query, replaces all occurrences of ':variable' with '\:variable' and
-    ":variable" with "\:variable" so that the query can be passed to sqlalchemy.text
+    Given a query, replaces all occurrences of ':variable' with '\\:variable' and
+    ":variable" with "\\:variable" so that the query can be passed to sqlalchemy.text
     without the literals being interpreted as bind parameters. Also calls
     escape_string_slicing_with_colon_prefix(). It doesn't replace
     the occurrences of :variable (without quotes)
@@ -366,8 +366,8 @@ def escape_string_literals_with_colon_prefix(query):
 
 def escape_string_slicing_notation(query):
     """
-    Given a query, replaces all occurrences of 'example'[x:y] with 'example'[x\:y].
-    Escaping the colon using \ ensures correct string slicing behavior rather
+    Given a query, replaces all occurrences of 'example'[x:y] with 'example'[x\\:y].
+    Escaping the colon using \\ ensures correct string slicing behavior rather
     than being interpreted as a bind parameter.
 
     Parameters
