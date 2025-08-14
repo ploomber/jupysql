@@ -32,7 +32,7 @@ def run_statements(conn, sql, config, parameters=None):
     # First, try to extract the usable SQL statements without comments
     statements = list(
         filter(
-            lambda stmt: stmt is not None,  # format returns empty tuples
+            None,
             map(
                 lambda stmt: sqlparse.format(stmt, strip_comments=True),
                 sqlparse.split(sql),
@@ -49,6 +49,9 @@ def run_statements(conn, sql, config, parameters=None):
     statement = None
 
     for statement in statements:
+        if not statement.strip():
+            continue
+
         first_word = statement.strip().split()[0].lower()
 
         if first_word == "begin":
