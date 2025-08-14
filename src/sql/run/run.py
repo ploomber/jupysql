@@ -2,7 +2,7 @@ import sqlparse
 
 from sql import exceptions, display
 from sql.run.resultset import ResultSet
-from sql.run.pgspecial import FakeResultProxy, handle_postgres_special
+from sql.run.pgspecial import handle_postgres_special
 
 
 # TODO: conn also has access to config, we should clean this up to provide a clean
