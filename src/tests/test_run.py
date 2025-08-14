@@ -109,7 +109,11 @@ def test_sql_is_empty(mock_conns):
 
 
 def test_sql_comment_only(mock_conns):
-    assert run_statements(mock_conns, "-- this is a comment", Config) == "Connected: %s" % mock_conns.name
+    assert (
+        run_statements(mock_conns, "-- this is a comment", Config)
+        == "Connected: %s" % mock_conns.name
+    )
+
 
 @pytest.mark.parametrize(
     "connection",

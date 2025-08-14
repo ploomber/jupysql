@@ -29,11 +29,16 @@ def run_statements(conn, sql, config, parameters=None):
     .. literalinclude:: ../../examples/run_statements.py
 
     """
-    # First try to extract the usable SQL statements without comments
-    statements = \
-        list(filter(lambda stmt: stmt is not None, # sqlparse.format returns empty tuples
-                    map(lambda stmt: sqlparse.format(stmt, strip_comments=True),
-                              sqlparse.split(sql))))
+    # First, try to extract the usable SQL statements without comments
+    statements = list(
+        filter(
+            lambda stmt: stmt is not None,  # format returns empty tuples
+            map(
+                lambda stmt: sqlparse.format(stmt, strip_comments=True),
+                sqlparse.split(sql),
+            ),
+        )
+    )
 
     # Handle the empty SQL case
     if not sql.strip() or not statements:
