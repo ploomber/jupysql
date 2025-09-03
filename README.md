@@ -51,6 +51,9 @@ conda install jupysql -c conda-forge
 
 [Click here to see the documentation.](https://jupysql.ploomber.io)
 
+## Security
+
+To report security vulnerabilities, see [SECURITY.md](SECURITY.md)
 
 ## Credits
 
