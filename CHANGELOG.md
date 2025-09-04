@@ -2,6 +2,8 @@
 
 ## 0.11.2dev
 
+* [Fix] Handle empty SQL statements gracefully (#1066)
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages

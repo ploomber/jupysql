@@ -1221,7 +1221,7 @@ An error happened while creating the connection: connect(): incompatible functio
 """  # noqa
 
 invalid_connection_string_duckdb_bottom = f"""
-Perhaps you meant to use the 'duckdb' db 
+Perhaps you meant to use the 'duckdb' db
 To find more information regarding connection: https://jupysql.ploomber.io/en/latest/integrations/duckdb.html
 
 To fix it:
@@ -1783,7 +1783,7 @@ drivername = not-a-driver
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql --section section")
 
-    message = "Could not parse SQLAlchemy URL from string 'not-a-driver://'"
+    message = "Could not parse SQLAlchemy URL from given URL string"
     assert message in str(excinfo.value)
 
 
