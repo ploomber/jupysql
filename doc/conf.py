@@ -68,13 +68,6 @@ html_theme_options = {
     "repository_branch": repository_branch,
     "analytics": {"google_analytics_id": "G-JBZ8NNQSLN"},
     "home_page_in_toc": True,
-    "announcement": (
-        "<div id='ploomber-top-announcement'>"
-        "Deploy Streamlit apps for free on  "
-        "<a href='https://ploomber.io/?utm_medium=readthedocs&utm_source=jupysql'>"
-        "Ploomber Cloud!</a>"
-        "</div>"
-    ),
     "use_repository_button": True,
     "use_edit_page_button": False,
     "use_issues_button": True,
@@ -116,7 +109,6 @@ html_static_path = ["_static"]
 
 # Load custom stylesheets to support Algolia search.
 html_css_files = [
-    "marketing.css",
     "algolia.css",
     "https://cdn.jsdelivr.net/npm/@docsearch/css@3",
 ]
@@ -130,10 +122,6 @@ html_js_files = [
     ),
     (
         "algolia.js",
-        {"defer": "defer"},
-    ),
-    (
-        "marketing.js",
         {"defer": "defer"},
     ),
 ]
