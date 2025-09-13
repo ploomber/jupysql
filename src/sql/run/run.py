@@ -29,18 +29,30 @@ def run_statements(conn, sql, config, parameters=None):
     .. literalinclude:: ../../examples/run_statements.py
 
     """
-    if not sql.strip():
+    # First, try to extract the usable SQL statements without comments
+    statements = list(
+        filter(
+            None,
+            map(
+                lambda stmt: sqlparse.format(stmt, strip_comments=True),
+                sqlparse.split(sql),
+            ),
+        )
+    )
+
+    # Handle the empty SQL case
+    if not sql.strip() or not statements:
         return "Connected: %s" % conn.name
 
-    for statement in sqlparse.split(sql):
-        # strip all comments from sql
-        statement = sqlparse.format(statement, strip_comments=True)
-        # trailing comment after semicolon can be confused as its own statement,
-        # so we ignore it here.
-        if not statement:
+    # Ensure we have some return value. This maintains type checkers happy
+    result = None
+    statement = None
+
+    for statement in statements:
+        if not statement.strip():
             continue
 
-        first_word = sql.strip().split()[0].lower()
+        first_word = statement.strip().split()[0].lower()
 
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
