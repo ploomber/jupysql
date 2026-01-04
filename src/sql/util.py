@@ -28,7 +28,7 @@ except ModuleNotFoundError:
 SINGLE_QUOTE = "'"
 DOUBLE_QUOTE = '"'
 
-CONFIGURATION_DOCS_STR = "https://jupysql.ploomber.io/en/latest/api/configuration.html#loading-from-a-file"  # noqa
+CONFIGURATION_DOCS_STR = "https://jupysql.readthedocs.io/en/latest/api/configuration.html#loading-from-a-file"  # noqa
 
 
 def sanitize_identifier(identifier):
@@ -304,7 +304,7 @@ def find_close_match_config(word, possibilities, n=3):
     if not closest_matches:
         display.message_html(
             f"'{word}' is an invalid configuration. Please review our "
-            "<a href='https://jupysql.ploomber.io/en/latest/api/configuration.html#options'>"  # noqa
+            "<a href='https://jupysql.readthedocs.io/en/latest/api/configuration.html#options'>"  # noqa
             "configuration guideline</a>."
         )
     else:

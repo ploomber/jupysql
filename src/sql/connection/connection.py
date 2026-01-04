@@ -36,7 +36,7 @@ from sql.warnings import JupySQLQuotedNamedParametersWarning, JupySQLRollbackPer
 from sql import _current
 from sql.connection import error_handling
 
-BASE_DOC_URL = "https://jupysql.ploomber.io/en/latest"
+BASE_DOC_URL = "https://jupysql.readthedocs.io/en/latest"
 
 
 PLOOMBER_DOCS_LINK_STR = f"{BASE_DOC_URL}/connecting.html"
@@ -835,14 +835,14 @@ class SQLAlchemyConnection(AbstractConnection):
                             "disable it with: "
                             '%config SqlMagic.named_parameters="disabled"\n'
                             "For more info, see the docs: "
-                            "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
+                            "https://jupysql.readthedocs.io/en/latest/api/configuration.html#named-parameters"  # noqa
                         )
                 elif parameters == {}:
                     e.add_detail(
                         'The named parameters feature is "disabled". '
                         'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
                         "For more info, see the docs: "
-                        "https://jupysql.ploomber.io/en/latest/api/configuration.html#named-parameters"  # noqa
+                        "https://jupysql.readthedocs.io/en/latest/api/configuration.html#named-parameters"  # noqa
                     )
                 raise
 
@@ -1138,7 +1138,9 @@ class SparkConnectConnection(AbstractConnection):
         mode = (
             "overwrite"
             if if_exists == "replace"
-            else "append" if if_exists == "append" else "error"
+            else "append"
+            if if_exists == "append"
+            else "error"
         )
         self._connection.createDataFrame(data_frame).write.mode(mode).saveAsTable(
             f"{schema}.{table_name}" if schema else table_name
@@ -1206,8 +1208,7 @@ def _suggest_fix(env_var, connect_str=None):
     if keys:
         keys_ = ",".join(repr(k) for k in keys)
         options.append(
-            f"Pass a connection key (one of: {keys_})"
-            f"\n    Example: %sql {keys[0]!r}"
+            f"Pass a connection key (one of: {keys_})\n    Example: %sql {keys[0]!r}"
         )
 
     if env_var:

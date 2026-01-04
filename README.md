@@ -14,7 +14,7 @@
   |
   <a href="mailto:contact@ploomber.io">Contact us</a>
   |
-  <a href="https://jupysql.ploomber.io/">Docs</a>
+  <a href="https://jupysql.readthedocs.io/">Docs</a>
   |
   <a href="https://ploomber.io/blog">Blog</a>
   |
@@ -30,10 +30,10 @@ Run SQL in Jupyter/IPython via a `%sql` and `%%sql` magics.
 
 ## Features
 
-- [Pandas integration](https://jupysql.ploomber.io/en/latest/integrations/pandas.html)
-- [SQL composition (no more hard-to-debug CTEs!)](https://jupysql.ploomber.io/en/latest/compose.html)
-- [Plot massive datasets without blowing up memory](https://jupysql.ploomber.io/en/latest/plot.html)
-- [DuckDB integration](https://jupysql.ploomber.io/en/latest/integrations/duckdb.html)
+- [Pandas integration](https://jupysql.readthedocs.io/en/latest/integrations/pandas.html)
+- [SQL composition (no more hard-to-debug CTEs!)](https://jupysql.readthedocs.io/en/latest/compose.html)
+- [Plot massive datasets without blowing up memory](https://jupysql.readthedocs.io/en/latest/plot.html)
+- [DuckDB integration](https://jupysql.readthedocs.io/en/latest/integrations/duckdb.html)
 
 ## Installation
 
@@ -49,7 +49,7 @@ conda install jupysql -c conda-forge
 
 ## Documentation
 
-[Click here to see the documentation.](https://jupysql.ploomber.io)
+[Click here to see the documentation.](https://jupysql.readthedocs.io)
 
 ## Security
 

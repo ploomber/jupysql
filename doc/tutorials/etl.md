@@ -193,7 +193,7 @@ In JupySQL, you can use Pandas DataFrame methods to perform data transformations
 For example, you can use the rename method to rename columns, the dropna method to 
 remove missing values, and the astype method to convert data types. I'll demonstrate how to do it either with pandas or SQL.
 
-* Note: You can use either `%sql` or `%%sql`, check out the difference between the two [here](https://jupysql.ploomber.io/en/latest/community/developer-guide.html?highlight=%25sql%20vs%20%25%25sql#magics-e-g-sql-sql-etc)
+* Note: You can use either `%sql` or `%%sql`, check out the difference between the two [here](https://jupysql.readthedocs.io/en/latest/community/developer-guide.html?highlight=%25sql%20vs%20%25%25sql#magics-e-g-sql-sql-etc)
 
 <!-- #region -->
 Here's an example of how to use Pandas and the JupySQL alternatives to transform data:

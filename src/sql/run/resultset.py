@@ -154,9 +154,9 @@ class ResultSet(ColumnGuesserMixin):
                 (
                     "\n<span style='font-style:italic;font-size:11px'>"
                     "<code>ResultSet</code>: to convert to pandas, call <a href="
-                    "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+                    "'https://jupysql.readthedocs.io/en/latest/integrations/pandas.html'>"
                     "<code>.DataFrame()</code></a> or to polars, call <a href="
-                    "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+                    "'https://jupysql.readthedocs.io/en/latest/integrations/polars.html'>"
                     "<code>.PolarsDataFrame()</code></a></span><br>"
                 )
                 if html
@@ -177,7 +177,7 @@ class ResultSet(ColumnGuesserMixin):
             displaylimit_footer = (
                 (
                     '\n<span style="font-style:italic;text-align:center;">'
-                    'Truncated to <a href="https://jupysql.ploomber.io/en/'
+                    'Truncated to <a href="https://jupysql.readthedocs.io/en/'
                     'latest/api/configuration.html#displaylimit">'
                     f"displaylimit</a> of {self._config.displaylimit}.</span>"
                 )

@@ -33,7 +33,7 @@ import psutil
 
 
 DISPLAYLIMIT_LINK = (
-    '<a href="https://jupysql.ploomber.io/en/'
+    '<a href="https://jupysql.readthedocs.io/en/'
     'latest/api/configuration.html#displaylimit">displaylimit</a>'
 )
 
@@ -902,28 +902,28 @@ def test_dicts(ip):
 
 def test_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author WHERE {{col}} = 'William' ")
     assert not result
 
 
 # the next two tests had the same name, so I added a _2 to the second one
 def test_multiline_bracket_var_substitution(ip):
     ip.user_global_ns["col"] = "first_name"
-    assert runsql(ip, "SELECT * FROM author\n" " WHERE {{col}} = 'William' ")[0] == (
+    assert runsql(ip, "SELECT * FROM author\n WHERE {{col}} = 'William' ")[0] == (
         "William",
         "Shakespeare",
         1616,
     )
 
     ip.user_global_ns["col"] = "last_name"
-    result = runsql(ip, "SELECT * FROM author" " WHERE {{col}} = 'William' ")
+    result = runsql(ip, "SELECT * FROM author WHERE {{col}} = 'William' ")
     assert not result
 
 
@@ -1222,7 +1222,7 @@ An error happened while creating the connection: connect(): incompatible functio
 
 invalid_connection_string_duckdb_bottom = f"""
 Perhaps you meant to use the 'duckdb' db 
-To find more information regarding connection: https://jupysql.ploomber.io/en/latest/integrations/duckdb.html
+To find more information regarding connection: https://jupysql.readthedocs.io/en/latest/integrations/duckdb.html
 
 To fix it:
 
@@ -1292,7 +1292,7 @@ def test_error_on_passing_non_identifier_to_connect(
     ],
 )
 def test_passing_command_ending_with_semicolon(ip_empty, command):
-    expected_result = "+---------+\n" "| Success |\n" "+---------+\n" "+---------+"
+    expected_result = "+---------+\n| Success |\n+---------+\n+---------+"
     ip_empty.run_cell("%sql duckdb://")
 
     out = ip_empty.run_cell(f"%sql {command}").result
@@ -1573,7 +1573,7 @@ def test_error_suggests_turning_feature_on_if_it_detects_named_params(ip):
         "disable it with: "
         '%config SqlMagic.named_parameters="disabled"\n'
         "For more info, see the docs: "
-        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
+        "https://jupysql.readthedocs.io/en/latest/api/configuration.html"
     )
     assert suggestion in str(excinfo.value)
 
@@ -2493,7 +2493,7 @@ SELECT * from temp;""",
             "TableNotFoundError",
             """If using snippets, you may pass the --with argument explicitly.
 For more details please refer: \
-https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
 
 There is no table with name 'snip'.
 Did you mean: 'snippet'
@@ -2513,7 +2513,7 @@ SELECT * from tem;""",
             "RuntimeError",
             """If using snippets, you may pass the --with argument explicitly.
 For more details please refer: \
-https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
@@ -2530,7 +2530,7 @@ SELECT * from tem;""",
             "TableNotFoundError",
             """If using snippets, you may pass the --with argument explicitly.
 For more details please refer: \
-https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
 
 There is no table with name 'snip'.
 Did you mean: 'snippet'
@@ -2550,7 +2550,7 @@ SELECT * from temp;""",
             "RuntimeError",
             """If using snippets, you may pass the --with argument explicitly.
 For more details please refer: \
-https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
@@ -2568,7 +2568,7 @@ SELECT * from temp;""",
             "RuntimeError",
             """If using snippets, you may pass the --with argument explicitly.
 For more details please refer: \
-https://jupysql.ploomber.io/en/latest/compose.html#with-argument
+https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
 
 
 Original error message from DB driver:
@@ -2759,7 +2759,7 @@ def test_disabled_named_parameters_shows_disabled_warning(ip):
         'The named parameters feature is "disabled". '
         'Enable it with: %config SqlMagic.named_parameters="enabled".\n'
         "For more info, see the docs: "
-        "https://jupysql.ploomber.io/en/latest/api/configuration.html"
+        "https://jupysql.readthedocs.io/en/latest/api/configuration.html"
     )
 
     assert expected_warning in str(excinfo.value)

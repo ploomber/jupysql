@@ -92,9 +92,9 @@ def test_resultset_repr_html_when_feedback_is_2(result_set, ip_empty):
     assert (
         "<span style='font-style:italic;font-size:11px'>"
         "<code>ResultSet</code>: to convert to pandas, call <a href="
-        "'https://jupysql.ploomber.io/en/latest/integrations/pandas.html'>"
+        "'https://jupysql.readthedocs.io/en/latest/integrations/pandas.html'>"
         "<code>.DataFrame()</code></a> or to polars, call <a href="
-        "'https://jupysql.ploomber.io/en/latest/integrations/polars.html'>"
+        "'https://jupysql.readthedocs.io/en/latest/integrations/polars.html'>"
         "<code>.PolarsDataFrame()</code></a></span><br>"
     ) in html_
 
@@ -523,7 +523,7 @@ def test_display_limit_respected_even_when_feched_all(results):
 )
 def test_displaylimit_truncated_footer(displaylimit, message, results):
     HTML_LINK = (
-        '<a href="https://jupysql.ploomber.io/en/'
+        '<a href="https://jupysql.readthedocs.io/en/'
         'latest/api/configuration.html#displaylimit">displaylimit</a>'
     )
 

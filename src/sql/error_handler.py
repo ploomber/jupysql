@@ -8,11 +8,11 @@ ORIGINAL_ERROR = "\nOriginal error message from DB driver:\n"
 CTE_MSG = (
     "If using snippets, you may pass the --with argument explicitly.\n"
     "For more details please refer: "
-    "https://jupysql.ploomber.io/en/latest/compose.html#with-argument"
+    "https://jupysql.readthedocs.io/en/latest/compose.html#with-argument"
 )
 POSTGRES_MSG = """\nLooks like you have run into some issues.
                 Review our DB connection via URL strings guide:
-                https://jupysql.ploomber.io/en/latest/connecting.html .
+                https://jupysql.readthedocs.io/en/latest/connecting.html .
                  Using Ubuntu? Check out this guide: "
                 https://help.ubuntu.com/community/PostgreSQL#fe_sendauth:_
                 no_password_supplied\n"""
@@ -68,8 +68,7 @@ def _detailed_message_with_error_type(error, query):
         typo_err_msg = _snippet_typo_error_message(query)
         if typo_err_msg:
             return (
-                f"{CTE_MSG}\n\n{typo_err_msg}\n\n"
-                f"{ORIGINAL_ERROR}{original_error}\n",
+                f"{CTE_MSG}\n\n{typo_err_msg}\n\n{ORIGINAL_ERROR}{original_error}\n",
                 TableNotFoundError,
             )
         else:
