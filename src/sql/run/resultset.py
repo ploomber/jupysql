@@ -429,7 +429,7 @@ class ResultSet(ColumnGuesserMixin):
             # spark doesn't support cursor
             if hasattr(self._sqlaproxy, "dataframe"):
                 self._results = []
-                self._pretty_table.clear()
+                self._pretty_table.clear_rows()
             self._extend_results(returned)
 
             if len(returned) < size:
@@ -455,7 +455,7 @@ class ResultSet(ColumnGuesserMixin):
         if not self._done_fetching():
             if hasattr(self._sqlaproxy, "dataframe"):
                 self._results = []
-                self._pretty_table.clear()
+                self._pretty_table.clear_rows()
             self._extend_results(self.sqlaproxy.fetchall())
             self.mark_fetching_as_done()
 
