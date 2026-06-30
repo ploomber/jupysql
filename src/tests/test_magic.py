@@ -1783,7 +1783,7 @@ drivername = not-a-driver
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql --section section")
 
-    message = "Could not parse SQLAlchemy URL from string 'not-a-driver://'"
+    message = "Could not parse SQLAlchemy URL from given URL string"
     assert message in str(excinfo.value)
 
 
