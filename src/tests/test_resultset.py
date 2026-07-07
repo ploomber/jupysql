@@ -758,3 +758,85 @@ INSERT INTO Cities VALUES ('US', 'New York City', 2020, 8772);
     }
     expected = getattr(library, "DataFrame")(expected_result)
     assert getattr(result, equal_func)(expected)
+
+
+class TestSparkResultSetFieldNames:
+    """Test that Spark ResultSet preserves column names after fetchmany/fetchall"""
+
+    @staticmethod
+    def _make_spark_proxy(headers, rows):
+        """Create a mock SparkResultProxy-like object with a dataframe attribute"""
+        proxy = Mock()
+        proxy.dataframe = Mock()
+        proxy.keys = Mock(return_value=headers)
+        proxy.returns_rows = True
+        proxy.fetchmany = Mock(return_value=rows)
+        proxy.fetchall = Mock(return_value=rows)
+        # SparkResultProxy does not have 'description' attribute at proxy level
+        del proxy.description
+        return proxy
+
+    @staticmethod
+    def _make_config(displaylimit=5, autolimit=100):
+        config = Mock()
+        config.displaylimit = displaylimit
+        config.autolimit = autolimit
+        config.style = "DEFAULT"
+        return config
+
+    def test_field_names_preserved_after_fetchmany(self, ip_empty):
+        """clear_rows() should preserve field_names, not clear()"""
+        headers = ["name", "age", "city"]
+        rows = [("Alice", 30, "NYC"), ("Bob", 25, "LA")]
+        proxy = self._make_spark_proxy(headers, rows)
+        config = self._make_config()
+
+        rs = ResultSet(proxy, config, statement=None, conn=Mock())
+
+        assert rs.field_names == ["name", "age", "city"]
+        assert "name" in str(rs)
+        assert "age" in str(rs)
+        assert "city" in str(rs)
+
+    def test_field_names_preserved_after_fetchall(self, ip_empty):
+        """fetchall on Spark path should also preserve field_names"""
+        headers = ["col_a", "col_b"]
+        rows = [("x", 1), ("y", 2), ("z", 3)]
+        proxy = self._make_spark_proxy(headers, rows)
+        config = self._make_config(displaylimit=0, autolimit=0)
+
+        rs = ResultSet(proxy, config, statement=None, conn=Mock())
+
+        assert rs.field_names == ["col_a", "col_b"]
+        assert "col_a" in str(rs)
+        assert "col_b" in str(rs)
+
+    def test_field_names_not_generic(self, ip_empty):
+        """Ensure PrettyTable does not generate generic 'Field 1' names"""
+        headers = ["product", "price"]
+        rows = [("Widget", 9.99), ("Gadget", 19.99)]
+        proxy = self._make_spark_proxy(headers, rows)
+        config = self._make_config()
+
+        rs = ResultSet(proxy, config, statement=None, conn=Mock())
+
+        html = rs._repr_html_()
+        assert "Field 1" not in html
+        assert "Field 2" not in html
+        assert "product" in html
+        assert "price" in html
+
+    def test_field_names_preserved_after_repr(self, ip_empty):
+        """fetch_for_repr_if_needed triggers another fetchmany — names must survive"""
+        headers = ["id", "value"]
+        rows = [("1", "a"), ("2", "b"), ("3", "c")]
+        proxy = self._make_spark_proxy(headers, rows)
+        config = self._make_config(displaylimit=2)
+
+        rs = ResultSet(proxy, config, statement=None, conn=Mock())
+
+        # _repr_html_ calls fetch_for_repr_if_needed which may call fetchmany again
+        html = rs._repr_html_()
+        assert "id" in html
+        assert "value" in html
+        assert "Field 1" not in html

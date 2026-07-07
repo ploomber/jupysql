@@ -2,6 +2,8 @@
 
 ## 0.11.2dev
 
+* [Fix] Fix Spark Connect displaying generic column names instead of actual column names ([#1077](https://github.com/ploomber/jupysql/issues/1077))
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages
