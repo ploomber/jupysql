@@ -40,15 +40,21 @@ class FakeResultProxy(object):
     def from_list(self, source_list):
         "Simulates SQLA ResultProxy from a list."
 
-        self.fetchall = lambda: source_list
+        self._source_list = source_list
+        self._pos = 0
         self.rowcount = len(source_list)
 
-        def fetchmany(size):
-            pos = 0
-            while pos < len(source_list):
-                yield source_list[pos : pos + size]
-                pos += size
+        def fetchall():
+            remaining = self._source_list[self._pos :]
+            self._pos = len(self._source_list)
+            return remaining
 
+        def fetchmany(size):
+            result = self._source_list[self._pos : self._pos + size]
+            self._pos += len(result)
+            return result
+
+        self.fetchall = fetchall
         self.fetchmany = fetchmany
 
     def close(self):

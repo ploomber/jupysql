@@ -14,7 +14,7 @@ from sql.run.run import (
     is_postgres_or_redshift,
     select_df_type,
 )
-from sql.run.pgspecial import handle_postgres_special
+from sql.run.pgspecial import FakeResultProxy, handle_postgres_special
 from sql.run.resultset import ResultSet
 
 
@@ -85,6 +85,37 @@ def test_handle_postgres_special(mock_conns):
         handle_postgres_special(mock_conns, "\\")
 
     assert "pgspecial not installed" in str(excinfo.value)
+
+
+def test_fake_result_proxy_from_list_fetchmany_returns_rows():
+    # pgspecial \\d table returns a Python list of rows, not a DB cursor.
+    # FakeResultProxy.fetchmany must match SQLAlchemy and return a sequence.
+    rows = [("id", "integer"), ("name", "text"), ("created_at", "timestamp")]
+    proxy = FakeResultProxy(rows, ["Column", "Type"])
+
+    first = proxy.fetchmany(size=2)
+    assert first == [("id", "integer"), ("name", "text")]
+
+    second = proxy.fetchmany(size=2)
+    assert second == [("created_at", "timestamp")]
+
+    assert proxy.fetchmany(size=2) == []
+    assert proxy.fetchall() == []
+
+
+def test_resultset_accepts_pgspecial_list_of_rows():
+    rows = [
+        ["id", "integer", " not null"],
+        ["name", "text", ""],
+        ["created_at", "timestamp", ""],
+    ]
+    proxy = FakeResultProxy(rows, ["Column", "Type", "Modifiers"])
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
+
+    result = ResultSet(proxy, Config, statement="\\d test", conn=conn)
+
+    assert list(result) == rows
+    assert result.keys == ["Column", "Type", "Modifiers"]
 
 
 def test_select_df_type_is_pandas(mock_resultset):
