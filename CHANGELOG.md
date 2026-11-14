@@ -2,6 +2,8 @@
 
 ## 0.11.2dev
 
+* [Fix] Handle `%%sql` cells containing only comments and detect `BEGIN` statements with comments or trailing semicolons ([#1066](https://github.com/ploomber/jupysql/issues/1066))
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages

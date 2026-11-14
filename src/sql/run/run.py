@@ -29,18 +29,23 @@ def run_statements(conn, sql, config, parameters=None):
     .. literalinclude:: ../../examples/run_statements.py
 
     """
-    if not sql.strip():
+    # Strip comments from each statement so that comment-only statements (and
+    # comments before a statement) are not treated as executable SQL.
+    statements = [
+        sqlparse.format(statement, strip_comments=True)
+        for statement in sqlparse.split(sql)
+    ]
+    statements = [statement for statement in statements if statement.strip()]
+
+    if not statements:
         return "Connected: %s" % conn.name
 
-    for statement in sqlparse.split(sql):
-        # strip all comments from sql
-        statement = sqlparse.format(statement, strip_comments=True)
-        # trailing comment after semicolon can be confused as its own statement,
-        # so we ignore it here.
-        if not statement:
-            continue
+    result = None
+    statement = None
 
-        first_word = sql.strip().split()[0].lower()
+    for statement in statements:
+        # remove the trailing semicolon so BEGIN; is detected as well
+        first_word = statement.strip().split()[0].lower().rstrip(";")
 
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
