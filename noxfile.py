@@ -114,6 +114,8 @@ def test_unit_sqlalchemy_one(session):
 
     _install(session, integration=False)
     session.install("sqlalchemy<2")
+    # pandas 2.2+ is not compatible with SQLAlchemy 1.x
+    session.install("pandas<2.2")
     _check_sqlalchemy(session, version=1)
     _run_unit(session, skip_image_tests=SKIP_IMAGE_TEST)
 

@@ -2,6 +2,10 @@
 
 ## 0.11.2dev
 
+* [Fix] Make tests resilient to dependency-specific error messages
+* [Fix] Handle `sqlparse` token-limit errors for very large queries
+* [Fix] Pin `prettytable<3.18.0` to avoid errors when rendering empty tables
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages

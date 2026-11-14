@@ -16,7 +16,8 @@ with open("src/sql/__init__.py", "rb") as f:
     )
 
 install_requires = [
-    "prettytable>=3.12.0",
+    # 3.18.0 raises ValueError when rendering a table with no columns
+    "prettytable>=3.12.0,<3.18.0",
     # IPython dropped support for Python 3.8
     "ipython<=8.12.0; python_version <= '3.8'",
     "sqlalchemy",
@@ -33,10 +34,14 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    # 24/01/24 Pandas 2.2.0 breaking CI: https://github.com/ploomber/jupysql/issues/983
-    "pandas<2.2.0",  # previously pinned to 2.0.3
+    # pandas 2.2+ dropped support for SQLAlchemy 1.x; the SQLAlchemy 1.x
+    # session in noxfile.py downgrades pandas
+    "pandas<3",
     "polars==0.17.2",  # 04/18/23 this breaks our CI
-    "pyarrow",
+    # matplotlib 3.7 (pinned for the image baselines) is not compatible with NumPy 2
+    "numpy<2",
+    # pyarrow 26+ requires NumPy 2
+    "pyarrow<26",
     "invoke",
     "pkgmt",
     "twine",
@@ -46,7 +51,7 @@ DEV = [
     "pyodbc",
     # sql.plot module tests
     "matplotlib==3.7.2",
-    "black",
+    "black==25.1.0",
     # for %%sql --interact
     "ipywidgets",
     # for running tests for %sqlcmd explore --table

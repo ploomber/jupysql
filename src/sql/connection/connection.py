@@ -22,6 +22,7 @@ from sql.run.sparkdataframe import handle_spark_dataframe
 from IPython.core.error import UsageError
 import sqlglot
 import sqlparse
+from sqlparse.exceptions import SQLParseError
 
 
 from sql.store import store
@@ -1138,9 +1139,7 @@ class SparkConnectConnection(AbstractConnection):
         mode = (
             "overwrite"
             if if_exists == "replace"
-            else "append"
-            if if_exists == "append"
-            else "error"
+            else "append" if if_exists == "append" else "error"
         )
         self._connection.createDataFrame(data_frame).write.mode(mode).saveAsTable(
             f"{schema}.{table_name}" if schema else table_name
@@ -1293,7 +1292,14 @@ def detect_duckdb_summarize_or_select(query):
     Note:
     Assumes there is only one SQL statement in the query.
     """
-    statements = sqlparse.parse(query)
+    try:
+        statements = sqlparse.parse(query)
+    except SQLParseError:
+        # sqlparse has a token limit for very large queries (0.5.4+). Fall
+        # back to a simple check based on the first keyword.
+        words = query.lstrip().split(maxsplit=1)
+        return bool(words) and words[0].lower() in {"select", "from", "summarize"}
+
     if statements:
         if len(statements) > 1:
             raise NotImplementedError("Multiple statements are not supported")

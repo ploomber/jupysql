@@ -12,6 +12,7 @@ import sqlite3
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy import exc
+from sqlparse.exceptions import SQLParseError
 
 
 from sql.connection import connection as connection_module
@@ -78,7 +79,9 @@ def mock_postgres(monkeypatch, cleanup):
 
 
 def test_password_isnt_displayed(mock_postgres):
-    ConnectionManager.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    ConnectionManager.from_connect_str(
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
+    )
 
     table = ConnectionManager.connections_table()
 
@@ -88,7 +91,7 @@ def test_password_isnt_displayed(mock_postgres):
 
 def test_connection_name(mock_postgres):
     conn = ConnectionManager.from_connect_str(
-        "postgresql://user:topsecret@somedomain.com/db"
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     )
 
     assert conn.name == "user@db"
@@ -286,7 +289,8 @@ def test_missing_duckdb_dependencies(cleanup, monkeypatch):
         ("mysql+cymysql://", "cymysql", "cymysql"),
         ("mysql+pyodbc://", "pyodbc", "pyodbc"),
         # PostgreSQL
-        ("postgresql://", "psycopg2", "psycopg2"),
+        # NOTE: the generic "postgresql://" URL is not tested because
+        # SQLAlchemy's default driver changed from psycopg2 to psycopg in 2.1
         ("postgresql+psycopg2://", "psycopg2", "psycopg2"),
         ("postgresql+psycopg://", "psycopg", "psycopg"),
         ("postgresql+pg8000://", "pg8000", "pg8000"),
@@ -453,7 +457,7 @@ def test_connections_table():
 
 def test_properties(mock_postgres):
     conn = ConnectionManager.from_connect_str(
-        "postgresql://user:topsecret@somedomain.com/db"
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     )
 
     assert "topsecret" not in conn.url
@@ -816,12 +820,12 @@ def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, c
 
 @pytest.mark.parametrize(
     "alias, expected",
-    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+    [(None, "postgresql+psycopg2://user:***@somedomain.com/db"), ("alias", "alias")],
 )
 def test_password_in_feedback_when_connecting_to_new_connection(
     mock_postgres, ip_empty, capsys, alias, expected
 ):
-    url = "postgresql://user:topsecret@somedomain.com/db"
+    url = "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     _ = ConnectionManager.set(url, displaycon=False, alias=alias)
     captured = capsys.readouterr()
     assert f"Connecting to '{expected}'" in captured.out.strip()
@@ -829,13 +833,13 @@ def test_password_in_feedback_when_connecting_to_new_connection(
 
 @pytest.mark.parametrize(
     "alias, expected",
-    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+    [(None, "postgresql+psycopg2://user:***@somedomain.com/db"), ("alias", "alias")],
 )
 def test_password_in_feedback_when_connecting_and_switching_connection(
     mock_postgres, ip_empty, capsys, alias, expected
 ):
     ip_empty.run_cell("%sql duckdb://")
-    url = "postgresql://user:topsecret@somedomain.com/db"
+    url = "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     _ = ConnectionManager.set(url, displaycon=False, alias=alias)
     captured = capsys.readouterr()
     assert (
@@ -1317,3 +1321,15 @@ def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
 )
 def test_detect_duckdb_summarize_or_select(query, expected_output):
     assert detect_duckdb_summarize_or_select(query) == expected_output
+
+
+def test_detect_duckdb_summarize_or_select_when_sqlparse_fails(monkeypatch):
+    def _raise(_):
+        raise SQLParseError("Maximum number of tokens exceeded")
+
+    monkeypatch.setattr(connection_module.sqlparse, "parse", _raise)
+
+    assert detect_duckdb_summarize_or_select("SELECT 1") is True
+    assert detect_duckdb_summarize_or_select("SUMMARIZE tbl") is True
+    assert detect_duckdb_summarize_or_select("FROM tbl SELECT *") is True
+    assert detect_duckdb_summarize_or_select("INSERT INTO tbl VALUES (1)") is False
