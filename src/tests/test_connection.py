@@ -79,7 +79,9 @@ def mock_postgres(monkeypatch, cleanup):
 
 
 def test_password_isnt_displayed(mock_postgres):
-    ConnectionManager.from_connect_str("postgresql://user:topsecret@somedomain.com/db")
+    ConnectionManager.from_connect_str(
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
+    )
 
     table = ConnectionManager.connections_table()
 
@@ -89,7 +91,7 @@ def test_password_isnt_displayed(mock_postgres):
 
 def test_connection_name(mock_postgres):
     conn = ConnectionManager.from_connect_str(
-        "postgresql://user:topsecret@somedomain.com/db"
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     )
 
     assert conn.name == "user@db"
@@ -455,7 +457,7 @@ def test_connections_table():
 
 def test_properties(mock_postgres):
     conn = ConnectionManager.from_connect_str(
-        "postgresql://user:topsecret@somedomain.com/db"
+        "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     )
 
     assert "topsecret" not in conn.url
@@ -818,12 +820,12 @@ def test_no_connecting_and_switching_connection_feedback_if_disabled(ip_empty, c
 
 @pytest.mark.parametrize(
     "alias, expected",
-    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+    [(None, "postgresql+psycopg2://user:***@somedomain.com/db"), ("alias", "alias")],
 )
 def test_password_in_feedback_when_connecting_to_new_connection(
     mock_postgres, ip_empty, capsys, alias, expected
 ):
-    url = "postgresql://user:topsecret@somedomain.com/db"
+    url = "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     _ = ConnectionManager.set(url, displaycon=False, alias=alias)
     captured = capsys.readouterr()
     assert f"Connecting to '{expected}'" in captured.out.strip()
@@ -831,13 +833,13 @@ def test_password_in_feedback_when_connecting_to_new_connection(
 
 @pytest.mark.parametrize(
     "alias, expected",
-    [(None, "postgresql://user:***@somedomain.com/db"), ("alias", "alias")],
+    [(None, "postgresql+psycopg2://user:***@somedomain.com/db"), ("alias", "alias")],
 )
 def test_password_in_feedback_when_connecting_and_switching_connection(
     mock_postgres, ip_empty, capsys, alias, expected
 ):
     ip_empty.run_cell("%sql duckdb://")
-    url = "postgresql://user:topsecret@somedomain.com/db"
+    url = "postgresql+psycopg2://user:topsecret@somedomain.com/db"
     _ = ConnectionManager.set(url, displaycon=False, alias=alias)
     captured = capsys.readouterr()
     assert (

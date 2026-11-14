@@ -37,7 +37,8 @@ DEV = [
     # 24/01/24 Pandas 2.2.0 breaking CI: https://github.com/ploomber/jupysql/issues/983
     "pandas<2.2.0",  # previously pinned to 2.0.3
     "polars==0.17.2",  # 04/18/23 this breaks our CI
-    "pyarrow",
+    # pyarrow 16+ requires NumPy 2, but pandas<2.2 requires NumPy 1
+    "pyarrow<16",
     "invoke",
     "pkgmt",
     "twine",
