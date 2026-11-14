@@ -2,6 +2,8 @@
 
 ## 0.11.2dev
 
+* [Fix] Make tests resilient to dependency-specific error messages
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages

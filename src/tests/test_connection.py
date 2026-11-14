@@ -286,7 +286,8 @@ def test_missing_duckdb_dependencies(cleanup, monkeypatch):
         ("mysql+cymysql://", "cymysql", "cymysql"),
         ("mysql+pyodbc://", "pyodbc", "pyodbc"),
         # PostgreSQL
-        ("postgresql://", "psycopg2", "psycopg2"),
+        # NOTE: the generic "postgresql://" URL is not tested because
+        # SQLAlchemy's default driver changed from psycopg2 to psycopg in 2.1
         ("postgresql+psycopg2://", "psycopg2", "psycopg2"),
         ("postgresql+psycopg://", "psycopg", "psycopg"),
         ("postgresql+pg8000://", "pg8000", "pg8000"),
