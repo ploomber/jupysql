@@ -2083,6 +2083,8 @@ expected_select = {"memid": (1, 2, 3, 5, 8)}
 )
 def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
     ip_empty.run_cell("%sql duckdb://")
+    # required by DuckDB 1.1+ to find data frames in outer frames
+    ip_empty.run_cell("%sql SET python_scan_all_frames=true")
     df = pd.DataFrame(  # noqa: F841
         data=dict(
             memid=[1, 2, 3, 5, 8],

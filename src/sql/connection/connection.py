@@ -855,6 +855,20 @@ class SQLAlchemyConnection(AbstractConnection):
         operation : callable
             A callable that takes no parameters to execute a database operation
         """
+        try:
+            return self._execute_with_error_handling_impl(operation)
+        except Exception:
+            # DuckDB aborts the current transaction when a statement fails,
+            # so roll back to leave the connection usable for subsequent
+            # statements.
+            if self.dialect == "duckdb":
+                try:
+                    self._connection.rollback()
+                except Exception:
+                    pass
+            raise
+
+    def _execute_with_error_handling_impl(self, operation):
         rollback_needed = False
 
         try:
@@ -901,13 +915,20 @@ class SQLAlchemyConnection(AbstractConnection):
                     category=JupySQLRollbackPerformed,
                 )
                 rollback_needed = True
+            # duckdb 2.x reports aborted transactions as OperationalError
+            elif "duckdb" in str(e).lower() and "please ROLLBACK" in str(e):
+                warnings.warn(
+                    "Current transaction is aborted. "
+                    "JupySQL executed a ROLLBACK operation.",
+                    category=JupySQLRollbackPerformed,
+                )
+                rollback_needed = True
             else:
                 raise
 
         except ProgrammingError as e:
-            # error when accessing previously non-existing file with duckdb using
-            # sqlalchemy 2.x
-            if "duckdb.InvalidInputException" in str(e) and "please ROLLBACK" in str(e):
+            # error when accessing previously non-existing file with duckdb
+            if "duckdb" in str(e).lower() and "please ROLLBACK" in str(e):
                 rollback_needed = True
             else:
                 raise
@@ -1153,9 +1174,10 @@ class SparkConnectConnection(AbstractConnection):
 
 def _check_if_duckdb_dbapi_connection(conn):
     """Check if the connection is a native duckdb connection"""
-    # NOTE: duckdb defines df and pl to efficiently convert results to
-    # pandas.DataFrame and polars.DataFrame respectively
-    return hasattr(conn, "df") and hasattr(conn, "pl")
+    # NOTE: duckdb defines df to efficiently convert results to pandas.DataFrame.
+    # DuckDB 2.x removed the pl method, so don't rely on it.
+    module = type(conn).__module__
+    return module.startswith(("duckdb", "_duckdb")) and hasattr(conn, "df")
 
 
 def _suggest_fix(env_var, connect_str=None):
