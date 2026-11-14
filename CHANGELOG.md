@@ -2,7 +2,7 @@
 
 ## 0.11.2dev
 
-* [API Change] Require Python 3.11+ and SQLAlchemy 2.x
+* [Fix] Require Python 3.11+ and SQLAlchemy 2.x
 * [Fix] Add support for DuckDB 2, Polars 2, pandas 3 and NumPy 2
 * [Fix] Update plot baselines for matplotlib 3.11
 * [Fix] Make tests resilient to dependency-specific error messages
