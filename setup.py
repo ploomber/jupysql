@@ -34,11 +34,12 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    # 24/01/24 Pandas 2.2.0 breaking CI: https://github.com/ploomber/jupysql/issues/983
-    "pandas<2.2.0",  # previously pinned to 2.0.3
+    # pandas 2.2+ dropped support for SQLAlchemy 1.x; the SQLAlchemy 1.x
+    # session in noxfile.py downgrades pandas
+    "pandas<3",
     "polars==0.17.2",  # 04/18/23 this breaks our CI
-    # pyarrow 16+ requires NumPy 2, but pandas<2.2 requires NumPy 1
-    "pyarrow<16",
+    # pyarrow 26+ requires NumPy 2, but matplotlib 3.7 image tests use NumPy 1
+    "pyarrow<26",
     "invoke",
     "pkgmt",
     "twine",
