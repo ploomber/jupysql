@@ -101,13 +101,24 @@ def test_select_df_type_is_polars(mock_resultset):
     "sql",
     [
         "BEGIN",
+        "BEGIN;",
         "-- comment\nBEGIN",
+        "-- comment\nBEGIN;",
         "/* comment */ BEGIN",
     ],
 )
 def test_sql_starts_with_begin(mock_conns, sql):
     with pytest.raises(UsageError, match="does not support transactions") as excinfo:
         run_statements(mock_conns, sql, Config)
+
+    assert excinfo.value.error_type == "RuntimeError"
+
+
+def test_begin_in_later_statement():
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
+
+    with pytest.raises(UsageError, match="does not support transactions") as excinfo:
+        run_statements(conn, "SELECT 1;\n-- comment\nBEGIN;", Config)
 
     assert excinfo.value.error_type == "RuntimeError"
 

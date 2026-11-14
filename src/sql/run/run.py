@@ -44,7 +44,8 @@ def run_statements(conn, sql, config, parameters=None):
     statement = None
 
     for statement in statements:
-        first_word = statement.strip().split()[0].lower()
+        # remove the trailing semicolon so BEGIN; is detected as well
+        first_word = statement.strip().split()[0].lower().rstrip(";")
 
         if first_word == "begin":
             raise exceptions.RuntimeError("JupySQL does not support transactions")
