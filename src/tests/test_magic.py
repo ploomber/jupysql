@@ -2480,6 +2480,15 @@ def test_query_comment_after_semicolon(ip, query, expected):
     assert list(result.dict().values())[-1][0] == expected
 
 
+DRIVER_ERROR_MARKER = "Original error message from DB driver:"
+
+
+def _assert_has_driver_error(message):
+    _, marker, payload = message.partition(DRIVER_ERROR_MARKER)
+    assert marker, f"missing {DRIVER_ERROR_MARKER!r}"
+    assert payload.strip(), "driver error payload is empty"
+
+
 @pytest.mark.parametrize(
     "query, error_type, error_messages",
     [
@@ -2573,7 +2582,9 @@ SELECT * FROM penguins.csv;"""
 
     # Test error and message
     assert error_type == excinfo.value.error_type
-    assert all(message in str(excinfo.value) for message in error_messages)
+    result_msg = str(excinfo.value)
+    assert all(message in result_msg for message in error_messages)
+    _assert_has_driver_error(result_msg)
 
 
 @pytest.mark.parametrize(
