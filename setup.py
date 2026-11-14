@@ -38,7 +38,9 @@ DEV = [
     # session in noxfile.py downgrades pandas
     "pandas<3",
     "polars==0.17.2",  # 04/18/23 this breaks our CI
-    # pyarrow 26+ requires NumPy 2, but matplotlib 3.7 image tests use NumPy 1
+    # matplotlib 3.7 (pinned for the image baselines) is not compatible with NumPy 2
+    "numpy<2",
+    # pyarrow 26+ requires NumPy 2
     "pyarrow<26",
     "invoke",
     "pkgmt",
