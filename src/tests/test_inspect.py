@@ -285,10 +285,15 @@ ATTACH DATABASE 'another.db' as 'another_schema';
 """
     )
 
-    pt = PrettyTable(field_names=field_names)
-    pt.add_rows(rows)
+    if field_names:
+        pt = PrettyTable(field_names=field_names)
+        pt.add_rows(rows)
+        expected = str(pt)
+    else:
+        # PrettyTable can't render tables without columns
+        expected = ""
 
-    assert str(inspect.get_columns(name=name, schema=schema)) == str(pt)
+    assert str(inspect.get_columns(name=name, schema=schema)) == expected
 
 
 @pytest.mark.parametrize(

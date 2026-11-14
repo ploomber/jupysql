@@ -237,13 +237,13 @@ def boxplot(table, column, *, orient="v", with_=None, conn=None, ax=None, schema
 
     if isinstance(column, str):
         stats = [_boxplot_stats(conn, _table, column, with_=with_)]
-        ax.bxp(stats, vert=vert)
+        ax.bxp(stats, orientation="vertical" if vert else "horizontal")
         ax.set_title(f"{column!r} from {table!r}")
         set_label(column)
         set_ticklabels([column])
     else:
         stats = [_boxplot_stats(conn, _table, col, with_=with_) for col in column]
-        ax.bxp(stats, vert=vert)
+        ax.bxp(stats, orientation="vertical" if vert else "horizontal")
         ax.set_title(f"Boxplot from {table!r}")
         set_ticklabels(column)
 

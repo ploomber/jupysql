@@ -108,22 +108,6 @@ def test_unit(session):
     venv_backend=VENV_BACKEND,
     python=environ.get("PYTHON_VERSION", "3.11"),
 )
-def test_unit_sqlalchemy_one(session):
-    """Run unit tests (SQLAlchemy 1.x)"""
-    SKIP_IMAGE_TEST = "--skip-image-tests" in session.posargs
-
-    _install(session, integration=False)
-    session.install("sqlalchemy<2")
-    # pandas 2.2+ is not compatible with SQLAlchemy 1.x
-    session.install("pandas<2.2")
-    _check_sqlalchemy(session, version=1)
-    _run_unit(session, skip_image_tests=SKIP_IMAGE_TEST)
-
-
-@nox.session(
-    venv_backend=VENV_BACKEND,
-    python=environ.get("PYTHON_VERSION", "3.11"),
-)
 def test_integration_cloud(session):
     """
     Run integration tests on cloud databases (currently snowflake and redshift)

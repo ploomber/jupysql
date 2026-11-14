@@ -181,8 +181,17 @@ class Columns(DatabaseInspection):
             schema, name = name.split(".")
         columns = inspector.get_columns(name, schema) or []
 
+        # PrettyTable can't render a table without columns (it raises in
+        # prettytable 3.18+), so return an empty representation.
+        field_names = _get_row_with_most_keys(columns)
+
+        if not field_names:
+            self._table_html = ""
+            self._table_txt = ""
+            return
+
         self._table = PrettyTable()
-        self._table.field_names = _get_row_with_most_keys(columns)
+        self._table.field_names = field_names
 
         for row in columns:
             self._table.add_row(
