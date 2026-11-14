@@ -12,6 +12,7 @@ import sqlite3
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy import exc
+from sqlparse.exceptions import SQLParseError
 
 
 from sql.connection import connection as connection_module
@@ -1317,3 +1318,15 @@ def test_database_in_directory_that_doesnt_exist(tmp_empty, uri, expected):
 )
 def test_detect_duckdb_summarize_or_select(query, expected_output):
     assert detect_duckdb_summarize_or_select(query) == expected_output
+
+
+def test_detect_duckdb_summarize_or_select_when_sqlparse_fails(monkeypatch):
+    def _raise(_):
+        raise SQLParseError("Maximum number of tokens exceeded")
+
+    monkeypatch.setattr(connection_module.sqlparse, "parse", _raise)
+
+    assert detect_duckdb_summarize_or_select("SELECT 1") is True
+    assert detect_duckdb_summarize_or_select("SUMMARIZE tbl") is True
+    assert detect_duckdb_summarize_or_select("FROM tbl SELECT *") is True
+    assert detect_duckdb_summarize_or_select("INSERT INTO tbl VALUES (1)") is False
