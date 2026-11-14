@@ -114,13 +114,35 @@ def test_sql_starts_with_begin(mock_conns, sql):
     assert excinfo.value.error_type == "RuntimeError"
 
 
-def test_begin_in_later_statement():
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT 1;\nBEGIN",
+        "SELECT 1;\nBEGIN;",
+        "SELECT 1;\n-- comment\nBEGIN;",
+    ],
+)
+def test_begin_in_later_statement(sql):
     conn = SQLAlchemyConnection(create_engine("sqlite://"))
 
     with pytest.raises(UsageError, match="does not support transactions") as excinfo:
-        run_statements(conn, "SELECT 1;\n-- comment\nBEGIN;", Config)
+        run_statements(conn, sql, Config)
 
     assert excinfo.value.error_type == "RuntimeError"
+
+
+def test_postgres_metacommand_after_comment(mock_conns, monkeypatch):
+    mock_conns._dialect = "postgresql"
+    mock_conns.raw_execute = Mock()
+
+    handler = Mock(return_value=Mock())
+    monkeypatch.setattr("sql.run.run.handle_postgres_special", handler)
+    monkeypatch.setattr("sql.run.run.ResultSet", Mock())
+
+    run_statements(mock_conns, "-- comment\n\\d table", Config)
+
+    handler.assert_called_once_with(mock_conns, "\\d table")
+    mock_conns.raw_execute.assert_not_called()
 
 
 def test_sql_is_empty(mock_conns):
