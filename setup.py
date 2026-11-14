@@ -16,7 +16,8 @@ with open("src/sql/__init__.py", "rb") as f:
     )
 
 install_requires = [
-    "prettytable>=3.12.0",
+    # 3.18.0 raises ValueError when rendering a table with no columns
+    "prettytable>=3.12.0,<3.18.0",
     # IPython dropped support for Python 3.8
     "ipython<=8.12.0; python_version <= '3.8'",
     "sqlalchemy",
@@ -46,7 +47,7 @@ DEV = [
     "pyodbc",
     # sql.plot module tests
     "matplotlib==3.7.2",
-    "black",
+    "black==25.1.0",
     # for %%sql --interact
     "ipywidgets",
     # for running tests for %sqlcmd explore --table
