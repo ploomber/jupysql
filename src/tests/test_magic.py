@@ -582,15 +582,21 @@ def test_connection_args_enforce_json(ip):
 @pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_in_connection(ip):
     ip.run_cell('%sql --connection_arguments {"timeout":10} sqlite:///:memory:')
-    result = ip.run_cell("%sql --connections")
-    assert "timeout" in result.result["sqlite:///:memory:"].connect_args
+    connections = ip.run_cell("%sql --connections").result
+    # don't rely on the exact connection string since it varies across
+    # SQLAlchemy versions (e.g. sqlite:///:memory: vs sqlite:///%3Amemory%3A)
+    assert any(
+        "timeout" in (connections[key].connect_args or {}) for key in connections
+    )
 
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="failing on windows")
 def test_connection_args_single_quotes(ip):
     ip.run_cell("%sql --connection_arguments '{\"timeout\": 10}' sqlite:///:memory:")
-    result = ip.run_cell("%sql --connections")
-    assert "timeout" in result.result["sqlite:///:memory:"].connect_args
+    connections = ip.run_cell("%sql --connections").result
+    assert any(
+        "timeout" in (connections[key].connect_args or {}) for key in connections
+    )
 
 
 def test_displaylimit_no_limit(ip):
@@ -1171,9 +1177,9 @@ def test_error_on_invalid_connection_string(ip_empty, clean_conns):
     assert invalid_connection_string.strip() == str(excinfo.value)
 
 
+# These tests only assert JupySQL's own guidance: the first line of the error
+# comes from SQLAlchemy and its wording changes across versions.
 invalid_connection_string_format = f"""\
-Can't load plugin: sqlalchemy.dialects:something
-
 To fix it, make sure you are using correct driver name:
 Ref: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
 
@@ -1185,7 +1191,7 @@ def test_error_on_invalid_connection_string_format(ip_empty, clean_conns):
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(excinfo.value)
+    assert invalid_connection_string_format.strip() in str(excinfo.value)
 
 
 def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_conns):
@@ -1194,12 +1200,10 @@ def test_error_on_invalid_connection_string_with_existing_conns(ip_empty, clean_
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql something://")
 
-    assert invalid_connection_string_format.strip() == str(excinfo.value)
+    assert invalid_connection_string_format.strip() in str(excinfo.value)
 
 
-invalid_connection_string_with_possible_typo = f"""
-Can't load plugin: sqlalchemy.dialects:sqlit
-
+invalid_connection_string_with_possible_typo = f"""\
 Perhaps you meant to use driver the dialect: "sqlite"
 
 For more details, see: {PLOOMBER_DOCS_LINK_STR}
@@ -1212,13 +1216,8 @@ def test_error_on_invalid_connection_string_with_possible_typo(ip_empty, clean_c
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql sqlit://")
 
-    assert invalid_connection_string_with_possible_typo.strip() == str(excinfo.value)
+    assert invalid_connection_string_with_possible_typo.strip() in str(excinfo.value)
 
-
-invalid_connection_string_duckdb_top = """
-An error happened while creating the connection: connect(): incompatible function arguments. The following argument types are supported:
-    1. (database: str = ':memory:', read_only: bool = False, config: dict = None) -> duckdb.DuckDBPyConnection
-"""  # noqa
 
 invalid_connection_string_duckdb_bottom = f"""
 Perhaps you meant to use the 'duckdb' db 
@@ -1237,7 +1236,7 @@ def test_error_on_invalid_connection_string_duckdb(ip_empty, clean_conns):
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql duckdb://invalid_db")
 
-    assert invalid_connection_string_duckdb_top.strip() in str(excinfo.value)
+    # don't assert the exact driver error wording
     assert invalid_connection_string_duckdb_bottom.strip() in str(excinfo.value)
 
 
@@ -1420,9 +1419,8 @@ def test_save_with_non_existing_table(ip):
         ip.run_cell("%sql --save my_query SELECT * FROM non_existing_table")
 
     assert excinfo.value.error_type == "RuntimeError"
-    assert "(sqlite3.OperationalError) no such table: non_existing_table" in str(
-        excinfo.value
-    )
+    # don't assert the exact driver error wording
+    assert "non_existing_table" in str(excinfo.value)
 
 
 def test_interact_basic_data_types(ip, capsys):
@@ -1783,7 +1781,8 @@ drivername = not-a-driver
     with pytest.raises(UsageError) as excinfo:
         ip_empty.run_cell("%sql --section section")
 
-    message = "Could not parse SQLAlchemy URL from string 'not-a-driver://'"
+    # SQLAlchemy changed the wording of this error across versions
+    message = "Could not parse SQLAlchemy URL"
     assert message in str(excinfo.value)
 
 
@@ -2084,6 +2083,8 @@ expected_select = {"memid": (1, 2, 3, 5, 8)}
 )
 def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
     ip_empty.run_cell("%sql duckdb://")
+    # required by DuckDB 1.1+ to find data frames in outer frames
+    ip_empty.run_cell("%sql SET python_scan_all_frames=true")
     df = pd.DataFrame(  # noqa: F841
         data=dict(
             memid=[1, 2, 3, 5, 8],
@@ -2108,7 +2109,7 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
             """,
             "%sql select not_a_function(id) from mysnippet",
             [
-                "Scalar Function with name not_a_function does not exist!",
+                "not_a_function",
             ],
             "RuntimeError",
         ),
@@ -2126,7 +2127,6 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
-                "Table with name mysnip does not exist!",
             ],
             "TableNotFoundError",
         ),
@@ -2138,7 +2138,7 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
             """,
             "%sql select not_a_function(name) from mysnippet",
             [
-                "no such function: not_a_function",
+                "not_a_function",
             ],
             "RuntimeError",
         ),
@@ -2152,7 +2152,6 @@ def test_comments_in_duckdb_select_summarize(ip_empty, cell, expected_output):
             [
                 "If using snippets, you may pass the --with argument explicitly.",
                 "There is no table with name 'mysnip'",
-                "no such table: mysnip",
             ],
             "TableNotFoundError",
         ),
@@ -2483,82 +2482,61 @@ def test_query_comment_after_semicolon(ip, query, expected):
     assert list(result.dict().values())[-1][0] == expected
 
 
+DRIVER_ERROR_MARKER = "Original error message from DB driver:"
+
+
+def _assert_has_driver_error(message):
+    _, marker, payload = message.partition(DRIVER_ERROR_MARKER)
+    assert marker, f"missing {DRIVER_ERROR_MARKER!r}"
+    assert payload.strip(), "driver error payload is empty"
+
+
 @pytest.mark.parametrize(
-    "query, error_type, error_message",
+    "query, error_type, error_messages",
     [
         (
             """%%sql
 SELECT * FROM snip;
 SELECT * from temp;""",
             "TableNotFoundError",
-            """If using snippets, you may pass the --with argument explicitly.
-For more details please refer: \
-https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
-
-There is no table with name 'snip'.
-Did you mean: 'snippet'
-
-
-Original error message from DB driver:
-(duckdb.duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
-Did you mean "temp"?
-LINE 1: SELECT * FROM snip;
-                      ^
-[SQL: SELECT * FROM snip;]""",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'snip'.",
+                "Did you mean: 'snippet'",
+                "Original error message from DB driver:",
+            ],
         ),
         (
             """%%sql
 SELECT * FROM snippet;
 SELECT * from tem;""",
             "RuntimeError",
-            """If using snippets, you may pass the --with argument explicitly.
-For more details please refer: \
-https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
-
-
-Original error message from DB driver:
-(duckdb.duckdb.CatalogException) Catalog Error: Table with name tem does not exist!
-Did you mean "temp"?
-LINE 1: SELECT * from tem;
-                      ^
-[SQL: SELECT * from tem;]""",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Original error message from DB driver:",
+            ],
         ),
         (
             """%%sql
 SELECT * FROM snip;
 SELECT * from tem;""",
             "TableNotFoundError",
-            """If using snippets, you may pass the --with argument explicitly.
-For more details please refer: \
-https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
-
-There is no table with name 'snip'.
-Did you mean: 'snippet'
-
-
-Original error message from DB driver:
-(duckdb.duckdb.CatalogException) Catalog Error: Table with name snip does not exist!
-Did you mean "temp"?
-LINE 1: SELECT * FROM snip;
-                      ^
-[SQL: SELECT * FROM snip;]""",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "There is no table with name 'snip'.",
+                "Did you mean: 'snippet'",
+                "Original error message from DB driver:",
+            ],
         ),
         (
             """%%sql
 SELECT * FROM s;
 SELECT * from temp;""",
             "RuntimeError",
-            """If using snippets, you may pass the --with argument explicitly.
-For more details please refer: \
-https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
-
-
-Original error message from DB driver:
-(duckdb.duckdb.CatalogException) Catalog Error: Table with name s does not exist!
-Did you mean "temp"?
-LINE 1: SELECT * FROM s;
-                      ^
-[SQL: SELECT * FROM s;]""",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Original error message from DB driver:",
+            ],
         ),
         (
             """%%sql
@@ -2566,17 +2544,10 @@ DROP TABLE temp;
 SELECT * FROM snippet;
 SELECT * from temp;""",
             "RuntimeError",
-            """If using snippets, you may pass the --with argument explicitly.
-For more details please refer: \
-https://jupysql.readthedocs.io/en/latest/compose.html#with-argument
-
-
-Original error message from DB driver:
-(duckdb.duckdb.CatalogException) Catalog Error: Table with name snippet does not exist!
-Did you mean "pg_type"?
-LINE 1: SELECT * FROM snippet;
-                      ^
-[SQL: SELECT * FROM snippet;]""",
+            [
+                "If using snippets, you may pass the --with argument explicitly.",
+                "Original error message from DB driver:",
+            ],
         ),
     ],
     ids=[
@@ -2588,7 +2559,7 @@ LINE 1: SELECT * FROM snippet;
     ],
 )
 def test_table_does_not_exist_with_snippet_error(
-    ip_empty, query, error_type, error_message
+    ip_empty, query, error_type, error_messages
 ):
     ip_empty.run_cell(
         """%load_ext sql
@@ -2613,7 +2584,9 @@ SELECT * FROM penguins.csv;"""
 
     # Test error and message
     assert error_type == excinfo.value.error_type
-    assert error_message in str(excinfo.value)
+    result_msg = str(excinfo.value)
+    assert all(message in result_msg for message in error_messages)
+    _assert_has_driver_error(result_msg)
 
 
 @pytest.mark.parametrize(

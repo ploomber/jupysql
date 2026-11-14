@@ -17,14 +17,12 @@ with open("src/sql/__init__.py", "rb") as f:
 
 install_requires = [
     "prettytable>=3.12.0",
-    # IPython dropped support for Python 3.8
-    "ipython<=8.12.0; python_version <= '3.8'",
-    "sqlalchemy",
+    "sqlalchemy>=2",
+    "ipython",
     "sqlparse",
     "ipython-genutils>=0.1.0",
     "jinja2",
     "sqlglot>=11.3.7",
-    'importlib-metadata;python_version<"3.8"',
     # we removed the share notebook button in this version
     "jupysql-plugin>=0.4.2",
     "ploomber-core>=0.2.7",
@@ -33,20 +31,20 @@ install_requires = [
 DEV = [
     "flake8",
     "pytest",
-    # 24/01/24 Pandas 2.2.0 breaking CI: https://github.com/ploomber/jupysql/issues/983
-    "pandas<2.2.0",  # previously pinned to 2.0.3
-    "polars==0.17.2",  # 04/18/23 this breaks our CI
-    "pyarrow",
+    "pandas==3.1.1",
+    "numpy==2.4.6",
+    "pyarrow==26.0.1",
+    "polars==2.1.0",
     "invoke",
     "pkgmt",
     "twine",
     # tests
-    "duckdb<1.1.0",
+    "duckdb==2.0.0",
     "duckdb-engine",
     "pyodbc",
-    # sql.plot module tests
-    "matplotlib==3.7.2",
-    "black",
+    # sql.plot module tests; pinned because the tests compare against baseline images
+    "matplotlib==3.11.2",
+    "black==25.1.0",
     # for %%sql --interact
     "ipywidgets",
     # for running tests for %sqlcmd explore --table
@@ -91,7 +89,11 @@ setup(
         "Topic :: Database",
         "Topic :: Database :: Front-Ends",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
+    python_requires=">=3.11",
     keywords="database ipython postgresql mysql duckdb",
     author="Ploomber",
     author_email="contact@ploomber.io",

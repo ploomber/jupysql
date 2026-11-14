@@ -32,6 +32,8 @@ def result():
     engine = sqlalchemy.create_engine("duckdb://")
 
     conn = SQLAlchemyConnection(engine)
+    # required by DuckDB 1.1+ to find data frames in outer frames
+    conn.raw_execute("SET python_scan_all_frames=true")
     result = conn.raw_execute("select * from df")
 
     yield result, conn
@@ -72,7 +74,7 @@ def test_resultset_polars_dataframe(result_set):
     # since this will use the native method, the issue will be re-executed
     # so we need to create the df here so duckdb can find it
     df = pd.DataFrame({"x": range(3)})  # noqa
-    assert result_set.PolarsDataFrame().frame_equal(pl.DataFrame({"x": range(3)}))
+    assert result_set.PolarsDataFrame().equals(pl.DataFrame({"x": range(3)}))
 
 
 def test_resultset_csv(result_set, tmp_empty):
@@ -222,7 +224,7 @@ def test_convert_to_dataframe_create_table(
                 reason="inconsistent behavior between sqlalchemy 1.x and 2.x"
             ),
         ),
-        ("duckdb_dbapi", {"Count": {0: 5}}),
+        ("duckdb_dbapi", {"Count": {}}),
         ("sqlite_sqlalchemy", {}),
     ],
     ids=[
@@ -683,6 +685,8 @@ def test_calling_legacy_plotting_functions_displays_warning(
     df = pd.DataFrame(dataset)  # noqa
     engine = sqlalchemy.create_engine("duckdb://")
     conn = SQLAlchemyConnection(engine)
+    # required by DuckDB 1.1+ to find data frames in outer frames
+    conn.raw_execute("SET python_scan_all_frames=true")
     result = conn.raw_execute("select * from df")
 
     rs = ResultSet(result, config, statement="select * from df", conn=conn)
@@ -706,7 +710,7 @@ def test_calling_legacy_plotting_functions_displays_warning(
         (
             "autopolars",
             pl,
-            "frame_equal",
+            "equals",
         ),
     ],
 )

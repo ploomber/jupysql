@@ -63,11 +63,6 @@ def test_infer_dependencies(ip, capsys):
 TABLE_NAME_TYPO_ERR_MSG = """
 There is no table with name 'author_subb'.
 Did you mean: 'author_sub'
-
-
-Original error message from DB driver:
-(sqlite3.OperationalError) no such table: author_subb
-[SQL: SELECT last_name FROM author_subb;]
 """
 
 
@@ -86,7 +81,12 @@ def test_table_name_typo(ip):
         )
 
     assert excinfo.value.error_type == "TableNotFoundError"
-    assert TABLE_NAME_TYPO_ERR_MSG.strip() in str(excinfo.value)
+    message = str(excinfo.value)
+    assert TABLE_NAME_TYPO_ERR_MSG.strip() in message
+
+    _, marker, payload = message.partition("Original error message from DB driver:")
+    assert marker
+    assert payload.strip()
 
 
 def test_snippets_delete(ip, capsys):
