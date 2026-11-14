@@ -2,7 +2,7 @@
 
 ## 0.11.2dev
 
-* [Fix] Handle empty SQL statements gracefully (#1066)
+* [Fix] Handle `%%sql` cells containing only comments and comments before `BEGIN` ([#1066](https://github.com/ploomber/jupysql/issues/1066))
 
 ## 0.11.1 (2025-03-25)
 

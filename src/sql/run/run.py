@@ -29,29 +29,21 @@ def run_statements(conn, sql, config, parameters=None):
     .. literalinclude:: ../../examples/run_statements.py
 
     """
-    # First, try to extract the usable SQL statements without comments
-    statements = list(
-        filter(
-            None,
-            map(
-                lambda stmt: sqlparse.format(stmt, strip_comments=True),
-                sqlparse.split(sql),
-            ),
-        )
-    )
+    # Strip comments from each statement so that comment-only statements (and
+    # comments before a statement) are not treated as executable SQL.
+    statements = [
+        sqlparse.format(statement, strip_comments=True)
+        for statement in sqlparse.split(sql)
+    ]
+    statements = [statement for statement in statements if statement.strip()]
 
-    # Handle the empty SQL case
-    if not sql.strip() or not statements:
+    if not statements:
         return "Connected: %s" % conn.name
 
-    # Ensure we have some return value. This maintains type checkers happy
     result = None
     statement = None
 
     for statement in statements:
-        if not statement.strip():
-            continue
-
         first_word = statement.strip().split()[0].lower()
 
         if first_word == "begin":

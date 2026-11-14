@@ -97,9 +97,17 @@ def test_select_df_type_is_polars(mock_resultset):
     assert isinstance(output, polars.DataFrame)
 
 
-def test_sql_starts_with_begin(mock_conns):
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "BEGIN",
+        "-- comment\nBEGIN",
+        "/* comment */ BEGIN",
+    ],
+)
+def test_sql_starts_with_begin(mock_conns, sql):
     with pytest.raises(UsageError, match="does not support transactions") as excinfo:
-        run_statements(mock_conns, "BEGIN", Config)
+        run_statements(mock_conns, sql, Config)
 
     assert excinfo.value.error_type == "RuntimeError"
 
@@ -108,11 +116,31 @@ def test_sql_is_empty(mock_conns):
     assert run_statements(mock_conns, "  ", Config) == "Connected: %s" % mock_conns.name
 
 
-def test_sql_comment_only(mock_conns):
-    assert (
-        run_statements(mock_conns, "-- this is a comment", Config)
-        == "Connected: %s" % mock_conns.name
-    )
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "-- this is a comment",
+        "/* this is a comment */",
+        "# this is a comment",
+    ],
+)
+def test_sql_comment_only(mock_conns, sql):
+    assert run_statements(mock_conns, sql, Config) == "Connected: %s" % mock_conns.name
+
+
+@pytest.mark.parametrize(
+    "sql, expected",
+    [
+        ("-- comment\nSELECT 1", [(1,)]),
+        ("/* comment */ SELECT 1", [(1,)]),
+        ("SELECT 1;\n-- comment", [(1,)]),
+        ("SELECT 1;\n-- comment\nSELECT 2", [(2,)]),
+    ],
+)
+def test_run_ignores_comments(sql, expected):
+    conn = SQLAlchemyConnection(create_engine("sqlite://"))
+
+    assert list(run_statements(conn, sql, Config)) == expected
 
 
 @pytest.mark.parametrize(
