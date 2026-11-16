@@ -11,7 +11,7 @@ import warnings
 from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
 from sql.run.table import CustomPrettyTable
-from sql.run.arrowcursor import ArrowCursor
+from sql.run.arrowcursor import ArrowCursor, intervals_to_durations
 from sql._current import _config_feedback_all
 
 from sql.exceptions import RuntimeError
@@ -510,9 +510,8 @@ def _convert_to_data_frame(
     constructor_kwargs = constructor_kwargs or {}
 
     if converter_name == "pl" and isinstance(result_set.sqlaproxy, ArrowCursor):
-        return constructor(
-            result_set.sqlaproxy.fetch_arrow_table(), **constructor_kwargs
-        )
+        table = intervals_to_durations(result_set.sqlaproxy.fetch_arrow_table())
+        return constructor(table, **constructor_kwargs)
 
     # maybe create accessors in the connection objects?
     if result_set._conn.is_dbapi_connection:

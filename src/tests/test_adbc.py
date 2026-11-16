@@ -1,7 +1,9 @@
+from datetime import timedelta
+
 import pytest
 
 from sql.connection import ADBCConnection, ConnectionManager, is_adbc
-from sql.run.arrowcursor import ArrowCursor
+from sql.run.arrowcursor import ArrowCursor, intervals_to_durations
 
 adbc_sqlite = pytest.importorskip("adbc_driver_sqlite.dbapi")
 pa = pytest.importorskip("pyarrow")
@@ -118,3 +120,21 @@ def test_arrow_cursor_fetch_methods():
 def test_resultset_arrow_table_non_adbc(ip_dbapi):
     table = ip_dbapi.run_cell("%sql SELECT * FROM test").result.ArrowTable()
     assert table.to_pydict() == {"n": [1, 2], "name": ["foo", "bar"]}
+
+
+def test_intervals_to_durations():
+    table = pa.table(
+        {
+            "iv": pa.array(
+                [pa.MonthDayNano([1, 2, 3_000_000_000]), None],
+                pa.month_day_nano_interval(),
+            )
+        }
+    )
+    out = intervals_to_durations(table)
+    assert out.schema.field("iv").type == pa.duration("us")
+    assert out.column("iv").to_pylist() == [
+        timedelta(days=32, seconds=3),
+        None,
+    ]
+    assert pl.from_arrow(out)["iv"].dtype == pl.Duration("us")

@@ -1,3 +1,33 @@
+from datetime import timedelta
+
+
+def intervals_to_durations(table):
+    """
+    Convert month_day_nano_interval columns to duration[us] (a month counts as 30
+    days, like psycopg2 and duckdb do) since polars cannot import them and rows
+    would contain pyarrow MonthDayNano objects instead of timedelta
+    """
+    import pyarrow as pa
+
+    for i, field in enumerate(table.schema):
+        if field.type != pa.month_day_nano_interval():
+            continue
+        values = [
+            (
+                None
+                if v is None
+                else timedelta(
+                    days=v.months * 30 + v.days, microseconds=v.nanoseconds // 1000
+                )
+            )
+            for v in table.column(i).to_pylist()
+        ]
+        table = table.set_column(
+            i, field.with_type(pa.duration("us")), pa.array(values, pa.duration("us"))
+        )
+    return table
+
+
 class ArrowCursor:
     """
     Wraps an ADBC DBAPI cursor so results are read as Arrow record batches.
@@ -54,7 +84,9 @@ class ArrowCursor:
     def _rows(self, stop):
         if stop <= self._offset:
             return []
-        table = self._as_table().slice(self._offset, stop - self._offset)
+        table = intervals_to_durations(
+            self._as_table().slice(self._offset, stop - self._offset)
+        )
         self._offset = stop
         return list(zip(*(column.to_pylist() for column in table.columns)))
 
