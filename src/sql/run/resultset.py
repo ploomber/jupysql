@@ -11,6 +11,7 @@ import warnings
 from sql.column_guesser import ColumnGuesserMixin
 from sql.run.csv import CSVWriter, CSVResultDescriptor
 from sql.run.table import CustomPrettyTable
+from sql.run.arrowcursor import ArrowCursor, intervals_to_durations
 from sql._current import _config_feedback_all
 
 from sql.exceptions import RuntimeError
@@ -258,6 +259,19 @@ class ResultSet(ColumnGuesserMixin):
         polars_dataframe_kwargs["schema"] = self.keys
         return _convert_to_data_frame(self, "pl", pl.DataFrame, polars_dataframe_kwargs)
 
+    def ArrowTable(self):
+        """Returns a pyarrow Table built from the result set.
+
+        .. versionadded:: 0.11.2
+        """
+        if isinstance(self.sqlaproxy, ArrowCursor):
+            return self.sqlaproxy.fetch_arrow_table()
+
+        import pyarrow as pa
+
+        columns = list(zip(*self)) or [[] for _ in self.field_names]
+        return pa.table(dict(zip(self.field_names, columns)))
+
     def pie(self, key_word_sep=" ", title=None, **kwargs):
         """Generates a pylab pie chart from the result set.
 
@@ -494,6 +508,10 @@ def _convert_to_data_frame(
     possible
     """
     constructor_kwargs = constructor_kwargs or {}
+
+    if converter_name == "pl" and isinstance(result_set.sqlaproxy, ArrowCursor):
+        table = intervals_to_durations(result_set.sqlaproxy.fetch_arrow_table())
+        return constructor(table, **constructor_kwargs)
 
     # maybe create accessors in the connection objects?
     if result_set._conn.is_dbapi_connection:

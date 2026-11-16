@@ -18,6 +18,7 @@ from sqlalchemy.exc import (
 )
 
 from sql.run.sparkdataframe import handle_spark_dataframe
+from sql.run.arrowcursor import ArrowCursor
 
 from IPython.core.error import UsageError
 import sqlglot
@@ -256,6 +257,8 @@ class ConnectionManager:
                 cls.current = SQLAlchemyConnection(
                     descriptor, config=config, alias=alias
                 )
+            elif is_adbc(descriptor):
+                cls.current = ADBCConnection(descriptor, config=config, alias=alias)
             elif is_pep249_compliant(descriptor):
                 cls.current = DBAPIConnection(descriptor, config=config, alias=alias)
             elif is_spark(descriptor):
@@ -1079,6 +1082,66 @@ class DBAPIConnection(AbstractConnection):
             "--persist/--persist-replace is not available for DBAPI connections"
             " (only available for SQLAlchemy connections)"
         )
+
+
+class ADBCConnection(DBAPIConnection):
+    """A connection object for ADBC DBAPI connections (adbc_driver_manager.dbapi)
+
+    Results are read as Arrow record batches, so converting to polars or Arrow
+    does not go through Python rows.
+
+    .. versionadded:: 0.11.2
+    """
+
+    def __init__(self, connection, alias=None, config=None):
+        info = _get_adbc_info(connection)
+        vendor = (info.get("vendor_name") or "").lower()
+        default_alias = f"adbc-{vendor}" if vendor else None
+        super().__init__(connection, alias=alias or default_alias, config=config)
+        self._dialect = ADBC_VENDOR_TO_DIALECT.get(vendor, vendor or None)
+        self._driver = info.get("driver_name")
+        self._server_version = info.get("vendor_version")
+
+        # committing after execute would cancel the open Arrow stream (e.g. the
+        # PostgreSQL driver streams via COPY), so use driver-level autocommit
+        if self._requires_manual_commit:
+            try:
+                connection.adbc_connection.set_autocommit(True)
+            except Exception:
+                pass
+            else:
+                self._requires_manual_commit = False
+
+    def raw_execute(self, query, parameters=None, with_=None):
+        return ArrowCursor(super().raw_execute(query, parameters, with_))
+
+    def _get_database_information(self):
+        return {
+            "dialect": self.dialect,
+            "driver": self._driver or self._connection_class_name,
+            "server_version_info": self._server_version,
+        }
+
+
+ADBC_VENDOR_TO_DIALECT = {"postgresql": "postgresql", "sqlite": "sqlite"}
+
+
+def _get_adbc_info(conn):
+    try:
+        return conn.adbc_get_info()
+    except Exception:
+        return {}
+
+
+def is_adbc(conn):
+    """Check if the connection is an ADBC DBAPI connection
+
+    .. versionadded:: 0.11.2
+    """
+    return any(
+        cls.__module__ == "adbc_driver_manager.dbapi" and cls.__name__ == "Connection"
+        for cls in type(conn).__mro__
+    )
 
 
 class SparkConnectConnection(AbstractConnection):

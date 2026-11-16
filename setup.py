@@ -43,6 +43,7 @@ DEV = [
     # tests
     "duckdb<1.1.0",
     "duckdb-engine",
+    "adbc-driver-sqlite",
     "pyodbc",
     # sql.plot module tests
     "matplotlib==3.7.2",
