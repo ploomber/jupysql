@@ -2,6 +2,8 @@
 
 ## 0.11.2dev
 
+* [Feature] ADBC DBAPI connections (`adbc_driver_manager.dbapi`) read results as Arrow record batches; `.PolarsDataFrame()` and the new `.ArrowTable()` skip row-by-row conversion
+
 ## 0.11.1 (2025-03-25)
 
 * [Fix] No longer showing the Slack link in error messages
